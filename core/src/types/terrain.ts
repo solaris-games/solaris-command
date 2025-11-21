@@ -23,7 +23,6 @@ export enum TerrainTypes {
 
   // Urban/Fortified
   // Effect: Massive Defense bonus. 
-  // Mechanical logic: Stations or Megastructures provide supply and high defense.
-  STATION = 'STATION',
+  // Mechanical logic: Megastructures provide high defense.
   INDUSTRIAL_ZONE = 'INDUSTRIAL_ZONE'
 }
