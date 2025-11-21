@@ -1,0 +1,42 @@
+import express from 'express';
+import { MongoClient } from 'mongodb';
+import cors from 'cors';
+import dotenv from 'dotenv';
+
+import { Game } from '@solaris-command/core'; 
+
+dotenv.config();
+
+const app = express();
+const port = process.env.PORT || 3000;
+const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/solaris-command';
+
+app.use(cors());
+app.use(express.json());
+
+let db;
+
+async function startServer() {
+  try {
+    // 1. Connect to MongoDB
+    const client = await MongoClient.connect(mongoUri);
+    db = client.db();
+    console.log('✅ Connected to MongoDB');
+
+    // 2. Start Express
+    app.listen(port, () => {
+      console.log(`🚀 Server running at http://localhost:${port}`);
+    });
+
+    // Example Route using Shared Type
+    app.get('/status', (req, res) => {
+      res.json({ status: 'Solaris: Command Server Online' });
+    });
+
+  } catch (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  }
+}
+
+startServer();

@@ -1,0 +1,8 @@
+{
+  "name": "@solaris-command/core",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "dependencies": {
+    "mongodb": "^6.0.0" 
+  }
+}
