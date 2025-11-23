@@ -10,6 +10,8 @@ import { UnitManager } from './unit-manager';
 
 export const GameManager = {
   
+  // TODO: Process tick
+
   /**
    * THE MASTER LOOP
    * This function will be called by a Cron Job / Ticker every time a Cycle completes.
@@ -25,9 +27,6 @@ export const GameManager = {
     const playerUpdates = new Map<string, Partial<Player>>();
     
     let winnerId: ObjectId | null = null;
-
-    // TODO: Combat resolution
-    // TODO: Unit movement
 
     // 1. Process each Player independently
     players.forEach(player => {
