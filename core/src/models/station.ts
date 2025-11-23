@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { HexCoords } from '../types/geometry';
+import { HexCoord } from '../types/geometry';
 import { SupplySource } from '../types/supply';
 
 export enum StationStatuses {
@@ -14,6 +14,6 @@ export interface Station {
   playerId: ObjectId | null;
 
   status: StationStatuses
-  location: HexCoords;
+  location: HexCoord;
   supply: SupplySource;
 }

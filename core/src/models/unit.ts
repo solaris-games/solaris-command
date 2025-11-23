@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
-import { HexCoords } from '../types/geometry';
+import { HexCoord } from '../types/geometry';
 import { SupplyTarget } from '../types/supply';
-import { SpecialistTypes, UnitStatuses, UnitClasses } from '../types/unit';
+import { SpecialistType, UnitStatus, UnitClass } from '../types/unit';
 
 export interface UnitStats {
   ap: number;              // Action Points (Refills every cycle)
@@ -28,7 +28,7 @@ export interface UnitSpecialist {
   name: string
   description: string
   cost: number
-  type: SpecialistTypes;
+  type: SpecialistType;
   stats: {
     // Combat Stats
     attack: number;          // Base attack addition
@@ -50,11 +50,11 @@ export interface UnitStep {
 }
 
 export interface UnitMovement {
-  path: HexCoords[];       // List of hexes to travel
+  path: HexCoord[];       // List of hexes to travel
 }
 
 export interface UnitCombat {
-  targetHex: HexCoords | null; // If Preparing, where are we attacking?
+  targetHex: HexCoord | null; // If Preparing, where are we attacking?
   cooldownEndTick: number | null;     // Which tick does Regrouping end?
   combatTriggerTick: number | null;   // Which tick does the Attack land?
 }
@@ -65,9 +65,9 @@ export interface Unit {
   playerId: ObjectId;
   
   name: string;
-  class: UnitClasses;
-  location: HexCoords; // Current position
-  status: UnitStatuses;
+  class: UnitClass;
+  location: HexCoord; // Current position
+  status: UnitStatus;
   steps: UnitStep[];
   stats: UnitStats;
   movement: UnitMovement;

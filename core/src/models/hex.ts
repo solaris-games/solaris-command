@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
-import { HexCoords } from '../types/geometry';
-import { TerrainTypes } from '../types/terrain';
+import { HexCoord } from '../types/geometry';
+import { TerrainType } from '../types/hex';
 import { SupplyTarget } from '../types/supply';
 
 export interface Hex {
@@ -8,8 +8,8 @@ export interface Hex {
   gameId: ObjectId;
   unitId: ObjectId | null;  // One unit per hex.
   
-  coords: HexCoords; // { q, r, s }
-  terrain: TerrainTypes;
+  coords: HexCoord; // { q, r, s }
+  terrain: TerrainType;
   supply: SupplyTarget;
   isImpassable: boolean; // Blocks movement completely
 }

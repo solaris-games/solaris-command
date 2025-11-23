@@ -1,4 +1,4 @@
-export enum TerrainTypes {
+export enum TerrainType {
   // Standard Open Space
   // Effect: Base movement, full Armor shifts allowed.
   EMPTY = 'EMPTY',

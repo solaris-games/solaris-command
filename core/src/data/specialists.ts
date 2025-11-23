@@ -1,10 +1,10 @@
 import { UnitSpecialist } from '../models';
-import { SpecialistTypes } from '../types';
+import { SpecialistType } from '../types';
 
 export const SPECIALIST_CATALOG: UnitSpecialist[] = [
   {
     id: "spec_artillery_01",
-    type: SpecialistTypes.ARTILLERY,
+    type: SpecialistType.ARTILLERY,
     name: "Railgun Battery",
     description: "Long-range kinetic bombardment. Applies an Artillery Shift before main combat begins.",
     cost: 150,
@@ -19,7 +19,7 @@ export const SPECIALIST_CATALOG: UnitSpecialist[] = [
   },
   {
     id: "spec_marines_01",
-    type: SpecialistTypes.MARINES,
+    type: SpecialistType.MARINES,
     name: "Orbital Drop Corps",
     description: "Elite infantry for boarding actions and planetary assault. Negates defensive bonuses of Stations and Planets.",
     cost: 100,
@@ -34,7 +34,7 @@ export const SPECIALIST_CATALOG: UnitSpecialist[] = [
   },
   {
     id: "spec_recon_01",
-    type: SpecialistTypes.RECON,
+    type: SpecialistType.RECON,
     name: "AWACS Wing",
     description: "Advanced sensors and electronic warfare. Captures adjacent hexes during movement and allows retreat through enemy ZOC.",
     cost: 75,
@@ -49,7 +49,7 @@ export const SPECIALIST_CATALOG: UnitSpecialist[] = [
   },
   {
     id: "spec_logistics_01",
-    type: SpecialistTypes.LOGISTICS,
+    type: SpecialistType.LOGISTICS,
     name: "Fleet Tender",
     description: "Carries fuel and repair drones. Extends the unit's Out of Supply grace period by 1 Cycle.",
     cost: 125,
@@ -64,7 +64,7 @@ export const SPECIALIST_CATALOG: UnitSpecialist[] = [
   },
   {
     id: "spec_torpedo_01",
-    type: SpecialistTypes.TORPEDO,
+    type: SpecialistType.TORPEDO,
     name: "Strike Bombers",
     description: "Dedicated anti-capital ship munitions. Negates the Armor Shift of heavy targets.",
     cost: 125,
@@ -79,7 +79,7 @@ export const SPECIALIST_CATALOG: UnitSpecialist[] = [
   },
   {
     id: "spec_flak_01",
-    type: SpecialistTypes.FLAK,
+    type: SpecialistType.FLAK,
     name: "CIWS Network",
     description: "Point-defense grid. Provides high defense and prioritized suppression against enemy Specialists.",
     cost: 100,
@@ -95,7 +95,7 @@ export const SPECIALIST_CATALOG: UnitSpecialist[] = [
 ];
 
 // Helper to find by Type quickly (Useful for lookup during combat logic)
-export const SPECIALIST_MAP = new Map<SpecialistTypes, UnitSpecialist>(
+export const SPECIALIST_MAP = new Map<SpecialistType, UnitSpecialist>(
   SPECIALIST_CATALOG.map(s => [s.type, s])
 );
 

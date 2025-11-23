@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { HexCoords } from "./geometry";
+import { HexCoord } from "./geometry";
 
 export enum CombatResultType {
   MISS = 'MISS',
@@ -24,7 +24,7 @@ export interface CombatReport {
   tick: number;
   attackerId: ObjectId;
   defenderId: ObjectId;
-  hex: HexCoords;
+  hex: HexCoord;
   
   // The "Dice Roll" outcome
   odds: string; // e.g. "3:1"
