@@ -66,7 +66,8 @@ export const Pathfinding = {
 
         // 4. Check if path is better
         if (tentativeG < (gScore.get(neighborKey) || Infinity)) {
-          // Check Max MP constraints if we just want path regardless of MP
+          // Check Max MP constraints if applicable, if not then we'll just get the
+          // path regardless of MP restrictions.
           if (maxMP != null && tentativeG > maxMP) continue; 
 
           cameFrom.set(neighborKey, current);

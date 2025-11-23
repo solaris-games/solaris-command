@@ -26,6 +26,9 @@ export const GameManager = {
     
     let winnerId: ObjectId | null = null;
 
+    // TODO: Combat resolution
+    // TODO: Unit movement
+
     // 1. Process each Player independently
     players.forEach(player => {
       const playerIdStr = player._id.toString();
@@ -48,6 +51,8 @@ export const GameManager = {
         // Merge updates
         unitUpdates.set(unit._id.toString(), { ...supplyUpdate, ...cycleUpdate });
       });
+
+      // TODO: Delete units that no longer have any steps.
 
       // --- B. ECONOMY PHASE ---
       const ownedPlanets = map.planets.filter(p => String(p.playerId) === playerIdStr);
@@ -78,7 +83,7 @@ export const GameManager = {
     const gameUpdates: Partial<Game> = {
       state: {
         ...game.state,
-        cycle: game.state.cycle + 1,
+        cycle: game.state.cycle + 1, // TODO: Is this right? Shouldn't it be ticks + 1? Then recalc cycle count?
         lastTickDate: new Date(),
         winnerPlayerId: winnerId
       }

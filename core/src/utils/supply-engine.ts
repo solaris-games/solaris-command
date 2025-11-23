@@ -15,24 +15,27 @@ export const SupplyEngine = {
     
     // 1. Identify Sources
     // Roots: Always produce supply (Capital Planets)
-    const playerCapitalPlanets = map.planets.filter(p => p.isCapital && String(p.playerId) === String(playerId));
+    const rootSources = map.planets.filter(p => p.supply.isRoot && String(p.playerId) === String(playerId));
     
-    // Potential Relays: Stations (Must be ACTIVE to participate)
-    const playerStations = map.stations.filter(s => 
-      String(s.playerId) === String(playerId) && 
-      s.status === StationStatuses.ACTIVE
-    );
+    // Potential Relays: Planets/Stations (Must be ACTIVE to participate)
+    const playerPlanets = map.planets.filter(p => String(p.playerId) === String(playerId))
+    const playerStations = map.stations.filter(s => String(s.playerId) === String(playerId) && s.status === StationStatuses.ACTIVE);
+
+    const nodes: (Planet | Station)[] = [
+        ...playerPlanets,
+        ...playerStations
+    ]
 
     // Queue for Breadth-First Search (BFS)
     // We start propagation from the Roots.
     const sourceQueue: Array<{ location: any; range: number }> = [];
-    const visitedStations = new Set<string>(); // Keep track of stations we've already activated
+    const visited = new Set<string>(); // Keep track of planets/stations we've already activated
 
     // 2. Initialize with Roots (Planets)
-    playerCapitalPlanets.forEach(planet => {
+    rootSources.forEach(planet => {
       sourceQueue.push({
         location: planet.location,
-        range: planet.supply.supplyLevel // Assuming supplyLevel = Radius in hexes
+        range: planet.supply.supplyRange // Radius in hexes
       });
     });
 
@@ -51,21 +54,21 @@ export const SupplyEngine = {
 
       // C. Check if this source activated any "Dark" Stations
       // (A station is 'Dark' if it hasn't been visited/powered yet)
-      for (const station of playerStations) {
-        const stationId = station._id.toString();
+      for (const node of nodes) {
+        const nodeId = node._id.toString();
         
-        if (visitedStations.has(stationId)) continue; // Already powered
+        if (visited.has(nodeId)) continue; // Already powered
 
         // Check if this station sits inside the hexes we just supplied
-        const stationHexId = HexUtils.getID(station.location);
+        const hexId = HexUtils.getID(node.location);
         
-        if (suppliedHexIds.has(stationHexId)) {
+        if (suppliedHexIds.has(hexId)) {
           // BOOM! Connection established. 
-          // This station is now powered and acts as a new source.
-          visitedStations.add(stationId);
+          // This planet/station is now powered and acts as a new source.
+          visited.add(nodeId);
           sourceQueue.push({
-            location: station.location,
-            range: station.supply.supplyLevel
+            location: node.location,
+            range: node.supply.supplyRange
           });
         }
       }
@@ -86,7 +89,7 @@ export const SupplyEngine = {
     let newTicksOutOfSupply = unit.supply.ticksOutOfSupply;
 
     if (isSupplied) {
-      // In Supply: Reset bad counters
+      // In Supply: Reset counters
       newTicksLastSupply = 0;
       newTicksOutOfSupply = 0;
     } else {
