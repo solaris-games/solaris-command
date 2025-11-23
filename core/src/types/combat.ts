@@ -4,8 +4,8 @@ import { HexCoord } from "./geometry";
 export enum CombatResultType {
   MISS = 'MISS',
   SUPPRESS = 'SUPPRESS',
-  KILL = 'KILL',
-  RETREAT = 'RETREAT'
+  RETREAT = 'RETREAT',
+  SHATTERED = 'SHATTERED'
 }
 
 export enum CombatShiftType {

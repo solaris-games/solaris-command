@@ -65,10 +65,10 @@ export const CombatEngine = {
           outcome = CombatResultType.RETREAT;
         } else {
           // Cornered -> Shattered!
-          // Rule: All remaining steps suppressed (or killed if we want to be harsher)
+          // Rule: All remaining steps suppressed
           defender.steps = UnitUtils.suppressSteps(defender.steps, 999);
           defenderShattered = true;
-          outcome = CombatResultType.KILL; // Effective kill
+          outcome = CombatResultType.SHATTERED;
         }
       }
     }
