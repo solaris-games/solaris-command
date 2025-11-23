@@ -1,13 +1,33 @@
 import { ObjectId } from 'mongodb';
-import { HexCoord } from '../types/geometry';
+import { HexCoords } from '../types/geometry';
 import { SupplyTarget } from '../types/supply';
-import { SpecialistType, UnitStatus, UnitClass } from '../types/unit';
+
+export enum UnitClasses {
+  FRIGATE = 'FRIGATE', // High initiative
+  DESTROYER = 'DESTROYER', // Mid initiative
+  BATTLESHIP = 'BATTLESHIP' // Low initiative
+}
+
+export enum UnitStatuses {
+  IDLE = 'IDLE',
+  MOVING = 'MOVING',
+  PREPARING = 'PREPARING', // Locked in combat countdown
+  REGROUPING = 'REGROUPING' // Cooldown after combat
+}
+
+export enum SpecialistTypes {
+  ARTILLERY = 'ARTILLERY',   // Indirect fire / Offensive Shift
+  MARINES = 'MARINES',       // Assault / Planet Capture
+  RECON = 'RECON',           // Intel / ZOC movement
+  LOGISTICS = 'LOGISTICS',   // OOS Survival
+  TORPEDO = 'TORPEDO',       // Anti-Capital Ship (Armor Piercing)
+  FLAK = 'FLAK'              // Defensive / Anti-Specialist
+}
 
 export interface UnitStats {
   ap: number;              // Action Points (Refills every cycle)
   mp: number;              // Movement Points (Refills every cycle)
   
-  initiative: number;      // Used in combat to determine which unit goes first in the case of multiple attacks on a single hex.
   maxSteps: number;        // e.g., 7 (Standard unit size)
   activeSteps: number;     // e.g., 5 (Current health)
   suppressedSteps: number; // e.g., 2 (Temporarily disabled)
@@ -28,7 +48,7 @@ export interface UnitSpecialist {
   name: string
   description: string
   cost: number
-  type: SpecialistType;
+  type: SpecialistTypes;
   stats: {
     // Combat Stats
     attack: number;          // Base attack addition
@@ -50,13 +70,12 @@ export interface UnitStep {
 }
 
 export interface UnitMovement {
-  path: HexCoord[];       // List of hexes to travel
+  path: HexCoords[];       // List of hexes to travel
 }
 
 export interface UnitCombat {
-  targetHex: HexCoord | null; // If Preparing, where are we attacking?
+  targetHex: HexCoords | null; // If Preparing, where are we attacking?
   cooldownEndTick: number | null;     // Which tick does Regrouping end?
-  combatTriggerTick: number | null;   // Which tick does the Attack land?
 }
 
 export interface Unit {
@@ -65,9 +84,9 @@ export interface Unit {
   playerId: ObjectId;
   
   name: string;
-  class: UnitClass;
-  location: HexCoord; // Current position
-  status: UnitStatus;
+  class: UnitClasses;
+  location: HexCoords; // Current position
+  status: UnitStatuses;
   steps: UnitStep[];
   stats: UnitStats;
   movement: UnitMovement;

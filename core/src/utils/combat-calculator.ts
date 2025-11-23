@@ -1,7 +1,5 @@
-import { Unit, UnitStep } from '../models/unit';
-import { SpecialistType } from '../types/unit'
-import { Hex } from '../models/hex';
-import { TerrainType } from '../types/hex'
+import { SpecialistTypes, Unit } from '../models/unit';
+import { Hex, TerrainTypes } from '../models/hex';
 import { CombatShift, CombatShiftType } from '../types/combat';
 
 export interface CombatPrediction {
@@ -90,24 +88,23 @@ export const CombatCalculator = {
     const shifts: CombatShift[] = [];
 
     // --- 1. Terrain Shifts (Defender Bonus) ---
-    if (hex.terrain === TerrainType.ASTEROID_FIELD) {
+    if (hex.terrain === TerrainTypes.ASTEROID_FIELD) {
       shifts.push({ type: CombatShiftType.ENTRENCHMENT, value: -1 });
     }
-    if (hex.terrain === TerrainType.DEBRIS_FIELD) {
+    if (hex.terrain === TerrainTypes.DEBRIS_FIELD) {
       shifts.push({ type: CombatShiftType.ENTRENCHMENT, value: -2 });
     }
-    if (hex.terrain === TerrainType.INDUSTRIAL_ZONE) {
+    if (hex.terrain === TerrainTypes.INDUSTRIAL_ZONE) {
       shifts.push({ type: CombatShiftType.FORTIFICATIONS, value: -3 });
     }
 
     // --- 2. Specialist: MARINES (Siege) ---
     // Marines negate fortification bonuses on Stations/Industrial
-    if (hex.terrain === TerrainType.INDUSTRIAL_ZONE) {
+    if (hex.terrain === TerrainTypes.INDUSTRIAL_ZONE) {
        const siegeVal = this.getSpecialistShiftSum(attacker, 'siege');
        if (siegeVal > 0) {
-         // Simple logic: Add a positive shift to counteract the negative terrain
-         // TODO: Should we come up with a new combat shift type specifically for this?
-         shifts.push({ type: CombatShiftType.ARTILLERY, value: siegeVal }); 
+         // Use the specific SIEGE type for clarity in UI reports
+         shifts.push({ type: CombatShiftType.SIEGE, value: siegeVal }); 
        }
     }
 
@@ -122,7 +119,7 @@ export const CombatCalculator = {
     // Exception: If Defender has Active Torpedoes, Armor Shift is negated.
     
     const defenderHasTorpedo = defender.steps.some(s => 
-      !s.isSuppressed && s.specialist?.type === SpecialistType.TORPEDO
+      !s.isSuppressed && s.specialist?.type === SpecialistTypes.TORPEDO
     );
 
     if (!defenderHasTorpedo) {

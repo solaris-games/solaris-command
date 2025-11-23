@@ -4,12 +4,13 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 
 import { Game } from '@solaris-command/core'; 
+import { GameLoop } from './cron/game-loop';
+import { connectToDb } from './db';
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
-const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/solaris-command';
 
 app.use(cors());
 app.use(express.json());
@@ -19,11 +20,12 @@ let db;
 async function startServer() {
   try {
     // 1. Connect to MongoDB
-    const client = await MongoClient.connect(mongoUri);
-    db = client.db();
-    console.log('✅ Connected to MongoDB');
+    const { client } = await connectToDb();
+    
+    // 2. Start cron jobs
+    GameLoop.start(client);
 
-    // 2. Start Express
+    // 3. Start Express
     app.listen(port, () => {
       console.log(`🚀 Server running at http://localhost:${port}`);
     });

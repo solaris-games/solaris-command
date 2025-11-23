@@ -3,11 +3,10 @@ import { Hex } from './hex';
 import { Planet } from './planet';
 import { Station } from './station';
 
-export interface Map {
+export interface GameMap {
   _id: ObjectId;
   gameId: ObjectId;
   
-  hexes: Hex[];
-  planets: Planet[];
-  stations: Station[];
+  name: string;
+  radius: number; // Useful to know map bounds without loading all hexes
 }

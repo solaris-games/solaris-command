@@ -2,18 +2,20 @@
   "name": "@solaris-command/server",
   "version": "1.0.0",
   "scripts": {
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "db:init": "tsx src/db/setup.ts"
   },
   "dependencies": {
-    "@solaris-command/core": "*", 
-    "express": "^4.18.2",
+    "@solaris-command/core": "*",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-    "mongodb": "^6.0.0"
+    "express": "^4.18.2",
+    "mongodb": "^6.0.0",
+    "node-cron": "^4.2.1"
   },
   "devDependencies": {
-    "@types/express": "^4.17.17",
     "@types/cors": "^2.8.12",
+    "@types/express": "^4.17.17",
     "@types/node": "^20.0.0",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"

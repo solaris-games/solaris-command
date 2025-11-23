@@ -1,8 +1,4 @@
-import { ObjectId } from 'mongodb';
-import { Game } from '../models/game';
-import { Unit } from '../models/unit';
-import { UnitStatus } from '../types/unit'
-import { Map as GameMap } from '../models/map';
+import { Unit, UnitStatuses } from '../models/unit';
 import { Hex } from '../models/hex';
 import { CombatReport, CombatResultType } from '../types/combat';
 import { CombatCalculator } from './combat-calculator';
@@ -20,13 +16,13 @@ export const CombatEngine = {
   resolveBattle(
     attacker: Unit, 
     defender: Unit, 
-    map: GameMap, 
+    mapHexes: Hex[],
     settings: { advanceOnVictory: boolean }
   ): { report: CombatReport, attackerWonHex: boolean } {
     
     // 1. Setup Context
     const hexKey = HexUtils.getID(defender.location);
-    const hex = map.hexes.find(h => HexUtils.getID(h.coords) === hexKey)!;
+    const hex = mapHexes.find(h => HexUtils.getID(h.coords) === hexKey)!;
     
     // 2. Calculate & Predict
     const prediction = CombatCalculator.calculate(attacker, defender, hex);
@@ -55,12 +51,12 @@ export const CombatEngine = {
     // Retreat happens if the CRT says so, OR if the unit broke (0 steps left logic handled elsewhere, but here we handle displacement)
     if (defenderAlive && attackerAlive) {
       if (resultEntry.defender.retreat) {
-        const retreatHex = CombatEngine.findRetreatHex(defender, attacker, map);
+        const retreatHex = CombatEngine.findRetreatHex(defender, attacker, mapHexes);
         
         if (retreatHex) {
           // Successful Retreat
           defender.location = retreatHex.coords;
-          defender.status = UnitStatus.REGROUPING;
+          defender.status = UnitStatuses.REGROUPING;
           defenderRetreated = true;
           outcome = CombatResultType.RETREAT;
         } else {
@@ -84,8 +80,8 @@ export const CombatEngine = {
     }
 
     // 9. Set Cooldowns
-    if (attackerAlive) attacker.status = UnitStatus.REGROUPING;
-    if (defenderAlive && !defenderRetreated) defender.status = UnitStatus.REGROUPING;
+    if (attackerAlive) attacker.status = UnitStatuses.REGROUPING;
+    if (defenderAlive && !defenderRetreated) defender.status = UnitStatuses.REGROUPING;
 
     // 10. Generate Report
     const report: CombatReport = {
@@ -117,13 +113,13 @@ export const CombatEngine = {
    * Helper: Find the best hex to retreat to.
    * Logic: Lowest Movement Cost -> Closest to Capital -> Random
    */
-  findRetreatHex(unit: Unit, threat: Unit, map: GameMap): Hex | null {
+  findRetreatHex(unit: Unit, threat: Unit, mapHexes: Hex[]): Hex | null {
     const neighbors = HexUtils.neighbors(unit.location);
     const validRetreats: Hex[] = [];
 
     for (const coord of neighbors) {
       const hexId = HexUtils.getID(coord);
-      const hex = map.hexes.find(h => HexUtils.getID(h.coords) === hexId);
+      const hex = mapHexes.find(h => HexUtils.getID(h.coords) === hexId);
 
       // 1. Must exist and be passable
       if (!hex || hex.isImpassable) continue;

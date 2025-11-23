@@ -1,6 +1,6 @@
 export interface SupplySource {
   supplyValue: number; // Base supply value
-  supplyRange: number; // Supply radius in hexes
+  supplyRange: number; // MP for supply line
   isInSupply: boolean; // Is it in range of the root supply source
   isRoot: boolean; // Is this a root supply source? If so it cannot go out of supply
 }

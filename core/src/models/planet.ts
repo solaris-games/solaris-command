@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { HexCoord } from '../types/geometry';
+import { HexCoords } from '../types/geometry';
 import { SupplySource } from '../types/supply';
 
 export interface Planet {
@@ -8,7 +8,7 @@ export interface Planet {
   playerId: ObjectId | null;
 
   name: string;
-  location: HexCoord;
+  location: HexCoords;
   supply: SupplySource;
 
   isCapital: boolean;

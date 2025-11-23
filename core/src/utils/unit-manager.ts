@@ -1,5 +1,4 @@
-import { Unit, UnitSpecialist, UnitStep } from '../models/unit';
-import { UnitStatus } from '../types/unit'
+import { Unit, UnitSpecialist, UnitStatuses, UnitStep } from '../models/unit';
 
 // Constants based on GDD
 const RECOVERY_RATE = 2; // Steps recovered per cycle
@@ -77,8 +76,8 @@ export const UnitManager = {
     // Usually, cycle resets happen at quiet times, but we should ensure AP/MP fill
     // doesn't override a specific locked state if needed. 
     // For now, we assume Cycle refill happens peacefully.
-    if (newStatus === UnitStatus.REGROUPING) {
-      newStatus = UnitStatus.IDLE;
+    if (newStatus === UnitStatuses.REGROUPING) {
+      newStatus = UnitStatuses.IDLE;
     }
 
     return {

@@ -3,23 +3,23 @@ import { HexUtils } from './hex-utils'
 import { Planet } from '../models/planet';
 import { Station, StationStatuses } from '../models/station';
 import { Unit } from '../models/unit';
-import { Map as GameMap } from '../models/map'; // Renamed to avoid conflict with JS Map
+import { GameMap as GameMap } from '../models/game-map'; // Renamed to avoid conflict with JS Map
 
 export const SupplyEngine = {
   /**
    * Calculates the entire set of hexes that are "In Supply" for a given player.
    * Uses BFS to ensure stations are only active if connected to a Root (Planet).
    */
-  calculatePlayerSupplyNetwork(playerId: ObjectId, map: GameMap): Set<string> {
+  calculatePlayerSupplyNetwork(playerId: ObjectId, planets: Planet[], stations: Station[]): Set<string> {
     const suppliedHexIds = new Set<string>();
     
     // 1. Identify Sources
     // Roots: Always produce supply (Capital Planets)
-    const rootSources = map.planets.filter(p => p.supply.isRoot && String(p.playerId) === String(playerId));
+    const rootSources = planets.filter(p => p.supply.isRoot && String(p.playerId) === String(playerId));
     
     // Potential Relays: Planets/Stations (Must be ACTIVE to participate)
-    const playerPlanets = map.planets.filter(p => String(p.playerId) === String(playerId))
-    const playerStations = map.stations.filter(s => String(s.playerId) === String(playerId) && s.status === StationStatuses.ACTIVE);
+    const playerPlanets = planets.filter(p => String(p.playerId) === String(playerId))
+    const playerStations = stations.filter(s => String(s.playerId) === String(playerId) && s.status === StationStatuses.ACTIVE);
 
     const nodes: (Planet | Station)[] = [
         ...playerPlanets,
@@ -35,7 +35,7 @@ export const SupplyEngine = {
     rootSources.forEach(planet => {
       sourceQueue.push({
         location: planet.location,
-        range: planet.supply.supplyRange // Radius in hexes
+        range: planet.supply.supplyRange // TODO: This is movement points, not hex radius.
       });
     });
 

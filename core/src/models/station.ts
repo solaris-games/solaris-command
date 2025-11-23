@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { HexCoord } from '../types/geometry';
+import { HexCoords } from '../types/geometry';
 import { SupplySource } from '../types/supply';
 
 export enum StationStatuses {
@@ -13,7 +13,10 @@ export interface Station {
   gameId: ObjectId;
   playerId: ObjectId | null;
 
+  // TODO: Need a tickActive and tickDecommissioned so we can track when the status is due to change
+  // and when the station is due to be decommissioned.
+
   status: StationStatuses
-  location: HexCoord;
+  location: HexCoords;
   supply: SupplySource;
 }

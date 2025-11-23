@@ -1,18 +1,17 @@
-import { Hex } from '../models/hex';
-import { HexCoord } from '../types/geometry';
+import { Hex, TerrainTypes } from '../models/hex';
+import { HexCoords } from '../types/geometry';
 import { HexUtils } from './hex-utils';
-import { TerrainType } from '../types';
 
 // Cost definition for A*
-const TERRAIN_COSTS: Record<TerrainType, number> = {
-  [TerrainType.EMPTY]: 1,
-  [TerrainType.ASTEROID_FIELD]: 2,
-  [TerrainType.DEBRIS_FIELD]: 2,
-  [TerrainType.NEBULA]: 3,
-  [TerrainType.GAS_CLOUD]: 3,
-  [TerrainType.INDUSTRIAL_ZONE]: 3,
-  [TerrainType.GRAVITY_WELL]: 999, // Impassable
-  [TerrainType.RADIATION_STORM]: 999
+const TERRAIN_COSTS: Record<TerrainTypes, number> = {
+  [TerrainTypes.EMPTY]: 1,
+  [TerrainTypes.ASTEROID_FIELD]: 2,
+  [TerrainTypes.DEBRIS_FIELD]: 2,
+  [TerrainTypes.NEBULA]: 3,
+  [TerrainTypes.GAS_CLOUD]: 3,
+  [TerrainTypes.INDUSTRIAL_ZONE]: 3,
+  [TerrainTypes.GRAVITY_WELL]: 999, // Impassable
+  [TerrainTypes.RADIATION_STORM]: 999
 };
 
 export const Pathfinding = {
@@ -20,20 +19,20 @@ export const Pathfinding = {
    * A* Algorithm for Unit Movement
    */
   findPath(
-    start: HexCoord,
-    end: HexCoord,
+    start: HexCoords,
+    end: HexCoords,
     mapHexes: Map<string, Hex>, // Fast lookup map
     maxMP: number | null // Optional: Pass null if we want path regardless of MP
-  ): HexCoord[] | null {
+  ): HexCoords[] | null {
     
     const startKey = HexUtils.getID(start);
     const endKey = HexUtils.getID(end);
 
     // Open Set: Nodes to be evaluated
-    const openSet: { coord: HexCoord; f: number }[] = [{ coord: start, f: 0 }];
+    const openSet: { coord: HexCoords; f: number }[] = [{ coord: start, f: 0 }];
     
     // Came From: For reconstructing the path
-    const cameFrom = new Map<string, HexCoord>();
+    const cameFrom = new Map<string, HexCoords>();
     
     // G Score: Cost from start to node
     const gScore = new Map<string, number>();
@@ -87,7 +86,7 @@ export const Pathfinding = {
   }
 };
 
-function reconstructPath(cameFrom: Map<string, HexCoord>, current: HexCoord): HexCoord[] {
+function reconstructPath(cameFrom: Map<string, HexCoords>, current: HexCoords): HexCoords[] {
   const totalPath = [current];
   let currKey = HexUtils.getID(current);
   

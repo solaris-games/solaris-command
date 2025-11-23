@@ -1,30 +1,33 @@
 import { ObjectId } from 'mongodb';
 import { Game, GameStates } from '../models/game';
-import { Map as GameMap } from '../models/map';
+import { GameMap as GameMap } from '../models/game-map';
 import { Player } from '../models/player';
 import { Unit } from '../models/unit';
 import { Planet } from '../models/planet';
 import { HexUtils } from './hex-utils';
 import { SupplyEngine } from './supply-engine';
 import { UnitManager } from './unit-manager';
+import { Hex, Station } from '../models';
+
+export interface ProcessCycleResult  {
+  gameUpdates: Partial<Game>,
+  playerUpdates: Map<string, Partial<Player>>,
+  unitUpdates: Map<string, Partial<Unit>>,
+  unitsToRemove: ObjectId[],
+  winnerId: ObjectId | null
+}
 
 export const GameManager = {
   
-  // TODO: Process tick
-
   /**
    * THE MASTER LOOP
    * This function will be called by a Cron Job / Ticker every time a Cycle completes.
    * It modifies the objects in memory. The caller is responsible for saving them to DB afterwards.
    */
-  processCycle(game: Game, map: GameMap, players: Player[], units: Unit[]): {
-    gameUpdates: Partial<Game>,
-    playerUpdates: Map<string, Partial<Player>>,
-    unitUpdates: Map<string, Partial<Unit>>,
-    winnerId: ObjectId | null
-  } {
+  processCycle(game: Game, players: Player[], units: Unit[], planets: Planet[], stations: Station[]): ProcessCycleResult {
     const unitUpdates = new Map<string, Partial<Unit>>();
     const playerUpdates = new Map<string, Partial<Player>>();
+    const unitsToRemove: ObjectId[] = []; // <--- Track dead units
     
     let winnerId: ObjectId | null = null;
 
@@ -33,10 +36,8 @@ export const GameManager = {
       const playerIdStr = player._id.toString();
       
       // --- A. LOGISTICS PHASE ---
-      // Calculate Supply Network
-      const supplyNetwork = SupplyEngine.calculatePlayerSupplyNetwork(player._id, map);
+      const supplyNetwork = SupplyEngine.calculatePlayerSupplyNetwork(player._id, planets, stations);
       
-      // Get this player's units
       const playerUnits = units.filter(u => u.playerId.toString() === playerIdStr);
       
       playerUnits.forEach(unit => {
@@ -47,14 +48,21 @@ export const GameManager = {
         // 2. Run Cycle Logic (Refill AP/MP, Recovery, or Penalties)
         const cycleUpdate = UnitManager.processCycle(unitWithSupply, game.settings.ticksPerCycle);
         
-        // Merge updates
-        unitUpdates.set(unit._id.toString(), { ...supplyUpdate, ...cycleUpdate });
+        // 3. Check for Death (Starvation/Collapse)
+        // We merge the proposed updates to check the resulting steps
+        const resultingSteps = cycleUpdate.steps || unit.steps;
+        
+        if (resultingSteps.length === 0) {
+          // Unit died this cycle
+          unitsToRemove.push(unit._id);
+        } else {
+          // Unit lives, queue update
+          unitUpdates.set(unit._id.toString(), { ...supplyUpdate, ...cycleUpdate });
+        }
       });
 
-      // TODO: Delete units that no longer have any steps.
-
       // --- B. ECONOMY PHASE ---
-      const ownedPlanets = map.planets.filter(p => String(p.playerId) === playerIdStr);
+      const ownedPlanets = planets.filter(p => String(p.playerId) === playerIdStr);
       
       // Calculate Prestige Income
       const income = GameManager.calculatePrestigeIncome(ownedPlanets);
@@ -79,10 +87,11 @@ export const GameManager = {
     });
 
     // 2. Game State Update
+    // Note: We only increment the Cycle count here. The Ticks are incremented by another process.
     const gameUpdates: Partial<Game> = {
       state: {
         ...game.state,
-        cycle: game.state.cycle + 1, // TODO: Is this right? Shouldn't it be ticks + 1? Then recalc cycle count?
+        cycle: game.state.cycle + 1, 
         lastTickDate: new Date(),
         winnerPlayerId: winnerId
       }
@@ -93,7 +102,7 @@ export const GameManager = {
       gameUpdates.state!.endDate = new Date();
     }
 
-    return { gameUpdates, playerUpdates, unitUpdates, winnerId };
+    return { gameUpdates, playerUpdates, unitUpdates, unitsToRemove, winnerId };
   },
 
   /**
@@ -114,14 +123,14 @@ export const GameManager = {
    * Helper: Find a valid spawn location for a new unit
    * Rules: Adjacent to Capital, Empty Hex, No Unit.
    */
-  findSpawnLocation(playerCapital: Planet, map: GameMap, allUnits: Unit[]): any | null {
+  findSpawnLocation(playerCapital: Planet, mapHexes: Hex[], allUnits: Unit[]): any | null {
     // Get all neighbors
     const candidates = HexUtils.neighbors(playerCapital.location);
     
     // Filter valid
     for (const coord of candidates) {
       const hexId = HexUtils.getID(coord);
-      const hex = map.hexes.find(h => HexUtils.getID(h.coords) === hexId);
+      const hex = mapHexes.find(h => HexUtils.getID(h.coords) === hexId);
       
       // Must exist and be passable
       if (!hex || hex.isImpassable) continue;
