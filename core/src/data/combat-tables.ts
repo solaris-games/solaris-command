@@ -1,14 +1,14 @@
-import { CombatResultType } from '../types/combat';
+import { CombatResultType } from "../types/combat";
 
 export interface CombatResultEntry {
-  attacker: { 
-    steps: number;      // Steps Killed
+  attacker: {
+    steps: number; // Steps Killed
     suppressed: number; // Steps Suppressed
   };
-  defender: { 
-    steps: number; 
-    suppressed: number; 
-    retreat: boolean; 
+  defender: {
+    steps: number;
+    suppressed: number;
+    retreat: boolean;
     shattered: boolean; // If retreat is impossible, all steps suppressed
   };
   resultType: CombatResultType;
@@ -24,69 +24,69 @@ export interface CombatResultEntry {
  */
 export const COMBAT_RESULTS_TABLE: Record<number, CombatResultEntry> = {
   // --- Defender Dominates (-3 or less) ---
-  [-3]: { 
-    attacker: { steps: 2, suppressed: 3 }, 
+  [-3]: {
+    attacker: { steps: 2, suppressed: 3 },
     defender: { steps: 0, suppressed: 0, retreat: false, shattered: false },
-    resultType: CombatResultType.MISS 
+    resultType: CombatResultType.MISS,
   },
 
   // --- Defender Edge (-2) ---
-  [-2]: { 
-    attacker: { steps: 1, suppressed: 2 }, 
+  [-2]: {
+    attacker: { steps: 1, suppressed: 2 },
     defender: { steps: 0, suppressed: 0, retreat: false, shattered: false },
-    resultType: CombatResultType.MISS 
+    resultType: CombatResultType.MISS,
   },
 
   // --- Slight Defender Edge (-1) ---
-  [-1]: { 
-    attacker: { steps: 0, suppressed: 2 }, 
+  [-1]: {
+    attacker: { steps: 0, suppressed: 2 },
     defender: { steps: 0, suppressed: 1, retreat: false, shattered: false },
-    resultType: CombatResultType.SUPPRESS 
+    resultType: CombatResultType.SUPPRESS,
   },
 
   // --- Even Fight (0) ---
   // Both sides take a bruise. High attrition.
-  0: { 
-    attacker: { steps: 0, suppressed: 1 }, 
+  0: {
+    attacker: { steps: 0, suppressed: 1 },
     defender: { steps: 0, suppressed: 1, retreat: false, shattered: false },
-    resultType: CombatResultType.SUPPRESS
+    resultType: CombatResultType.SUPPRESS,
   },
 
   // --- Slight Attacker Edge (+1) ---
-  1: { 
-    attacker: { steps: 0, suppressed: 0 }, 
+  1: {
+    attacker: { steps: 0, suppressed: 0 },
     defender: { steps: 0, suppressed: 2, retreat: false, shattered: false },
-    resultType: CombatResultType.SUPPRESS
+    resultType: CombatResultType.SUPPRESS,
   },
 
   // --- Moderate Attacker Advantage (+2) ---
-  2: { 
-    attacker: { steps: 0, suppressed: 0 }, 
+  2: {
+    attacker: { steps: 0, suppressed: 0 },
     defender: { steps: 1, suppressed: 2, retreat: false, shattered: false },
-    resultType: CombatResultType.SUPPRESS
+    resultType: CombatResultType.SUPPRESS,
   },
 
   // --- Major Advantage (+3) ---
   // Defender starts losing hard or retreating
-  3: { 
-    attacker: { steps: 0, suppressed: 0 }, 
+  3: {
+    attacker: { steps: 0, suppressed: 0 },
     defender: { steps: 2, suppressed: 3, retreat: true, shattered: false },
-    resultType: CombatResultType.RETREAT
+    resultType: CombatResultType.RETREAT,
   },
 
   // --- Overwhelming (+4) ---
-  4: { 
-    attacker: { steps: 0, suppressed: 0 }, 
+  4: {
+    attacker: { steps: 0, suppressed: 0 },
     defender: { steps: 3, suppressed: 3, retreat: true, shattered: false },
-    resultType: CombatResultType.RETREAT
+    resultType: CombatResultType.RETREAT,
   },
 
   // --- Massacre (+5 or more) ---
-  5: { 
-    attacker: { steps: 0, suppressed: 0 }, 
+  5: {
+    attacker: { steps: 0, suppressed: 0 },
     defender: { steps: 5, suppressed: 999, retreat: true, shattered: true },
-    resultType: CombatResultType.SHATTERED
-  }
+    resultType: CombatResultType.SHATTERED,
+  },
 };
 
 export const CombatTables = {
@@ -98,5 +98,5 @@ export const CombatTables = {
     const MAX = 5;
     const clamped = Math.max(MIN, Math.min(MAX, Math.floor(score)));
     return COMBAT_RESULTS_TABLE[clamped];
-  }
+  },
 };

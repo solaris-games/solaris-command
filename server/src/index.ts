@@ -1,11 +1,11 @@
-import express from 'express';
-import { MongoClient } from 'mongodb';
-import cors from 'cors';
-import dotenv from 'dotenv';
+import express from "express";
+import { MongoClient } from "mongodb";
+import cors from "cors";
+import dotenv from "dotenv";
 
-import { Game } from '@solaris-command/core'; 
-import { GameLoop } from './cron/game-loop';
-import { connectToDb } from './db';
+import { Game } from "@solaris-command/core";
+import { GameLoop } from "./cron/game-loop";
+import { connectToDb } from "./db";
 
 dotenv.config();
 
@@ -21,7 +21,7 @@ async function startServer() {
   try {
     // 1. Connect to MongoDB
     const { client } = await connectToDb();
-    
+
     // 2. Start cron jobs
     GameLoop.start(client);
 
@@ -31,12 +31,11 @@ async function startServer() {
     });
 
     // Example Route using Shared Type
-    app.get('/status', (req, res) => {
-      res.json({ status: 'Solaris: Command Server Online' });
+    app.get("/status", (req, res) => {
+      res.json({ status: "Solaris: Command Server Online" });
     });
-
   } catch (err) {
-    console.error('Failed to start server:', err);
+    console.error("Failed to start server:", err);
     process.exit(1);
   }
 }

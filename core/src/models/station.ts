@@ -1,11 +1,11 @@
-import { ObjectId } from 'mongodb';
-import { HexCoords } from '../types/geometry';
-import { SupplySource } from '../types/supply';
+import { ObjectId } from "mongodb";
+import { HexCoords } from "../types/geometry";
+import { SupplySource } from "../types/supply";
 
 export enum StationStatuses {
-  CONSTRUCTING = 'CONSTRUCTING',        // Does not provide supply yet
-  ACTIVE = 'ACTIVE',                    // Provides supply
-  DECOMMISSIONING = 'DECOMMISSIONING'   // Does not provide supply
+  CONSTRUCTING = "CONSTRUCTING", // Does not provide supply yet
+  ACTIVE = "ACTIVE", // Provides supply
+  DECOMMISSIONING = "DECOMMISSIONING", // Does not provide supply
 }
 
 export interface Station {
@@ -16,7 +16,7 @@ export interface Station {
   // TODO: Need a tickActive and tickDecommissioned so we can track when the status is due to change
   // and when the station is due to be decommissioned.
 
-  status: StationStatuses
+  status: StationStatuses;
   location: HexCoords;
   supply: SupplySource;
 }

@@ -1,14 +1,14 @@
-import { HexCoords } from '../types/geometry';
+import { HexCoords } from "../types";
 
 // The 6 directions in Cube Coordinates
 // Order: NE, E, SE, SW, W, NW
 const HEX_DIRECTIONS: HexCoords[] = [
-  { q: 1, r: 0, s: -1 },  // 0: East-ish
-  { q: 1, r: -1, s: 0 },  // 1: North-East
-  { q: 0, r: -1, s: 1 },  // 2: North-West
-  { q: -1, r: 0, s: 1 },  // 3: West-ish
-  { q: -1, r: 1, s: 0 },  // 4: South-West
-  { q: 0, r: 1, s: -1 },  // 5: South-East
+  { q: 1, r: 0, s: -1 }, // 0: East-ish
+  { q: 1, r: -1, s: 0 }, // 1: North-East
+  { q: 0, r: -1, s: 1 }, // 2: North-West
+  { q: -1, r: 0, s: 1 }, // 3: West-ish
+  { q: -1, r: 1, s: 0 }, // 4: South-West
+  { q: 0, r: 1, s: -1 }, // 5: South-East
 ];
 
 export const HexUtils = {
@@ -67,7 +67,7 @@ export const HexUtils = {
    * Get all 6 immediate neighbors
    */
   neighbors(hex: HexCoords): HexCoords[] {
-    return HEX_DIRECTIONS.map(dir => HexUtils.add(hex, dir));
+    return HEX_DIRECTIONS.map((dir) => HexUtils.add(hex, dir));
   },
 
   /**
@@ -80,7 +80,7 @@ export const HexUtils = {
       // The logic here ensures we stay within the valid 's' plane
       const r1 = Math.max(-range, -q - range);
       const r2 = Math.min(range, -q + range);
-      
+
       for (let r = r1; r <= r2; r++) {
         const s = -q - r;
         results.push(HexUtils.add(center, { q, r, s }));
@@ -97,9 +97,12 @@ export const HexUtils = {
     if (radius <= 0) return [center];
 
     const results: HexCoords[] = [];
-    
+
     // Start at the 'South-West' corner scaled by radius
-    let hex = HexUtils.add(center, HexUtils.scale(HexUtils.direction(4), radius));
+    let hex = HexUtils.add(
+      center,
+      HexUtils.scale(HexUtils.direction(4), radius)
+    );
 
     // Walk around the ring: 6 directions * radius steps per side
     for (let i = 0; i < 6; i++) {
@@ -111,7 +114,7 @@ export const HexUtils = {
 
     return results;
   },
-  
+
   /**
    * Serialization: Get a unique string key for a hex
    * Format: "q,r,s"
@@ -125,7 +128,7 @@ export const HexUtils = {
    * Deserialization: Parse ID string back to object
    */
   parseID(id: string): HexCoords {
-    const [q, r, s] = id.split(',').map(Number);
+    const [q, r, s] = id.split(",").map(Number);
     return { q, r, s };
-  }
+  },
 };

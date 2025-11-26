@@ -1,6 +1,6 @@
-import { ObjectId } from 'mongodb';
-import { HexCoords } from '../types/geometry';
-import { SupplySource } from '../types/supply';
+import { ObjectId } from "mongodb";
+import { HexCoords } from "../types/geometry";
+import { SupplySource } from "../types/supply";
 
 export interface Planet {
   _id: ObjectId;

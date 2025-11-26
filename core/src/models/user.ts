@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongodb';
+import { ObjectId } from "mongodb";
 
 export interface UserAchievements {
   victories: number;
@@ -8,7 +8,7 @@ export interface UserAchievements {
 
 export interface User {
   _id: ObjectId;
-  
+
   username: string;
   email: string;
 

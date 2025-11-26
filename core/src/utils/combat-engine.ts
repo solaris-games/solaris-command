@@ -1,48 +1,57 @@
-import { Unit, UnitStatuses } from '../models/unit';
-import { Hex } from '../models/hex';
-import { CombatReport, CombatResultType } from '../types/combat';
-import { CombatCalculator } from './combat-calculator';
-import { CombatTables } from '../data/combat-tables';
-import { HexUtils } from './hex-utils';
-import { UnitManagerHelper as UnitUtils } from './unit-manager';
+import { CombatTables } from "../data";
+import { Unit, UnitStatuses, Hex } from "../models";
+import { CombatReport, CombatResultType } from "../types";
+import { CombatCalculator } from "./combat-calculator";
+import { HexUtils } from "./hex-utils";
+import { UnitManagerHelper as UnitUtils } from "./unit-manager";
 
 export const CombatEngine = {
-
   /**
    * RESOLVE BATTLE
    * This function mutates the unit objects in memory.
    * It returns a Report + a flag indicating if the attacker took the hex.
    */
   resolveBattle(
-    attacker: Unit, 
-    defender: Unit, 
+    attacker: Unit,
+    defender: Unit,
     mapHexes: Hex[],
     settings: { advanceOnVictory: boolean }
-  ): { report: CombatReport, attackerWonHex: boolean } {
-    
+  ): { report: CombatReport; attackerWonHex: boolean } {
     // 1. Setup Context
     const hexKey = HexUtils.getID(defender.location);
-    const hex = mapHexes.find(h => HexUtils.getID(h.coords) === hexKey)!;
-    
+    const hex = mapHexes.find((h) => HexUtils.getID(h.coords) === hexKey)!;
+
     // 2. Calculate & Predict
     const prediction = CombatCalculator.calculate(attacker, defender, hex);
-    
+
     // 3. Get Deterministic Result
     const resultEntry = CombatTables.getResult(prediction.finalScore);
 
     // 4. Apply Damage (Attacker)
     // Note: We modify the unit in place. Save to DB happens in the Controller.
-    attacker.steps = UnitUtils.suppressSteps(attacker.steps, resultEntry.attacker.suppressed);
-    attacker.steps = UnitUtils.killSteps(attacker.steps, resultEntry.attacker.steps);
+    attacker.steps = UnitUtils.suppressSteps(
+      attacker.steps,
+      resultEntry.attacker.suppressed
+    );
+    attacker.steps = UnitUtils.killSteps(
+      attacker.steps,
+      resultEntry.attacker.steps
+    );
 
     // 5. Apply Damage (Defender)
-    defender.steps = UnitUtils.suppressSteps(defender.steps, resultEntry.defender.suppressed);
-    defender.steps = UnitUtils.killSteps(defender.steps, resultEntry.defender.steps);
+    defender.steps = UnitUtils.suppressSteps(
+      defender.steps,
+      resultEntry.defender.suppressed
+    );
+    defender.steps = UnitUtils.killSteps(
+      defender.steps,
+      resultEntry.defender.steps
+    );
 
     // 6. Check for Destruction
     const attackerAlive = attacker.steps.length > 0;
     const defenderAlive = defender.steps.length > 0;
-    
+
     let outcome = resultEntry.resultType;
     let defenderRetreated = false;
     let defenderShattered = false;
@@ -51,12 +60,16 @@ export const CombatEngine = {
     // Retreat happens if the CRT says so, OR if the unit broke (0 steps left logic handled elsewhere, but here we handle displacement)
     if (defenderAlive && attackerAlive) {
       if (resultEntry.defender.retreat) {
-        const retreatHex = CombatEngine.findRetreatHex(defender, attacker, mapHexes);
-        
+        const retreatHex = CombatEngine.findRetreatHex(
+          defender,
+          attacker,
+          mapHexes
+        );
+
         if (retreatHex) {
           // Successful Retreat
           defender.location = retreatHex.coords;
-          defender.status = UnitStatuses.REGROUPING;
+          defender.state.status = UnitStatuses.REGROUPING;
           defenderRetreated = true;
           outcome = CombatResultType.RETREAT;
         } else {
@@ -73,15 +86,16 @@ export const CombatEngine = {
     // If defender is gone (Dead or Retreated) AND Attacker is alive
     let attackerWonHex = false;
     if (attackerAlive && (!defenderAlive || defenderRetreated)) {
-      if (settings.advanceOnVictory && attacker.stats.mp > 0) {
+      if (settings.advanceOnVictory && attacker.state.mp > 0) {
         attacker.location = defender.location; // Move into the hex
         attackerWonHex = true;
       }
     }
 
     // 9. Set Cooldowns
-    if (attackerAlive) attacker.status = UnitStatuses.REGROUPING;
-    if (defenderAlive && !defenderRetreated) defender.status = UnitStatuses.REGROUPING;
+    if (attackerAlive) attacker.state.status = UnitStatuses.REGROUPING;
+    if (defenderAlive && !defenderRetreated)
+      defender.state.status = UnitStatuses.REGROUPING;
 
     // 10. Generate Report
     const report: CombatReport = {
@@ -90,20 +104,20 @@ export const CombatEngine = {
       defenderId: defender._id,
       hex: hex.coords,
       odds: `${prediction.oddsRatio}:1`, // Visual string
-      roll: prediction.finalScore,       // The "Net Score"
-      
+      roll: prediction.finalScore, // The "Net Score"
+
       attacker: {
         combatValue: prediction.attackPower,
         shifts: prediction.shifts,
-        losses: resultEntry.attacker
+        losses: resultEntry.attacker,
       },
       defender: {
         combatValue: prediction.defensePower,
         shifts: [], // Defender shifts usually part of the calculation, not separate list
         losses: resultEntry.defender,
         retreated: defenderRetreated,
-        shattered: defenderShattered
-      }
+        shattered: defenderShattered,
+      },
     };
 
     return { report, attackerWonHex };
@@ -119,14 +133,14 @@ export const CombatEngine = {
 
     for (const coord of neighbors) {
       const hexId = HexUtils.getID(coord);
-      const hex = mapHexes.find(h => HexUtils.getID(h.coords) === hexId);
+      const hex = mapHexes.find((h) => HexUtils.getID(h.coords) === hexId);
 
       // 1. Must exist and be passable
       if (!hex || hex.isImpassable) continue;
 
       // 2. Must not contain another unit
       // Note: In a full implementation, pass the 'units' array to check collision
-      if (hex.unitId) continue; 
+      if (hex.unitId) continue;
 
       // 3. Must not be the hex the attacker came from (Don't run into the gun)
       if (HexUtils.equals(coord, threat.location)) continue;
@@ -140,12 +154,12 @@ export const CombatEngine = {
     // Tiebreaker: Distance to Player Capital (assuming we have that data, otherwise random)
     // For now, simple Terrain sort:
     validRetreats.sort((a, b) => {
-        // We'd use calculateMoveCost here usually
-        const costA = (a.terrain === 'EMPTY') ? 1 : 2; 
-        const costB = (b.terrain === 'EMPTY') ? 1 : 2;
-        return costA - costB;
+      // We'd use calculateMoveCost here usually
+      const costA = a.terrain === "EMPTY" ? 1 : 2;
+      const costB = b.terrain === "EMPTY" ? 1 : 2;
+      return costA - costB;
     });
 
     return validRetreats[0];
-  }
+  },
 };
