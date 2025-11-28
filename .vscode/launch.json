@@ -1,0 +1,33 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Attach",
+      "type": "node",
+      "request": "attach",
+      "port": 9229,
+      "skipFiles": [
+          // Node.js internal core modules
+          "<node_internals>/**",
+  
+          // Ignore all dependencies (optional)
+          "${workspaceFolder}/node_modules/**",
+          "${workspaceFolder}/core/node_modules/**",
+          "${workspaceFolder}/client/node_modules/**",
+          "${workspaceFolder}/server/node_modules/**"
+      ],
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Test",
+      "autoAttachChildProcesses": true,
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceRoot}/node_modules/vitest/vitest.mjs",
+      "args": ["run", "${relativeFile}"], // Current file (must be a test.ts file)
+      "smartStep": true,
+      "console": "integratedTerminal"
+    }
+  ]
+}

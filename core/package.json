@@ -7,8 +7,5 @@
   },
   "dependencies": {
     "mongodb": "^6.0.0"
-  },
-  "devDependencies": {
-    "vitest": "^4.0.14"
   }
 }

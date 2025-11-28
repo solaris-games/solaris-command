@@ -3,6 +3,37 @@ import { ObjectId } from "mongodb";
 import { MapGenerator, Game, GameStates } from "@solaris-command/core";
 import { getDb } from "../db";
 
+// TODO: New API endpoints
+//
+// User:
+// - Register (via Google)
+// - Log in (via Google)
+// - Log out
+// - Delete account?
+// - Get my info
+//
+// Game:
+// - Join game
+// - Leave game (before the game has started)
+// - Concede defeat
+// - Get my games
+// - Get open games
+// - Get game info (as a non player)
+// - Game game info (as a player)
+// - Get game events (as a player)
+//
+// Units:
+// - Purchase and deploy new unit
+// - Purchase specialist step
+// - Purchase normal step
+// - Scrap step
+// - Set movement path
+// - Declare attack
+//
+// Stations:
+// - Build/purchase station
+// - Decomission station
+
 export const GameController = {
   async createGame(req: Request, res: Response) {
     try {

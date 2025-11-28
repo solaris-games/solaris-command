@@ -1,10 +1,10 @@
 import { UNIT_CATALOG_ID_MAP } from "../data";
-import { Unit, UnitStatuses, UnitStep } from "../models";
+import { Hex, Planet, Unit, UnitStatuses, UnitStep } from "../models";
 import { UnitSpecialistStepCatalogItem } from "../types";
+import { HexUtils } from "./hex-utils";
 
 // Constants based on GDD
-const RECOVERY_RATE = 2; // Steps recovered per cycle
-const TICKS_PER_CYCLE = 24; // Default, should probably come from GameSettings in real app
+const STEP_RECOVERY_RATE = 2; // Steps recovered per cycle
 
 export const UnitManager = {
   /**
@@ -12,10 +12,7 @@ export const UnitManager = {
    * Handles: AP/MP Refill, Supply Recovery, OOS Penalties.
    * Returns: A set of updates to apply to the Unit in the DB.
    */
-  processCycle(
-    unit: Unit,
-    ticksPerCycle: number = TICKS_PER_CYCLE
-  ): Partial<Unit> {
+  processCycle(unit: Unit, ticksPerCycle: number): Partial<Unit> {
     const unitCtlg = UNIT_CATALOG_ID_MAP.get(unit.catalogId)!;
 
     const cyclesOOS = Math.floor(unit.supply.ticksOutOfSupply / ticksPerCycle);
@@ -34,7 +31,7 @@ export const UnitManager = {
       // Recover suppressed steps (FIFO - First In, First Out, or just simple iteration)
       let recoveredCount = 0;
       newSteps = newSteps.map((step) => {
-        if (step.isSuppressed && recoveredCount < RECOVERY_RATE) {
+        if (step.isSuppressed && recoveredCount < STEP_RECOVERY_RATE) {
           recoveredCount++;
           return { ...step, isSuppressed: false };
         }
@@ -97,6 +94,39 @@ export const UnitManager = {
         suppressedSteps,
       },
     };
+  },
+
+  /**
+   * Find a valid spawn location for a new unit
+   * Rules: Adjacent to Capital, Empty Hex, No Unit.
+   */
+  findSpawnLocation(
+    playerCapital: Planet,
+    mapHexes: Hex[],
+    allUnits: Unit[]
+  ): any | null {
+    // Get all neighbors
+    const candidates = HexUtils.neighbors(playerCapital.location);
+
+    // Filter valid
+    for (const coord of candidates) {
+      const hexId = HexUtils.getID(coord);
+      const hex = mapHexes.find((h) => HexUtils.getID(h.coords) === hexId);
+
+      // Must exist and be passable
+      if (!hex || hex.isImpassable) continue;
+
+      // Must be empty of units
+      const isOccupied = allUnits.some(
+        (u) => HexUtils.getID(u.location) === hexId
+      );
+      if (isOccupied) continue;
+
+      // Found one!
+      return coord;
+    }
+
+    return null; // Capital is surrounded/blockaded
   },
 };
 

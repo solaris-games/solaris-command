@@ -1,10 +1,170 @@
 import { ObjectId } from "mongodb";
 import { TERRAIN_MP_COSTS, UNIT_CATALOG_ID_MAP } from "../data";
-import { Game, Unit, UnitStatuses, Hex, Planet, Station } from "../models";
+import {
+  Game,
+  Unit,
+  UnitStatuses,
+  Hex,
+  Planet,
+  Station,
+  Player,
+  GameStates,
+} from "../models";
 import { CombatReport } from "../types";
 import { CombatEngine } from "./combat-engine";
 import { HexUtils } from "./hex-utils";
-import { UnitManagerHelper } from "./unit-manager";
+import { UnitManager, UnitManagerHelper } from "./unit-manager";
+import { SupplyEngine } from "./supply-engine";
+
+export interface ProcessTickResult {
+  unitUpdates: Map<string, Unit>; // Full unit objects (heavily mutated)
+  hexUpdates: Map<string, Partial<Hex>>; // Partial updates (unitId, playerId)
+  planetUpdates: Map<string, Partial<Planet>>; // Capture updates
+  combatReports: CombatReport[]; // Logs for the UI
+  unitsToRemove: ObjectId[]; // Dead units to delete
+  stationsToRemove: ObjectId[]; // Captured stations to delete
+}
+
+class TickContext {
+  currentTick: number;
+  game: Game;
+  mapHexes: Hex[];
+  units: Unit[];
+  planets: Planet[];
+  stations: Station[];
+
+  // --- WORKING SETS (In-Memory State) ---
+  // We track unit locations in a Map for O(1) lookup during collision/combat checks.
+  // This map is updated continuously as the Tick progresses (e.g., after a Blitz move).
+  unitLocations = new Map<string, Unit>();
+  planetLookup = new Map<string, Planet>();
+  stationLookup = new Map<string, Station>();
+
+  // --- OUTPUT CONTAINERS ---
+  unitUpdates = new Map<string, Unit>();
+  hexUpdates = new Map<string, Partial<Hex>>();
+  planetUpdates = new Map<string, Partial<Planet>>();
+  combatReports: CombatReport[] = [];
+  unitsToRemove: ObjectId[] = [];
+  stationsToRemove: ObjectId[] = [];
+
+  constructor(
+    currentTick: number,
+    game: Game,
+    mapHexes: Hex[],
+    units: Unit[],
+    planets: Planet[],
+    stations: Station[]
+  ) {
+    this.currentTick = currentTick;
+    this.game = game;
+    this.mapHexes = mapHexes;
+    this.units = units;
+    this.planets = planets;
+    this.stations = stations;
+
+    // We track unit locations in a Map for O(1) lookup during collision/combat checks.
+    // This map is updated continuously as the Tick progresses (e.g., after a Blitz move).
+    this.unitLocations = new Map<string, Unit>();
+    units.forEach((u) => this.unitLocations.set(HexUtils.getID(u.location), u));
+
+    // Lookup map for Planets to check for capture logic efficiently
+    this.planetLookup = new Map<string, Planet>();
+    planets.forEach((p) =>
+      this.planetLookup.set(HexUtils.getID(p.location), p)
+    );
+
+    this.stationLookup = new Map<string, Station>();
+    stations.forEach((s) =>
+      this.stationLookup.set(HexUtils.getID(s.location), s)
+    );
+  }
+}
+
+export interface ProcessCycleResult {
+  gameUpdates: Partial<Game>;
+  playerUpdates: Map<string, Partial<Player>>;
+  unitUpdates: Map<string, Partial<Unit>>;
+  unitsToRemove: ObjectId[];
+  winnerId: ObjectId | null;
+}
+
+class CycleTickContext {
+  unitUpdates = new Map<string, Partial<Unit>>();
+  playerUpdates = new Map<string, Partial<Player>>();
+  unitsToRemove: ObjectId[] = []; // <--- Track dead units
+  gameUpdates: Partial<Game> | null = null;
+  winnerId: ObjectId | null = null;
+
+  constructor() {}
+}
+
+interface MoveIntent {
+  unit: Unit;
+  from: string;
+  to: string;
+  toCoord: any;
+}
+
+export class GameUnitMovementContext {
+  moveIntents: MoveIntent[] = [];
+  movesByDest = new Map<string, MoveIntent[]>();
+
+  constructor(context: TickContext) {
+    // Gather all units that want to move this tick.
+    context.units.forEach((unit) => {
+      // Unit must be MOVING, have a path, have MP, and NOT be dead from combat above
+      if (
+        unit.state.status === UnitStatuses.MOVING &&
+        unit.movement.path.length > 0 &&
+        unit.state.mp > 0 &&
+        !context.unitsToRemove.some((id) => String(id) === String(unit._id))
+      ) {
+        const nextHex = unit.movement.path[0];
+        this.moveIntents.push({
+          unit,
+          from: HexUtils.getID(unit.location),
+          to: HexUtils.getID(nextHex),
+          toCoord: nextHex,
+        });
+      }
+    });
+
+    // Group intents by Destination
+    this.moveIntents.forEach((intent) => {
+      if (!this.movesByDest.has(intent.to)) this.movesByDest.set(intent.to, []);
+      this.movesByDest.get(intent.to)!.push(intent);
+    });
+  }
+}
+
+/**
+ * Helper: Handle Territory Capture
+ * Called whenever a unit successfully enters a hex (via Movement or Combat Blitz).
+ */
+const handleHexCapture = (context: TickContext, hexId: string, unit: Unit) => {
+  // 1. Flip Hex Ownership
+  const existingHexUpdate = context.hexUpdates.get(hexId) || {};
+  context.hexUpdates.set(hexId, {
+    ...existingHexUpdate,
+    unitId: unit._id, // Unit is now seated here
+    playerId: unit.playerId, // Territory flips to Unit owner
+  });
+
+  // 2. Flip Planet Ownership (if one exists here)
+  const planet = context.planetLookup.get(hexId);
+  if (planet && String(planet.playerId) !== String(unit.playerId)) {
+    context.planetUpdates.set(planet._id.toString(), {
+      playerId: unit.playerId,
+    });
+  }
+
+  // 3. Destroy hostile stations
+  const station = context.stationLookup.get(hexId);
+  if (station && String(station.playerId) !== String(unit.playerId)) {
+    context.stationsToRemove.push(station._id);
+  }
+};
 
 export const TickProcessor = {
   /**
@@ -18,70 +178,39 @@ export const TickProcessor = {
     units: Unit[],
     planets: Planet[],
     stations: Station[]
-  ): {
-    unitUpdates: Map<string, Unit>; // Full unit objects (heavily mutated)
-    hexUpdates: Map<string, Partial<Hex>>; // Partial updates (unitId, playerId)
-    planetUpdates: Map<string, Partial<Planet>>; // Capture updates
-    combatReports: CombatReport[]; // Logs for the UI
-    unitsToRemove: ObjectId[]; // Dead units to delete
-    stationsToRemove: ObjectId[]; // Captured stations to delete
-  } {
+  ): ProcessTickResult {
     const currentTick = game.state.tick + 1;
 
-    // --- OUTPUT CONTAINERS ---
-    const unitUpdates = new Map<string, Unit>();
-    const hexUpdates = new Map<string, Partial<Hex>>();
-    const planetUpdates = new Map<string, Partial<Planet>>();
-    const combatReports: CombatReport[] = [];
-    const unitsToRemove: ObjectId[] = [];
-    const stationsToRemove: ObjectId[] = [];
+    const context = new TickContext(
+      currentTick,
+      game,
+      mapHexes,
+      units,
+      planets,
+      stations
+    );
 
-    // --- WORKING SETS (In-Memory State) ---
-    // We track unit locations in a Map for O(1) lookup during collision/combat checks.
-    // This map is updated continuously as the Tick progresses (e.g., after a Blitz move).
-    const unitLocations = new Map<string, Unit>();
-    units.forEach((u) => unitLocations.set(HexUtils.getID(u.location), u));
+    TickProcessor.processTickUnitCombat(context);
+    TickProcessor.processTickUnitMovement(context);
 
-    // Lookup map for Planets to check for capture logic efficiently
-    const planetLookup = new Map<string, Planet>();
-    planets.forEach((p) => planetLookup.set(HexUtils.getID(p.location), p));
-
-    const stationLookup = new Map<string, Station>();
-    stations.forEach((s) => stationLookup.set(HexUtils.getID(s.location), s));
-
-    /**
-     * Helper: Handle Territory Capture
-     * Called whenever a unit successfully enters a hex (via Movement or Combat Blitz).
-     */
-    const handleHexCapture = (hexId: string, unit: Unit) => {
-      // 1. Flip Hex Ownership
-      const existingHexUpdate = hexUpdates.get(hexId) || {};
-      hexUpdates.set(hexId, {
-        ...existingHexUpdate,
-        unitId: unit._id, // Unit is now seated here
-        playerId: unit.playerId, // Territory flips to Unit owner
-      });
-
-      // 2. Flip Planet Ownership (if one exists here)
-      const planet = planetLookup.get(hexId);
-      if (planet && String(planet.playerId) !== String(unit.playerId)) {
-        planetUpdates.set(planet._id.toString(), { playerId: unit.playerId });
-      }
-
-      // 3. Destroy hostile stations
-      const station = stationLookup.get(hexId);
-      if (station && String(station.playerId) !== String(unit.playerId)) {
-        stationsToRemove.push(station._id);
-      }
+    return {
+      unitUpdates: context.unitUpdates,
+      hexUpdates: context.hexUpdates,
+      planetUpdates: context.planetUpdates,
+      combatReports: context.combatReports,
+      unitsToRemove: context.unitsToRemove,
+      stationsToRemove: context.stationsToRemove,
     };
+  },
 
+  processTickUnitCombat(contextTick: TickContext) {
     // =================================================================================
-    // PHASE 1: COMBAT RESOLUTION
+    // COMBAT RESOLUTION
     // Combat happens BEFORE movement. This allows "Blitz" moves to seize ground.
     // =================================================================================
 
     // 1. Identify Units Declaring Attack
-    const attackers = units.filter(
+    const attackers = contextTick.units.filter(
       (u) => u.state.status === UnitStatuses.PREPARING
     );
 
@@ -114,13 +243,13 @@ export const TickProcessor = {
       for (const attacker of hexAttackers) {
         // Lookup Target Hex
         // TODO: In a massive map, mapHexes.find is slow O(N). In production, mapHexes should be a Map<string, Hex>.
-        const targetHex = mapHexes.find(
+        const targetHex = contextTick.mapHexes.find(
           (h) => HexUtils.getID(h.coords) === targetHexId
         );
         if (!targetHex) continue;
 
         // Lookup Defender (Is there a unit at the location RIGHT NOW?)
-        const defender = unitLocations.get(targetHexId);
+        const defender = contextTick.unitLocations.get(targetHexId);
 
         // Whiff Check: Did the defender die or retreat in a previous sequence step?
         // Also check Friendly Fire (Attacker vs Attacker race condition)
@@ -130,7 +259,7 @@ export const TickProcessor = {
         ) {
           attacker.state.status = UnitStatuses.REGROUPING; // Attack fails/cancels
           attacker.combat.targetHex = null;
-          unitUpdates.set(attacker._id.toString(), attacker);
+          contextTick.unitUpdates.set(attacker._id.toString(), attacker);
           continue;
         }
 
@@ -139,36 +268,40 @@ export const TickProcessor = {
         const battleResult = CombatEngine.resolveBattle(
           attacker,
           defender,
-          mapHexes,
+          contextTick.mapHexes,
           { advanceOnVictory: true }
         );
 
         // Log Report
-        battleResult.report.tick = currentTick;
-        combatReports.push(battleResult.report);
+        battleResult.report.tick = contextTick.currentTick;
+        contextTick.combatReports.push(battleResult.report);
 
         // Queue State Updates
-        unitUpdates.set(attacker._id.toString(), attacker);
-        unitUpdates.set(defender._id.toString(), defender);
+        contextTick.unitUpdates.set(attacker._id.toString(), attacker);
+        contextTick.unitUpdates.set(defender._id.toString(), defender);
 
         // Check Casualties
-        if (attacker.steps.length === 0) unitsToRemove.push(attacker._id);
+        if (attacker.steps.length === 0)
+          contextTick.unitsToRemove.push(attacker._id);
 
         if (defender.steps.length === 0) {
           // Defender Destroyed
-          unitsToRemove.push(defender._id);
-          unitLocations.delete(targetHexId); // Remove from board
-          hexUpdates.set(targetHexId, { unitId: null }); // Clear seat
+          contextTick.unitsToRemove.push(defender._id);
+          contextTick.unitLocations.delete(targetHexId); // Remove from board
+          contextTick.hexUpdates.set(targetHexId, { unitId: null }); // Clear seat
         } else if (battleResult.report.defender.retreated) {
           // Defender Retreated
-          unitLocations.delete(targetHexId); // Left old hex
+          contextTick.unitLocations.delete(targetHexId); // Left old hex
           const newDefLoc = HexUtils.getID(defender.location);
-          unitLocations.set(newDefLoc, defender); // Occupy new hex
+          contextTick.unitLocations.set(newDefLoc, defender); // Occupy new hex
 
-          hexUpdates.set(targetHexId, { unitId: null }); // Clear old seat
+          contextTick.hexUpdates.set(targetHexId, { unitId: null }); // Clear old seat
           // Note: Defender implicitly "captures" retreat hex, or at least occupies it
-          const existing = hexUpdates.get(newDefLoc) || {};
-          hexUpdates.set(newDefLoc, { ...existing, unitId: defender._id });
+          const existing = contextTick.hexUpdates.get(newDefLoc) || {};
+          contextTick.hexUpdates.set(newDefLoc, {
+            ...existing,
+            unitId: defender._id,
+          });
         }
 
         // Handle Blitz (Advance on Victory)
@@ -176,64 +309,32 @@ export const TickProcessor = {
           const oldLoc = HexUtils.getID(attacker.location);
 
           // Update Memory
-          unitLocations.delete(oldLoc);
-          unitLocations.set(targetHexId, attacker);
+          contextTick.unitLocations.delete(oldLoc);
+          contextTick.unitLocations.set(targetHexId, attacker);
 
           // Update DB: Vacate old hex
-          hexUpdates.set(oldLoc, { unitId: null });
+          contextTick.hexUpdates.set(oldLoc, { unitId: null });
 
           // Update DB: Capture new hex (and planet)
-          handleHexCapture(targetHexId, attacker);
+          handleHexCapture(contextTick, targetHexId, attacker);
         }
       }
     });
+  },
+
+  processTickUnitMovement(
+    context: TickContext
+  ) {
+    const contextMovement = new GameUnitMovementContext(context);
 
     // =================================================================================
-    // PHASE 2: MOVEMENT INTENT
-    // Gather all units that want to move this tick.
-    // =================================================================================
-
-    interface MoveIntent {
-      unit: Unit;
-      from: string;
-      to: string;
-      toCoord: any;
-    }
-    const moveIntents: MoveIntent[] = [];
-
-    units.forEach((unit) => {
-      // Unit must be MOVING, have a path, have MP, and NOT be dead from combat above
-      if (
-        unit.state.status === UnitStatuses.MOVING &&
-        unit.movement.path.length > 0 &&
-        unit.state.mp > 0 &&
-        !unitsToRemove.some((id) => String(id) === String(unit._id))
-      ) {
-        const nextHex = unit.movement.path[0];
-        moveIntents.push({
-          unit,
-          from: HexUtils.getID(unit.location),
-          to: HexUtils.getID(nextHex),
-          toCoord: nextHex,
-        });
-      }
-    });
-
-    // =================================================================================
-    // PHASE 3: COLLISION RESOLUTION & EXECUTION
+    // COLLISION RESOLUTION & EXECUTION
     // Check for "Crashes" (Multiple units entering same hex, or entering occupied hex)
     // =================================================================================
 
-    // Group intents by Destination
-    const movesByDest = new Map<string, MoveIntent[]>();
-    moveIntents.forEach((intent) => {
-      if (!movesByDest.has(intent.to)) movesByDest.set(intent.to, []);
-      movesByDest.get(intent.to)!.push(intent);
-    });
-
-    movesByDest.forEach((intents, destId) => {
+    contextMovement.movesByDest.forEach((intents, destId) => {
       // Check 1: Is the destination occupied? (Note: unitLocations acts as the live board state)
-      const occupier = unitLocations.get(destId);
+      const occupier = context.unitLocations.get(destId);
 
       // Check 2: Are multiple units trying to enter?
       const isCrash = intents.length > 1 || occupier !== undefined;
@@ -247,7 +348,7 @@ export const TickProcessor = {
           unit.state.status = UnitStatuses.REGROUPING; // Forced stop
 
           // Update DB
-          unitUpdates.set(unit._id.toString(), unit);
+          context.unitUpdates.set(unit._id.toString(), unit);
         });
         // Note: Occupier is unaffected (Interloper Rule)
       } else {
@@ -256,7 +357,7 @@ export const TickProcessor = {
         const unit = intent.unit;
 
         // Calculate Cost based on Target Terrain
-        const targetHex = mapHexes.find(
+        const targetHex = context.mapHexes.find(
           (h) => HexUtils.getID(h.coords) === destId
         )!;
 
@@ -271,27 +372,156 @@ export const TickProcessor = {
         if (unit.movement.path.length === 0 || unit.state.mp === 0) {
           unit.state.status = UnitStatuses.IDLE;
         }
-        unitUpdates.set(unit._id.toString(), unit);
+        context.unitUpdates.set(unit._id.toString(), unit);
 
         // Update Working Set (for next logic steps, though this is the end of tick)
-        unitLocations.delete(intent.from);
-        unitLocations.set(intent.to, unit);
+        context.unitLocations.delete(intent.from);
+        context.unitLocations.set(intent.to, unit);
 
         // Update Hexes: Vacate Old
-        hexUpdates.set(intent.from, { unitId: null });
+        context.hexUpdates.set(intent.from, { unitId: null });
 
         // Update Hexes: Capture New
-        handleHexCapture(destId, unit);
+        handleHexCapture(context, destId, unit);
+      }
+    });
+  },
+
+  /**
+   * THE MASTER LOOP
+   * This function will be called by a Cron Job / Ticker every time a Cycle completes.
+   * It modifies the objects in memory. The caller is responsible for saving them to DB afterwards.
+   */
+  processCycle(
+    game: Game,
+    players: Player[],
+    hexes: Hex[],
+    units: Unit[],
+    planets: Planet[],
+    stations: Station[]
+  ): ProcessCycleResult {
+    const context = new CycleTickContext();
+
+    // 1. Process each Player independently
+    players.forEach((player) => {
+      const playerIdStr = player._id.toString();
+
+      // --- A. LOGISTICS PHASE ---
+      const supplyNetwork = SupplyEngine.calculatePlayerSupplyNetwork(
+        player._id,
+        hexes,
+        planets,
+        stations
+      );
+
+      const playerUnits = units.filter(
+        (u) => u.playerId.toString() === playerIdStr
+      );
+
+      playerUnits.forEach((unit) => {
+        // 1. Determine Supply Status
+        const supplyUpdate = SupplyEngine.processUnitSupply(
+          unit,
+          supplyNetwork
+        );
+        const unitWithSupply = { ...unit, ...supplyUpdate } as Unit;
+
+        // 2. Run Cycle Logic (Refill AP/MP, Recovery, or Penalties)
+        const cycleUpdate = UnitManager.processCycle(
+          unitWithSupply,
+          game.settings.ticksPerCycle
+        );
+
+        // 3. Check for Death (Starvation/Collapse)
+        // We merge the proposed updates to check the resulting steps
+        const resultingSteps = cycleUpdate.steps || unit.steps;
+
+        if (resultingSteps.length === 0) {
+          // Unit died this cycle
+          context.unitsToRemove.push(unit._id);
+        } else {
+          // Unit lives, queue update
+          context.unitUpdates.set(unit._id.toString(), {
+            ...supplyUpdate,
+            ...cycleUpdate,
+          });
+        }
+      });
+
+      // --- B. ECONOMY PHASE ---
+      const ownedPlanets = planets.filter(
+        (p) => String(p.playerId) === playerIdStr
+      );
+
+      // Calculate Prestige Income
+      const income = TickProcessor.calculatePrestigeIncome(ownedPlanets);
+      const newPrestige = player.prestigePoints + income;
+
+      // Calculate Victory Points (Accumulated per cycle)
+      const vpIncome = TickProcessor.calculateVPIncome(ownedPlanets);
+      const newVP = player.victoryPoints + vpIncome;
+
+      context.playerUpdates.set(playerIdStr, {
+        prestigePoints: newPrestige,
+        victoryPoints: newVP,
+      });
+
+      // --- C. VICTORY CHECK ---
+      if (newVP >= game.settings.victoryPointsToWin) {
+        // If multiple players cross the line same tick, highest wins (tie-break logic needed?)
+        if (
+          !context.winnerId ||
+          newVP >
+            (players.find((p) => p._id === context.winnerId)?.victoryPoints ||
+              0)
+        ) {
+          context.winnerId = player._id;
+        }
       }
     });
 
-    return {
-      unitUpdates,
-      hexUpdates,
-      planetUpdates,
-      combatReports,
-      unitsToRemove,
-      stationsToRemove,
+    // 2. Game State Update
+    // Note: We only increment the Cycle count here. The Ticks are incremented by another process.
+    context.gameUpdates = {
+      state: {
+        ...game.state,
+        cycle: game.state.cycle + 1,
+        lastTickDate: new Date(),
+        winnerPlayerId: context.winnerId,
+      },
     };
+
+    if (context.winnerId) {
+      context.gameUpdates.state!.status = GameStates.COMPLETED;
+      context.gameUpdates.state!.endDate = new Date();
+    }
+
+    return {
+      gameUpdates: context.gameUpdates,
+      playerUpdates: context.playerUpdates,
+      unitUpdates: context.unitUpdates,
+      unitsToRemove: context.unitsToRemove,
+      winnerId: context.winnerId,
+    };
+  },
+
+  /**
+   * Calculate total Prestige generated this cycle
+   */
+  calculatePrestigeIncome(ownedPlanets: Planet[]): number {
+    return ownedPlanets.reduce(
+      (total, planet) => total + planet.prestigePointsPerCycle,
+      0
+    );
+  },
+
+  /**
+   * Calculate total VPs generated this cycle
+   */
+  calculateVPIncome(ownedPlanets: Planet[]): number {
+    return ownedPlanets.reduce(
+      (total, planet) => total + planet.victoryPointsPerCycle,
+      0
+    );
   },
 };

@@ -7,6 +7,7 @@ import { UNIT_CATALOG_ID_MAP } from "../data";
 // --- FACTORY HELPER ---
 const CATALOG_UNIT_ID = "unit_frigate_01"
 const CATALOG_UNIT = UNIT_CATALOG_ID_MAP.get(CATALOG_UNIT_ID)!
+const TICKS_PER_CYCLE = 24
 
 function createTestUnit(overrides: Partial<Unit> = {}): Unit {
   return {
@@ -47,7 +48,7 @@ describe("UnitManager", () => {
         },
       });
 
-      const update = UnitManager.processCycle(unit);
+      const update = UnitManager.processCycle(unit, TICKS_PER_CYCLE);
 
       expect(update.state?.ap).toBe(CATALOG_UNIT.stats.maxAP);
       expect(update.state?.mp).toBe(CATALOG_UNIT.stats.maxMP);
@@ -64,7 +65,7 @@ describe("UnitManager", () => {
         },
       });
 
-      const update = UnitManager.processCycle(unit);
+      const update = UnitManager.processCycle(unit, TICKS_PER_CYCLE);
 
       expect(update.state?.status).toBe(UnitStatuses.IDLE);
     });
@@ -80,7 +81,7 @@ describe("UnitManager", () => {
 
       const unit = createTestUnit({ steps });
 
-      const update = UnitManager.processCycle(unit);
+      const update = UnitManager.processCycle(unit, TICKS_PER_CYCLE);
 
       // Expect: 2 recovered (Recovery Rate = 2), 1 still suppressed
       const suppressedCount = update.steps?.filter(
@@ -102,7 +103,7 @@ describe("UnitManager", () => {
         steps: [{ isSuppressed: true, specialistId: null }],
       });
 
-      const update = UnitManager.processCycle(unit);
+      const update = UnitManager.processCycle(unit, TICKS_PER_CYCLE);
 
       // Check: Normal AP/MP refill happens in Tier 1?
       // Logic check: Logic says "if (isInSupply) ... else { checks tiers }"
@@ -126,7 +127,7 @@ describe("UnitManager", () => {
         ],
       });
 
-      const update = UnitManager.processCycle(unit);
+      const update = UnitManager.processCycle(unit, TICKS_PER_CYCLE);
 
       expect(update.state?.ap).toBe(0); // Starvation
 
@@ -148,7 +149,7 @@ describe("UnitManager", () => {
         ],
       });
 
-      const update = UnitManager.processCycle(unit);
+      const update = UnitManager.processCycle(unit, TICKS_PER_CYCLE);
 
       expect(update.state?.ap).toBe(0);
       expect(update.state?.mp).toBe(Math.ceil(CATALOG_UNIT.stats.maxMP / 2));
@@ -168,7 +169,7 @@ describe("UnitManager", () => {
         steps: Array(5).fill({ isSuppressed: false, specialistId: null }),
       });
 
-      const update = UnitManager.processCycle(unit);
+      const update = UnitManager.processCycle(unit, TICKS_PER_CYCLE);
 
       // Should kill 3 steps (5 - 3 = 2 remaining)
       expect(update.steps?.length).toBe(2);

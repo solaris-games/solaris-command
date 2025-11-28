@@ -14,7 +14,6 @@ import {
   Hex,
   Planet,
   TickProcessor,
-  GameManager,
   HexUtils,
   ProcessCycleResult,
   Station,
@@ -158,7 +157,7 @@ async function executeGameTick(client: MongoClient, game: Game) {
     }) as Planet[];
 
     // Run the Economy/Logistics Logic
-    cycleResult = GameManager.processCycle(
+    cycleResult = TickProcessor.processCycle(
       game,
       players,
       updatedHexes,

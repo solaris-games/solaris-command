@@ -1,6 +1,5 @@
 export * from "./combat-calculator";
 export * from "./combat-engine";
-export * from "./game-manager";
 export * from "./hex-utils";
 export * from "./map-generator";
 export * from "./pathfinding";
