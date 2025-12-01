@@ -2,6 +2,7 @@ export * from "./combat-calculator";
 export * from "./combat-engine";
 export * from "./hex-utils";
 export * from "./map-generator";
+export * from "./map-utils";
 export * from "./pathfinding";
 export * from "./supply-engine";
 export * from "./tick-processor";

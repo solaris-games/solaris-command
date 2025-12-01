@@ -4,6 +4,7 @@ import { Hex, TerrainTypes } from "../models/hex"; // Assuming Hex model exports
 import { HexUtils } from "./hex-utils";
 import { HexCoords } from "../types/geometry";
 import { Pathfinding } from "./pathfinding";
+import { MapUtils } from "./map-utils";
 
 export const SupplyEngine = {
   /**
@@ -14,7 +15,8 @@ export const SupplyEngine = {
     playerId: ObjectId,
     hexes: Hex[],
     planets: Planet[],
-    stations: Station[]
+    stations: Station[],
+    units: Unit[]
   ): Set<string> {
     const suppliedHexIds = new Set<string>();
 
@@ -38,18 +40,20 @@ export const SupplyEngine = {
         s.status === StationStatuses.ACTIVE
     );
 
+    const zocMap = MapUtils.calculateZOCMap(units);
+
     const nodes: (Planet | Station)[] = [...playerPlanets, ...playerStations];
 
     // Queue for Supply Propagation
     // We start propagation from the Roots.
-    const sourceQueue: Array<{ location: HexCoords; range: number }> = [];
+    const sourceQueue: Array<{ location: HexCoords; rangeMP: number }> = [];
     const visitedNodes = new Set<string>(); // Keep track of planets/stations we've already activated
 
     // 2. Initialize with Roots
     rootSources.forEach((planet) => {
       sourceQueue.push({
         location: planet.location,
-        range: planet.supply.supplyRange, // Range in Movement Points
+        rangeMP: planet.supply.supplyRangeMP, // Range in Movement Points
       });
       visitedNodes.add(planet._id.toString());
     });
@@ -61,8 +65,12 @@ export const SupplyEngine = {
       // A. Calculate reachable hexes using MP Costs (Dijkstra Flood Fill)
       const reachableHexIDs = Pathfinding.getReachableHexes(
         currentSource.location,
-        currentSource.range,
-        hexMap
+        currentSource.rangeMP,
+        hexMap,
+        {
+          playerId: String(playerId),
+          zocMap,
+        }
       );
 
       // B. Add to the master list of supplied hexes
@@ -86,7 +94,7 @@ export const SupplyEngine = {
           visitedNodes.add(nodeId);
           sourceQueue.push({
             location: node.location,
-            range: node.supply.supplyRange,
+            rangeMP: node.supply.supplyRangeMP,
           });
         }
       }

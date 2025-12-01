@@ -24,7 +24,7 @@ Units are the primary method of projecting power.
     * **Suppressed Steps:** Damaged/disorganized ships. They do not contribute to combat and must be recovered via Supply.
     * **Specialist Steps:** Rare, high-value steps (e.g., Artillery, Carriers) that provide unique bonuses to the unit stack.
 * **Unit Classes:**
-    * **Frigates:** High MP, low cost. Ideal for scouting and ZOC projection.
+    * **Frigates:** High MP, low cost.
     * **Destroyers:** The backbone of the fleet. Balanced stats.
     * **Battleships:** Heavy armor, high firepower, low MP.
 
@@ -32,6 +32,7 @@ Units are the primary method of projecting power.
 Fixed assets that define territory and logistics.
 * **Planets:** The economic engine. They generate **Prestige**.
     * *Capital Planets:* These serve as **Root Supply Sources**. They function indefinitely and cannot be besieged out of supply (though they can be captured).
+    * Capturing an enemy *Capital Planet* is devastating, it could very well knock the opposing player out of the game.
 * **Stations:** Deployable logistics hubs. They extend supply range from Planets to deep space.
     * *Pool Limit:* The number of deployable stations is capped by the number of Planets controlled.
     * *Lifecycle & States:*
@@ -45,7 +46,8 @@ Fixed assets that define territory and logistics.
 The hex grid imposes strategic constraints via terrain types.
 * **Empty Space:** Standard movement (1 MP) and combat.
 * **Asteroid/Debris Fields:** High movement cost (2 MP). Provides **Defense Shifts** in combat (beneficial for smaller ships).
-* **Nebulas:** Very high movement cost. Dangerous for supply lines (units may struggle to trace supply through them).
+* **Nebulas/Gas Clouds/Industrial Zones:** Very high movement cost (3 MP). Dangerous for supply lines (units may struggle to trace supply through them).
+* **Gravity Wells/Radiation Storms:** Impassable.
 
 ---
 
@@ -55,13 +57,9 @@ Movement is simultaneous but resolved sequentially per Tick.
 ### Core Rules
 * **Movement Points (MP):** A pool of points refreshed every Cycle.
 * **Speed Constraint:** Regardless of total MP, all units physically move at a speed of **1 Hex per Tick**. (High MP units can simply sustain movement for more hours in the day).
-* **Terrain Costs:**
-    * *Empty:* 1 MP
-    * *Asteroids:* 2 MP
-    * *Gravity Well:* All Remaining MP (Hard stop).
 
 ### Tactical Movement
-* **Zone of Control (ZOC):** Units exert a ZOC into all 6 adjacent hexes. Attempting to move *from* a ZOC hex *into* another ZOC hex (or simply entering one) consumes **All Remaining MP**. This allows players to create blockades.
+* **Zone of Control (ZOC):** Most units exert a ZOC into all 6 adjacent hexes. Movement into hexes with enemy ZOC consumes **double** MP.
 * **Front Lines & Capture:** Moving a unit into a hex owned by an enemy captures it. Under certain conditions (e.g., surrounding an area), adjacent hexes may also flip ownership.
 * **[Collision] The Crash Rule:** If two or more units attempt to enter the same hex on the same Tick, a **Collision** occurs.
     * *Scope:* This applies to **ALL** units (Enemy vs Enemy, Ally vs Ally, or Self vs Self).
@@ -70,8 +68,8 @@ Movement is simultaneous but resolved sequentially per Tick.
 
 > **Scenario: The Race**
 > **Player A** (Frigates, High MP) and **Player B** (Destroyers, Low MP) both race for a neutral planet.
-> * **The Plan:** Player A plots a direct course. Player B is closer but slower.
-> * **The Result:** Player B arrives first. Their Destroyers exert **Zone of Control**. When Player A arrives 2 hours later, they enter the ZOC and are forced to stop immediately, unable to bypass the enemy fleet.
+> * **The Plan:** Player A plots a direct course. Player B is closer but has less MP.
+> * **The Result:** Player B arrives first. Their Destroyers exert **Zone of Control**. When Player A arrives 2 hours later, they enter the ZOC and run out of MP, unable to bypass the enemy fleet.
 
 ---
 
@@ -96,6 +94,13 @@ Combat is deterministic, relying on preparation, positioning and coordination.
     * The Attacker **instantly moves** into the captured hex as part of the combat resolution.
     * *Note:* This movement happens *before* other units move in the current Tick.
 6.  **Regrouping:** Both units enter a `REGROUPING` cooldown.
+
+### Combat Operations
+The player can choose the method of attack, these are as follows:
+* **Standard Attack:** The normal attack type, both units engage in combat.
+* **Feint Attack:** Simulates a limited attack. **Suppresses 1 step from both sides**, useful for weaker units attacking stronger targets.
+* **Suppressive Fire:** Simulates using artillery without actually moving into the attack. **Suppresses 2 steps** from the opposing unit.
+    * This attack is available only if the unit has an **Artillery** specialist step.
 
 ### Collision Override (The "Interloper" Rule)
 Because Combat resolves before standard Movement, a "Crash" can occur if a third party tries to enter a hex being fought over.
@@ -169,4 +174,4 @@ There is no complex resource management (metal/crystal). The currency is **Prest
 
 ## 7. Win Conditions
 To win the game, players must earn Victory Points (VPs) which are earned by controlling planets. VPs are awarded at the end of each cycle and the
-first player to reach X VPs will win the game.
+first player to reach a certain number of VPs will win the game.

@@ -14,12 +14,12 @@ export const CombatEngine = {
   resolveBattle(
     attacker: Unit,
     defender: Unit,
-    mapHexes: Hex[],
+    hexLookup: Map<string, Hex>,
     settings: { advanceOnVictory: boolean }
   ): { report: CombatReport; attackerWonHex: boolean } {
     // 1. Setup Context
     const hexKey = HexUtils.getID(defender.location);
-    const hex = mapHexes.find((h) => HexUtils.getID(h.coords) === hexKey)!;
+    const hex = hexLookup.get(hexKey)!;
 
     // 2. Calculate & Predict
     const prediction = CombatCalculator.calculate(attacker, defender, hex);
@@ -63,7 +63,7 @@ export const CombatEngine = {
         const retreatHex = CombatEngine.findRetreatHex(
           defender,
           attacker,
-          mapHexes
+          hexLookup
         );
 
         if (retreatHex) {
@@ -127,13 +127,17 @@ export const CombatEngine = {
    * Helper: Find the best hex to retreat to.
    * Logic: Lowest Movement Cost -> Closest to Capital -> Random
    */
-  findRetreatHex(unit: Unit, threat: Unit, mapHexes: Hex[]): Hex | null {
+  findRetreatHex(
+    unit: Unit,
+    threat: Unit,
+    hexLookup: Map<string, Hex>
+  ): Hex | null {
     const neighbors = HexUtils.neighbors(unit.location);
     const validRetreats: Hex[] = [];
 
     for (const coord of neighbors) {
       const hexId = HexUtils.getID(coord);
-      const hex = mapHexes.find((h) => HexUtils.getID(h.coords) === hexId);
+      const hex = hexLookup.get(hexId);
 
       // 1. Must exist and be passable
       if (!hex || hex.isImpassable) continue;

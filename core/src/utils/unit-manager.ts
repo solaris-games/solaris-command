@@ -102,7 +102,7 @@ export const UnitManager = {
    */
   findSpawnLocation(
     playerCapital: Planet,
-    mapHexes: Hex[],
+    hexes: Hex[],
     allUnits: Unit[]
   ): any | null {
     // Get all neighbors
@@ -111,7 +111,7 @@ export const UnitManager = {
     // Filter valid
     for (const coord of candidates) {
       const hexId = HexUtils.getID(coord);
-      const hex = mapHexes.find((h) => HexUtils.getID(h.coords) === hexId);
+      const hex = hexes.find((h) => HexUtils.getID(h.coords) === hexId);
 
       // Must exist and be passable
       if (!hex || hex.isImpassable) continue;

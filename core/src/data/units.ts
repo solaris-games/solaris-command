@@ -1,5 +1,9 @@
 import { UnitCatalogItem, UnitClasses } from "../types";
 
+// TODO: Add many more unit types, try to mimic real life counterparts.
+// TODO: Add unique characteristics for each type of unit, 
+// - e.g Frigates have a lot of MP, Cruisers are glass cannons etc. (Again, mimic real life if possible)
+
 export const UNIT_CATALOG: UnitCatalogItem[] = [
   {
     id: "unit_frigate_01",
@@ -13,9 +17,10 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       defense: 2,
       armor: 0,
       maxAP: 1,
-      maxMP: 3,
-      maxSteps: 7,
+      maxMP: 18,
+      maxSteps: 5,
       initiative: 0, // Acts First
+      hasZOC: false
     },
   },
   {
@@ -29,9 +34,10 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       defense: 3,
       armor: 1,
       maxAP: 1,
-      maxMP: 2,
-      maxSteps: 7,
+      maxMP: 12,
+      maxSteps: 6,
       initiative: 1,
+      hasZOC: true
     },
   },
   {
@@ -46,9 +52,10 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       defense: 5,
       armor: 2,
       maxAP: 1,
-      maxMP: 1,
+      maxMP: 10,
       maxSteps: 7,
       initiative: 2, // Acts Last
+      hasZOC: true
     },
   },
 ];

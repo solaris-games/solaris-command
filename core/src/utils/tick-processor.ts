@@ -15,6 +15,7 @@ import { CombatEngine } from "./combat-engine";
 import { HexUtils } from "./hex-utils";
 import { UnitManager, UnitManagerHelper } from "./unit-manager";
 import { SupplyEngine } from "./supply-engine";
+import { MapUtils } from "./map-utils";
 
 export interface ProcessTickResult {
   unitUpdates: Map<string, Unit>; // Full unit objects (heavily mutated)
@@ -28,7 +29,7 @@ export interface ProcessTickResult {
 class TickContext {
   currentTick: number;
   game: Game;
-  mapHexes: Hex[];
+  hexes: Hex[];
   units: Unit[];
   planets: Planet[];
   stations: Station[];
@@ -36,6 +37,7 @@ class TickContext {
   // --- WORKING SETS (In-Memory State) ---
   // We track unit locations in a Map for O(1) lookup during collision/combat checks.
   // This map is updated continuously as the Tick progresses (e.g., after a Blitz move).
+  hexLookup = new Map<string, Hex>();
   unitLocations = new Map<string, Unit>();
   planetLookup = new Map<string, Planet>();
   stationLookup = new Map<string, Station>();
@@ -51,20 +53,23 @@ class TickContext {
   constructor(
     currentTick: number,
     game: Game,
-    mapHexes: Hex[],
+    hexes: Hex[],
     units: Unit[],
     planets: Planet[],
     stations: Station[]
   ) {
     this.currentTick = currentTick;
     this.game = game;
-    this.mapHexes = mapHexes;
+    this.hexes = hexes;
     this.units = units;
     this.planets = planets;
     this.stations = stations;
 
     // We track unit locations in a Map for O(1) lookup during collision/combat checks.
     // This map is updated continuously as the Tick progresses (e.g., after a Blitz move).
+    this.hexLookup = new Map<string, Hex>();
+    hexes.forEach((h) => this.hexLookup.set(HexUtils.getID(h.coords), h));
+
     this.unitLocations = new Map<string, Unit>();
     units.forEach((u) => this.unitLocations.set(HexUtils.getID(u.location), u));
 
@@ -174,7 +179,7 @@ export const TickProcessor = {
    */
   processTick(
     game: Game,
-    mapHexes: Hex[],
+    hexes: Hex[],
     units: Unit[],
     planets: Planet[],
     stations: Station[]
@@ -184,7 +189,7 @@ export const TickProcessor = {
     const context = new TickContext(
       currentTick,
       game,
-      mapHexes,
+      hexes,
       units,
       planets,
       stations
@@ -192,6 +197,8 @@ export const TickProcessor = {
 
     TickProcessor.processTickUnitCombat(context);
     TickProcessor.processTickUnitMovement(context);
+
+    // TODO: We should check for a winner here since players may concede defeat earlier than the cycle. (There might be 1 player left and will win by default)
 
     return {
       unitUpdates: context.unitUpdates,
@@ -242,10 +249,7 @@ export const TickProcessor = {
       // Execute Sequential 1v1s
       for (const attacker of hexAttackers) {
         // Lookup Target Hex
-        // TODO: In a massive map, mapHexes.find is slow O(N). In production, mapHexes should be a Map<string, Hex>.
-        const targetHex = contextTick.mapHexes.find(
-          (h) => HexUtils.getID(h.coords) === targetHexId
-        );
+        const targetHex = contextTick.hexLookup.get(targetHexId);
         if (!targetHex) continue;
 
         // Lookup Defender (Is there a unit at the location RIGHT NOW?)
@@ -268,7 +272,7 @@ export const TickProcessor = {
         const battleResult = CombatEngine.resolveBattle(
           attacker,
           defender,
-          contextTick.mapHexes,
+          contextTick.hexLookup,
           { advanceOnVictory: true }
         );
 
@@ -322,9 +326,7 @@ export const TickProcessor = {
     });
   },
 
-  processTickUnitMovement(
-    context: TickContext
-  ) {
+  processTickUnitMovement(context: TickContext) {
     const contextMovement = new GameUnitMovementContext(context);
 
     // =================================================================================
@@ -344,6 +346,7 @@ export const TickProcessor = {
         // "The Crash Rule": All movers Bounce, lose MP, and get Suppressed.
         intents.forEach(({ unit }) => {
           unit.state.mp = 0; // Lose momentum
+          unit.movement.path = []; // Clear the path
           unit.steps = UnitManagerHelper.suppressSteps(unit.steps, 1); // Take damage
           unit.state.status = UnitStatuses.REGROUPING; // Forced stop
 
@@ -357,11 +360,26 @@ export const TickProcessor = {
         const unit = intent.unit;
 
         // Calculate Cost based on Target Terrain
-        const targetHex = context.mapHexes.find(
-          (h) => HexUtils.getID(h.coords) === destId
-        )!;
+        const targetHex = context.hexLookup.get(destId)!;
 
-        const mpCost = TERRAIN_MP_COSTS[targetHex.terrain];
+        let mpCost = TERRAIN_MP_COSTS[targetHex.terrain];
+
+        // Moving into a hex that is in a Zone of Control (ZOC) of an enemy unit DOUBLES the MP cost of that hex.
+        // TODO: Do we need to recalculate the ZOC map every time? I think so since unit locations change a lot in this function.
+        const zocMap = MapUtils.calculateZOCMap(context.units);
+
+        const isZOC = MapUtils.isHexInEnemyZOC(
+          HexUtils.getID(targetHex.coords),
+          String(unit.playerId),
+          zocMap
+        );
+
+        if (isZOC) {
+          mpCost *= 2;
+        }
+
+        // TODO: We should validate that the unit has enough MP here
+        // - If they do not have enough then we should clear their path and set them to IDLE.
 
         // Apply State Changes
         unit.location = intent.toCoord;
@@ -372,6 +390,7 @@ export const TickProcessor = {
         if (unit.movement.path.length === 0 || unit.state.mp === 0) {
           unit.state.status = UnitStatuses.IDLE;
         }
+
         context.unitUpdates.set(unit._id.toString(), unit);
 
         // Update Working Set (for next logic steps, though this is the end of tick)
@@ -411,7 +430,8 @@ export const TickProcessor = {
         player._id,
         hexes,
         planets,
-        stations
+        stations,
+        units
       );
 
       const playerUnits = units.filter(

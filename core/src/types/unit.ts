@@ -24,6 +24,9 @@ export interface UnitCatalogItem {
 
     // Combat Order (Lower = Acts sooner)
     initiative: number;
+
+    // Zone of Control
+    hasZOC: boolean; // Smaller units may not have a ZOC influence
   };
 }
 
@@ -48,6 +51,6 @@ export interface UnitSpecialistStepCatalogItem {
     armor: number;
     artillery: number;
     siege: number;
-    logistics: boolean;
+    logistics: boolean; // TODO: Implement logic in supply phase for this.
   };
 }
