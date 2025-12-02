@@ -3,6 +3,7 @@ import { ObjectId } from "mongodb";
 import { authenticateToken } from "../middleware/auth";
 import { getDb } from "../db/instance";
 import { Game, GameStates, Player, Hex, Unit, Planet, Station, FogOfWar, HexUtils } from "@solaris-command/core";
+import { requirePendingGame } from "../middleware/game";
 
 const router = express.Router();
 
@@ -86,7 +87,7 @@ router.post("/", authenticateToken, async (req, res) => {
 });
 
 // POST /api/v1/games/:id/join
-router.post("/:id/join", authenticateToken, async (req, res) => {
+router.post("/:id/join", authenticateToken, requirePendingGame, async (req, res) => {
     const userId = req.user?.id;
     const gameId = req.params.id;
 
@@ -94,12 +95,8 @@ router.post("/:id/join", authenticateToken, async (req, res) => {
 
     try {
         const db = getDb();
-        const game = await db.collection<Game>("games").findOne({ _id: new ObjectId(gameId) });
 
-        if (!game) return res.status(404).json({ error: "Game not found" });
-        if (game.state.status !== GameStates.PENDING) {
-            return res.status(400).json({ error: "Game is not open for joining" });
-        }
+        // Game existence and status checked in middleware
 
         // Check if already joined
         const existingPlayer = await db.collection<Player>("players").findOne({

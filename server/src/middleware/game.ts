@@ -29,3 +29,30 @@ export const requireActiveGame = async (
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+export const requirePendingGame = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const gameId = req.params.id;
+  if (!gameId) return res.status(400).json({ error: "Game ID required" });
+
+  try {
+    const db = getDb();
+    const game = await db
+      .collection<Game>("games")
+      .findOne({ _id: new ObjectId(gameId) });
+
+    if (!game) return res.status(404).json({ error: "Game not found" });
+
+    if (game.state.status !== GameStates.PENDING) {
+      return res.status(400).json({ error: "Game is not in pending state" });
+    }
+
+    next();
+  } catch (error) {
+    console.error("Middleware Error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
