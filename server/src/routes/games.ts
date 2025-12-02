@@ -38,8 +38,11 @@ router.get("/", authenticateToken, async (req, res) => {
     // Map to simple response
     const response = games.map(g => ({
         id: g._id,
+        name: g.name,
+        description: g.description,
         status: g.state.status,
         tick: g.state.tick,
+        state: g.state, // Include full state object if needed, or specific fields as requested
         joined: myGameIds.some(id => id.toString() === g._id.toString())
     }));
 
@@ -196,8 +199,8 @@ router.post("/:id/concede", authenticateToken, async (req, res) => {
              return res.status(400).json({ error: "Not a player in this game" });
         }
 
-        // TODO: Ideally destroy all units? Or turn them neutral?
-        // Leaving as just status update for now.
+        // Units are implicitly neutral/inactive when player is defeated.
+        // No need to delete them.
 
         res.json({ message: "Conceded game" });
     } catch (error) {
@@ -240,14 +243,14 @@ router.get("/:id", authenticateToken, async (req, res) => {
         let response: any = {
             game,
             players,
-            hexes, // Hexes are static terrain, arguably always known? Design doc implies hex grid is known.
-            planets, // Planets are usually known too?
-            stations, // Stations might be hidden?
+            hexes, // Hexes are always known
+            planets, // Planets are always known
+            stations, // Stations are always known
             units: []
         };
 
         if (currentPlayer && game.state.status === GameStates.ACTIVE) {
-            // Apply Fog of War
+            // Apply Fog of War for Units
             const visibleHexes = FogOfWar.getVisibleHexes(
                 currentPlayer._id,
                 allUnits,
@@ -263,30 +266,15 @@ router.get("/:id", authenticateToken, async (req, res) => {
                 visibleHexes
             );
 
-            // Optional: Filter Stations if they should be hidden
-            // For now assuming stations are visible if they are planets/relay points.
-            // If they are strictly military, maybe hide them.
-            // Keeping them visible for now or filtering same as units?
-            // "Structures ... define territory". Probably static intel is known,
-            // but let's hide enemy stations not in vision just in case.
-
-            response.stations = stations.filter(s => {
-                if (s.playerId.toString() === currentPlayer._id.toString()) return true;
-                return visibleHexes.has(HexUtils.getID(s.location));
-            });
-
         } else if (game.state.status === GameStates.COMPLETED) {
             // Reveal all
             response.units = allUnits;
-            response.stations = stations;
         } else {
             // Spectator or Pending
-            // Pending: Maybe show own units?
             if (game.state.status === GameStates.PENDING && currentPlayer) {
                  response.units = allUnits.filter(u => u.playerId.toString() === currentPlayer._id.toString());
             } else {
-                // Spectator: No units shown to prevent cheating? Or all?
-                // "Get game info (as a non player) ... units array would be empty"
+                // Spectator: See map (hexes, planets, stations) but NO units
                 response.units = [];
             }
         }

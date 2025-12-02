@@ -20,35 +20,38 @@ async function getGameAndPlayer(gameId: string, userId: string) {
 }
 
 // POST /api/v1/games/:id/units/deploy
-router.post("/deploy", authenticateToken, validate(DeployUnitSchema), async (req, res) => {
+router.post("/deploy", authenticateToken, requireActiveGame, validate(DeployUnitSchema), async (req, res) => {
     const userId = req.user?.id;
     const { id: gameId } = req.params;
-    const { unitClass } = req.body; // e.g., "Frigate", "Destroyer"
+    const { unitId } = req.body;
 
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
     try {
         const { game, player, db } = await getGameAndPlayer(gameId, userId);
 
-        if (game.state.status !== GameStates.ACTIVE) {
-             return res.status(400).json({ error: "Game is not active" });
-        }
+        const unitTemplate = UNITS[unitId];
+        if (!unitTemplate) return res.status(400).json({ error: "Invalid Unit ID" });
 
         // Logic to spawn unit
-        // 1. Check resources (Prestige)
+        // 1. Check resources (Prestige) -> unitTemplate.cost
         // 2. Determine spawn location (near Capital)
         // 3. Create Unit
 
         // Simplified: Just create a unit at 0,0,0 (assume capital)
         const spawnLocation = { q: 0, r: 0, s: 0 };
-        // TODO: fetch actual capital location
 
         const newUnit: any = {
             gameId: new ObjectId(gameId),
             playerId: player._id,
-            class: unitClass || "Frigate",
+            class: unitTemplate.class,
+            unitId: unitId,
             location: spawnLocation,
-            stats: { steps: 2, maxSteps: 4 }, // Placeholder
+            stats: {
+                steps: unitTemplate.steps,
+                maxSteps: unitTemplate.maxSteps,
+                specialists: []
+            },
             status: "IDLE"
         };
 
@@ -61,34 +64,28 @@ router.post("/deploy", authenticateToken, validate(DeployUnitSchema), async (req
 });
 
 // POST /api/v1/games/:id/units/:unitId/move
-router.post("/:unitId/move", authenticateToken, validate(MoveUnitSchema), async (req, res) => {
+router.post("/:unitId/move", authenticateToken, requireActiveGame, validate(MoveUnitSchema), async (req, res) => {
     const userId = req.user?.id;
     const { id: gameId, unitId } = req.params;
-    const { targetHex } = req.body; // { q, r, s }
+    const { path } = req.body; // Hex[]
 
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
     try {
-        const { game, player, db } = await getGameAndPlayer(gameId, userId);
-
-        if (game.state.status !== GameStates.ACTIVE) return res.status(400).json({ error: "Game not active" });
+        const { player, db } = await getGameAndPlayer(gameId, userId);
 
         const unit = await db.collection<Unit>("units").findOne({ _id: new ObjectId(unitId), playerId: player._id });
         if (!unit) return res.status(404).json({ error: "Unit not found" });
 
-        // Logic: Set path
-        // For now, simply update the 'target' or 'path' field on the unit?
-        // The game loop handles actual movement.
-        // We might need a 'path' field in the Unit model or a separate 'MoveOrder'.
-        // The TickProcessor likely looks for units with a path.
-
-        // Let's assume we update `status` to `MOVING` and set a `target`.
-        // The schema in setup.ts showed `status`. We might need to add `path` to the schema or model.
+        // Validate path? (Pathfinding check logic usually happens here or in core)
 
         await db.collection("units").updateOne({ _id: unit._id }, {
             $set: {
                 status: "MOVING",
-                target: targetHex // Need to ensure this exists in Unit model
+                movement: {
+                    path: path,
+                    startTime: new Date()
+                }
             }
         });
 
@@ -99,32 +96,58 @@ router.post("/:unitId/move", authenticateToken, validate(MoveUnitSchema), async 
     }
 });
 
-// POST /api/v1/games/:id/units/:unitId/attack
-router.post("/:unitId/attack", authenticateToken, validate(AttackUnitSchema), async (req, res) => {
-     const userId = req.user?.id;
+// POST /api/v1/games/:id/units/:unitId/cancel-move
+router.post("/:unitId/cancel-move", authenticateToken, requireActiveGame, async (req, res) => {
+    const userId = req.user?.id;
     const { id: gameId, unitId } = req.params;
-    const { targetUnitId } = req.body;
 
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
     try {
-        const { game, player, db } = await getGameAndPlayer(gameId, userId);
-        if (game.state.status !== GameStates.ACTIVE) return res.status(400).json({ error: "Game not active" });
+        const { player, db } = await getGameAndPlayer(gameId, userId);
+
+        const unit = await db.collection<Unit>("units").findOne({ _id: new ObjectId(unitId), playerId: player._id });
+        if (!unit) return res.status(404).json({ error: "Unit not found" });
+
+        await db.collection("units").updateOne({ _id: unit._id }, {
+            $set: {
+                status: "IDLE",
+                movement: null
+            }
+        });
+
+        res.json({ message: "Move order cancelled" });
+
+    } catch (error: any) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// POST /api/v1/games/:id/units/:unitId/attack
+router.post("/:unitId/attack", authenticateToken, requireActiveGame, validate(AttackUnitSchema), async (req, res) => {
+     const userId = req.user?.id;
+    const { id: gameId, unitId } = req.params;
+    const { targetHex, combatType } = req.body;
+
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    try {
+        const { player, db } = await getGameAndPlayer(gameId, userId);
 
         const unit = await db.collection<Unit>("units").findOne({ _id: new ObjectId(unitId), playerId: player._id });
         if (!unit) return res.status(404).json({ error: "Unit not found" });
 
         // Logic: Set attack order
-        // Combat engine requires `PREPARING` state?
-        // "Declaration: Attacker targets an adjacent enemy and spends 1 AP."
-
         // 1. Check AP
-        // if (player.resources.actionPoints < 1) ...
 
         await db.collection("units").updateOne({ _id: unit._id }, {
             $set: {
                 status: "PREPARING",
-                targetUnitId: new ObjectId(targetUnitId)
+                combat: {
+                    targetHex: targetHex,
+                    type: combatType,
+                    round: 0
+                }
             }
         });
 
@@ -136,7 +159,7 @@ router.post("/:unitId/attack", authenticateToken, validate(AttackUnitSchema), as
 });
 
 // POST /api/v1/games/:id/units/:unitId/upgrade
-router.post("/:unitId/upgrade", authenticateToken, async (req, res) => {
+router.post("/:unitId/upgrade", authenticateToken, requireActiveGame, async (req, res) => {
     const userId = req.user?.id;
     const { id: gameId, unitId } = req.params;
     const { type, specialistType } = req.body; // type: "STEP" | "SPECIALIST"
@@ -158,16 +181,23 @@ router.post("/:unitId/upgrade", authenticateToken, async (req, res) => {
         const update: any = {};
 
         if (type === "STEP") {
+            // Using placeholder logic or UnitManager.addStep check would be ideal
             if (unit.stats.steps >= unit.stats.maxSteps) {
                  return res.status(400).json({ error: "Unit already at max steps" });
             }
-            cost = 10; // Placeholder cost
+            // Cost is generally 1/step but specialist steps differ.
+            // Docs say: "Prestige can purchase Specialist Steps or replace lost standard steps."
+            cost = 10; // Placeholder
             // TODO: check player prestige
 
             update.$inc = { "stats.steps": 1 };
         } else if (type === "SPECIALIST") {
              if (!specialistType) return res.status(400).json({ error: "Specialist type required" });
-             cost = 50;
+
+             const spec = SPECIALISTS[specialistType];
+             if (!spec) return res.status(400).json({ error: "Invalid specialist type" });
+
+             cost = spec.cost;
              // TODO: check player prestige
 
              update.$push = { "stats.specialists": specialistType };
@@ -189,7 +219,7 @@ router.post("/:unitId/upgrade", authenticateToken, async (req, res) => {
 });
 
 // POST /api/v1/games/:id/units/:unitId/scrap
-router.post("/:unitId/scrap", authenticateToken, async (req, res) => {
+router.post("/:unitId/scrap", authenticateToken, requireActiveGame, async (req, res) => {
     const userId = req.user?.id;
     const { id: gameId, unitId } = req.params;
 
@@ -197,12 +227,25 @@ router.post("/:unitId/scrap", authenticateToken, async (req, res) => {
 
     try {
         const { player, db } = await getGameAndPlayer(gameId, userId);
-        const result = await db.collection("units").deleteOne({ _id: new ObjectId(unitId), playerId: player._id });
 
-        if (result.deletedCount === 0) return res.status(404).json({ error: "Unit not found" });
+        const unit = await db.collection<Unit>("units").findOne({ _id: new ObjectId(unitId), playerId: player._id });
+        if (!unit) return res.status(404).json({ error: "Unit not found" });
 
-        // Refund?
-        res.json({ message: "Unit scrapped" });
+        // Logic: Scrap Step (not whole unit unless steps = 0)
+        // Using core logic logic if available, or manual implementation
+
+        if (unit.stats.steps > 0) {
+            // Reduce step
+             await db.collection("units").updateOne({ _id: unit._id }, { $inc: { "stats.steps": -1 } });
+             res.json({ message: "Step scrapped" });
+        } else {
+             // Delete unit
+            await db.collection("units").deleteOne({ _id: unit._id });
+            res.json({ message: "Unit scrapped" });
+        }
+
+        // TODO: Refund prestige?
+
     } catch (error: any) {
          res.status(400).json({ error: error.message });
     }

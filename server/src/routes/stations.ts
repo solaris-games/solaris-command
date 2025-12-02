@@ -4,6 +4,7 @@ import { authenticateToken } from "../middleware/auth";
 import { getDb } from "../db/instance";
 import { Game, GameStates, Player, Station } from "@solaris-command/core";
 import { validate, BuildStationSchema } from "../middleware/validation";
+import { requireActiveGame } from "../middleware/game";
 
 const router = express.Router({ mergeParams: true });
 
@@ -19,7 +20,7 @@ async function getGameAndPlayer(gameId: string, userId: string) {
 }
 
 // POST /api/v1/games/:id/stations
-router.post("/", authenticateToken, validate(BuildStationSchema), async (req, res) => {
+router.post("/", authenticateToken, requireActiveGame, validate(BuildStationSchema), async (req, res) => {
     const userId = req.user?.id;
     const { id: gameId } = req.params;
     const { location } = req.body; // { q, r, s }
@@ -28,8 +29,6 @@ router.post("/", authenticateToken, validate(BuildStationSchema), async (req, re
 
     try {
         const { game, player, db } = await getGameAndPlayer(gameId, userId);
-
-        if (game.state.status !== GameStates.ACTIVE) return res.status(400).json({ error: "Game not active" });
 
         // Logic: Build Station
         // 1. Check pool limit (capped by planets)

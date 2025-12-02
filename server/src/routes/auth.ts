@@ -28,7 +28,7 @@ router.post("/google", async (req, res) => {
       return res.status(400).json({ error: "Invalid Google Token" });
     }
 
-    const { email, sub: googleId, name, picture } = payload;
+    const { email, sub: googleId, name } = payload;
     const db = getDb();
 
     // 2. Find or Create User
@@ -44,7 +44,6 @@ router.post("/google", async (req, res) => {
         email,
         username: name || email.split("@")[0],
         googleId, // Store googleId for reference, though email is unique key usually
-        picture,
         lastSeenDate: new Date(),
         lastSeenIP: req.ip,
         achievements: {

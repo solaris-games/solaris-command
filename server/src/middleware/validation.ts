@@ -31,15 +31,16 @@ export const HexSchema = z.object({
 });
 
 export const DeployUnitSchema = z.object({
-    unitClass: z.enum(["Frigate", "Destroyer", "Battleships"]) // Match Core types if possible
+    unitId: z.string() // ID from the Unit Catalog
 });
 
 export const MoveUnitSchema = z.object({
-    targetHex: HexSchema
+    path: z.array(HexSchema).min(1)
 });
 
 export const AttackUnitSchema = z.object({
-    targetUnitId: z.string().length(24) // ObjectId string
+    targetHex: HexSchema,
+    combatType: z.enum(["STANDARD", "FEINT", "SUPPRESSIVE"]) // Match core types
 });
 
 export const BuildStationSchema = z.object({
