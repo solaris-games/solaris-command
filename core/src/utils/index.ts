@@ -7,3 +7,4 @@ export * from "./pathfinding";
 export * from "./supply-engine";
 export * from "./tick-processor";
 export * from "./unit-manager";
+export * from "./fog-of-war";

@@ -6,6 +6,11 @@ import dotenv from "dotenv";
 import { Game } from "@solaris-command/core";
 import { GameLoop } from "./cron/game-loop";
 import { connectToDb } from "./db";
+import authRoutes from "./routes/auth";
+import userRoutes from "./routes/users";
+import gameRoutes from "./routes/games";
+import unitRoutes from "./routes/units";
+import stationRoutes from "./routes/stations";
 
 dotenv.config();
 
@@ -29,6 +34,16 @@ async function startServer() {
     app.listen(port, () => {
       console.log(`🚀 Server running at http://localhost:${port}`);
     });
+
+    // Routes
+    app.use("/api/v1/auth", authRoutes);
+    app.use("/api/v1/users", userRoutes);
+    app.use("/api/v1/games", gameRoutes);
+
+    // Nested Routes (Units/Stations linked to Games)
+    // Note: Express Router with mergeParams allows accessing :id from parent
+    app.use("/api/v1/games/:id/units", unitRoutes);
+    app.use("/api/v1/games/:id/stations", stationRoutes);
 
     // Example Route using Shared Type
     app.get("/status", (req, res) => {
