@@ -281,6 +281,11 @@ async function executeGameTick(client: MongoClient, game: Game) {
     .collection<Game>("games")
     .updateOne({ _id: gameId }, { $set: { state: nextGameState } });
 
+  // IF Game Completed, log it
+  if (nextGameState.status === GameStates.COMPLETED) {
+      console.log(`🏆 Game ${gameId} Completed! Winner: ${nextGameState.winnerPlayerId}`);
+  }
+
   // Execute Bulk Ops
   const promises: Promise<BulkWriteResult | DeleteResult>[] = [];
 
