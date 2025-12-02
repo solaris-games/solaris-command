@@ -17,7 +17,11 @@ import { UnitManager, UnitManagerHelper } from "./unit-manager";
 import { SupplyEngine } from "./supply-engine";
 import { MapUtils } from "./map-utils";
 
+// TODO: Split these into two files, tick-processor.ts and tick-cycle-processor.ts
+// This will make it more manageable to write unit tests for.
+
 export interface ProcessTickResult {
+  gameUpdates: Partial<Game> | null;
   unitUpdates: Map<string, Unit>; // Full unit objects (heavily mutated)
   hexUpdates: Map<string, Partial<Hex>>; // Partial updates (unitId, playerId)
   planetUpdates: Map<string, Partial<Planet>>; // Capture updates
@@ -29,6 +33,7 @@ export interface ProcessTickResult {
 class TickContext {
   currentTick: number;
   game: Game;
+  players: Player[];
   hexes: Hex[];
   units: Unit[];
   planets: Planet[];
@@ -43,6 +48,7 @@ class TickContext {
   stationLookup = new Map<string, Station>();
 
   // --- OUTPUT CONTAINERS ---
+  gameUpdates: Partial<Game> | null = null;
   unitUpdates = new Map<string, Unit>();
   hexUpdates = new Map<string, Partial<Hex>>();
   planetUpdates = new Map<string, Partial<Planet>>();
@@ -53,6 +59,7 @@ class TickContext {
   constructor(
     currentTick: number,
     game: Game,
+    players: Player[],
     hexes: Hex[],
     units: Unit[],
     planets: Planet[],
@@ -60,6 +67,7 @@ class TickContext {
   ) {
     this.currentTick = currentTick;
     this.game = game;
+    this.players = players;
     this.hexes = hexes;
     this.units = units;
     this.planets = planets;
@@ -114,6 +122,7 @@ interface MoveIntent {
 export class GameUnitMovementContext {
   moveIntents: MoveIntent[] = [];
   movesByDest = new Map<string, MoveIntent[]>();
+  zocMap: Map<string, Set<string>>;
 
   constructor(context: TickContext) {
     // Gather all units that want to move this tick.
@@ -140,6 +149,17 @@ export class GameUnitMovementContext {
       if (!this.movesByDest.has(intent.to)) this.movesByDest.set(intent.to, []);
       this.movesByDest.get(intent.to)!.push(intent);
     });
+
+    // We calculate ZOC *once* based on the board state at the start of movement.
+    // This ensures simultaneous fairness and O(1) lookups inside the loop.
+    // Note: We filter out units that died in Phase 1 (Combat) so they don't block movement.
+    const aliveUnits = context.units.filter(
+      (u) =>
+        !context.unitsToRemove.some(
+          (deadId) => String(deadId) === String(u._id)
+        )
+    );
+    this.zocMap = MapUtils.calculateZOCMap(aliveUnits);
   }
 }
 
@@ -179,6 +199,7 @@ export const TickProcessor = {
    */
   processTick(
     game: Game,
+    players: Player[],
     hexes: Hex[],
     units: Unit[],
     planets: Planet[],
@@ -189,6 +210,7 @@ export const TickProcessor = {
     const context = new TickContext(
       currentTick,
       game,
+      players,
       hexes,
       units,
       planets,
@@ -197,10 +219,10 @@ export const TickProcessor = {
 
     TickProcessor.processTickUnitCombat(context);
     TickProcessor.processTickUnitMovement(context);
-
-    // TODO: We should check for a winner here since players may concede defeat earlier than the cycle. (There might be 1 player left and will win by default)
+    TickProcessor.processTickWinnerCheck(context);
 
     return {
+      gameUpdates: context.gameUpdates,
       unitUpdates: context.unitUpdates,
       hexUpdates: context.hexUpdates,
       planetUpdates: context.planetUpdates,
@@ -273,6 +295,7 @@ export const TickProcessor = {
           attacker,
           defender,
           contextTick.hexLookup,
+          attacker.combat.operation!,
           { advanceOnVictory: true }
         );
 
@@ -365,21 +388,23 @@ export const TickProcessor = {
         let mpCost = TERRAIN_MP_COSTS[targetHex.terrain];
 
         // Moving into a hex that is in a Zone of Control (ZOC) of an enemy unit DOUBLES the MP cost of that hex.
-        // TODO: Do we need to recalculate the ZOC map every time? I think so since unit locations change a lot in this function.
-        const zocMap = MapUtils.calculateZOCMap(context.units);
-
         const isZOC = MapUtils.isHexInEnemyZOC(
           HexUtils.getID(targetHex.coords),
           String(unit.playerId),
-          zocMap
+          contextMovement.zocMap
         );
 
         if (isZOC) {
           mpCost *= 2;
         }
 
-        // TODO: We should validate that the unit has enough MP here
-        // - If they do not have enough then we should clear their path and set them to IDLE.
+        // If unit cannot afford the move, they stall.
+        if (unit.state.mp < mpCost) {
+          unit.state.status = UnitStatuses.IDLE;
+          unit.movement.path = [];
+          context.unitUpdates.set(unit._id.toString(), unit);
+          return; // Exit this specific move intent
+        }
 
         // Apply State Changes
         unit.location = intent.toCoord;
@@ -404,6 +429,29 @@ export const TickProcessor = {
         handleHexCapture(context, destId, unit);
       }
     });
+  },
+
+  processTickWinnerCheck(context: TickContext) {
+    // We only check for elimination victory here.
+    // Economic victory (VP) is checked in the Cycle Processor.
+
+    // Filter active players (Not defeated)
+    const activePlayers = context.players.filter((p) => !p.isDefeated);
+
+    // Last Man Standing Check
+    // Only applies if the game started with > 1 player
+    if (activePlayers.length === 1) {
+      const winner = activePlayers[0];
+
+      context.gameUpdates = {
+        state: {
+          ...context.game.state,
+          status: GameStates.COMPLETED,
+          winnerPlayerId: winner._id,
+          endDate: new Date(),
+        },
+      };
+    }
   },
 
   /**

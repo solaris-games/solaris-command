@@ -25,8 +25,6 @@ export const MapUtils = {
         continue;
       }
 
-      // TODO: Should ZOC only affect hexes owned by that player?
-
       // 1. Get all adjacent hexes (ZOC projection)
       const neighbors = HexUtils.neighbors(unit.location);
 

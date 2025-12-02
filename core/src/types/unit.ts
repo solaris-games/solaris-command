@@ -1,7 +1,12 @@
 export enum UnitClasses {
-  FRIGATE = "FRIGATE", // High initiative
-  DESTROYER = "DESTROYER", // Mid initiative
-  BATTLESHIP = "BATTLESHIP", // Low initiative
+  CORVETTE = "CORVETTE",
+  FRIGATE = "FRIGATE",
+  DESTROYER = "DESTROYER",
+  LIGHT_CRUISER = "LIGHT_CRUISER",
+  HEAVY_CRUISER = "HEAVY_CRUISER",
+  BATTLECRUISER = "BATTLECRUISER",
+  BATTLESHIP = "BATTLESHIP",
+  DREADNOUGHT = "DREADNOUGHT",
 }
 
 export interface UnitCatalogItem {

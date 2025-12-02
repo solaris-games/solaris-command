@@ -5,9 +5,9 @@ import { UnitManager, UnitManagerHelper } from "./unit-manager";
 import { UNIT_CATALOG_ID_MAP } from "../data";
 
 // --- FACTORY HELPER ---
-const CATALOG_UNIT_ID = "unit_frigate_01"
-const CATALOG_UNIT = UNIT_CATALOG_ID_MAP.get(CATALOG_UNIT_ID)!
-const TICKS_PER_CYCLE = 24
+const CATALOG_UNIT_ID = "unit_frigate_01";
+const CATALOG_UNIT = UNIT_CATALOG_ID_MAP.get(CATALOG_UNIT_ID)!;
+const TICKS_PER_CYCLE = 24;
 
 function createTestUnit(overrides: Partial<Unit> = {}): Unit {
   return {

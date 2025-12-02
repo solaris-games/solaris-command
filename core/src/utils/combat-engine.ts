@@ -1,6 +1,6 @@
-import { CombatTables } from "../data";
+import { CombatTables, TERRAIN_MP_COSTS } from "../data";
 import { Unit, UnitStatuses, Hex } from "../models";
-import { CombatReport, CombatResultType } from "../types";
+import { CombatOperation, CombatReport, CombatResultType } from "../types";
 import { CombatCalculator } from "./combat-calculator";
 import { HexUtils } from "./hex-utils";
 import { UnitManagerHelper as UnitUtils } from "./unit-manager";
@@ -15,20 +15,30 @@ export const CombatEngine = {
     attacker: Unit,
     defender: Unit,
     hexLookup: Map<string, Hex>,
-    settings: { advanceOnVictory: boolean }
+    operation: CombatOperation,
+    settings: {
+      advanceOnVictory: boolean;
+    }
   ): { report: CombatReport; attackerWonHex: boolean } {
     // 1. Setup Context
     const hexKey = HexUtils.getID(defender.location);
     const hex = hexLookup.get(hexKey)!;
 
     // 2. Calculate & Predict
-    const prediction = CombatCalculator.calculate(attacker, defender, hex);
+    // We pass the requested operation (defaulting to STANDARD if undefined)
+    const prediction = CombatCalculator.calculate(
+      attacker,
+      defender,
+      hex,
+      operation
+    );
 
-    // 3. Get Deterministic Result
-    const resultEntry = CombatTables.getResult(prediction.finalScore);
+    // 3. Get Result (Deterministic or Forced)
+    const resultEntry = prediction.forcedResult
+      ? prediction.forcedResult
+      : CombatTables.getResult(prediction.finalScore);
 
     // 4. Apply Damage (Attacker)
-    // Note: We modify the unit in place. Save to DB happens in the Controller.
     attacker.steps = UnitUtils.suppressSteps(
       attacker.steps,
       resultEntry.attacker.suppressed
@@ -57,7 +67,6 @@ export const CombatEngine = {
     let defenderShattered = false;
 
     // 7. Handle Retreat / Shatter Logic
-    // Retreat happens if the CRT says so, OR if the unit broke (0 steps left logic handled elsewhere, but here we handle displacement)
     if (defenderAlive && attackerAlive) {
       if (resultEntry.defender.retreat) {
         const retreatHex = CombatEngine.findRetreatHex(
@@ -74,7 +83,6 @@ export const CombatEngine = {
           outcome = CombatResultType.RETREAT;
         } else {
           // Cornered -> Shattered!
-          // Rule: All remaining steps suppressed
           defender.steps = UnitUtils.suppressSteps(defender.steps, 999);
           defenderShattered = true;
           outcome = CombatResultType.SHATTERED;
@@ -83,11 +91,20 @@ export const CombatEngine = {
     }
 
     // 8. Handle Advance on Victory (Blitz)
-    // If defender is gone (Dead or Retreated) AND Attacker is alive
+    // Rule Check: Can only advance if the operation *allows* it.
+    // E.g., Suppressive Fire should never advance even if the enemy dies.
+    // Standard and Feint (if enemy retreats) allow it.
     let attackerWonHex = false;
-    if (attackerAlive && (!defenderAlive || defenderRetreated)) {
+    const operationAllowsAdvance =
+      operation !== CombatOperation.SUPPRESSIVE_FIRE;
+
+    if (
+      attackerAlive &&
+      (!defenderAlive || defenderRetreated) &&
+      operationAllowsAdvance
+    ) {
       if (settings.advanceOnVictory && attacker.state.mp > 0) {
-        attacker.location = defender.location; // Move into the hex
+        attacker.location = hex.coords;
         attackerWonHex = true;
       }
     }
@@ -103,7 +120,7 @@ export const CombatEngine = {
       attackerId: attacker._id,
       defenderId: defender._id,
       hex: hex.coords,
-      odds: `${prediction.oddsRatio}:1`, // Visual string
+      odds: `${prediction.oddsRatio}:1`,
       roll: prediction.finalScore, // The "Net Score"
 
       attacker: {
@@ -113,7 +130,7 @@ export const CombatEngine = {
       },
       defender: {
         combatValue: prediction.defensePower,
-        shifts: [], // Defender shifts usually part of the calculation, not separate list
+        shifts: [],
         losses: resultEntry.defender,
         retreated: defenderRetreated,
         shattered: defenderShattered,
@@ -125,7 +142,6 @@ export const CombatEngine = {
 
   /**
    * Helper: Find the best hex to retreat to.
-   * Logic: Lowest Movement Cost -> Closest to Capital -> Random
    */
   findRetreatHex(
     unit: Unit,
@@ -139,14 +155,13 @@ export const CombatEngine = {
       const hexId = HexUtils.getID(coord);
       const hex = hexLookup.get(hexId);
 
-      // 1. Must exist and be passable
+      // Must exist and be passable
       if (!hex || hex.isImpassable) continue;
 
-      // 2. Must not contain another unit
-      // Note: In a full implementation, pass the 'units' array to check collision
+      // Must not contain another unit
       if (hex.unitId) continue;
 
-      // 3. Must not be the hex the attacker came from (Don't run into the gun)
+      // Must not be the hex the attacker came from (Don't run into the gun)
       if (HexUtils.equals(coord, threat.location)) continue;
 
       validRetreats.push(hex);
@@ -154,15 +169,9 @@ export const CombatEngine = {
 
     if (validRetreats.length === 0) return null;
 
-    // Sort: Lowest Terrain Cost first
-    // Tiebreaker: Distance to Player Capital (assuming we have that data, otherwise random)
-    // For now, simple Terrain sort:
-    validRetreats.sort((a, b) => {
-      // We'd use calculateMoveCost here usually
-      const costA = a.terrain === "EMPTY" ? 1 : 2;
-      const costB = b.terrain === "EMPTY" ? 1 : 2;
-      return costA - costB;
-    });
+    validRetreats.sort(
+      (a, b) => TERRAIN_MP_COSTS[a.terrain] - TERRAIN_MP_COSTS[b.terrain]
+    );
 
     return validRetreats[0];
   },

@@ -106,6 +106,7 @@ async function executeGameTick(client: MongoClient, game: Game) {
   // This calculates moves, battles, and captures based on the loaded state
   const tickResult = TickProcessor.processTick(
     game,
+    players,
     hexes,
     units,
     planets,
@@ -128,32 +129,30 @@ async function executeGameTick(client: MongoClient, game: Game) {
     // so supply calculations use the new positions/ownerships and delete units/stations that are
     // no longer present in the game.
 
-    tickResult.unitsToRemove.forEach((id) =>
-      units.splice(
-        units.findIndex((u) => u._id === id),
-        1
-      )
+    // Remove dead entities from arrays so they aren't processed in cycle
+    const liveUnits = units.filter(
+      (u) =>
+        !tickResult.unitsToRemove.some((id) => String(id) === String(u._id))
     );
-    tickResult.stationsToRemove.forEach((id) =>
-      stations.splice(
-        stations.findIndex((s) => s._id === id),
-        1
-      )
+    const liveStations = stations.filter(
+      (s) =>
+        !tickResult.stationsToRemove.some((id) => String(id) === String(s._id))
     );
 
+    // Merge Tick updates into memory objects
     const updatedHexes = hexes.map((h) => {
       const update = tickResult.hexUpdates.get(h._id.toString());
-      return update ? { ...h, ...update } : h; // Merge tick updates
+      return update ? { ...h, ...update } : h;
     }) as Hex[];
 
-    const updatedUnits = units.map((u) => {
+    const updatedUnits = liveUnits.map((u) => {
       const update = tickResult.unitUpdates.get(u._id.toString());
-      return update ? { ...u, ...update } : u; // Merge tick updates
+      return update ? { ...u, ...update } : u;
     }) as Unit[];
 
     const updatedPlanets = planets.map((p) => {
       const update = tickResult.planetUpdates.get(p._id.toString());
-      return update ? { ...p, ...update } : p; // Merge tick updates
+      return update ? { ...p, ...update } : p;
     }) as Planet[];
 
     // Run the Economy/Logistics Logic
@@ -163,7 +162,7 @@ async function executeGameTick(client: MongoClient, game: Game) {
       updatedHexes,
       updatedUnits,
       updatedPlanets,
-      stations
+      liveStations
     );
   }
 
@@ -177,7 +176,7 @@ async function executeGameTick(client: MongoClient, game: Game) {
   const unitsToDelete: ObjectId[] = [...tickResult.unitsToRemove];
   const stationsToDelete: ObjectId[] = [...tickResult.stationsToRemove];
 
-  // 1. Prepare Unit Updates (From Tick)
+  // Prepare Unit Updates (From Tick)
   tickResult.unitUpdates.forEach((unit, id) => {
     unitOps.push({
       updateOne: {
@@ -187,7 +186,7 @@ async function executeGameTick(client: MongoClient, game: Game) {
     });
   });
 
-  // 2. Prepare Hex Updates (From Tick)
+  // Prepare Hex Updates (From Tick)
   tickResult.hexUpdates.forEach((update, hexIdStr) => {
     const coords = HexUtils.parseID(hexIdStr);
     hexOps.push({
@@ -203,7 +202,7 @@ async function executeGameTick(client: MongoClient, game: Game) {
     });
   });
 
-  // 3. Prepare Planet Updates (From Capture)
+  // Prepare Planet Updates (From Capture)
   tickResult.planetUpdates.forEach((update, planetId) => {
     planetOps.push({
       updateOne: {
@@ -213,12 +212,10 @@ async function executeGameTick(client: MongoClient, game: Game) {
     });
   });
 
-  // 4. Prepare Cycle Updates (If applicable)
+  // Prepare Cycle Updates (If applicable)
   if (cycleResult) {
     // Unit Updates (Refill AP/MP)
     cycleResult.unitUpdates.forEach((partialUnit, id) => {
-      // Note: If unit was updated in Tick AND Cycle, this pushes a second op.
-      // Mongo executes sequentially, so the Cycle update (refill) applies last.
       unitOps.push({
         updateOne: {
           filter: { _id: new ObjectId(id) },
@@ -255,20 +252,34 @@ async function executeGameTick(client: MongoClient, game: Game) {
     );
   }
 
-  // Update Game State (Tick count, Last Tick Date)
-  const gameStateUpdate = cycleResult
-    ? cycleResult.gameUpdates
-    : {
-        state: {
-          ...game.state,
-          tick: newTick,
-          lastTickDate: new Date(),
-        },
-      };
+  // Update Game State
+  // Logic: Base Tick Update -> Merge Tick Result (Elimination) -> Merge Cycle Result (Economy/Cycle count)
+  let nextGameState: any = {
+    ...game.state,
+    tick: newTick,
+    lastTickDate: new Date(),
+  };
+
+  // 1. Merge Tick updates (e.g. Elimination Victory)
+  if (tickResult.gameUpdates && tickResult.gameUpdates.state) {
+    nextGameState = {
+      ...nextGameState,
+      ...tickResult.gameUpdates.state,
+    };
+  }
+
+  // 2. Merge Cycle updates (e.g. Cycle++ or VP Victory)
+  // Cycle updates generally take precedence as they happen "after" the tick logic
+  if (cycleResult && cycleResult.gameUpdates && cycleResult.gameUpdates.state) {
+    nextGameState = {
+      ...nextGameState,
+      ...cycleResult.gameUpdates.state,
+    };
+  }
 
   await db
     .collection<Game>("games")
-    .updateOne({ _id: gameId }, { $set: gameStateUpdate } as any);
+    .updateOne({ _id: gameId }, { $set: { state: nextGameState } });
 
   // Execute Bulk Ops
   const promises: Promise<BulkWriteResult | DeleteResult>[] = [];
@@ -294,7 +305,5 @@ async function executeGameTick(client: MongoClient, game: Game) {
 
   await Promise.all(promises);
 
-  console.log(
-    `✅ Tick Complete. UnitOps: ${unitOps.length}, HexOps: ${hexOps.length}, PlanetOps: ${planetOps.length}`
-  );
+  console.log(`✅ Tick Complete.`);
 }

@@ -10,80 +10,6 @@ interface ZocContext {
 }
 
 export const Pathfinding = {
-  // TODO: Not sure if we need this shortest path function since players will likely
-  // construct their own path (using `getReachableHexes`). Players will
-  // want to avoid crashes with other units and therefore shortest path may not always be desired.
-
-  /**
-   * A* Algorithm for Unit Movement.
-   * Calculates the specific path from A to B.
-   */
-  findPath(
-    start: HexCoords,
-    end: HexCoords,
-    hexLookup: Map<string, Hex>,
-    maxMP: number | null,
-    context?: ZocContext // Optional: If provided, applies ZOC penalties
-  ): HexCoords[] | null {
-    const startKey = HexUtils.getID(start);
-    const endKey = HexUtils.getID(end);
-
-    const openSet: { coord: HexCoords; f: number }[] = [{ coord: start, f: 0 }];
-    const cameFrom = new Map<string, HexCoords>();
-    const gScore = new Map<string, number>();
-    gScore.set(startKey, 0);
-
-    while (openSet.length > 0) {
-      openSet.sort((a, b) => a.f - b.f);
-      const current = openSet.shift()!.coord;
-      const currentKey = HexUtils.getID(current);
-
-      if (currentKey === endKey) {
-        return reconstructPath(cameFrom, current);
-      }
-
-      for (const neighbor of HexUtils.neighbors(current)) {
-        const neighborKey = HexUtils.getID(neighbor);
-        const neighborHex = hexLookup.get(neighborKey);
-
-        if (!neighborHex || neighborHex.isImpassable) continue;
-
-        // 1. Calculate Base Cost
-        let moveCost = TERRAIN_MP_COSTS[neighborHex.terrain] || 1;
-
-        // 2. Apply ZOC Multiplier (If context exists)
-        if (context) {
-          const isZOC = MapUtils.isHexInEnemyZOC(
-            neighborKey,
-            context.playerId,
-            context.zocMap
-          );
-
-          if (isZOC) {
-            moveCost *= 2; // Double Cost Rule
-          }
-        }
-
-        const tentativeG = (gScore.get(currentKey) || 0) + moveCost;
-
-        // 3. Check MP Budget
-        if (maxMP != null && tentativeG > maxMP) continue;
-
-        if (tentativeG < (gScore.get(neighborKey) || Infinity)) {
-          cameFrom.set(neighborKey, current);
-          gScore.set(neighborKey, tentativeG);
-          const f = tentativeG + HexUtils.distance(neighbor, end);
-
-          if (!openSet.some((n) => HexUtils.equals(n.coord, neighbor))) {
-            openSet.push({ coord: neighbor, f });
-          }
-        }
-      }
-    }
-
-    return null;
-  },
-
   /**
    * Dijkstra / Flood Fill.
    * Finds ALL hexes reachable within a certain cost.
@@ -130,7 +56,7 @@ export const Pathfinding = {
             zocContext.playerId,
             zocContext.zocMap
           );
-          
+
           if (isZOC) {
             moveCost *= 2; // Double Cost Rule
           }
@@ -154,17 +80,3 @@ export const Pathfinding = {
     return results;
   },
 };
-
-function reconstructPath(
-  cameFrom: Map<string, HexCoords>,
-  current: HexCoords
-): HexCoords[] {
-  const totalPath = [current];
-  let currKey = HexUtils.getID(current);
-  while (cameFrom.has(currKey)) {
-    const prev = cameFrom.get(currKey)!;
-    totalPath.unshift(prev);
-    currKey = HexUtils.getID(prev);
-  }
-  return totalPath; // Includes start node
-}

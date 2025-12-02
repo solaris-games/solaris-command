@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { CombatCalculator } from "./combat-calculator";
 import { Unit, UnitStatuses, UnitStep } from "../models/unit";
 import { Hex, TerrainTypes } from "../models/hex";
-import { CombatShiftType } from "../types/combat";
+import { CombatShiftType, CombatOperation } from "../types";
 import { ObjectId } from "mongodb";
 
 const CATALOG_UNIT_FRIGATE_ID = "unit_frigate_01";
@@ -48,7 +48,7 @@ function createTestUnit(
     },
     supply: { isInSupply: true, ticksLastSupply: 0, ticksOutOfSupply: 0 },
     movement: { path: [] },
-    combat: { targetHex: null, cooldownEndTick: null },
+    combat: { targetHex: null, cooldownEndTick: null, operation: null },
   } as Unit;
 }
 
@@ -77,7 +77,9 @@ describe("CombatCalculator", () => {
       // Frigate: Base Attack 2. 5 Steps (4 Normal + 1 Artillery).
       // Artillery Spec: Attack +2.
       // Calc: (2 * 5 steps) + 2 (Spec Bonus) = 12.
-      const unit = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5, [CATALOG_SPEC_ARTILLERY_ID]);
+      const unit = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5, [
+        CATALOG_SPEC_ARTILLERY_ID,
+      ]);
       const power = CombatCalculator.getUnitPower(unit, true);
       expect(power).toBe(12);
     });
@@ -94,7 +96,7 @@ describe("CombatCalculator", () => {
     });
   });
 
-  describe("calculate (Ratios & Scores)", () => {
+  describe("calculate (Standard Operations)", () => {
     const emptyHex = createHex(TerrainTypes.EMPTY);
 
     it("should calculate Even odds (1:1) as Score 0", () => {
@@ -104,6 +106,7 @@ describe("CombatCalculator", () => {
 
       const result = CombatCalculator.calculate(attacker, defender, emptyHex);
 
+      expect(result.forcedResult).toBe(null);
       expect(result.attackPower).toBe(10);
       expect(result.defensePower).toBe(10);
       expect(result.oddsRatio).toBe(1);
@@ -111,29 +114,80 @@ describe("CombatCalculator", () => {
       expect(result.finalScore).toBe(0);
     });
 
-    it("should calculate Attacker Advantage (2:1) as Score +1", () => {
-      // Battleship (30 Power) vs Frigate (10 Power) -> 3:1 Ratio -> Score +2 (capped at +3 base?)
-      // Logic check: ratio >= 1 -> floor(3) - 1 = 2.
+    it("should calculate Attacker Advantage (2:1) as Score +3", () => {
       const attacker = createTestUnit(CATALOG_UNIT_BATTLESHIP_ID, 5); // 6*5 = 30
       const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5); // 2*5 = 10
 
       const result = CombatCalculator.calculate(attacker, defender, emptyHex);
 
+      expect(result.forcedResult).toBe(null);
       expect(result.oddsRatio).toBe(3);
-      expect(result.oddsScore).toBe(2); // 3:1 is +2 in this logic
+      expect(result.oddsScore).toBe(3);
     });
 
-    it("should calculate Defender Advantage (1:2) as Score -1", () => {
-      // Frigate (10) vs Battleship (25 Def) -> 0.4 Ratio.
-      // Logic check: ratio < 1 -> -floor(25/10) + 1 = -floor(2.5) + 1 = -2 + 1 = -1.
+    it("should calculate Defender Advantage (1:2) as Score -3", () => {
       const attacker = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5); // 10
       const defender = createTestUnit(CATALOG_UNIT_BATTLESHIP_ID, 5); // 5*5 = 25
 
       const result = CombatCalculator.calculate(attacker, defender, emptyHex);
 
+      expect(result.forcedResult).toBe(null);
       expect(result.attackPower).toBe(10);
-      expect(result.defensePower).toBe(25);
-      expect(result.oddsScore).toBe(-1);
+      expect(result.defensePower).toBe(30);
+      expect(result.oddsScore).toBe(-3);
+    });
+  });
+
+  describe("calculate (Combat Operations)", () => {
+    const emptyHex = createHex(TerrainTypes.EMPTY);
+
+    it("should return forced result for FEINT", () => {
+      const attacker = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5);
+      const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5);
+
+      const result = CombatCalculator.calculate(
+        attacker,
+        defender,
+        emptyHex,
+        CombatOperation.FEINT
+      );
+
+      expect(result.forcedResult).not.toBeNull();
+      expect(result.forcedResult?.attacker.suppressed).toBe(1);
+      expect(result.forcedResult?.defender.suppressed).toBe(1);
+      expect(result.forcedResult?.attacker.steps).toBe(0);
+    });
+
+    it("should throw error for SUPPRESSIVE_FIRE without Artillery", () => {
+      const attacker = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5); // No artillery
+      const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5);
+
+      expect(() => {
+        CombatCalculator.calculate(
+          attacker,
+          defender,
+          emptyHex,
+          CombatOperation.SUPPRESSIVE_FIRE
+        );
+      }).toThrow();
+    });
+
+    it("should return forced result for SUPPRESSIVE_FIRE with Artillery", () => {
+      const attacker = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5, [
+        CATALOG_SPEC_ARTILLERY_ID,
+      ]);
+      const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5);
+
+      const result = CombatCalculator.calculate(
+        attacker,
+        defender,
+        emptyHex,
+        CombatOperation.SUPPRESSIVE_FIRE
+      );
+
+      expect(result.forcedResult).toBeDefined();
+      expect(result.forcedResult?.attacker.suppressed).toBe(0); // Attacker safe
+      expect(result.forcedResult?.defender.suppressed).toBe(2); // Defender hit
     });
   });
 
@@ -169,12 +223,14 @@ describe("CombatCalculator", () => {
         (s) => s.type === CombatShiftType.ARMOR
       );
       expect(armorShift).toBeDefined();
-      expect(armorShift?.value).toBe(2);
+      expect(armorShift?.value).toBe(3);
     });
 
     it("should apply Artillery Shift", () => {
       // Attacker has Artillery Spec (+1 Arty Shift)
-      const attacker = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5, [CATALOG_SPEC_ARTILLERY_ID]);
+      const attacker = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5, [
+        CATALOG_SPEC_ARTILLERY_ID,
+      ]);
       const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5);
       const emptyHex = createHex(TerrainTypes.EMPTY);
 
@@ -189,7 +245,9 @@ describe("CombatCalculator", () => {
 
     it("should apply Siege Shift vs Industrial Zones", () => {
       // Attacker has Marines (+2 Siege)
-      const attacker = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5, [CATALOG_SPEC_MARINES_ID]);
+      const attacker = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5, [
+        CATALOG_SPEC_MARINES_ID,
+      ]);
       const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5);
       // Defending in Fortified Zone (-3 Fortification)
       const industrialHex = createHex(TerrainTypes.INDUSTRIAL_ZONE);
@@ -219,7 +277,9 @@ describe("CombatCalculator", () => {
     it("should Negate Armor if Defender has Torpedoes", () => {
       const attacker = createTestUnit(CATALOG_UNIT_BATTLESHIP_ID, 5); // Armor 2
       // Defender has Torpedoes
-      const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5, [CATALOG_SPEC_TORPEDO_ID]);
+      const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5, [
+        CATALOG_SPEC_TORPEDO_ID,
+      ]);
       const emptyHex = createHex(TerrainTypes.EMPTY);
 
       const result = CombatCalculator.calculate(attacker, defender, emptyHex);

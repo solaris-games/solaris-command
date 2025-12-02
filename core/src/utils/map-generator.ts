@@ -166,7 +166,7 @@ function createPlanet(
     prestigePointsPerCycle: isCapital ? 100 : 25,
     victoryPointsPerCycle: isCapital ? 10 : 1,
     supply: {
-      supplyRange: isCapital ? 10 : 5, // Capital has wider range
+      supplyRangeMP: isCapital ? 25 : 15, // Capital has wider range
       isInSupply: true,
       isRoot: isCapital,
     },

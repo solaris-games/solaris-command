@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb";
-import { HexCoords, SupplyTarget } from "../types";
+import { CombatOperation, HexCoords, SupplyTarget } from "../types";
 
 export enum UnitStatuses {
   IDLE = "IDLE",
@@ -30,6 +30,7 @@ export interface UnitMovement {
 export interface UnitCombat {
   targetHex: HexCoords | null; // If Preparing, where are we attacking?
   cooldownEndTick: number | null; // Which tick does Regrouping end?
+  operation: CombatOperation | null;
 }
 
 export interface Unit {

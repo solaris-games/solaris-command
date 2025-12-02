@@ -16,9 +16,31 @@ export enum CombatShiftType {
   SIEGE = "SIEGE",
 }
 
+export enum CombatOperation {
+  STANDARD = "STANDARD",
+  FEINT = "FEINT",
+  SUPPRESSIVE_FIRE = "SUPPRESSIVE_FIRE",
+}
+
 export interface CombatShift {
   type: CombatShiftType;
   value: number;
+}
+
+export interface CombatLosses {
+  steps: number;
+  suppressed: number;
+}
+
+export interface CombatForcedResult {
+  resultType: CombatResultType;
+  attacker: CombatLosses;
+  defender: {
+    steps: number;
+    suppressed: number;
+    retreat: boolean;
+    shattered: boolean;
+  };
 }
 
 export interface CombatReport {
@@ -34,19 +56,13 @@ export interface CombatReport {
   attacker: {
     combatValue: number; // Total attack value * number of active steps
     shifts: CombatShift[];
-    losses: {
-      steps: number;
-      suppressed: number;
-    };
+    losses: CombatLosses;
   };
 
   defender: {
     combatValue: number;
     shifts: CombatShift[];
-    losses: {
-      steps: number;
-      suppressed: number;
-    };
+    losses: CombatLosses;
     retreated: boolean;
     shattered: boolean; // If retreat was impossible
   };

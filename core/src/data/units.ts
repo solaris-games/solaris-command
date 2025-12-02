@@ -1,16 +1,31 @@
 import { UnitCatalogItem, UnitClasses } from "../types";
 
-// TODO: Add many more unit types, try to mimic real life counterparts.
-// TODO: Add unique characteristics for each type of unit, 
-// - e.g Frigates have a lot of MP, Cruisers are glass cannons etc. (Again, mimic real life if possible)
-
 export const UNIT_CATALOG: UnitCatalogItem[] = [
+  // --- TIER 1: SCREENING SHIPS (Fast, No ZOC) ---
+  {
+    id: "unit_corvette_01",
+    class: UnitClasses.CORVETTE,
+    name: "Patrol Corvette",
+    description:
+      "Extremely fast reconnaissance vessel. Useful for deep space scouting and harassment.",
+    cost: 25,
+    stats: {
+      attack: 1,
+      defense: 1,
+      armor: 0,
+      maxAP: 1,
+      maxMP: 24, // Very high mobility
+      maxSteps: 3,
+      initiative: 0,
+      hasZOC: false, // Cannot block movement
+    },
+  },
   {
     id: "unit_frigate_01",
     class: UnitClasses.FRIGATE,
     name: "Strike Frigate",
     description:
-      "Fast screening vessel. High speed allows for rapid interception and first-strike capability.",
+      "Fast screening vessel. The standard workhorse for wolf-pack tactics and screening larger fleets.",
     cost: 50,
     stats: {
       attack: 2,
@@ -18,49 +33,128 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       armor: 0,
       maxAP: 1,
       maxMP: 18,
-      maxSteps: 5,
-      initiative: 0, // Acts First
-      hasZOC: false
+      maxSteps: 4,
+      initiative: 0,
+      hasZOC: false, // Too small to block effectively
     },
   },
+
+  // --- TIER 2: ESCORT & RAIDING (Balanced, ZOC Capable) ---
   {
     id: "unit_destroyer_01",
     class: UnitClasses.DESTROYER,
     name: "Heavy Destroyer",
-    description: "Balanced combat vessel. The backbone of the fleet.",
+    description:
+      "Balanced combat vessel. Provides essential anti-screen firepower and can lock down space lanes with Zone of Control.",
     cost: 100,
     stats: {
       attack: 4,
       defense: 3,
-      armor: 1,
+      armor: 1, // Light armor
       maxAP: 1,
-      maxMP: 12,
-      maxSteps: 6,
+      maxMP: 14,
+      maxSteps: 4,
       initiative: 1,
-      hasZOC: true
+      hasZOC: true,
     },
   },
+  {
+    id: "unit_cruiser_light_01",
+    class: UnitClasses.LIGHT_CRUISER,
+    name: "Interdictor Cruiser",
+    description:
+      "A 'Glass Cannon' designed for raiding. High firepower and speed, but sacrifices armor for mobility.",
+    cost: 130,
+    stats: {
+      attack: 5, // High threat
+      defense: 2, // Weak defense
+      armor: 0, // No heavy armor
+      maxAP: 1,
+      maxMP: 16, // Fast
+      maxSteps: 5,
+      initiative: 1,
+      hasZOC: true,
+    },
+  },
+
+  // --- TIER 3: CAPITAL SHIPS (Line Battle) ---
+  {
+    id: "unit_cruiser_heavy_01",
+    class: UnitClasses.HEAVY_CRUISER,
+    name: "Armored Cruiser",
+    description:
+      "A durable line combatant. Trades the speed of light cruisers for heavy plating and sustained combat endurance.",
+    cost: 160,
+    stats: {
+      attack: 5,
+      defense: 4,
+      armor: 2, // Good armor
+      maxAP: 1,
+      maxMP: 12,
+      maxSteps: 5,
+      initiative: 2,
+      hasZOC: true,
+    },
+  },
+  {
+    id: "unit_battlecruiser_01",
+    class: UnitClasses.BATTLECRUISER,
+    name: "Battlecruiser",
+    description:
+      "The hunter of capitals. Mounts battleship-grade weaponry on a cruiser hull. Devastating on the attack but cannot sustain prolonged fire.",
+    cost: 180,
+    stats: {
+      attack: 7, // Battleship guns
+      defense: 3, // Cruiser hull
+      armor: 1, // Weak armor for a capital
+      maxAP: 1,
+      maxMP: 12, // Fast for a capital
+      maxSteps: 6,
+      initiative: 2,
+      hasZOC: true,
+    },
+  },
+
+  // --- TIER 4: SUPER CAPITALS (Siege & Anchor) ---
   {
     id: "unit_battleship_01",
     class: UnitClasses.BATTLESHIP,
     name: "Capital Battleship",
     description:
-      "Heavily armored behemoth. Slow, but possesses devastating firepower and high survivability.",
+      "Heavily armored behemoth. Slow, but possesses devastating firepower and the armor to shrug off lighter attacks.",
     cost: 200,
     stats: {
       attack: 6,
-      defense: 5,
-      armor: 2,
+      defense: 6,
+      armor: 3, // Heavy Armor
       maxAP: 1,
       maxMP: 10,
-      maxSteps: 7,
-      initiative: 2, // Acts Last
-      hasZOC: true
+      maxSteps: 6,
+      initiative: 3, // Acts late
+      hasZOC: true,
+    },
+  },
+  {
+    id: "unit_dreadnought_01",
+    class: UnitClasses.DREADNOUGHT,
+    name: "Planetary Siege Dreadnought",
+    description:
+      "The ultimate projection of power. Extremely slow and expensive, but nearly impervious to standard weapons.",
+    cost: 350,
+    stats: {
+      attack: 9,
+      defense: 8,
+      armor: 4, // Super Heavy Armor (Requires Torpedoes to scratch)
+      maxAP: 1,
+      maxMP: 6, // Crawls
+      maxSteps: 7, // Huge HP pool
+      initiative: 3,
+      hasZOC: true,
     },
   },
 ];
 
-// Helper Map for O(1) Lookups
+// Helper Map for O(1) Lookups by Class
 export const UNIT_CATALOG_MAP = new Map<UnitClasses, UnitCatalogItem>(
   UNIT_CATALOG.map((u) => [u.class, u])
 );
