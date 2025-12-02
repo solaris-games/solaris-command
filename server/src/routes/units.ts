@@ -2,7 +2,7 @@ import express from "express";
 import { ObjectId } from "mongodb";
 import { authenticateToken } from "../middleware/auth";
 import { getDb } from "../db/instance";
-import { Game, GameStates, Unit, Player, Station, Hex, HexUtils } from "@solaris-command/core";
+import { Game, GameStates, Unit, Player, Station, Hex, HexUtils, UNITS, SPECIALISTS, UnitManager, UnitManagerHelper } from "@solaris-command/core";
 import { validate, DeployUnitSchema, MoveUnitSchema, AttackUnitSchema } from "../middleware/validation";
 
 const router = express.Router({ mergeParams: true });
@@ -41,18 +41,29 @@ router.post("/deploy", authenticateToken, requireActiveGame, validate(DeployUnit
         // Simplified: Just create a unit at 0,0,0 (assume capital)
         const spawnLocation = { q: 0, r: 0, s: 0 };
 
+        // Generate initial steps using helper
+        // "New units spawn ... They spawn with All Steps Suppressed." - GDD
+        const initialSteps = UnitManagerHelper.addSteps([], unitTemplate.steps);
+
         const newUnit: any = {
             gameId: new ObjectId(gameId),
             playerId: player._id,
-            class: unitTemplate.class,
-            unitId: unitId,
+            catalogId: unitId,
             location: spawnLocation,
-            stats: {
-                steps: unitTemplate.steps,
-                maxSteps: unitTemplate.maxSteps,
-                specialists: []
+            steps: initialSteps,
+            state: {
+                status: "IDLE",
+                ap: 0,
+                mp: 0,
+                activeSteps: 0,
+                suppressedSteps: initialSteps.length
             },
-            status: "IDLE"
+            movement: null,
+            combat: null,
+            supply: {
+                isInSupply: true,
+                ticksOutOfSupply: 0
+            }
         };
 
         const result = await db.collection("units").insertOne(newUnit);
@@ -178,35 +189,54 @@ router.post("/:unitId/upgrade", authenticateToken, requireActiveGame, async (req
         // 3. Apply upgrade
 
         let cost = 0;
-        const update: any = {};
+        let newSteps = [...unit.steps];
+
+        // Fetch Catalog for Max Steps
+        const unitTemplate = UNITS[unit.catalogId]; // Assuming catalogId exists
+        if (!unitTemplate) return res.status(500).json({ error: "Unit template not found" });
 
         if (type === "STEP") {
-            // Using placeholder logic or UnitManager.addStep check would be ideal
-            if (unit.stats.steps >= unit.stats.maxSteps) {
+            if (unit.state.activeSteps + unit.state.suppressedSteps >= unitTemplate.maxSteps) {
                  return res.status(400).json({ error: "Unit already at max steps" });
             }
-            // Cost is generally 1/step but specialist steps differ.
-            // Docs say: "Prestige can purchase Specialist Steps or replace lost standard steps."
-            cost = 10; // Placeholder
+            cost = 10; // Placeholder cost
             // TODO: check player prestige
 
-            update.$inc = { "stats.steps": 1 };
+            newSteps = UnitManagerHelper.addSteps(newSteps, 1);
+
         } else if (type === "SPECIALIST") {
              if (!specialistType) return res.status(400).json({ error: "Specialist type required" });
 
              const spec = SPECIALISTS[specialistType];
              if (!spec) return res.status(400).json({ error: "Invalid specialist type" });
 
+             // Check Max Steps
+             if (unit.state.activeSteps + unit.state.suppressedSteps >= unitTemplate.maxSteps) {
+                return res.status(400).json({ error: "Unit already at max steps" });
+             }
+
              cost = spec.cost;
              // TODO: check player prestige
 
-             update.$push = { "stats.specialists": specialistType };
+             // Add specialist step (suppressed by default)
+             newSteps = UnitManagerHelper.addSteps(newSteps, 1, spec);
+
         } else {
             return res.status(400).json({ error: "Invalid upgrade type" });
         }
 
+        // Recalculate State counts
+        const activeSteps = newSteps.filter(s => !s.isSuppressed).length;
+        const suppressedSteps = newSteps.length - activeSteps;
+
         // Apply
-        await db.collection("units").updateOne({ _id: unit._id }, update);
+        await db.collection("units").updateOne({ _id: unit._id }, {
+            $set: {
+                steps: newSteps,
+                "state.activeSteps": activeSteps,
+                "state.suppressedSteps": suppressedSteps
+            }
+        });
 
         // Deduct cost (Placeholder)
         // await db.collection("players").updateOne({ _id: player._id }, { $inc: { "resources.prestige": -cost } });
