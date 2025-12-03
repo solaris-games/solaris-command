@@ -9,6 +9,7 @@ import {
   Station,
   Player,
   GameStates,
+  PlayerStatus,
 } from "../models";
 import { CombatReport } from "../types";
 import { CombatEngine } from "./combat-engine";
@@ -436,7 +437,7 @@ export const TickProcessor = {
     // Economic victory (VP) is checked in the Cycle Processor.
 
     // Filter active players (Not defeated)
-    const activePlayers = context.players.filter((p) => !p.isDefeated);
+    const activePlayers = context.players.filter((p) => p.status !== PlayerStatus.DEFEATED);
 
     // Last Man Standing Check
     // Only applies if the game started with > 1 player

@@ -8,12 +8,10 @@ export interface UserAchievements {
 
 export interface User {
   _id: ObjectId;
+  googleId: string;
 
   username: string;
   email: string;
-
   lastSeenDate: Date;
-  lastSeenIP: string;
-
   achievements: UserAchievements;
 }

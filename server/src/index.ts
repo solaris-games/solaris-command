@@ -1,9 +1,7 @@
 import express from "express";
-import { MongoClient } from "mongodb";
 import cors from "cors";
 import dotenv from "dotenv";
 
-import { Game } from "@solaris-command/core";
 import { GameLoop } from "./cron/game-loop";
 import { connectToDb } from "./db";
 import authRoutes from "./routes/auth";
@@ -19,8 +17,6 @@ const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-
-let db;
 
 async function startServer() {
   try {
@@ -45,7 +41,7 @@ async function startServer() {
     app.use("/api/v1/games/:id/units", unitRoutes);
     app.use("/api/v1/games/:id/stations", stationRoutes);
 
-    // Example Route using Shared Type
+    // Status route
     app.get("/status", (req, res) => {
       res.json({ status: "Solaris: Command Server Online" });
     });

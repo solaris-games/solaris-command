@@ -1,10 +1,11 @@
 import { ObjectId } from "mongodb";
 import { Planet, Station, StationStatuses, Unit } from "../models";
-import { Hex, TerrainTypes } from "../models/hex"; // Assuming Hex model exports TerrainTypes
+import { Hex } from "../models/hex"; // Assuming Hex model exports TerrainTypes
 import { HexUtils } from "./hex-utils";
 import { HexCoords } from "../types/geometry";
 import { Pathfinding } from "./pathfinding";
 import { MapUtils } from "./map-utils";
+import { CONSTANTS } from "../data";
 
 export const SupplyEngine = {
   /**
@@ -53,7 +54,7 @@ export const SupplyEngine = {
     rootSources.forEach((planet) => {
       sourceQueue.push({
         location: planet.location,
-        rangeMP: planet.supply.supplyRangeMP, // Range in Movement Points
+        rangeMP: CONSTANTS.ROOT_SUPPLY_RANGE_MP,
       });
       visitedNodes.add(planet._id.toString());
     });
@@ -94,7 +95,7 @@ export const SupplyEngine = {
           visitedNodes.add(nodeId);
           sourceQueue.push({
             location: node.location,
-            rangeMP: node.supply.supplyRangeMP,
+            rangeMP: CONSTANTS.NODE_SUPPLY_RANGE_MP,
           });
         }
       }

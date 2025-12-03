@@ -4,6 +4,7 @@ import { Unit } from "../models/unit";
 import { Planet } from "../models/planet";
 import { Station } from "../models/station";
 import { ObjectId } from "mongodb";
+import { CONSTANTS, UNIT_CATALOG_ID_MAP } from "../data";
 
 export const FogOfWar = {
   /**
@@ -14,8 +15,7 @@ export const FogOfWar = {
     playerId: string | ObjectId,
     units: Unit[],
     planets: Planet[],
-    stations: Station[],
-    visionRange: number = 2 // Default vision range for all entities
+    stations: Station[]
   ): Set<string> {
     const visibleHexes = new Set<string>();
     const pidStr = playerId.toString();
@@ -23,24 +23,27 @@ export const FogOfWar = {
     // 1. Units
     units.forEach((u) => {
       if (u.playerId.toString() === pidStr) {
-        const hexes = HexUtils.getHexesInRange(u.location, visionRange);
+        const unitCtlg = UNIT_CATALOG_ID_MAP.get(u.catalogId)!;
+        const hexes = HexUtils.getHexesInRange(
+          u.location,
+          unitCtlg.stats.visionRange
+        );
         hexes.forEach((h) => visibleHexes.add(HexUtils.getID(h)));
       }
     });
 
-    // 2. Planets (Assume always visible range 2 or more?)
+    // 2. Planets
     planets.forEach((p) => {
       if (p.playerId && p.playerId.toString() === pidStr) {
-        const hexes = HexUtils.getHexesInRange(p.location, visionRange);
+        const hexes = HexUtils.getHexesInRange(p.location, CONSTANTS.GAME_PLANET_VISION_RANGE);
         hexes.forEach((h) => visibleHexes.add(HexUtils.getID(h)));
       }
     });
 
     // 3. Stations
     stations.forEach((s) => {
-      if (s.playerId.toString() === pidStr) {
-        // Active stations might have more range? sticking to default for now
-        const hexes = HexUtils.getHexesInRange(s.location, visionRange);
+      if (s.playerId && s.playerId.toString() === pidStr) {
+        const hexes = HexUtils.getHexesInRange(s.location, CONSTANTS.GAME_STATION_VISION_RANGE);
         hexes.forEach((h) => visibleHexes.add(HexUtils.getID(h)));
       }
     });

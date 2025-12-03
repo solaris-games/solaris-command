@@ -2,81 +2,88 @@ import express from "express";
 import { ObjectId } from "mongodb";
 import { authenticateToken } from "../middleware/auth";
 import { getDb } from "../db/instance";
-import { Game, GameStates, Player, Station } from "@solaris-command/core";
+import { Station, StationStatuses } from "@solaris-command/core";
 import { validate, BuildStationSchema } from "../middleware/validation";
-import { requireActiveGame } from "../middleware/game";
+import { loadGame, loadPlayer, requireActiveGame } from "../middleware";
 
 const router = express.Router({ mergeParams: true });
 
-async function getGameAndPlayer(gameId: string, userId: string) {
-    const db = getDb();
-    const game = await db.collection<Game>("games").findOne({ _id: new ObjectId(gameId) });
-    if (!game) throw new Error("Game not found");
-
-    const player = await db.collection<Player>("players").findOne({ gameId: new ObjectId(gameId), userId: userId });
-    if (!player) throw new Error("Player not found in this game");
-
-    return { game, player, db };
-}
-
 // POST /api/v1/games/:id/stations
-router.post("/", authenticateToken, requireActiveGame, validate(BuildStationSchema), async (req, res) => {
-    const userId = req.user?.id;
-    const { id: gameId } = req.params;
+router.post(
+  "/",
+  authenticateToken,
+  loadGame,
+  requireActiveGame,
+  loadPlayer,
+  validate(BuildStationSchema),
+  async (req, res) => {
     const { location } = req.body; // { q, r, s }
 
-    if (!userId) return res.status(401).json({ error: "Unauthorized" });
-
     try {
-        const { game, player, db } = await getGameAndPlayer(gameId, userId);
+      const db = getDb()
 
-        // Logic: Build Station
-        // 1. Check pool limit (capped by planets)
-        // 2. Check resources
-        // 3. Create Station in CONSTRUCTING state
+      // TODO: Validate that the new station will be in supply, the player
+      // cannot construct a station where the hex is out of supply.
 
-        const newStation: any = {
-            gameId: new ObjectId(gameId),
-            playerId: player._id,
-            location: location,
-            state: "CONSTRUCTING",
-            constructionStartCycle: game.state.cycle
-        };
+      // TODO: Validate that the player can purchase a station (costs prestige)
 
-        const result = await db.collection("stations").insertOne(newStation);
-        res.json({ message: "Station construction started", station: { ...newStation, _id: result.insertedId } });
+      // Logic: Build Station
+      // 1. Check pool limit (capped by planets)
+      // 2. Check resources
+      // 3. Create Station in CONSTRUCTING state
 
+      const newStation: Station = {
+        _id: new ObjectId(),
+        gameId: req.game._id,
+        playerId: req.player._id,
+        location: location,
+        status: StationStatuses.CONSTRUCTING,
+        supply: {
+          isInSupply: true,
+          isRoot: false
+        },
+        // TODO: Need a tickActive and tickDecommissioned
+      };
+
+      const result = await db.collection("stations").insertOne(newStation);
+      res.json({
+        message: "Station construction started",
+        station: { ...newStation, _id: result.insertedId },
+      });
     } catch (error: any) {
-        res.status(400).json({ error: error.message });
+      res.status(400).json({ error: error.message });
     }
-});
+  }
+);
 
 // DELETE /api/v1/games/:id/stations/:stationId
-router.delete("/:stationId", authenticateToken, async (req, res) => {
-    const userId = req.user?.id;
-    const { id: gameId, stationId } = req.params;
+router.delete("/:stationId", authenticateToken, loadPlayer, async (req, res) => {
+  const { stationId } = req.params;
 
-    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+  try {
+    const db = getDb();
 
-    try {
-        const { player, db } = await getGameAndPlayer(gameId, userId);
+    const station = await db
+      .collection<Station>("stations")
+      .findOne({ _id: new ObjectId(stationId), playerId: req.player._id });
 
-        const station = await db.collection<Station>("stations").findOne({ _id: new ObjectId(stationId), playerId: player._id });
-        if (!station) return res.status(404).json({ error: "Station not found" });
+    if (!station) return res.status(404).json({ error: "Station not found" });
 
-        // Logic: Decommission
-        // Sets state to DECOMMISSIONING, doesn't delete immediately?
-        // "When a player removes a station, it enters this state for 1 Cycle."
+    // Logic: Decommission
+    // Sets state to DECOMMISSIONING, doesn't delete immediately?
+    // "When a player removes a station, it enters this state for 1 Cycle."
 
-        await db.collection("stations").updateOne({ _id: station._id }, {
-            $set: { state: "DECOMMISSIONING" }
-        });
+    await db.collection("stations").updateOne(
+      { _id: station._id },
+      {
+        $set: { state: "DECOMMISSIONING" },
+      }
+    );
 
-        res.json({ message: "Station decommissioning started" });
-
-    } catch (error: any) {
-        res.status(400).json({ error: error.message });
-    }
+    res.json({ message: "Station decommissioning started" });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
 });
 
 export default router;

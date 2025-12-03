@@ -14,6 +14,7 @@ describe("FogOfWar", () => {
     ({
       // Create a valid 24-char hex string from the input
       _id: new ObjectId(idStr.padEnd(24, "0")),
+      catalogId: "unit_corvette_01", // Hex range of 3
       playerId: pid,
       location: { q, r, s: -q - r },
       // ... minimal other props
@@ -29,12 +30,11 @@ describe("FogOfWar", () => {
       player1Id,
       units,
       planets,
-      stations,
-      1
+      stations
     );
 
-    // Range 1 from 0,0,0 should be center + 6 neighbors = 7 hexes
-    expect(visibleHexes.size).toBe(7);
+    // Range 3 (Corvette) from 0,0,0 should be 37 hexes
+    expect(visibleHexes.size).toBe(37);
     expect(visibleHexes.has("0,0,0")).toBe(true);
     expect(visibleHexes.has("1,-1,0")).toBe(true);
   });
@@ -52,8 +52,7 @@ describe("FogOfWar", () => {
       player1Id,
       units,
       planets,
-      stations,
-      1
+      stations
     );
     const filtered = FogOfWar.filterVisibleUnits(
       player1Id,

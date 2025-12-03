@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 declare global {
   namespace Express {
     interface Request {
-      user?: {
+      user: {
         id: string;
         email: string;
         username: string;
@@ -33,7 +33,11 @@ export const authenticateToken = (
       console.error("JWT Verification Error:", err);
       return res.sendStatus(403);
     }
+
+    if (!user) return res.status(401).json({ error: "Unauthorized" });
+
     req.user = user;
+
     next();
   });
 };

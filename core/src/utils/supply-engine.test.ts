@@ -11,6 +11,7 @@ import {
   Hex,
   TerrainTypes,
 } from "../models";
+import { CONSTANTS } from "../data";
 
 // --- MOCKS ---
 // We mock Pathfinding because calculating the exact flood fill is tested in pathfinding.test.ts.
@@ -59,7 +60,6 @@ function createPlanet(
     prestigePointsPerCycle: 10,
     victoryPointsPerCycle: 1,
     supply: {
-      supplyRangeMP: 5,
       isInSupply: true,
       isRoot: isCapital,
     },
@@ -80,7 +80,6 @@ function createStation(
     location: { q, r, s },
     status,
     supply: {
-      supplyRangeMP: 5,
       isInSupply: false, // Dynamic
       isRoot: false,
     },
@@ -140,7 +139,7 @@ describe("SupplyEngine", () => {
       // Verify Pathfinding was called correctly with correct args
       expect(Pathfinding.getReachableHexes).toHaveBeenCalledWith(
         capital.location,
-        capital.supply.supplyRangeMP,
+        CONSTANTS.ROOT_SUPPLY_RANGE_MP,
         expect.any(Map),
         expect.objectContaining({ playerId: String(playerId) })
       );

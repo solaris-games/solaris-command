@@ -2,8 +2,8 @@ import { ObjectId } from "mongodb";
 
 export enum GameStates {
   PENDING = "PENDING",
+  STARTING = "STARTING",
   ACTIVE = "ACTIVE",
-  PAUSED = "PAUSED",
   COMPLETED = "COMPLETED",
 }
 

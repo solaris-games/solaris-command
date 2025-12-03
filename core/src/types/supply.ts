@@ -1,6 +1,4 @@
 export interface SupplySource {
-  // TODO: I don't think we need to store this in DB, it can be a constant?
-  supplyRangeMP: number; // MP for supply line.
   isInSupply: boolean; // Is it in range of the root supply source
   isRoot: boolean; // Is this a root supply source? If so it cannot go out of supply
 }

@@ -15,9 +15,11 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       armor: 0,
       maxAP: 1,
       maxMP: 24, // Very high mobility
+      defaultSteps: 1,
       maxSteps: 3,
       initiative: 0,
       hasZOC: false, // Cannot block movement
+      visionRange: 3
     },
   },
   {
@@ -33,9 +35,11 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       armor: 0,
       maxAP: 1,
       maxMP: 18,
+      defaultSteps: 2,
       maxSteps: 4,
       initiative: 0,
       hasZOC: false, // Too small to block effectively
+      visionRange: 1
     },
   },
 
@@ -53,9 +57,11 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       armor: 1, // Light armor
       maxAP: 1,
       maxMP: 14,
+      defaultSteps: 2,
       maxSteps: 4,
       initiative: 1,
       hasZOC: true,
+      visionRange: 2
     },
   },
   {
@@ -71,9 +77,11 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       armor: 0, // No heavy armor
       maxAP: 1,
       maxMP: 16, // Fast
+      defaultSteps: 3,
       maxSteps: 5,
       initiative: 1,
       hasZOC: true,
+      visionRange: 2
     },
   },
 
@@ -91,9 +99,11 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       armor: 2, // Good armor
       maxAP: 1,
       maxMP: 12,
+      defaultSteps: 3,
       maxSteps: 5,
       initiative: 2,
       hasZOC: true,
+      visionRange: 2
     },
   },
   {
@@ -109,9 +119,11 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       armor: 1, // Weak armor for a capital
       maxAP: 1,
       maxMP: 12, // Fast for a capital
+      defaultSteps: 4,
       maxSteps: 6,
       initiative: 2,
       hasZOC: true,
+      visionRange: 2
     },
   },
 
@@ -129,9 +141,11 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       armor: 3, // Heavy Armor
       maxAP: 1,
       maxMP: 10,
+      defaultSteps: 4,
       maxSteps: 6,
       initiative: 3, // Acts late
       hasZOC: true,
+      visionRange: 2
     },
   },
   {
@@ -147,9 +161,11 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       armor: 4, // Super Heavy Armor (Requires Torpedoes to scratch)
       maxAP: 1,
       maxMP: 6, // Crawls
+      defaultSteps: 5,
       maxSteps: 7, // Huge HP pool
       initiative: 3,
       hasZOC: true,
+      visionRange: 2
     },
   },
 ];

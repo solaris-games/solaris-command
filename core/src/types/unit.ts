@@ -25,6 +25,7 @@ export interface UnitCatalogItem {
     // Movement & Logistics
     maxAP: number;
     maxMP: number;
+    defaultSteps: number; // Starting steps on deployment
     maxSteps: number;
 
     // Combat Order (Lower = Acts sooner)
@@ -32,6 +33,9 @@ export interface UnitCatalogItem {
 
     // Zone of Control
     hasZOC: boolean; // Smaller units may not have a ZOC influence
+
+    // Vision
+    visionRange: number; // Range in hexes
   };
 }
 
