@@ -3,23 +3,14 @@ import { ObjectId } from "mongodb";
 import { authenticateToken } from "../middleware/auth";
 import { getDb } from "../db/instance";
 import {
-  Game,
-  GameStates,
-  Player,
-  Hex,
-  Unit,
-  Planet,
-  Station,
-  FogOfWar,
-  PlayerStatus,
-  CONSTANTS,
-} from "@solaris-command/core";
-import {
   loadGame,
   requireActiveGame,
   requirePendingGame,
 } from "../middleware/game";
 import { touchPlayer } from "../middleware";
+import { GameService } from "../services/GameService";
+import { PlayerService } from "../services/PlayerService";
+import { PlayerStatus, GameStates } from "@solaris-command/core";
 
 const router = express.Router();
 
@@ -27,31 +18,9 @@ const router = express.Router();
 // List open games and my games
 router.get("/", authenticateToken, async (req, res) => {
   try {
-    const db = getDb();
-
-    // 1. Find games where user is a player
-    const myPlayers = await db
-      .collection<Player>("players")
-      .find({ userId: new ObjectId(req.user.id) })
-      .toArray();
-
-    const myGameIds = myPlayers.map((p) => p.gameId);
-
-    // 2. Query Games
-    // Return:
-    // - Games I am in (regardless of status)
-    // - Games that are PENDING (open to join)
-    const games = await db
-      .collection<Game>("games")
-      .find({
-        $or: [
-          { _id: { $in: myGameIds } },
-          { "state.status": GameStates.PENDING },
-        ],
-      })
-      .sort({ "state.startDate": -1 })
-      .limit(50)
-      .toArray();
+    const { games, myGameIds } = await GameService.listGames(
+      new ObjectId(req.user.id)
+    );
 
     // Map to simple response
     // TODO: Need mapping layer
@@ -76,10 +45,8 @@ router.get("/", authenticateToken, async (req, res) => {
 // TODO: For MVP let's make a cron job that creates one "official" game at a time. Users should not be able to create games.
 router.post("/", authenticateToken, async (req, res) => {
   try {
-    const db = getDb();
-
     // Basic Default Game
-    const newGame: any = {
+    const newGameData: any = {
       settings: {
         tickDurationMS: 1000 * 60 * 60, // 1 hour
         ticksPerCycle: 24,
@@ -95,8 +62,8 @@ router.post("/", authenticateToken, async (req, res) => {
       },
     };
 
-    const result = await db.collection("games").insertOne(newGame);
-    res.json({ id: result.insertedId, ...newGame });
+    const result = await GameService.createGame(newGameData);
+    res.json(result);
   } catch (error) {
     console.error("Error creating game:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -112,11 +79,8 @@ router.post(
   async (req, res) => {
     try {
       const db = getDb();
-
-      // Game existence and status checked in middleware
-
       // Check if already joined
-      const existingPlayer = await db.collection<Player>("players").findOne({
+      const existingPlayer = await db.collection("players").findOne({
         gameId: req.game._id,
         userId: new ObjectId(req.user.id),
       });
@@ -125,24 +89,14 @@ router.post(
         return res.status(400).json({ error: "Already joined this game" });
       }
 
-      // Create Player
-      // Note: Actual logic for spawning units/planets usually happens here or when game starts.
-      // Assuming for now we just create the player record.
-
-      // Let's create a basic player entry. Spawning might be complex.
-      const newPlayer: Player = {
-        _id: new ObjectId(),
-        gameId: req.game._id,
-        userId: new ObjectId(req.user.id),
-        alias: req.user.username || "Unknown", // TODO: Request body prop
-        color: "#FF0000", // TODO: Request body prop
-        status: PlayerStatus.ACTIVE,
-        prestigePoints: CONSTANTS.GAME_STARTING_PRESTIGE_POINTS, // TODO: Should be a game setting?
-        victoryPoints: 0,
-        lastSeenDate: new Date(),
-      };
-
-      await db.collection("players").insertOne(newPlayer);
+      const newPlayer = await PlayerService.joinGame(
+        req.game._id,
+        new ObjectId(req.user.id),
+        {
+          username: req.user.username,
+          // color: ... // TODO request body
+        }
+      );
 
       // TODO: Need to assign a starting location
       // TODO: Need to assign a starting fleet
@@ -164,28 +118,39 @@ router.post(
   loadGame,
   requirePendingGame,
   async (req, res) => {
+    const db = getDb();
+    const session = db.client.startSession();
+
     try {
-      const db = getDb();
+      session.startTransaction();
 
-      const result = await db.collection("players").deleteOne({
-        gameId: req.game._id,
-        userId: new ObjectId(req.user.id),
-      });
+      try {
+          const result = await PlayerService.leaveGame(
+              req.game._id,
+              new ObjectId(req.user.id),
+              session
+          );
 
-      // TODO: Delete units
-      // TODO: Delete stations
-      // TODO: Remove hex ownerships
-      // TODO: Remove planet ownerships
-      // TODO: We already do this in `./users` so put it in a controller to it can be shared.
-
-      if (result.deletedCount === 0) {
-        return res.status(400).json({ error: "Not a player in this game" });
+          if (result.deletedCount === 0) {
+              await session.abortTransaction();
+              return res.status(400).json({ error: "Not a player in this game" });
+          }
+      } catch (err: any) {
+          if (err.message === "Player not found in this game") {
+               await session.abortTransaction();
+               return res.status(400).json({ error: "Not a player in this game" });
+          }
+          throw err;
       }
 
+      await session.commitTransaction();
       res.json({ message: "Left game" });
     } catch (error) {
+      await session.abortTransaction();
       console.error("Error leaving game:", error);
       res.status(500).json({ error: "Internal Server Error" });
+    } finally {
+      await session.endSession();
     }
   }
 );
@@ -198,25 +163,14 @@ router.post(
   requireActiveGame,
   async (req, res) => {
     try {
-      const db = getDb();
-
-      // Update player status to DEFEATED or similar
-      const result = await db.collection("players").updateOne(
-        {
-          gameId: req.game._id,
-          userId: req.user.id,
-        },
-        {
-          $set: { status: "DEFEATED" }, // or CONCEDED if the enum supports it
-        }
+      const result = await PlayerService.concedeGame(
+          req.game._id,
+          new ObjectId(req.user.id)
       );
 
       if (result.matchedCount === 0) {
         return res.status(400).json({ error: "Not a player in this game" });
       }
-
-      // Units are implicitly neutral/inactive when player is defeated.
-      // No need to delete them.
 
       res.json({ message: "Conceded game" });
     } catch (error) {
@@ -230,67 +184,13 @@ router.post(
 // Get full game state (with FoW filtering)
 router.get("/:id", authenticateToken, loadGame, async (req, res) => {
   try {
-    const db = getDb();
-
-    // Load World Data
-    // Optimization: Could limit fields or query based on visibility if DB supports it,
-    // but for now loading all and filtering in memory as per plan.
-    const [players, hexes, allUnits, planets, stations] = await Promise.all([
-      db.collection<Player>("players").find({ gameId: req.game._id }).toArray(),
-      db.collection<Hex>("hexes").find({ gameId: req.game._id }).toArray(),
-      db.collection<Unit>("units").find({ gameId: req.game._id }).toArray(),
-      db.collection<Planet>("planets").find({ gameId: req.game._id }).toArray(),
-      db
-        .collection<Station>("stations")
-        .find({ gameId: req.game._id })
-        .toArray(),
-    ]);
-
-    // Determine if user is a player in this game
-    const currentPlayer = players.find((p) => String(p.userId) === req.user.id);
+    const { response, currentPlayer } = await GameService.getGameState(
+        req.game,
+        req.user.id
+    );
 
     if (currentPlayer) {
-      req.player = currentPlayer // Feed this into middleware
-    }
-
-    // TODO: Need mapping layer
-    let response: any = {
-      game: req.game,
-      players,
-      hexes, // Hexes are always known
-      planets, // Planets are always known
-      stations, // Stations are always known
-      units: [],
-    };
-
-    if (currentPlayer && req.game.state.status === GameStates.ACTIVE) {
-      // Apply Fog of War for Units
-      const visibleHexes = FogOfWar.getVisibleHexes(
-        currentPlayer._id,
-        allUnits,
-        planets,
-        stations
-      );
-
-      // Filter Units
-      response.units = FogOfWar.filterVisibleUnits(
-        currentPlayer._id,
-        allUnits,
-        visibleHexes
-      );
-    } else if (req.game.state.status === GameStates.COMPLETED) {
-      // Reveal all
-      response.units = allUnits;
-    } else {
-      // Spectator or Pending
-      if (req.game.state.status === GameStates.PENDING && currentPlayer) {
-        response.units = allUnits.filter(
-          (u) => u.playerId.toString() === currentPlayer._id.toString()
-        );
-      } else {
-        // Spectator: See map (hexes, planets, stations) but NO units
-        response.units = [];
-      }
+      req.player = currentPlayer; // Feed this into middleware
     }
 
     res.json(response);
@@ -303,14 +203,14 @@ router.get("/:id", authenticateToken, loadGame, async (req, res) => {
 // GET /api/v1/games/:id/events
 // Get game events (as a player)
 router.get("/:id/events", authenticateToken, async (req, res) => {
-  const gameId = req.params.id;
+  const gameId = new ObjectId(req.params.id);
 
   try {
     const db = getDb();
 
     // Check if player is in game
-    const player = await db.collection<Player>("players").findOne({
-      gameId: new ObjectId(gameId),
+    const player = await db.collection("players").findOne({
+      gameId: gameId,
       userId: new ObjectId(req.user.id),
     });
 
@@ -318,19 +218,7 @@ router.get("/:id/events", authenticateToken, async (req, res) => {
       return res.status(403).json({ error: "Must be a player to view events" });
     }
 
-    // Logic: Return events
-    // 1. Global events
-    // 2. Private events for this player?
-    // 3. Combat reports?
-    // For now, returning all events for the game as a simple implementation.
-    // In future: Filter combat reports to only show if player was involved or had vision.
-
-    const events = await db
-      .collection("game_events")
-      .find({ gameId: new ObjectId(gameId) })
-      .sort({ createdAt: -1 })
-      .limit(100)
-      .toArray();
+    const events = await GameService.getGameEvents(gameId);
 
     res.json(events);
   } catch (error) {
