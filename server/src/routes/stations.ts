@@ -5,6 +5,7 @@ import { getDb } from "../db/instance";
 import { Station, StationStatuses } from "@solaris-command/core";
 import { validate, BuildStationSchema } from "../middleware/validation";
 import { loadGame, loadPlayer, requireActiveGame } from "../middleware";
+import { StationService } from "../services/StationService";
 
 const router = express.Router({ mergeParams: true });
 
@@ -20,8 +21,6 @@ router.post(
     const { location } = req.body; // { q, r, s }
 
     try {
-      const db = getDb()
-
       // TODO: Validate that the new station will be in supply, the player
       // cannot construct a station where the hex is out of supply.
 
@@ -45,10 +44,11 @@ router.post(
         // TODO: Need a tickActive and tickDecommissioned
       };
 
-      const result = await db.collection("stations").insertOne(newStation);
+      const createdStation = await StationService.createStation(newStation);
+
       res.json({
         message: "Station construction started",
-        station: { ...newStation, _id: result.insertedId },
+        station: createdStation,
       });
     } catch (error: any) {
       res.status(400).json({ error: error.message });
@@ -61,24 +61,18 @@ router.delete("/:stationId", authenticateToken, loadPlayer, async (req, res) => 
   const { stationId } = req.params;
 
   try {
-    const db = getDb();
+    const station = await StationService.getStationById(new ObjectId(stationId));
 
-    const station = await db
-      .collection<Station>("stations")
-      .findOne({ _id: new ObjectId(stationId), playerId: req.player._id });
-
-    if (!station) return res.status(404).json({ error: "Station not found" });
+    if (!station || !station.playerId || station.playerId.toString() !== req.player._id.toString()) {
+        return res.status(404).json({ error: "Station not found" });
+    }
 
     // Logic: Decommission
     // Sets state to DECOMMISSIONING, doesn't delete immediately?
     // "When a player removes a station, it enters this state for 1 Cycle."
 
-    await db.collection("stations").updateOne(
-      { _id: station._id },
-      {
-        $set: { state: "DECOMMISSIONING" },
-      }
-    );
+    // Note: I corrected the bug in StationService.decommissionStation where it was updating 'state' instead of 'status'.
+    await StationService.decommissionStation(station._id);
 
     res.json({ message: "Station decommissioning started" });
   } catch (error: any) {
