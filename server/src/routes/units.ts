@@ -1,7 +1,6 @@
 import express from "express";
 import { ObjectId } from "mongodb";
 import { authenticateToken } from "../middleware/auth";
-import { getDb } from "../db/instance";
 import {
   Unit,
   UnitManagerHelper,
@@ -18,7 +17,7 @@ import {
   UpgradeUnitSchema,
 } from "../middleware/validation";
 import { loadGame, loadPlayer, requireActiveGame } from "../middleware";
-import {} from "@solaris-command/core";
+import { UnitService } from "../services/UnitService";
 
 const router = express.Router({ mergeParams: true });
 
@@ -34,8 +33,6 @@ router.post(
     const { unitId, location } = req.body;
 
     try {
-      const db = getDb();
-
       const unitTemplate = UNIT_CATALOG_ID_MAP.get(unitId);
 
       if (!unitTemplate)
@@ -84,11 +81,11 @@ router.post(
         },
       };
 
-      const result = await db.collection("units").insertOne(newUnit);
+      const createdUnit = await UnitService.createUnit(newUnit);
 
       res.json({
         message: "Unit deployed",
-        unit: { ...newUnit, _id: result.insertedId },
+        unit: createdUnit,
       });
     } catch (error: any) {
       res.status(400).json({ error: error.message || "Error deploying unit" });
@@ -109,27 +106,14 @@ router.post(
     const { path } = req.body; // Hex[]
 
     try {
-      const db = getDb();
+      const unit = await UnitService.getUnitById(new ObjectId(unitId));
 
-      const unit = await db
-        .collection<Unit>("units")
-        .findOne({ _id: new ObjectId(unitId), playerId: req.player._id });
-
-      if (!unit) return res.status(404).json({ error: "Unit not found" });
+      if (!unit || unit.playerId.toString() !== req.player._id.toString())
+          return res.status(404).json({ error: "Unit not found" });
 
       // TODO: Validate path (Pathfinding check logic in core)
 
-      await db.collection("units").updateOne(
-        { _id: unit._id },
-        {
-          $set: {
-            "state.status": "MOVING",
-            movement: {
-              path: path,
-            },
-          },
-        }
-      );
+      await UnitService.updateUnitState(unit._id, "MOVING", { path });
 
       res.json({ message: "Move order issued" });
     } catch (error: any) {
@@ -149,23 +133,12 @@ router.post(
     const { unitId } = req.params;
 
     try {
-      const db = getDb();
+      const unit = await UnitService.getUnitById(new ObjectId(unitId));
 
-      const unit = await db
-        .collection<Unit>("units")
-        .findOne({ _id: new ObjectId(unitId), playerId: req.player._id });
+      if (!unit || unit.playerId.toString() !== req.player._id.toString())
+          return res.status(404).json({ error: "Unit not found" });
 
-      if (!unit) return res.status(404).json({ error: "Unit not found" });
-
-      await db.collection("units").updateOne(
-        { _id: unit._id },
-        {
-          $set: {
-            "state.status": "IDLE",
-            "movement.path": [],
-          },
-        }
-      );
+      await UnitService.updateUnitState(unit._id, "IDLE", { path: [] });
 
       res.json({ message: "Move order cancelled" });
     } catch (error: any) {
@@ -187,30 +160,19 @@ router.post(
     const { targetHex, combatType } = req.body;
 
     try {
-      const db = getDb();
+      const unit = await UnitService.getUnitById(new ObjectId(unitId));
 
-      const unit = await db
-        .collection<Unit>("units")
-        .findOne({ _id: new ObjectId(unitId), playerId: req.player._id });
-
-      if (!unit) return res.status(404).json({ error: "Unit not found" });
+      if (!unit || unit.playerId.toString() !== req.player._id.toString())
+          return res.status(404).json({ error: "Unit not found" });
 
       if (unit.state.ap === 0)
         return res.status(400).json({ error: "Unit does not have enough AP." });
 
-      await db.collection("units").updateOne(
-        { _id: unit._id },
-        {
-          $set: {
-            "state.status": "PREPARING",
-            combat: {
-              targetHex: targetHex,
-              type: combatType,
-              cooldownEndTick: null,
-            },
-          },
-        }
-      );
+      await UnitService.updateUnitState(unit._id, "PREPARING", undefined, {
+          targetHex,
+          type: combatType,
+          cooldownEndTick: null
+      });
 
       res.json({ message: "Attack declared" });
     } catch (error: any) {
@@ -230,32 +192,21 @@ router.post(
     const { unitId } = req.params;
 
     try {
-      const db = getDb();
+      const unit = await UnitService.getUnitById(new ObjectId(unitId));
 
-      const unit = await db
-        .collection<Unit>("units")
-        .findOne({ _id: new ObjectId(unitId), playerId: req.player._id });
-
-      if (!unit) return res.status(404).json({ error: "Unit not found" });
+      if (!unit || unit.playerId.toString() !== req.player._id.toString())
+          return res.status(404).json({ error: "Unit not found" });
 
       if (unit.combat.targetHex == null)
         return res
           .status(400)
           .json({ error: "Unit has not declared an attack." });
 
-      await db.collection("units").updateOne(
-        { _id: unit._id },
-        {
-          $set: {
-            "state.status": "IDLE",
-            combat: {
-              targetHex: null,
-              type: null,
-              cooldownEndTick: null,
-            },
-          },
-        }
-      );
+      await UnitService.updateUnitState(unit._id, "IDLE", undefined, {
+          targetHex: null,
+          type: null,
+          cooldownEndTick: null
+      });
 
       res.json({ message: "Attack cancelled" });
     } catch (error: any) {
@@ -277,13 +228,10 @@ router.post(
     const { type, specialistId } = req.body;
 
     try {
-      const db = getDb();
+      const unit = await UnitService.getUnitById(new ObjectId(unitId));
 
-      const unit = await db
-        .collection<Unit>("units")
-        .findOne({ _id: new ObjectId(unitId), playerId: req.player._id });
-
-      if (!unit) return res.status(404).json({ error: "Unit not found" });
+      if (!unit || unit.playerId.toString() !== req.player._id.toString())
+          return res.status(404).json({ error: "Unit not found" });
 
       // Logic: Upgrade
       // 1. Cost calculation
@@ -345,25 +293,15 @@ router.post(
       const activeSteps = newSteps.filter((s) => !s.isSuppressed).length;
       const suppressedSteps = newSteps.length - activeSteps;
 
-      // Apply
-      await db.collection("units").updateOne(
-        { _id: unit._id },
-        {
-          $set: {
-            steps: newSteps,
-            "state.activeSteps": activeSteps,
-            "state.suppressedSteps": suppressedSteps,
-          },
-        }
+      // Apply Upgrade (Transactionally handled in Service)
+      await UnitService.upgradeUnit(
+          unit._id,
+          newSteps,
+          activeSteps,
+          suppressedSteps,
+          cost,
+          req.player._id
       );
-
-      // Deduct prestige cost of step from player
-      await db
-        .collection("players")
-        .updateOne(
-          { _id: req.player._id },
-          { $inc: { prestigePoints: -cost } }
-        );
 
       res.json({ message: "Unit upgraded", cost });
     } catch (error: any) {
@@ -383,13 +321,10 @@ router.post(
     const { unitId } = req.params;
 
     try {
-      const db = getDb();
+      const unit = await UnitService.getUnitById(new ObjectId(unitId));
 
-      const unit = await db
-        .collection<Unit>("units")
-        .findOne({ _id: new ObjectId(unitId), playerId: req.player._id });
-
-      if (!unit) return res.status(404).json({ error: "Unit not found" });
+      if (!unit || unit.playerId.toString() !== req.player._id.toString())
+          return res.status(404).json({ error: "Unit not found" });
 
       // If there's more than 1 step then we scrap it, otherwise we delete the entire unit.
       if (unit.steps.length > 1) {
@@ -401,21 +336,17 @@ router.post(
         const suppressedSteps = newSteps.length - activeSteps;
 
         // Apply
-        await db.collection("units").updateOne(
-          { _id: unit._id },
-          {
-            $set: {
-              steps: newSteps,
-              "state.activeSteps": activeSteps,
-              "state.suppressedSteps": suppressedSteps,
-            },
-          }
+        await UnitService.scrapUnitStep(
+            unit._id,
+            newSteps,
+            activeSteps,
+            suppressedSteps
         );
 
         res.json({ message: "Step scrapped" });
       } else {
         // Delete unit
-        await db.collection("units").deleteOne({ _id: unit._id });
+        await UnitService.deleteUnit(unit._id);
 
         res.json({ message: "Unit scrapped" });
       }
