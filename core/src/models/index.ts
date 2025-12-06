@@ -6,3 +6,4 @@ export * from "./player";
 export * from "./station";
 export * from "./unit";
 export * from "./user";
+export * from "./migration";
