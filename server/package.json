@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "db:init": "tsx src/db/setup.ts"
+    "db:migrate": "tsx src/db/migrate.ts"
   },
   "dependencies": {
     "@solaris-command/core": "*",
