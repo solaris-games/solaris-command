@@ -9,6 +9,7 @@ export enum GameStates {
 
 export interface GameState {
   status: GameStates;
+  playerCount: number;
   tick: number;
   cycle: number;
   createdDate: Date;
@@ -29,7 +30,6 @@ export interface GameSettings {
 
 export interface Game {
   _id: ObjectId;
-  playerIds: ObjectId[];
 
   name: string;
   description: string;

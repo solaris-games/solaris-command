@@ -9,6 +9,7 @@ import userRoutes from "./routes/users";
 import gameRoutes from "./routes/games";
 import unitRoutes from "./routes/units";
 import stationRoutes from "./routes/stations";
+import { CreateGameJob } from "./cron/create-game";
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ async function startServer() {
 
     // 2. Start cron jobs
     GameLoop.start(client);
+    CreateGameJob.start(client);
 
     // 3. Start Express
     app.listen(port, () => {

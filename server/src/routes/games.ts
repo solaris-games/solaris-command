@@ -40,36 +40,6 @@ router.get("/", authenticateToken, async (req, res) => {
   }
 });
 
-// POST /api/v1/games
-// Create a new game (Basic implementation for testing/admin)
-// TODO: For MVP let's make a cron job that creates one "official" game at a time. Users should not be able to create games.
-router.post("/", authenticateToken, async (req, res) => {
-  try {
-    // Basic Default Game
-    const newGameData: any = {
-      settings: {
-        tickDurationMS: 1000 * 60 * 60, // 1 hour
-        ticksPerCycle: 24,
-        victoryPointsTarget: 100,
-        maxPlayers: 10,
-      },
-      state: {
-        status: GameStates.PENDING,
-        tick: 0,
-        cycle: 0,
-        startDate: new Date(),
-        lastTickDate: new Date(),
-      },
-    };
-
-    const result = await GameService.createGame(newGameData);
-    res.json(result);
-  } catch (error) {
-    console.error("Error creating game:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
 // POST /api/v1/games/:id/join
 router.post(
   "/:id/join",
@@ -101,7 +71,8 @@ router.post(
       // TODO: Need to assign a starting location
       // TODO: Need to assign a starting fleet
       // TODO: Need to assign player owned hexes
-      // TODO: If the game is full then start it.
+      // TODO: Increment player count in game state
+      // TODO: If the game is full then start it
 
       res.json({ message: "Joined game", player: newPlayer });
     } catch (error) {
