@@ -1,5 +1,5 @@
 import { CombatTables, TERRAIN_MP_COSTS } from "../data";
-import { Unit, UnitStatuses, Hex } from "../models";
+import { Unit, UnitStatus, Hex } from "../models";
 import { CombatOperation, CombatReport, CombatResultType } from "../types";
 import { CombatCalculator } from "./combat-calculator";
 import { HexUtils } from "./hex-utils";
@@ -78,7 +78,7 @@ export const CombatEngine = {
         if (retreatHex) {
           // Successful Retreat
           defender.location = retreatHex.coords;
-          defender.state.status = UnitStatuses.REGROUPING;
+          defender.state.status = UnitStatus.REGROUPING;
           defenderRetreated = true;
           outcome = CombatResultType.RETREAT;
         } else {
@@ -110,9 +110,9 @@ export const CombatEngine = {
     }
 
     // 9. Set Cooldowns
-    if (attackerAlive) attacker.state.status = UnitStatuses.REGROUPING;
+    if (attackerAlive) attacker.state.status = UnitStatus.REGROUPING;
     if (defenderAlive && !defenderRetreated)
-      defender.state.status = UnitStatuses.REGROUPING;
+      defender.state.status = UnitStatus.REGROUPING;
 
     // 10. Generate Report
     const report: CombatReport = {

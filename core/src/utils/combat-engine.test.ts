@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { CombatEngine } from "./combat-engine";
-import { Unit, UnitStatuses, Hex, TerrainTypes, UnitStep } from "../models";
+import { Unit, UnitStatus, Hex, TerrainTypes, UnitStep } from "../models";
 import {
   CombatOperation,
   CombatResultType,
@@ -52,7 +52,7 @@ function createUnit(
     location: { q, r, s },
     steps: Array(5).fill({ isSuppressed: false, specialistId: null }),
     state: {
-      status: UnitStatuses.IDLE,
+      status: UnitStatus.IDLE,
       ap: 1,
       mp: mp,
       activeSteps: 5,
@@ -218,7 +218,7 @@ describe("CombatEngine", () => {
       expect(result.report.defender.shattered).toBe(false);
       // Defender should move
       expect(defender.location).toEqual(retreatHex.coords);
-      expect(defender.state.status).toBe(UnitStatuses.REGROUPING);
+      expect(defender.state.status).toBe(UnitStatus.REGROUPING);
     });
 
     it("should Shatter defender if they cannot retreat", () => {

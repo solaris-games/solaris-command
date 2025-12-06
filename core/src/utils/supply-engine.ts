@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb";
-import { Planet, Station, StationStatuses, Unit } from "../models";
+import { Planet, Station, StationStatus, Unit } from "../models";
 import { Hex } from "../models/hex"; // Assuming Hex model exports TerrainTypes
 import { HexUtils } from "./hex-utils";
 import { HexCoords } from "../types/geometry";
@@ -38,7 +38,7 @@ export const SupplyEngine = {
     const playerStations = stations.filter(
       (s) =>
         String(s.playerId) === String(playerId) &&
-        s.status === StationStatuses.ACTIVE
+        s.status === StationStatus.ACTIVE
     );
 
     const zocMap = MapUtils.calculateZOCMap(units);

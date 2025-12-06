@@ -10,7 +10,7 @@ import {
 import { touchPlayer } from "../middleware";
 import { GameService } from "../services/GameService";
 import { PlayerService } from "../services/PlayerService";
-import { PlayerStatus, GameStates } from "@solaris-command/core";
+import { GameStates } from "@solaris-command/core";
 
 const router = express.Router();
 

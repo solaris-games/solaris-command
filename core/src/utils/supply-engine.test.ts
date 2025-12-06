@@ -5,9 +5,9 @@ import { Pathfinding } from "./pathfinding";
 import {
   Planet,
   Station,
-  StationStatuses,
+  StationStatus,
   Unit,
-  UnitStatuses,
+  UnitStatus,
   Hex,
   TerrainTypes,
 } from "../models";
@@ -71,7 +71,7 @@ function createStation(
   q: number,
   r: number,
   s: number,
-  status: StationStatuses
+  status: StationStatus
 ): Station {
   return {
     _id: new ObjectId(),
@@ -95,7 +95,7 @@ function createUnit(playerId: ObjectId, q: number, r: number, s: number): Unit {
     location: { q, r, s },
     steps: [],
     state: {
-      status: UnitStatuses.IDLE,
+      status: UnitStatus.IDLE,
       ap: 1,
       mp: 1,
       activeSteps: 1,
@@ -166,7 +166,7 @@ describe("SupplyEngine", () => {
       // Station is at 1,0,-1, so it should Activate and supply 2,0,-2.
 
       const capital = createPlanet(playerId, 0, 0, 0, true);
-      const station = createStation(playerId, 1, 0, -1, StationStatuses.ACTIVE);
+      const station = createStation(playerId, 1, 0, -1, StationStatus.ACTIVE);
 
       // Mock behavior:
       // 1. Capital reaches station
@@ -193,7 +193,7 @@ describe("SupplyEngine", () => {
       // Capital only reaches 0,0,0. Station is unreachable.
 
       const capital = createPlanet(playerId, 0, 0, 0, true);
-      const station = createStation(playerId, 5, 0, -5, StationStatuses.ACTIVE);
+      const station = createStation(playerId, 5, 0, -5, StationStatus.ACTIVE);
 
       vi.mocked(Pathfinding.getReachableHexes).mockReturnValueOnce(
         new Set(["0,0,0"])
@@ -220,7 +220,7 @@ describe("SupplyEngine", () => {
         0,
         0,
         0,
-        StationStatuses.CONSTRUCTING
+        StationStatus.CONSTRUCTING
       );
 
       vi.mocked(Pathfinding.getReachableHexes).mockReturnValue(

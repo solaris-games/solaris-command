@@ -2,10 +2,11 @@ import express from "express";
 import { ObjectId } from "mongodb";
 import { authenticateToken } from "../middleware/auth";
 import { getDb } from "../db/instance";
-import { Station, StationStatuses } from "@solaris-command/core";
+import { Station, StationStatus } from "@solaris-command/core";
 import { validate, BuildStationSchema } from "../middleware/validation";
 import { loadGame, loadPlayer, requireActiveGame } from "../middleware";
 import { StationService } from "../services/StationService";
+import { loadPlayerStation } from "../middleware/station";
 
 const router = express.Router({ mergeParams: true });
 
@@ -36,10 +37,10 @@ router.post(
         gameId: req.game._id,
         playerId: req.player._id,
         location: location,
-        status: StationStatuses.CONSTRUCTING,
+        status: StationStatus.CONSTRUCTING,
         supply: {
           isInSupply: true,
-          isRoot: false
+          isRoot: false,
         },
         // TODO: Need a tickActive and tickDecommissioned
       };
@@ -57,27 +58,25 @@ router.post(
 );
 
 // DELETE /api/v1/games/:id/stations/:stationId
-router.delete("/:stationId", authenticateToken, loadPlayer, async (req, res) => {
-  const { stationId } = req.params;
+router.delete(
+  "/:stationId",
+  authenticateToken,
+  loadPlayer,
+  loadPlayerStation,
+  async (req, res) => {
 
-  try {
-    const station = await StationService.getStationById(new ObjectId(stationId));
+    try {
+      // Logic: Decommission
+      // Sets state to DECOMMISSIONING, doesn't delete immediately?
+      // "When a player removes a station, it enters this state for 1 Cycle."
 
-    if (!station || !station.playerId || station.playerId.toString() !== req.player._id.toString()) {
-        return res.status(404).json({ error: "Station not found" });
+      await StationService.decommissionStation(req.station._id);
+
+      res.json({ message: "Station decommissioning started" });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
     }
-
-    // Logic: Decommission
-    // Sets state to DECOMMISSIONING, doesn't delete immediately?
-    // "When a player removes a station, it enters this state for 1 Cycle."
-
-    // Note: I corrected the bug in StationService.decommissionStation where it was updating 'state' instead of 'status'.
-    await StationService.decommissionStation(station._id);
-
-    res.json({ message: "Station decommissioning started" });
-  } catch (error: any) {
-    res.status(400).json({ error: error.message });
   }
-});
+);
 
 export default router;

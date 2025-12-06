@@ -1,5 +1,5 @@
 import { UNIT_CATALOG_ID_MAP } from "../data";
-import { Hex, Planet, Unit, UnitStatuses, UnitStep } from "../models";
+import { Hex, Planet, Unit, UnitStatus, UnitStep } from "../models";
 import { UnitSpecialistStepCatalogItem } from "../types";
 import { HexUtils } from "./hex-utils";
 
@@ -79,8 +79,8 @@ export const UnitManager = {
     // Usually, cycle resets happen at quiet times, but we should ensure AP/MP fill
     // doesn't override a specific locked state if needed.
     // For now, we assume Cycle refill happens peacefully.
-    if (newStatus === UnitStatuses.REGROUPING) {
-      newStatus = UnitStatuses.IDLE;
+    if (newStatus === UnitStatus.REGROUPING) {
+      newStatus = UnitStatus.IDLE;
     }
 
     return {

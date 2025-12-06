@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { CombatCalculator } from "./combat-calculator";
-import { Unit, UnitStatuses, UnitStep } from "../models/unit";
+import { Unit, UnitStatus, UnitStep } from "../models/unit";
 import { Hex, TerrainTypes } from "../models/hex";
 import { CombatShiftType, CombatOperation } from "../types";
 import { ObjectId } from "mongodb";
@@ -40,7 +40,7 @@ function createTestUnit(
     location: { q: 0, r: 0, s: 0 },
     steps: steps,
     state: {
-      status: UnitStatuses.IDLE,
+      status: UnitStatus.IDLE,
       ap: 1,
       mp: 1,
       activeSteps: activeSteps,

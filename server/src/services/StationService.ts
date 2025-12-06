@@ -1,5 +1,5 @@
 import { ClientSession, ObjectId } from "mongodb";
-import { Station, StationStatuses } from "@solaris-command/core";
+import { Station, StationStatus } from "@solaris-command/core";
 import { getDb } from "../db/instance";
 
 export class StationService {
@@ -34,7 +34,7 @@ export class StationService {
       return db.collection<Station>("stations").updateOne(
           { _id: stationId },
           {
-              $set: { status: StationStatuses.DECOMMISSIONING },
+              $set: { status: StationStatus.DECOMMISSIONING },
           }
       );
   }

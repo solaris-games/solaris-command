@@ -4,7 +4,7 @@ import { authenticateToken } from "../middleware/auth";
 import {
   Unit,
   UnitManagerHelper,
-  UnitStatuses,
+  UnitStatus,
   SPECIALIST_STEP_ID_MAP,
   UNIT_CATALOG_ID_MAP,
   CONSTANTS,
@@ -16,7 +16,7 @@ import {
   AttackUnitSchema,
   UpgradeUnitSchema,
 } from "../middleware/validation";
-import { loadGame, loadPlayer, requireActiveGame } from "../middleware";
+import { loadGame, loadPlayer, loadPlayerUnit, requireActiveGame, requireNonRegoupingUnit } from "../middleware";
 import { UnitService } from "../services/UnitService";
 
 const router = express.Router({ mergeParams: true });
@@ -60,7 +60,7 @@ router.post(
         location: location,
         steps: initialSteps,
         state: {
-          status: UnitStatuses.IDLE,
+          status: UnitStatus.IDLE,
           ap: 0,
           mp: Math.floor(unitTemplate.stats.maxMP / 2), // Units start with half MP
           activeSteps: 0,
@@ -100,20 +100,16 @@ router.post(
   loadGame,
   requireActiveGame,
   loadPlayer,
+  loadPlayerUnit,
+  requireNonRegoupingUnit,
   validate(MoveUnitSchema),
   async (req, res) => {
-    const { unitId } = req.params;
     const { path } = req.body; // Hex[]
 
     try {
-      const unit = await UnitService.getUnitById(new ObjectId(unitId));
-
-      if (!unit || unit.playerId.toString() !== req.player._id.toString())
-          return res.status(404).json({ error: "Unit not found" });
-
       // TODO: Validate path (Pathfinding check logic in core)
 
-      await UnitService.updateUnitState(unit._id, "MOVING", { path });
+      await UnitService.updateUnitState(req.unit._id, "MOVING", { path });
 
       res.json({ message: "Move order issued" });
     } catch (error: any) {
@@ -129,16 +125,11 @@ router.post(
   loadGame,
   requireActiveGame,
   loadPlayer,
+  loadPlayerUnit,
+  requireNonRegoupingUnit,
   async (req, res) => {
-    const { unitId } = req.params;
-
     try {
-      const unit = await UnitService.getUnitById(new ObjectId(unitId));
-
-      if (!unit || unit.playerId.toString() !== req.player._id.toString())
-          return res.status(404).json({ error: "Unit not found" });
-
-      await UnitService.updateUnitState(unit._id, "IDLE", { path: [] });
+      await UnitService.updateUnitState(req.unit._id, "IDLE", { path: [] });
 
       res.json({ message: "Move order cancelled" });
     } catch (error: any) {
@@ -154,24 +145,20 @@ router.post(
   loadGame,
   requireActiveGame,
   loadPlayer,
+  loadPlayerUnit,
+  requireNonRegoupingUnit,
   validate(AttackUnitSchema),
   async (req, res) => {
-    const { unitId } = req.params;
     const { targetHex, combatType } = req.body;
 
     try {
-      const unit = await UnitService.getUnitById(new ObjectId(unitId));
-
-      if (!unit || unit.playerId.toString() !== req.player._id.toString())
-          return res.status(404).json({ error: "Unit not found" });
-
-      if (unit.state.ap === 0)
+      if (req.unit.state.ap === 0)
         return res.status(400).json({ error: "Unit does not have enough AP." });
 
-      await UnitService.updateUnitState(unit._id, "PREPARING", undefined, {
-          targetHex,
-          type: combatType,
-          cooldownEndTick: null
+      await UnitService.updateUnitState(req.unit._id, "PREPARING", undefined, {
+        targetHex,
+        type: combatType,
+        cooldownEndTick: null,
       });
 
       res.json({ message: "Attack declared" });
@@ -188,24 +175,21 @@ router.post(
   loadGame,
   requireActiveGame,
   loadPlayer,
+  loadPlayerUnit,
+  requireNonRegoupingUnit,
   async (req, res) => {
     const { unitId } = req.params;
 
     try {
-      const unit = await UnitService.getUnitById(new ObjectId(unitId));
-
-      if (!unit || unit.playerId.toString() !== req.player._id.toString())
-          return res.status(404).json({ error: "Unit not found" });
-
-      if (unit.combat.targetHex == null)
+      if (req.unit.combat.targetHex == null)
         return res
           .status(400)
           .json({ error: "Unit has not declared an attack." });
 
-      await UnitService.updateUnitState(unit._id, "IDLE", undefined, {
-          targetHex: null,
-          type: null,
-          cooldownEndTick: null
+      await UnitService.updateUnitState(req.unit._id, "IDLE", undefined, {
+        targetHex: null,
+        type: null,
+        cooldownEndTick: null,
       });
 
       res.json({ message: "Attack cancelled" });
@@ -222,33 +206,28 @@ router.post(
   loadGame,
   requireActiveGame,
   loadPlayer,
+  loadPlayerUnit,
   validate(UpgradeUnitSchema),
   async (req, res) => {
-    const { unitId } = req.params;
     const { type, specialistId } = req.body;
 
     try {
-      const unit = await UnitService.getUnitById(new ObjectId(unitId));
-
-      if (!unit || unit.playerId.toString() !== req.player._id.toString())
-          return res.status(404).json({ error: "Unit not found" });
-
       // Logic: Upgrade
       // 1. Cost calculation
       // 2. Check limits (max steps)
       // 3. Apply upgrade
 
       let cost = 0;
-      let newSteps = [...unit.steps];
+      let newSteps = [...req.unit.steps];
 
       // Fetch Catalog for Max Steps
-      const unitTemplate = UNIT_CATALOG_ID_MAP.get(unit.catalogId);
+      const unitTemplate = UNIT_CATALOG_ID_MAP.get(req.unit.catalogId);
 
       if (!unitTemplate)
         return res.status(500).json({ error: "Unit template not found" });
 
       if (type === "STEP") {
-        if (unit.steps.length >= unitTemplate.stats.maxSteps) {
+        if (req.unit.steps.length >= unitTemplate.stats.maxSteps) {
           return res.status(400).json({ error: "Unit already at max steps" });
         }
 
@@ -271,7 +250,7 @@ router.post(
           return res.status(400).json({ error: "Invalid specialist ID" });
 
         // Check Max Steps
-        if (unit.steps.length >= unitTemplate.stats.maxSteps) {
+        if (req.unit.steps.length >= unitTemplate.stats.maxSteps) {
           return res.status(400).json({ error: "Unit already at max steps" });
         }
 
@@ -295,12 +274,12 @@ router.post(
 
       // Apply Upgrade (Transactionally handled in Service)
       await UnitService.upgradeUnit(
-          unit._id,
-          newSteps,
-          activeSteps,
-          suppressedSteps,
-          cost,
-          req.player._id
+        req.unit._id,
+        newSteps,
+        activeSteps,
+        suppressedSteps,
+        cost,
+        req.player._id
       );
 
       res.json({ message: "Unit upgraded", cost });
@@ -317,19 +296,15 @@ router.post(
   loadGame,
   requireActiveGame,
   loadPlayer,
+  loadPlayerUnit,
   async (req, res) => {
     const { unitId } = req.params;
 
     try {
-      const unit = await UnitService.getUnitById(new ObjectId(unitId));
-
-      if (!unit || unit.playerId.toString() !== req.player._id.toString())
-          return res.status(404).json({ error: "Unit not found" });
-
       // If there's more than 1 step then we scrap it, otherwise we delete the entire unit.
-      if (unit.steps.length > 1) {
+      if (req.unit.steps.length > 1) {
         // Reduce step
-        const newSteps = UnitManagerHelper.scrapSteps(unit.steps, 1);
+        const newSteps = UnitManagerHelper.scrapSteps(req.unit.steps, 1);
 
         // Recalculate State counts
         const activeSteps = newSteps.filter((s) => !s.isSuppressed).length;
@@ -337,16 +312,16 @@ router.post(
 
         // Apply
         await UnitService.scrapUnitStep(
-            unit._id,
-            newSteps,
-            activeSteps,
-            suppressedSteps
+          req.unit._id,
+          newSteps,
+          activeSteps,
+          suppressedSteps
         );
 
         res.json({ message: "Step scrapped" });
       } else {
         // Delete unit
-        await UnitService.deleteUnit(unit._id);
+        await UnitService.deleteUnit(req.unit._id);
 
         res.json({ message: "Unit scrapped" });
       }

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { ObjectId } from "mongodb";
 import { MapUtils } from "./map-utils";
-import { Unit, UnitStatuses } from "../models/unit";
+import { Unit, UnitStatus } from "../models/unit";
 import { HexUtils } from "./hex-utils";
 import { UNIT_CATALOG_ID_MAP } from "../data";
 
@@ -48,7 +48,7 @@ function createTestUnit(
     location: { q, r, s },
     steps: [], // Not used in ZOC calc
     state: {
-      status: UnitStatuses.IDLE,
+      status: UnitStatus.IDLE,
       ap: 1,
       mp: 1,
       activeSteps: activeSteps,

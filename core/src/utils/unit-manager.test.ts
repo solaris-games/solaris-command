@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { ObjectId } from "mongodb";
-import { Unit, UnitStatuses } from "../models";
+import { Unit, UnitStatus } from "../models";
 import { UnitManager, UnitManagerHelper } from "./unit-manager";
 import { UNIT_CATALOG_ID_MAP } from "../data";
 
@@ -18,7 +18,7 @@ function createTestUnit(overrides: Partial<Unit> = {}): Unit {
     location: { q: 0, r: 0, s: 0 },
     steps: Array(5).fill({ isSuppressed: false, specialistId: null }), // 5 Active Steps
     state: {
-      status: UnitStatuses.IDLE,
+      status: UnitStatus.IDLE,
       ap: 0,
       mp: 0,
       activeSteps: 5,
@@ -40,7 +40,7 @@ describe("UnitManager", () => {
     it("should refill AP and MP to max values", () => {
       const unit = createTestUnit({
         state: {
-          status: UnitStatuses.IDLE,
+          status: UnitStatus.IDLE,
           ap: 0,
           mp: 0,
           activeSteps: 5,
@@ -57,7 +57,7 @@ describe("UnitManager", () => {
     it("should reset REGROPING status to IDLE", () => {
       const unit = createTestUnit({
         state: {
-          status: UnitStatuses.REGROUPING,
+          status: UnitStatus.REGROUPING,
           ap: 0,
           mp: 0,
           activeSteps: 5,
@@ -67,7 +67,7 @@ describe("UnitManager", () => {
 
       const update = UnitManager.processCycle(unit, TICKS_PER_CYCLE);
 
-      expect(update.state?.status).toBe(UnitStatuses.IDLE);
+      expect(update.state?.status).toBe(UnitStatus.IDLE);
     });
 
     it("should recover suppressed steps (up to Recovery Rate)", () => {

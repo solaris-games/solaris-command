@@ -3,7 +3,7 @@ import { TERRAIN_MP_COSTS, UNIT_CATALOG_ID_MAP } from "../data";
 import {
   Game,
   Unit,
-  UnitStatuses,
+  UnitStatus,
   Hex,
   Planet,
   Station,
@@ -130,7 +130,7 @@ export class GameUnitMovementContext {
     context.units.forEach((unit) => {
       // Unit must be MOVING, have a path, have MP, and NOT be dead from combat above
       if (
-        unit.state.status === UnitStatuses.MOVING &&
+        unit.state.status === UnitStatus.MOVING &&
         unit.movement.path.length > 0 &&
         unit.state.mp > 0 &&
         !context.unitsToRemove.some((id) => String(id) === String(unit._id))
@@ -241,7 +241,7 @@ export const TickProcessor = {
 
     // 1. Identify Units Declaring Attack
     const attackers = contextTick.units.filter(
-      (u) => u.state.status === UnitStatuses.PREPARING
+      (u) => u.state.status === UnitStatus.PREPARING
     );
 
     // 2. Group by Target Hex (To handle Multi-Unit vs Single-Defender scenarios)
@@ -284,7 +284,7 @@ export const TickProcessor = {
           !defender ||
           String(defender.playerId) === String(attacker.playerId)
         ) {
-          attacker.state.status = UnitStatuses.REGROUPING; // Attack fails/cancels
+          attacker.state.status = UnitStatus.REGROUPING; // Attack fails/cancels
           attacker.combat.targetHex = null;
           contextTick.unitUpdates.set(attacker._id.toString(), attacker);
           continue;
@@ -372,7 +372,7 @@ export const TickProcessor = {
           unit.state.mp = 0; // Lose momentum
           unit.movement.path = []; // Clear the path
           unit.steps = UnitManagerHelper.suppressSteps(unit.steps, 1); // Take damage
-          unit.state.status = UnitStatuses.REGROUPING; // Forced stop
+          unit.state.status = UnitStatus.REGROUPING; // Forced stop
 
           // Update DB
           context.unitUpdates.set(unit._id.toString(), unit);
@@ -401,7 +401,7 @@ export const TickProcessor = {
 
         // If unit cannot afford the move, they stall.
         if (unit.state.mp < mpCost) {
-          unit.state.status = UnitStatuses.IDLE;
+          unit.state.status = UnitStatus.IDLE;
           unit.movement.path = [];
           context.unitUpdates.set(unit._id.toString(), unit);
           return; // Exit this specific move intent
@@ -414,7 +414,7 @@ export const TickProcessor = {
 
         // Stop if path done or out of gas
         if (unit.movement.path.length === 0 || unit.state.mp === 0) {
-          unit.state.status = UnitStatuses.IDLE;
+          unit.state.status = UnitStatus.IDLE;
         }
 
         context.unitUpdates.set(unit._id.toString(), unit);

@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 import { CombatOperation, HexCoords, SupplyTarget } from "../types";
 
-export enum UnitStatuses {
+export enum UnitStatus {
   IDLE = "IDLE",
   MOVING = "MOVING",
   PREPARING = "PREPARING", // Locked in combat countdown
@@ -9,7 +9,7 @@ export enum UnitStatuses {
 }
 
 export interface UnitState {
-  status: UnitStatuses;
+  status: UnitStatus;
 
   ap: number; // Action Points (Refills every cycle)
   mp: number; // Movement Points (Refills every cycle)
