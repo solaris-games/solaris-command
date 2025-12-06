@@ -59,7 +59,7 @@ function createUnit(
       suppressedSteps: 0,
     },
     movement: { path: [] },
-    combat: { targetHex: null, cooldownEndTick: null },
+    combat: { hexId: null, cooldownEndTick: null },
     supply: { isInSupply: true, ticksLastSupply: 0, ticksOutOfSupply: 0 },
   } as any;
 }

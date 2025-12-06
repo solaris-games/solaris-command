@@ -29,21 +29,21 @@ export const HexSchema = z.object({
 });
 
 export const DeployUnitSchema = z.object({
-  unitId: z.string(), // ID from the Unit Catalog
-  location: HexSchema,
+  catalogId: z.string(),
+  hexId: z.string(),
 });
 
 export const MoveUnitSchema = z.object({
-  path: z.array(HexSchema).min(1),
+  path: z.array(HexSchema).min(1), // TODO: This should be an array of hex IDs?
 });
 
 export const AttackUnitSchema = z.object({
-  targetHex: HexSchema,
+  hexId: z.string(),
   combatType: z.enum(["STANDARD", "FEINT", "SUPPRESSIVE"]), // Match core types
 });
 
 export const BuildStationSchema = z.object({
-  location: HexSchema,
+  hexId: z.string(),
 });
 
 export const UpgradeUnitSchema = z.object({

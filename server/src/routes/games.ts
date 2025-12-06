@@ -18,7 +18,7 @@ const router = express.Router();
 // List open games and my games
 router.get("/", authenticateToken, async (req, res) => {
   try {
-    const { games, myGameIds } = await GameService.listGames(
+    const { games, myGameIds } = await GameService.listGamesByUser(
       new ObjectId(req.user.id)
     );
 
@@ -50,10 +50,7 @@ router.post(
     try {
       const db = getDb();
       // Check if already joined
-      const existingPlayer = await db.collection("players").findOne({
-        gameId: req.game._id,
-        userId: new ObjectId(req.user.id),
-      });
+      const existingPlayer = await PlayerService.getByGameAndUserId(req.game._id, new ObjectId(req.user.id))
 
       if (existingPlayer) {
         return res.status(400).json({ error: "Already joined this game" });
@@ -96,22 +93,22 @@ router.post(
       session.startTransaction();
 
       try {
-          const result = await PlayerService.leaveGame(
-              req.game._id,
-              new ObjectId(req.user.id),
-              session
-          );
+        const result = await PlayerService.leaveGame(
+          req.game._id,
+          new ObjectId(req.user.id),
+          session
+        );
 
-          if (result.deletedCount === 0) {
-              await session.abortTransaction();
-              return res.status(400).json({ error: "Not a player in this game" });
-          }
+        if (result.deletedCount === 0) {
+          await session.abortTransaction();
+          return res.status(400).json({ error: "Not a player in this game" });
+        }
       } catch (err: any) {
-          if (err.message === "Player not found in this game") {
-               await session.abortTransaction();
-               return res.status(400).json({ error: "Not a player in this game" });
-          }
-          throw err;
+        if (err.message === "Player not found in this game") {
+          await session.abortTransaction();
+          return res.status(400).json({ error: "Not a player in this game" });
+        }
+        throw err;
       }
 
       await session.commitTransaction();
@@ -135,8 +132,8 @@ router.post(
   async (req, res) => {
     try {
       const result = await PlayerService.concedeGame(
-          req.game._id,
-          new ObjectId(req.user.id)
+        req.game._id,
+        new ObjectId(req.user.id)
       );
 
       if (result.matchedCount === 0) {
@@ -153,23 +150,29 @@ router.post(
 
 // GET /api/v1/games/:id
 // Get full game state (with FoW filtering)
-router.get("/:id", authenticateToken, loadGame, async (req, res) => {
-  try {
-    const { response, currentPlayer } = await GameService.getGameState(
+router.get(
+  "/:id",
+  authenticateToken,
+  loadGame,
+  async (req, res) => {
+    try {
+      const { response, currentPlayer } = await GameService.getGameState(
         req.game,
         req.user.id
-    );
+      );
 
-    if (currentPlayer) {
-      req.player = currentPlayer; // Feed this into middleware
+      if (currentPlayer) {
+        req.player = currentPlayer; // Feed this into middleware
+      }
+
+      res.json(response);
+    } catch (error) {
+      console.error("Error fetching game:", error);
+      res.status(500).json({ error: "Internal Server Error" });
     }
-
-    res.json(response);
-  } catch (error) {
-    console.error("Error fetching game:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-}, touchPlayer);
+  },
+  touchPlayer
+);
 
 // GET /api/v1/games/:id/events
 // Get game events (as a player)

@@ -4,7 +4,7 @@ import { authenticateToken } from "../middleware/auth";
 import { getDb } from "../db/instance";
 import { Station, StationStatus } from "@solaris-command/core";
 import { validate, BuildStationSchema } from "../middleware/validation";
-import { loadGame, loadPlayer, requireActiveGame } from "../middleware";
+import { loadGame, loadHexes, loadPlayer, requireActiveGame } from "../middleware";
 import { StationService } from "../services/StationService";
 import { loadPlayerStation } from "../middleware/station";
 
@@ -17,9 +17,10 @@ router.post(
   loadGame,
   requireActiveGame,
   loadPlayer,
+  loadHexes,
   validate(BuildStationSchema),
   async (req, res) => {
-    const { location } = req.body; // { q, r, s }
+    const { hexId } = req.body;
 
     try {
       // TODO: Validate that the new station will be in supply, the player
@@ -32,11 +33,17 @@ router.post(
       // 2. Check resources
       // 3. Create Station in CONSTRUCTING state
 
+      const hex = req.hexes.find(h => String(h._id) === hexId);
+
+      if (!hex) {
+        return res.status(400).json({ error: 'Hex ID is invalid.'});
+      }
+
       const newStation: Station = {
         _id: new ObjectId(),
         gameId: req.game._id,
         playerId: req.player._id,
-        location: location,
+        location: hex.coords,
         status: StationStatus.CONSTRUCTING,
         supply: {
           isInSupply: true,
@@ -64,7 +71,6 @@ router.delete(
   loadPlayer,
   loadPlayerStation,
   async (req, res) => {
-
     try {
       // Logic: Decommission
       // Sets state to DECOMMISSIONING, doesn't delete immediately?

@@ -17,6 +17,13 @@ export class PlayerService {
     const db = getDb();
     return db.collection<Player>("players").find({ gameId }).toArray();
   }
+  static async getByGameAndUserId(gameId: ObjectId, userId: ObjectId) {
+    const db = getDb();
+    return db.collection("players").findOne({
+      gameId: gameId,
+      userId: userId,
+    });
+  }
 
   static async findActivePlayersForUser(userId: ObjectId) {
     const db = getDb();
@@ -94,19 +101,17 @@ export class PlayerService {
     const db = getDb();
 
     // Find the player first
-    const player = await db.collection<Player>("players").findOne(
-        { gameId, userId },
-        { session }
-    );
+    const player = await db
+      .collection<Player>("players")
+      .findOne({ gameId, userId }, { session });
 
     if (!player) {
-        throw new Error("Player not found in this game");
+      throw new Error("Player not found in this game");
     }
 
-    const result = await db.collection("players").deleteOne(
-      { _id: player._id },
-      { session }
-    );
+    const result = await db
+      .collection("players")
+      .deleteOne({ _id: player._id }, { session });
 
     if (result.deletedCount > 0) {
       await this.removePlayerAssets(player._id, session);
@@ -136,15 +141,13 @@ export class PlayerService {
   }
 
   static async setStatus(
-      playerId: ObjectId,
-      status: PlayerStatus,
-      session?: ClientSession
+    playerId: ObjectId,
+    status: PlayerStatus,
+    session?: ClientSession
   ) {
-      const db = getDb();
-      return db.collection("players").updateOne(
-          { _id: playerId },
-          { $set: { status } },
-          { session }
-      );
+    const db = getDb();
+    return db
+      .collection("players")
+      .updateOne({ _id: playerId }, { $set: { status } }, { session });
   }
 }

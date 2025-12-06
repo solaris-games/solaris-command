@@ -28,7 +28,7 @@ export interface UnitMovement {
 }
 
 export interface UnitCombat {
-  targetHex: HexCoords | null; // If Preparing, where are we attacking?
+  hexId: ObjectId | null; // If Preparing, where are we attacking?
   cooldownEndTick: number | null; // Which tick does Regrouping end?
   operation: CombatOperation | null;
 }
@@ -39,7 +39,7 @@ export interface Unit {
   playerId: ObjectId;
   catalogId: string;
 
-  location: HexCoords; // Current position
+  location: HexCoords; // TODO: This should be a hex ID or we add hexId to this model?
   steps: UnitStep[];
   state: UnitState;
   movement: UnitMovement;

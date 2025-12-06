@@ -17,7 +17,7 @@ import { HexService } from "./HexService";
 import { PlayerService } from "./PlayerService";
 
 export class GameService {
-  static async listGames(userId: ObjectId) {
+  static async listGamesByUser(userId: ObjectId) {
     const db = getDb();
 
     // 1. Find games where user is a player

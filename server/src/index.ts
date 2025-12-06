@@ -54,3 +54,24 @@ async function startServer() {
 }
 
 startServer();
+
+
+/**
+ * Backend TODO:
+ * - Update the GDD
+ * - DB schema for user
+ * - DB schema for game events
+ * - DB schema for migration logs
+ * - Extended DB validation (e.g min 0 player prestige)
+ * - Double check all DB schemas against models
+ * - Extended API validation (See TODOs in routes)
+ * - API response mapping layer
+ * - Join game spawn locations + starting fleets
+ * - Begin games when full
+ * - Remove the station constructing/active/decomissioning logic for MVP?
+ * - Map generation
+ * - Google auth setup
+ * - DB test user accounts
+ * - API testing
+ * - Game tick testing
+ */

@@ -247,9 +247,12 @@ export const TickProcessor = {
     // 2. Group by Target Hex (To handle Multi-Unit vs Single-Defender scenarios)
     const attacksByHex = new Map<string, Unit[]>();
     attackers.forEach((att) => {
-      if (!att.combat.targetHex) return;
-      const key = HexUtils.getID(att.combat.targetHex);
+      if (!att.combat.hexId) return;
+
+      const key = String(att.combat.hexId);
+
       if (!attacksByHex.has(key)) attacksByHex.set(key, []);
+
       attacksByHex.get(key)!.push(att);
     });
 
@@ -285,7 +288,7 @@ export const TickProcessor = {
           String(defender.playerId) === String(attacker.playerId)
         ) {
           attacker.state.status = UnitStatus.REGROUPING; // Attack fails/cancels
-          attacker.combat.targetHex = null;
+          attacker.combat.hexId = null;
           contextTick.unitUpdates.set(attacker._id.toString(), attacker);
           continue;
         }
@@ -437,7 +440,9 @@ export const TickProcessor = {
     // Economic victory (VP) is checked in the Cycle Processor.
 
     // Filter active players (Not defeated)
-    const activePlayers = context.players.filter((p) => p.status !== PlayerStatus.DEFEATED);
+    const activePlayers = context.players.filter(
+      (p) => p.status !== PlayerStatus.DEFEATED
+    );
 
     // Last Man Standing Check
     // Only applies if the game started with > 1 player

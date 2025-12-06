@@ -16,6 +16,7 @@ router.get("/me", authenticateToken, async (req, res) => {
     }
 
     // TODO: Need a mapping layer
+
     res.json(user);
   } catch (error) {
     console.error("Error fetching user:", error);
@@ -31,7 +32,10 @@ router.delete("/me", authenticateToken, async (req, res) => {
   try {
     session.startTransaction();
 
-    const result = await UserService.deleteUser(new ObjectId(req.user.id), session);
+    const result = await UserService.deleteUser(
+      new ObjectId(req.user.id),
+      session
+    );
 
     if (result.deletedCount === 0) {
       await session.abortTransaction(); // Should abort if we didn't find the user? Or just return 404?

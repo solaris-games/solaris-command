@@ -48,7 +48,7 @@ function createTestUnit(
     },
     supply: { isInSupply: true, ticksLastSupply: 0, ticksOutOfSupply: 0 },
     movement: { path: [] },
-    combat: { targetHex: null, cooldownEndTick: null, operation: null },
+    combat: { hexId: null, cooldownEndTick: null, operation: null },
   } as Unit;
 }
 

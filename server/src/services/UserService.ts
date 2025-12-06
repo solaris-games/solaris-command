@@ -10,6 +10,25 @@ export class UserService {
     return db.collection<User>("users").findOne({ _id: userId });
   }
 
+  static async getUserByEmail(email: string) {
+    const db = getDb();
+    return db.collection<User>("users").findOne({ email });
+  }
+
+  static async touchUser(userId: ObjectId) {
+    const db = getDb();
+
+    // Update last seen
+    return db.collection("users").updateOne(
+      { _id: userId },
+      {
+        $set: {
+          lastSeenDate: new Date(),
+        },
+      }
+    );
+  }
+
   static async deleteUser(userId: ObjectId, session?: ClientSession) {
     const db = getDb();
 
@@ -33,37 +52,40 @@ export class UserService {
       // updateMany({ _id: { $in: activePlayers.map((p) => p._id) } }, { $set: { status: PlayerStatus.DEFEATED } }, { session });
 
       const playerIds = activePlayers.map((p) => p._id);
-      await db.collection("players").updateMany(
+      await db
+        .collection("players")
+        .updateMany(
           { _id: { $in: playerIds } },
           { $set: { status: PlayerStatus.DEFEATED } },
           { session }
-      );
+        );
     }
 
     // 3. Handle Pending Games -> Delete Player & Assets
-    const pendingPlayers = await PlayerService.findPendingPlayersForUser(userId);
+    const pendingPlayers = await PlayerService.findPendingPlayersForUser(
+      userId
+    );
     if (pendingPlayers.length) {
-       const playerIds = pendingPlayers.map((p) => p._id);
+      const playerIds = pendingPlayers.map((p) => p._id);
 
-       // Bulk delete players
-       await db.collection("players").deleteMany(
-           { _id: { $in: playerIds } },
-           { session }
-       );
+      // Bulk delete players
+      await db
+        .collection("players")
+        .deleteMany({ _id: { $in: playerIds } }, { session });
 
-       // Bulk remove assets
-       // Since UnitService etc take playerId, we might need a "bulkDeleteByPlayerIds" or loop.
-       // The original code did: deleteMany({ playerId: { $in: pendingPlayers.map... } })
+      // Bulk remove assets
+      // Since UnitService etc take playerId, we might need a "bulkDeleteByPlayerIds" or loop.
+      // The original code did: deleteMany({ playerId: { $in: pendingPlayers.map... } })
 
-       // I'll call a loop here for simplicity and reuse of PlayerService logic,
-       // OR I can add bulk methods to leaf services if performance is key.
-       // Original code was efficient bulk ops. Let's try to maintain that if possible,
-       // but PlayerService.removePlayerAssets takes one ID.
+      // I'll call a loop here for simplicity and reuse of PlayerService logic,
+      // OR I can add bulk methods to leaf services if performance is key.
+      // Original code was efficient bulk ops. Let's try to maintain that if possible,
+      // but PlayerService.removePlayerAssets takes one ID.
 
-       // Let's iterate for now. It's cleaner.
-       for (const player of pendingPlayers) {
-           await PlayerService.removePlayerAssets(player._id, session);
-       }
+      // Let's iterate for now. It's cleaner.
+      for (const player of pendingPlayers) {
+        await PlayerService.removePlayerAssets(player._id, session);
+      }
     }
 
     return result;

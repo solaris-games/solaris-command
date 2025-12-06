@@ -16,7 +16,14 @@ import {
   AttackUnitSchema,
   UpgradeUnitSchema,
 } from "../middleware/validation";
-import { loadGame, loadPlayer, loadPlayerUnit, requireActiveGame, requireNonRegoupingUnit } from "../middleware";
+import {
+  loadGame,
+  loadHexes,
+  loadPlayer,
+  loadPlayerUnit,
+  requireActiveGame,
+  requireNonRegoupingUnit,
+} from "../middleware";
 import { UnitService } from "../services/UnitService";
 
 const router = express.Router({ mergeParams: true });
@@ -28,22 +35,33 @@ router.post(
   loadGame,
   requireActiveGame,
   loadPlayer,
+  loadHexes,
   validate(DeployUnitSchema),
   async (req, res) => {
-    const { unitId, location } = req.body;
+    const { catalogId, hexId } = req.body;
 
     try {
-      const unitTemplate = UNIT_CATALOG_ID_MAP.get(unitId);
+      const unitTemplate = UNIT_CATALOG_ID_MAP.get(catalogId);
 
       if (!unitTemplate)
         return res.status(400).json({ error: "Invalid Unit ID" });
 
-      // TODO: Validate that the spawn location doesn't already contain a unit.
+      // TODO: Validate player has enough prestige to purchase the unit.
 
       // Logic to spawn unit
       // 1. Check resources (Prestige) -> unitTemplate.cost
       // 2. Determine spawn location (near Capital)
       // 3. Create Unit
+
+      const hex = req.hexes.find(h => String(h._id) === hexId);
+
+      if (!hex) {
+        return res.status(400).json({ error: 'Hex ID is invalid.'});
+      }
+
+      if (hex.unitId) {
+        return res.status(400).json({ error: 'Hex already contains a unit.'});
+      }
 
       // Generate initial steps using helper
       // "New units spawn ... They spawn with All Steps Suppressed." - GDD
@@ -56,8 +74,8 @@ router.post(
         _id: new ObjectId(),
         gameId: req.game._id,
         playerId: req.player._id,
-        catalogId: unitId,
-        location: location,
+        catalogId: catalogId,
+        location: hex.coords,
         steps: initialSteps,
         state: {
           status: UnitStatus.IDLE,
@@ -70,7 +88,7 @@ router.post(
           path: [],
         },
         combat: {
-          targetHex: null,
+          hexId: null,
           cooldownEndTick: null,
           operation: null,
         },
@@ -82,6 +100,8 @@ router.post(
       };
 
       const createdUnit = await UnitService.createUnit(newUnit);
+
+      // TODO: Deduct player prestige.
 
       res.json({
         message: "Unit deployed",
@@ -147,16 +167,23 @@ router.post(
   loadPlayer,
   loadPlayerUnit,
   requireNonRegoupingUnit,
+  loadHexes,
   validate(AttackUnitSchema),
   async (req, res) => {
-    const { targetHex, combatType } = req.body;
+    const { hexId, combatType } = req.body;
 
     try {
       if (req.unit.state.ap === 0)
         return res.status(400).json({ error: "Unit does not have enough AP." });
 
+      const hex = req.hexes.find(h => String(h._id) === hexId);
+
+      if (!hex) {
+        return res.status(400).json({ error: 'Hex ID is invalid.'});
+      }
+
       await UnitService.updateUnitState(req.unit._id, "PREPARING", undefined, {
-        targetHex,
+        hexId,
         type: combatType,
         cooldownEndTick: null,
       });
@@ -178,16 +205,14 @@ router.post(
   loadPlayerUnit,
   requireNonRegoupingUnit,
   async (req, res) => {
-    const { unitId } = req.params;
-
     try {
-      if (req.unit.combat.targetHex == null)
+      if (req.unit.combat.hexId == null)
         return res
           .status(400)
           .json({ error: "Unit has not declared an attack." });
 
       await UnitService.updateUnitState(req.unit._id, "IDLE", undefined, {
-        targetHex: null,
+        hexId: null,
         type: null,
         cooldownEndTick: null,
       });
@@ -282,6 +307,8 @@ router.post(
         req.player._id
       );
 
+      // TODO: Deduct player prestige.
+
       res.json({ message: "Unit upgraded", cost });
     } catch (error: any) {
       res.status(400).json({ error: error.message });
@@ -298,8 +325,6 @@ router.post(
   loadPlayer,
   loadPlayerUnit,
   async (req, res) => {
-    const { unitId } = req.params;
-
     try {
       // If there's more than 1 step then we scrap it, otherwise we delete the entire unit.
       if (req.unit.steps.length > 1) {

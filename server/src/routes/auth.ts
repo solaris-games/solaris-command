@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { getDb } from "../db/instance";
 import { User } from "@solaris-command/core";
 import { ObjectId } from "mongodb";
+import { UserService } from "../services/UserService";
 
 const router = express.Router();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -37,7 +38,7 @@ router.post("/google", async (req, res) => {
     // We might need to adjust the schema or just use a basic one for now.
     // The core definition has _id, username, email, lastSeenDate, achievements
 
-    let user = await db.collection<User>("users").findOne({ email });
+    let user = await UserService.getUserByEmail(email);
 
     if (!user) {
       // Create new user
@@ -51,27 +52,20 @@ router.post("/google", async (req, res) => {
           victories: 0,
           rank: 0,
           renown: 0,
-        }
+        },
       };
 
       const result = await db.collection("users").insertOne(newUser);
       // user = { ...newUser, _id: result.insertedId } as User; // Casting
       // Re-fetch to be safe
-      user = await db.collection<User>("users").findOne({ _id: result.insertedId });
+      user = await UserService.getUserById(result.insertedId);
     } else {
       // Update last seen
-      await db.collection("users").updateOne(
-        { _id: user._id },
-        {
-          $set: {
-            lastSeenDate: new Date()
-          },
-        }
-      );
+      await UserService.touchUser(user._id);
     }
 
     if (!user) {
-        throw new Error("Failed to find or create user");
+      throw new Error("Failed to find or create user");
     }
 
     // 3. Issue Session JWT

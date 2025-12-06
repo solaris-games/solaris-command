@@ -48,7 +48,7 @@ export class UnitService {
       }
 
       if (combat) {
-          if (combat.targetHex !== undefined) update.$set["combat.targetHex"] = combat.targetHex;
+          if (combat.hexId !== undefined) update.$set["combat.hexId"] = combat.hexId;
           if (combat.type !== undefined) update.$set["combat.type"] = combat.type;
           if (combat.cooldownEndTick !== undefined) update.$set["combat.cooldownEndTick"] = combat.cooldownEndTick;
       }

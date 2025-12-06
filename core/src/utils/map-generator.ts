@@ -17,7 +17,6 @@ export const MapGenerator = {
     hexes: Hex[];
     planets: Planet[];
   } {
-    const mapId = new ObjectId();
     const hexes: Hex[] = [];
     const planets: Planet[] = [];
 

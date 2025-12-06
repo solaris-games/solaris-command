@@ -17,6 +17,6 @@ export interface Station {
   // and when the station is due to be decommissioned.
 
   status: StationStatus;
-  location: HexCoords;
+  location: HexCoords; // TODO: This should be a hex ID or we add hexId to this model?
   supply: SupplySource;
 }

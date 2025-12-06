@@ -223,9 +223,9 @@ export async function up(db: Db, client: MongoClient) {
             },
             combat: {
               bsonType: "object",
-              required: ["targetHex", "cooldownEndTick", "operation"],
+              required: ["hexId", "cooldownEndTick", "operation"],
               properties: {
-                targetHex: { bsonType: ["objectId", "null"] },
+                hexId: { bsonType: ["objectId", "null"] },
                 cooldownEndTick: { bsonType: ["int", "null"] },
                 operation: {
                   bsonType: "string",

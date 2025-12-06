@@ -30,7 +30,7 @@ function createTestUnit(overrides: Partial<Unit> = {}): Unit {
       ticksOutOfSupply: 0,
     },
     movement: { path: [] },
-    combat: { targetHex: null, cooldownEndTick: null },
+    combat: { hexId: null, cooldownEndTick: null },
     ...overrides,
   } as Unit;
 }

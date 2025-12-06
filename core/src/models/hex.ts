@@ -40,5 +40,6 @@ export interface Hex {
   coords: HexCoords; // { q, r, s }
   terrain: TerrainTypes;
   supply: SupplyTarget;
+  // TODO: Do we need this? Can we infer it from the terrain types?
   isImpassable: boolean; // Blocks movement completely
 }
