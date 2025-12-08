@@ -100,9 +100,12 @@ router.post(
 
         // 4b. Assign Nearest Unoccupied Planet
         const secondPlanet = MapUtils.findNearestUnownedPlanet(planets, capital.location, capital._id);
-        if (secondPlanet) {
-            await PlanetService.assignPlanetToPlayer(db, secondPlanet._id, newPlayer._id, session);
+
+        if (!secondPlanet) {
+             throw new Error("NO_SECOND_PLANET_AVAILABLE");
         }
+
+        await PlanetService.assignPlanetToPlayer(db, secondPlanet._id, newPlayer._id, session);
 
         // 5. Assign Starting Fleet
         const hexes = await HexService.getByGameId(db, gameId);
@@ -183,6 +186,10 @@ router.post(
       if (error.message === "NO_CAPITAL_AVAILABLE") {
            // This is technically a 500 because it shouldn't happen if game logic is correct, but returning 400 is safer for client
            return res.status(400).json({ error: "No starting locations available" });
+      }
+
+      if (error.message === "NO_SECOND_PLANET_AVAILABLE") {
+           return res.status(500).json({ error: "Map generation error: No secondary planet available" });
       }
 
       console.error("Error joining game:", error);
