@@ -68,7 +68,6 @@ startServer();
  * - API response mapping layer
  * - Join game spawn locations + starting fleets
  * - Begin games when full
- * - Remove the station constructing/active/decomissioning logic for MVP?
  * - Map generation
  * - Google auth setup
  * - DB test user accounts

@@ -356,10 +356,6 @@ export async function up(db: Db, client: MongoClient) {
           properties: {
             gameId: { bsonType: "objectId" },
             playerId: { bsonType: "objectId" },
-            status: {
-              bsonType: "string",
-              enum: ["CONSTRUCTING", "ACTIVE", "DECOMMISSIONING"],
-            },
             location: {
               bsonType: "object",
               required: ["q", "r", "s"],

@@ -5,7 +5,6 @@ import { Pathfinding } from "./pathfinding";
 import {
   Planet,
   Station,
-  StationStatus,
   Unit,
   UnitStatus,
   Hex,
@@ -70,15 +69,13 @@ function createStation(
   playerId: ObjectId,
   q: number,
   r: number,
-  s: number,
-  status: StationStatus
+  s: number
 ): Station {
   return {
     _id: new ObjectId(),
     gameId: new ObjectId(),
     playerId,
     location: { q, r, s },
-    status,
     supply: {
       isInSupply: false, // Dynamic
       isRoot: false,
@@ -166,7 +163,7 @@ describe("SupplyEngine", () => {
       // Station is at 1,0,-1, so it should Activate and supply 2,0,-2.
 
       const capital = createPlanet(playerId, 0, 0, 0, true);
-      const station = createStation(playerId, 1, 0, -1, StationStatus.ACTIVE);
+      const station = createStation(playerId, 1, 0, -1);
 
       // Mock behavior:
       // 1. Capital reaches station
@@ -193,7 +190,7 @@ describe("SupplyEngine", () => {
       // Capital only reaches 0,0,0. Station is unreachable.
 
       const capital = createPlanet(playerId, 0, 0, 0, true);
-      const station = createStation(playerId, 5, 0, -5, StationStatus.ACTIVE);
+      const station = createStation(playerId, 5, 0, -5);
 
       vi.mocked(Pathfinding.getReachableHexes).mockReturnValueOnce(
         new Set(["0,0,0"])
@@ -210,34 +207,6 @@ describe("SupplyEngine", () => {
       expect(result.has("0,0,0")).toBe(true);
       expect(result.has("5,0,-5")).toBe(false);
       expect(Pathfinding.getReachableHexes).toHaveBeenCalledTimes(1); // Station never triggered
-    });
-
-    it("should NOT activate a Station if it is CONSTRUCTING", () => {
-      const capital = createPlanet(playerId, 0, 0, 0, true);
-      // Station is right next door, but building
-      const station = createStation(
-        playerId,
-        0,
-        0,
-        0,
-        StationStatus.CONSTRUCTING
-      );
-
-      vi.mocked(Pathfinding.getReachableHexes).mockReturnValue(
-        new Set(["0,0,0"])
-      );
-
-      const result = SupplyEngine.calculatePlayerSupplyNetwork(
-        playerId,
-        hexes,
-        [capital],
-        [station],
-        []
-      );
-
-      expect(result.has("0,0,0")).toBe(true);
-      // Should only call for Capital, station ignored
-      expect(Pathfinding.getReachableHexes).toHaveBeenCalledTimes(1);
     });
   });
 

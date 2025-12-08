@@ -1,5 +1,5 @@
 import { ClientSession, ObjectId } from "mongodb";
-import { Station, StationStatus } from "@solaris-command/core";
+import { Station } from "@solaris-command/core";
 import { getDb } from "../db/instance";
 
 export class StationService {
@@ -27,15 +27,8 @@ export class StationService {
       return { ...station, _id: result.insertedId };
   }
 
-  static async decommissionStation(stationId: ObjectId) {
+  static async deleteStation(station: Station) {
       const db = getDb();
-      // Correct field is 'status' not 'state' based on Station interface.
-      // The original route had a bug using 'state'. I will fix it here to 'status'.
-      return db.collection<Station>("stations").updateOne(
-          { _id: stationId },
-          {
-              $set: { status: StationStatus.DECOMMISSIONING },
-          }
-      );
+      await db.collection<Station>("stations").deleteOne({ _id: station._id });
   }
 }

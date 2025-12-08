@@ -1,8 +1,7 @@
 import express from "express";
 import { ObjectId } from "mongodb";
 import { authenticateToken } from "../middleware/auth";
-import { getDb } from "../db/instance";
-import { Station, StationStatus } from "@solaris-command/core";
+import { Station } from "@solaris-command/core";
 import { validate, BuildStationSchema } from "../middleware/validation";
 import { loadGame, loadHexes, loadPlayer, requireActiveGame } from "../middleware";
 import { StationService } from "../services/StationService";
@@ -31,7 +30,6 @@ router.post(
       // Logic: Build Station
       // 1. Check pool limit (capped by planets)
       // 2. Check resources
-      // 3. Create Station in CONSTRUCTING state
 
       const hex = req.hexes.find(h => String(h._id) === hexId);
 
@@ -44,7 +42,6 @@ router.post(
         gameId: req.game._id,
         playerId: req.player._id,
         location: hex.coords,
-        status: StationStatus.CONSTRUCTING,
         supply: {
           isInSupply: true,
           isRoot: false,
@@ -76,7 +73,7 @@ router.delete(
       // Sets state to DECOMMISSIONING, doesn't delete immediately?
       // "When a player removes a station, it enters this state for 1 Cycle."
 
-      await StationService.decommissionStation(req.station._id);
+      await StationService.deleteStation(req.station._id);
 
       res.json({ message: "Station decommissioning started" });
     } catch (error: any) {

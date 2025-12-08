@@ -35,12 +35,7 @@ Fixed assets that define territory and logistics.
     * Capturing an enemy *Capital Planet* is devastating, it could very well knock the opposing player out of the game.
 * **Stations:** Deployable logistics hubs. They extend supply range from Planets to deep space.
     * *Pool Limit:* The number of deployable stations is capped by the number of Planets controlled.
-    * *Lifecycle & States:*
-        1.  **CONSTRUCTING:** When deployed, a station enters this state for **1 Cycle**. It **does not** provide supply yet.
-        2.  **ACTIVE:** After construction completes, the station provides supply range.
-        3.  **DECOMMISSIONING:** When a player removes a station, it enters this state for **1 Cycle**. It ceases providing supply immediately but occupies the slot.
-    * *Pool Return:* Once `DECOMMISSIONING` is complete, the station returns to the player's available pool.
-    * *Destruction:* If destroyed by an enemy, the station takes **3 Cycles** to regenerate in the pool.
+    * When deployed, a station enters provides supply at the beginning of the following cycle.
 
 ### C. Terrain
 The hex grid imposes strategic constraints via terrain types.

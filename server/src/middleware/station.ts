@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { ObjectId } from "mongodb";
-import { Station, StationStatus, UnitStatus } from "@solaris-command/core";
+import { Station } from "@solaris-command/core";
 import { StationService } from "../services/StationService";
 
 // Extend Express to include game
@@ -35,16 +35,4 @@ export const loadPlayerStation = async (
     console.error("Middleware Error:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
-};
-
-export const requireActiveStation = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  if (req.station.status !== StationStatus.ACTIVE) {
-    return res.status(400).json({ error: "Station is not active." });
-  }
-
-  next();
 };
