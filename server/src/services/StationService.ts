@@ -20,8 +20,14 @@ export class StationService {
     return db.collection<Station>("stations").findOne({ _id: stationId });
   }
 
-  static async createStation(db: Db, station: Station) {
-    const result = await db.collection<Station>("stations").insertOne(station);
+  static async createStation(
+    db: Db,
+    station: Station,
+    session?: ClientSession
+  ) {
+    const result = await db
+      .collection<Station>("stations")
+      .insertOne(station, { session });
     return { ...station, _id: result.insertedId };
   }
 

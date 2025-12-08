@@ -1,7 +1,7 @@
 import express from "express";
 import { ObjectId } from "mongodb";
 import { authenticateToken } from "../middleware/auth";
-import { Station } from "@solaris-command/core";
+import { CONSTANTS, Station } from "@solaris-command/core";
 import { validate, BuildStationSchema } from "../middleware/validation";
 import {
   loadGame,
@@ -11,7 +11,8 @@ import {
 } from "../middleware";
 import { StationService } from "../services/StationService";
 import { loadPlayerStation } from "../middleware/station";
-import { getDb } from "../db";
+import { executeInTransaction, getDb } from "../db";
+import { PlayerService } from "../services/PlayerService";
 
 const router = express.Router({ mergeParams: true });
 
@@ -33,16 +34,16 @@ router.post(
       // TODO: Validate that the new station will be in supply, the player
       // cannot construct a station where the hex is out of supply.
 
-      // TODO: Validate that the player can purchase a station (costs prestige)
-
-      // Logic: Build Station
-      // 1. Check pool limit (capped by planets)
-      // 2. Check resources
-
       const hex = req.hexes.find((h) => String(h._id) === hexId);
 
       if (!hex) {
         return res.status(400).json({ error: "Hex ID is invalid." });
+      }
+
+      if (req.player.prestigePoints < CONSTANTS.STATION_PRESTIGE_COST) {
+        return res
+          .status(400)
+          .json({ error: "Player cannot afford to purchase this station." });
       }
 
       const newStation: Station = {
@@ -56,7 +57,22 @@ router.post(
         },
       };
 
-      const createdStation = await StationService.createStation(db, newStation);
+      const createdStation = await executeInTransaction(async (db, session) => {
+        const station = await StationService.createStation(
+          db,
+          newStation,
+          session
+        );
+
+        await PlayerService.deductPrestigePoints(
+          db,
+          req.player._id,
+          CONSTANTS.STATION_PRESTIGE_COST,
+          session
+        );
+
+        return station;
+      });
 
       res.json({
         message: "Station construction started",

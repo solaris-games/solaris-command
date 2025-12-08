@@ -90,7 +90,7 @@ router.post(
       if (req.player.prestigePoints < unitCtlg.cost) {
         return res
           .status(400)
-          .json({ error: "Planet cannot afford to purchase this step." });
+          .json({ error: "Player cannot afford to purchase this step." });
       }
 
       // Generate initial steps using helper
@@ -311,7 +311,7 @@ router.post(
         if (req.player.prestigePoints < cost) {
           return res
             .status(400)
-            .json({ error: "You cannot afford to purchase this step" });
+            .json({ error: "Player cannot afford to purchase this step" });
         }
 
         newSteps = UnitManagerHelper.addSteps(newSteps, 1);
@@ -333,7 +333,7 @@ router.post(
 
         if (req.player.prestigePoints < cost) {
           return res.status(400).json({
-            error: "You cannot afford to purchase this specialist step",
+            error: "Player cannot afford to purchase this specialist step",
           });
         }
 
