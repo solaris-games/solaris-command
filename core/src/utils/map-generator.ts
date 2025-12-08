@@ -3,6 +3,7 @@ import { HexUtils } from "./hex-utils";
 import { Hex, TerrainTypes, Planet } from "../models";
 import { HexCoords } from "../types";
 import { MapUtils } from "./map-utils";
+import { PLANET_NAMES } from "../data";
 
 interface MapGenOptions {
   radius: number; // Size of the galaxy (e.g., 15 hexes)
@@ -46,10 +47,11 @@ export const MapGenerator = {
     // A. Place Player Capitals (Balanced spacing)
     const capitalLocs = placeCapitals(options.playerCount, options.radius);
 
-    capitalLocs.forEach((loc, index) => {
-      planets.push(
-        createPlanet(gameId, loc, `Capital Alpha-${index + 1}`, true)
-      );
+    capitalLocs.forEach((loc) => {
+      const planetName =
+        PLANET_NAMES[Math.floor(Math.random() * PLANET_NAMES.length)];
+
+      planets.push(createPlanet(gameId, loc, planetName, true));
 
       // Clear terrain at capital
       const hex = hexes.find((h) => HexUtils.equals(h.coords, loc));

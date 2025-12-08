@@ -1,6 +1,6 @@
 import cron from "node-cron";
 import { MongoClient, ObjectId } from "mongodb";
-import { CONSTANTS, GameStates, Game } from "@solaris-command/core";
+import { CONSTANTS, GameStates, Game, GAME_NAMES } from "@solaris-command/core";
 import { GameService } from "../services/GameService";
 
 export const CreateGameJob = {
@@ -37,9 +37,11 @@ async function checkAndCreateGame(client: MongoClient) {
 
   const now = new Date();
 
+  const gameName = GAME_NAMES[Math.floor(Math.random() * GAME_NAMES.length)];
+
   const newGameData: Game = {
     _id: new ObjectId(),
-    name: `Game ${now.toISOString()}`, // TODO: Basic name
+    name: gameName,
     description: "Official Server Game",
     settings: {
       tickDurationMS: CONSTANTS.GAME_DEFAULT_TICK_DURATION_MS,
