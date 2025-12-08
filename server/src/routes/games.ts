@@ -69,12 +69,13 @@ router.post(
             throw new Error("ALREADY_JOINED");
         }
 
-        // 2. Increment Player Count and Check Capacity (Atomic Lock)
-        const updatedGame = await GameService.incrementPlayerCount(db, gameId, session);
-
-        if (!updatedGame || updatedGame.state.playerCount > updatedGame.settings.playerCount) {
+        // 2. Check Capacity (req.game loaded before transaction)
+        if (req.game.state.playerCount >= req.game.settings.playerCount) {
              throw new Error("GAME_FULL");
         }
+
+        // Increment (Blind update)
+        await GameService.incrementPlayerCount(db, gameId, session);
 
         // 3. Create Player
         const newPlayer = await PlayerService.joinGame(
@@ -154,8 +155,9 @@ router.post(
             }
         }
 
-        // 7. Check Game Start
-        if (updatedGame.state.playerCount >= updatedGame.settings.playerCount) {
+        // 7. Check Game Start (Using req.game count + 1 for current player)
+        // Note: req.game.state.playerCount is old value. We add 1.
+        if (req.game.state.playerCount + 1 >= req.game.settings.playerCount) {
              const now = new Date();
              const startDate = new Date(now.getTime() + CONSTANTS.GAME_STARTING_WARMUP_PERIOD_MS);
 
