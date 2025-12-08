@@ -8,6 +8,8 @@ import {
   SPECIALIST_STEP_ID_MAP,
   UNIT_CATALOG_ID_MAP,
   CONSTANTS,
+  UnitManager,
+  MapUtils,
 } from "@solaris-command/core";
 import {
   validate,
@@ -19,12 +21,16 @@ import {
 import {
   loadGame,
   loadHexes,
+  loadPlanets,
   loadPlayer,
   loadPlayerUnit,
+  loadUnits,
   requireActiveGame,
   requireNonRegoupingUnit,
 } from "../middleware";
 import { UnitService } from "../services/UnitService";
+import { PlayerService } from "../services/PlayerService";
+import { executeInTransaction, getDb } from "../db";
 
 const router = express.Router({ mergeParams: true });
 
@@ -32,42 +38,66 @@ const router = express.Router({ mergeParams: true });
 router.post(
   "/deploy",
   authenticateToken,
+  validate(DeployUnitSchema),
   loadGame,
   requireActiveGame,
   loadPlayer,
   loadHexes,
-  validate(DeployUnitSchema),
+  loadPlanets,
+  loadUnits,
   async (req, res) => {
     const { catalogId, hexId } = req.body;
 
     try {
-      const unitTemplate = UNIT_CATALOG_ID_MAP.get(catalogId);
+      const unitCtlg = UNIT_CATALOG_ID_MAP.get(catalogId);
 
-      if (!unitTemplate)
-        return res.status(400).json({ error: "Invalid Unit ID" });
+      if (!unitCtlg) return res.status(400).json({ error: "Invalid Unit ID" });
 
-      // TODO: Validate player has enough prestige to purchase the unit.
-
-      // Logic to spawn unit
-      // 1. Check resources (Prestige) -> unitTemplate.cost
-      // 2. Determine spawn location (near Capital)
-      // 3. Create Unit
-
-      const hex = req.hexes.find(h => String(h._id) === hexId);
+      const hex = req.hexes.find((h) => String(h._id) === hexId);
 
       if (!hex) {
-        return res.status(400).json({ error: 'Hex ID is invalid.'});
+        return res.status(400).json({ error: "Hex ID is invalid." });
       }
 
       if (hex.unitId) {
-        return res.status(400).json({ error: 'Hex already contains a unit.'});
+        return res.status(400).json({ error: "Hex already contains a unit." });
+      }
+
+      const playerCapital = MapUtils.findPlayerCapital(
+        req.planets,
+        req.player._id
+      );
+
+      if (playerCapital == null) {
+        return res.status(400).json({
+          error:
+            "Cannot deploy unit, the player does not have a capital planet.",
+        });
+      }
+
+      const validSpawnLocations = UnitManager.getValidSpawnLocations(
+        playerCapital!,
+        req.hexes,
+        req.units
+      );
+
+      if (validSpawnLocations.find((h) => String(h._id) === hexId) == null) {
+        return res
+          .status(400)
+          .json({ error: "Cannot deploy unit at the target hex." });
+      }
+
+      if (req.player.prestigePoints < unitCtlg.cost) {
+        return res
+          .status(400)
+          .json({ error: "Planet cannot afford to purchase this step." });
       }
 
       // Generate initial steps using helper
       // "New units spawn ... They spawn with All Steps Suppressed." - GDD
       const initialSteps = UnitManagerHelper.addSteps(
         [],
-        unitTemplate.stats.defaultSteps
+        unitCtlg.stats.defaultSteps
       );
 
       const newUnit: Unit = {
@@ -80,7 +110,7 @@ router.post(
         state: {
           status: UnitStatus.IDLE,
           ap: 0,
-          mp: Math.floor(unitTemplate.stats.maxMP / 2), // Units start with half MP
+          mp: Math.floor(unitCtlg.stats.maxMP / 2), // Units start with half MP
           activeSteps: 0,
           suppressedSteps: initialSteps.length,
         },
@@ -98,9 +128,18 @@ router.post(
         },
       };
 
-      const createdUnit = await UnitService.createUnit(newUnit);
+      const createdUnit = await executeInTransaction(async (db, session) => {
+        const unit = await UnitService.createUnit(db, newUnit, session);
 
-      // TODO: Deduct player prestige.
+        await PlayerService.deductPrestigePoints(
+          db,
+          req.player._id,
+          unitCtlg.cost,
+          session
+        );
+
+        return unit;
+      });
 
       res.json({
         message: "Unit deployed",
@@ -116,19 +155,21 @@ router.post(
 router.post(
   "/:unitId/move",
   authenticateToken,
+  validate(MoveUnitSchema),
   loadGame,
   requireActiveGame,
   loadPlayer,
   loadPlayerUnit,
   requireNonRegoupingUnit,
-  validate(MoveUnitSchema),
   async (req, res) => {
     const { path } = req.body; // Hex[]
+
+    const db = getDb();
 
     try {
       // TODO: Validate path (Pathfinding check logic in core)
 
-      await UnitService.updateUnitState(req.unit._id, "MOVING", { path });
+      await UnitService.updateUnitState(db, req.unit._id, "MOVING", { path });
 
       res.json({ message: "Move order issued" });
     } catch (error: any) {
@@ -147,8 +188,10 @@ router.post(
   loadPlayerUnit,
   requireNonRegoupingUnit,
   async (req, res) => {
+    const db = getDb();
+
     try {
-      await UnitService.updateUnitState(req.unit._id, "IDLE", { path: [] });
+      await UnitService.updateUnitState(db, req.unit._id, "IDLE", { path: [] });
 
       res.json({ message: "Move order cancelled" });
     } catch (error: any) {
@@ -161,30 +204,38 @@ router.post(
 router.post(
   "/:unitId/attack",
   authenticateToken,
+  validate(AttackUnitSchema),
   loadGame,
   requireActiveGame,
   loadPlayer,
   loadPlayerUnit,
   requireNonRegoupingUnit,
   loadHexes,
-  validate(AttackUnitSchema),
   async (req, res) => {
     const { hexId, combatType } = req.body;
+
+    const db = getDb();
 
     try {
       if (req.unit.state.ap === 0)
         return res.status(400).json({ error: "Unit does not have enough AP." });
 
-      const hex = req.hexes.find(h => String(h._id) === hexId);
+      const hex = req.hexes.find((h) => String(h._id) === hexId);
 
       if (!hex) {
-        return res.status(400).json({ error: 'Hex ID is invalid.'});
+        return res.status(400).json({ error: "Hex ID is invalid." });
       }
 
-      await UnitService.updateUnitState(req.unit._id, "PREPARING", undefined, {
-        hexId,
-        type: combatType,
-      });
+      await UnitService.updateUnitState(
+        db,
+        req.unit._id,
+        "PREPARING",
+        undefined,
+        {
+          hexId,
+          type: combatType,
+        }
+      );
 
       res.json({ message: "Attack declared" });
     } catch (error: any) {
@@ -203,13 +254,15 @@ router.post(
   loadPlayerUnit,
   requireNonRegoupingUnit,
   async (req, res) => {
+    const db = getDb();
+
     try {
       if (req.unit.combat.hexId == null)
         return res
           .status(400)
           .json({ error: "Unit has not declared an attack." });
 
-      await UnitService.updateUnitState(req.unit._id, "IDLE", undefined, {
+      await UnitService.updateUnitState(db, req.unit._id, "IDLE", undefined, {
         hexId: null,
         type: null,
       });
@@ -225,11 +278,11 @@ router.post(
 router.post(
   "/:unitId/upgrade",
   authenticateToken,
+  validate(UpgradeUnitSchema),
   loadGame,
   requireActiveGame,
   loadPlayer,
   loadPlayerUnit,
-  validate(UpgradeUnitSchema),
   async (req, res) => {
     const { type, specialistId } = req.body;
 
@@ -294,17 +347,25 @@ router.post(
       const activeSteps = newSteps.filter((s) => !s.isSuppressed).length;
       const suppressedSteps = newSteps.length - activeSteps;
 
-      // Apply Upgrade (Transactionally handled in Service)
-      await UnitService.upgradeUnit(
-        req.unit._id,
-        newSteps,
-        activeSteps,
-        suppressedSteps,
-        cost,
-        req.player._id
-      );
+      await executeInTransaction(async (db, session) => {
+        // Apply Upgrade
+        await UnitService.upgradeUnit(
+          db,
+          req.unit._id,
+          newSteps,
+          activeSteps,
+          suppressedSteps,
+          session
+        );
 
-      // TODO: Deduct player prestige.
+        // Deduct Cost
+        await PlayerService.deductPrestigePoints(
+          db,
+          req.player._id,
+          cost,
+          session
+        );
+      });
 
       res.json({ message: "Unit upgraded", cost });
     } catch (error: any) {
@@ -322,6 +383,8 @@ router.post(
   loadPlayer,
   loadPlayerUnit,
   async (req, res) => {
+    const db = getDb();
+
     try {
       // If there's more than 1 step then we scrap it, otherwise we delete the entire unit.
       if (req.unit.steps.length > 1) {
@@ -334,6 +397,7 @@ router.post(
 
         // Apply
         await UnitService.scrapUnitStep(
+          db,
           req.unit._id,
           newSteps,
           activeSteps,
@@ -343,7 +407,7 @@ router.post(
         res.json({ message: "Step scrapped" });
       } else {
         // Delete unit
-        await UnitService.deleteUnit(req.unit._id);
+        await UnitService.deleteUnit(db, req.unit._id);
 
         res.json({ message: "Unit scrapped" });
       }

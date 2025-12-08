@@ -22,8 +22,9 @@ export const loadGame = async (
 
   if (!gameId) return res.status(400).json({ error: "Game ID required" });
 
+  const db = getDb();
+
   try {
-    const db = getDb();
     const game = await db
       .collection<Game>("games")
       .findOne({ _id: new ObjectId(gameId) });

@@ -9,7 +9,9 @@ const router = express.Router();
 // GET /api/v1/users/me
 router.get("/me", authenticateToken, async (req, res) => {
   try {
-    const user = await UserService.getUserById(new ObjectId(req.user.id));
+    const db = getDb();
+
+    const user = await UserService.getUserById(db, new ObjectId(req.user.id));
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
@@ -33,6 +35,7 @@ router.delete("/me", authenticateToken, async (req, res) => {
     session.startTransaction();
 
     const result = await UserService.deleteUser(
+      db,
       new ObjectId(req.user.id),
       session
     );

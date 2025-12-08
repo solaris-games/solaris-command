@@ -74,7 +74,7 @@ export const HexUtils = {
    * Get all hexes within a certain radius (filled circle)
    * Essential for: Supply Range, Sensor Range
    */
-  getHexesInRange(center: HexCoords, range: number): HexCoords[] {
+  getHexCoordsInRange(center: HexCoords, range: number): HexCoords[] {
     const results: HexCoords[] = [];
     for (let q = -range; q <= range; q++) {
       // The logic here ensures we stay within the valid 's' plane
@@ -93,7 +93,7 @@ export const HexUtils = {
    * Get only the hexes at the exact radius edge (hollow ring)
    * Essential for: Movement range border visualization
    */
-  getHexesInRing(center: HexCoords, radius: number): HexCoords[] {
+  getHexCoordsInRing(center: HexCoords, radius: number): HexCoords[] {
     if (radius <= 0) return [center];
 
     const results: HexCoords[] = [];
@@ -120,14 +120,14 @@ export const HexUtils = {
    * Format: "q,r,s"
    * Used for: Map keys, Set keys
    */
-  getID(hex: HexCoords): string {
+  getCoordsID(hex: HexCoords): string {
     return `${hex.q},${hex.r},${hex.s}`;
   },
 
   /**
    * Deserialization: Parse ID string back to object
    */
-  parseID(id: string): HexCoords {
+  parseCoordsID(id: string): HexCoords {
     const [q, r, s] = id.split(",").map(Number);
     return { q, r, s };
   },

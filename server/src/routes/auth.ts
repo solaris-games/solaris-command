@@ -38,7 +38,7 @@ router.post("/google", async (req, res) => {
     // We might need to adjust the schema or just use a basic one for now.
     // The core definition has _id, username, email, lastSeenDate, achievements
 
-    let user = await UserService.getUserByEmail(email);
+    let user = await UserService.getUserByEmail(db, email);
 
     if (!user) {
       // Create new user
@@ -58,10 +58,10 @@ router.post("/google", async (req, res) => {
       const result = await db.collection("users").insertOne(newUser);
       // user = { ...newUser, _id: result.insertedId } as User; // Casting
       // Re-fetch to be safe
-      user = await UserService.getUserById(result.insertedId);
+      user = await UserService.getUserById(db, result.insertedId);
     } else {
       // Update last seen
-      await UserService.touchUser(user._id);
+      await UserService.touchUser(db, user._id);
     }
 
     if (!user) {

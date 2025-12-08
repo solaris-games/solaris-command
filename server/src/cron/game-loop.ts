@@ -188,7 +188,7 @@ async function executeGameTick(client: MongoClient, game: Game) {
 
   // Prepare Hex Updates (From Tick)
   tickResult.hexUpdates.forEach((update, hexIdStr) => {
-    const coords = HexUtils.parseID(hexIdStr);
+    const coords = HexUtils.parseCoordsID(hexIdStr);
     hexOps.push({
       updateOne: {
         filter: {

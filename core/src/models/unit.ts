@@ -38,7 +38,9 @@ export interface Unit {
   playerId: ObjectId;
   catalogId: string;
 
-  location: HexCoords; // TODO: This should be a hex ID or we add hexId to this model?
+  // TODO: hexId, we should have both location and hexId for easy implementation.
+
+  location: HexCoords;
   steps: UnitStep[];
   state: UnitState;
   movement: UnitMovement;

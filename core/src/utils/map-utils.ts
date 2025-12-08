@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 import { Unit } from "../models/unit";
 import { HexUtils } from "./hex-utils";
 import { UNIT_CATALOG_ID_MAP } from "../data";
-import { Hex, TerrainTypes } from "../models";
+import { Hex, Planet, TerrainTypes } from "../models";
 
 export const MapUtils = {
   /**
@@ -30,7 +30,7 @@ export const MapUtils = {
       const neighbors = HexUtils.neighbors(unit.location);
 
       for (const neighbor of neighbors) {
-        const hexId = HexUtils.getID(neighbor);
+        const hexId = HexUtils.getCoordsID(neighbor);
 
         if (!zocMap.has(hexId)) {
           zocMap.set(hexId, new Set<string>());
@@ -68,5 +68,11 @@ export const MapUtils = {
       hex.terrain === TerrainTypes.GRAVITY_WELL ||
       hex.terrain === TerrainTypes.RADIATION_STORM
     );
+  },
+
+  findPlayerCapital(planets: Planet[], playerId: ObjectId): Planet | null {
+    return planets.find(
+      (p) => p.isCapital && String(p.playerId) === String(playerId)
+    ) || null;
   },
 };

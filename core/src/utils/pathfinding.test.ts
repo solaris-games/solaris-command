@@ -18,7 +18,7 @@ function createMap(
     for (let r = -height; r <= height; r++) {
       const s = -q - r;
       const coords = { q, r, s };
-      const id = HexUtils.getID(coords);
+      const id = HexUtils.getCoordsID(coords);
 
       map.set(id, {
         _id: new ObjectId(),
@@ -62,7 +62,7 @@ describe("Pathfinding", () => {
 
       // Center (0 cost) + 6 Neighbors (1 cost)
       expect(reachable.size).toBe(7);
-      expect(reachable.has(HexUtils.getID(start))).toBe(true);
+      expect(reachable.has(HexUtils.getCoordsID(start))).toBe(true);
       expect(reachable.has("1,0,-1")).toBe(true);
     });
 

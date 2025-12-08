@@ -1,4 +1,4 @@
-import { ClientSession, ObjectId } from "mongodb";
+import { ClientSession, Db, ObjectId } from "mongodb";
 import {
   CONSTANTS,
   Game,
@@ -6,27 +6,23 @@ import {
   Player,
   PlayerStatus,
 } from "@solaris-command/core";
-import { getDb } from "../db/instance";
 import { UnitService } from "./UnitService";
 import { StationService } from "./StationService";
 import { PlanetService } from "./PlanetService";
 import { HexService } from "./HexService";
 
 export class PlayerService {
-  static async getByGameId(gameId: ObjectId) {
-    const db = getDb();
+  static async getByGameId(db: Db, gameId: ObjectId) {
     return db.collection<Player>("players").find({ gameId }).toArray();
   }
-  static async getByGameAndUserId(gameId: ObjectId, userId: ObjectId) {
-    const db = getDb();
+  static async getByGameAndUserId(db: Db, gameId: ObjectId, userId: ObjectId) {
     return db.collection("players").findOne({
       gameId: gameId,
       userId: userId,
     });
   }
 
-  static async findActivePlayersForUser(userId: ObjectId) {
-    const db = getDb();
+  static async findActivePlayersForUser(db: Db, userId: ObjectId) {
     const activeGames = await db
       .collection<Game>("games")
       .find({ "state.status": GameStates.ACTIVE })
@@ -42,8 +38,7 @@ export class PlayerService {
       .toArray();
   }
 
-  static async findPendingPlayersForUser(userId: ObjectId) {
-    const db = getDb();
+  static async findPendingPlayersForUser(db: Db, userId: ObjectId) {
     const pendingGames = await db
       .collection<Game>("games")
       .find({ "state.status": GameStates.PENDING })
@@ -59,18 +54,32 @@ export class PlayerService {
       .toArray();
   }
 
+  static async deductPrestigePoints(
+    db: Db,
+    playerId: ObjectId,
+    prestige: number,
+    session?: ClientSession
+  ) {
+    await db
+      .collection("players")
+      .updateOne(
+        { _id: playerId },
+        { $inc: { prestigePoints: -prestige } },
+        { session }
+      );
+  }
+
   static async joinGame(
+    db: Db,
     gameId: ObjectId,
     userId: ObjectId,
-    options: { username?: string; color?: string }
+    options: { alias?: string; color?: string }
   ) {
-    const db = getDb();
-
     const newPlayer: Player = {
       _id: new ObjectId(),
       gameId,
       userId,
-      alias: options.username || "Unknown",
+      alias: options.alias || "Unknown",
       color: options.color || "#FF0000",
       status: PlayerStatus.ACTIVE,
       prestigePoints: CONSTANTS.GAME_STARTING_PRESTIGE_POINTS,
@@ -82,24 +91,27 @@ export class PlayerService {
     return newPlayer;
   }
 
-  static async removePlayerAssets(playerId: ObjectId, session?: ClientSession) {
+  static async removePlayerAssets(
+    db: Db,
+    playerId: ObjectId,
+    session?: ClientSession
+  ) {
     // Delete units
-    await UnitService.deleteByPlayerId(playerId, session);
+    await UnitService.deleteByPlayerId(db, playerId, session);
     // Delete stations
-    await StationService.deleteByPlayerId(playerId, session);
+    await StationService.deleteByPlayerId(db, playerId, session);
     // Remove planet ownerships
-    await PlanetService.removeOwnership(playerId, session);
+    await PlanetService.removeOwnership(db, playerId, session);
     // Remove hex ownerships
-    await HexService.removeOwnership(playerId, session);
+    await HexService.removeOwnership(db, playerId, session);
   }
 
   static async leaveGame(
+    db: Db,
     gameId: ObjectId,
     userId: ObjectId,
     session?: ClientSession
   ) {
-    const db = getDb();
-
     // Find the player first
     const player = await db
       .collection<Player>("players")
@@ -114,18 +126,18 @@ export class PlayerService {
       .deleteOne({ _id: player._id }, { session });
 
     if (result.deletedCount > 0) {
-      await this.removePlayerAssets(player._id, session);
+      await this.removePlayerAssets(db, player._id, session);
     }
 
     return result;
   }
 
   static async concedeGame(
+    db: Db,
     gameId: ObjectId,
     userId: ObjectId,
     session?: ClientSession
   ) {
-    const db = getDb();
     // Update player status to DEFEATED
     const result = await db.collection("players").updateOne(
       {
@@ -141,11 +153,11 @@ export class PlayerService {
   }
 
   static async setStatus(
+    db: Db,
     playerId: ObjectId,
     status: PlayerStatus,
     session?: ClientSession
   ) {
-    const db = getDb();
     return db
       .collection("players")
       .updateOne({ _id: playerId }, { $set: { status } }, { session });

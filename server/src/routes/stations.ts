@@ -3,9 +3,15 @@ import { ObjectId } from "mongodb";
 import { authenticateToken } from "../middleware/auth";
 import { Station } from "@solaris-command/core";
 import { validate, BuildStationSchema } from "../middleware/validation";
-import { loadGame, loadHexes, loadPlayer, requireActiveGame } from "../middleware";
+import {
+  loadGame,
+  loadHexes,
+  loadPlayer,
+  requireActiveGame,
+} from "../middleware";
 import { StationService } from "../services/StationService";
 import { loadPlayerStation } from "../middleware/station";
+import { getDb } from "../db";
 
 const router = express.Router({ mergeParams: true });
 
@@ -13,13 +19,15 @@ const router = express.Router({ mergeParams: true });
 router.post(
   "/",
   authenticateToken,
+  validate(BuildStationSchema),
   loadGame,
   requireActiveGame,
   loadPlayer,
   loadHexes,
-  validate(BuildStationSchema),
   async (req, res) => {
     const { hexId } = req.body;
+
+    const db = getDb();
 
     try {
       // TODO: Validate that the new station will be in supply, the player
@@ -31,10 +39,10 @@ router.post(
       // 1. Check pool limit (capped by planets)
       // 2. Check resources
 
-      const hex = req.hexes.find(h => String(h._id) === hexId);
+      const hex = req.hexes.find((h) => String(h._id) === hexId);
 
       if (!hex) {
-        return res.status(400).json({ error: 'Hex ID is invalid.'});
+        return res.status(400).json({ error: "Hex ID is invalid." });
       }
 
       const newStation: Station = {
@@ -45,10 +53,10 @@ router.post(
         supply: {
           isInSupply: true,
           isRoot: false,
-        }
+        },
       };
 
-      const createdStation = await StationService.createStation(newStation);
+      const createdStation = await StationService.createStation(db, newStation);
 
       res.json({
         message: "Station construction started",
@@ -67,8 +75,9 @@ router.delete(
   loadPlayer,
   loadPlayerStation,
   async (req, res) => {
+    const db = getDb();
     try {
-      await StationService.deleteStation(req.station._id);
+      await StationService.deleteStation(db, req.station._id);
 
       res.json({ message: "Station decommissioned" });
     } catch (error: any) {

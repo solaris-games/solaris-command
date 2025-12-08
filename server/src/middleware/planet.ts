@@ -1,19 +1,19 @@
 import { Request, Response, NextFunction } from "express";
 import { ObjectId } from "mongodb";
-import { Hex } from "@solaris-command/core";
-import { HexService } from "../services/HexService";
+import { Planet } from "@solaris-command/core";
+import { PlanetService } from "../services/PlanetService";
 import { getDb } from "../db";
 
 // Extend Express to include game
 declare global {
   namespace Express {
     interface Request {
-      hexes: Hex[];
+      planets: Planet[];
     }
   }
 }
 
-export const loadHexes = async (
+export const loadPlanets = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -25,9 +25,9 @@ export const loadHexes = async (
   const db = getDb();
 
   try {
-    const hexes = await HexService.getByGameId(db, new ObjectId(gameId));
+    const hexes = await PlanetService.getByGameId(db, new ObjectId(gameId));
 
-    req.hexes = hexes;
+    req.planets = hexes;
 
     next();
   } catch (error) {

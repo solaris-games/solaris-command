@@ -50,3 +50,8 @@ export const UpgradeUnitSchema = z.object({
   type: z.enum(["STEP", "SPECIALIST"]),
   specialistId: z.string().nullable(), // ID from Spec Catalog
 });
+
+export const JoinGameSchema = z.object({
+  alias: z.string().min(3),
+  color: z.string().length(7)
+});

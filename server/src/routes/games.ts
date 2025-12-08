@@ -1,24 +1,25 @@
 import express from "express";
 import { ObjectId } from "mongodb";
 import { authenticateToken } from "../middleware/auth";
-import { getDb } from "../db/instance";
+import { executeInTransaction, getDb } from "../db/instance";
 import {
   loadGame,
   requireActiveGame,
   requirePendingGame,
 } from "../middleware/game";
-import { touchPlayer } from "../middleware";
+import { JoinGameSchema, touchPlayer, validate } from "../middleware";
 import { GameService } from "../services/GameService";
 import { PlayerService } from "../services/PlayerService";
-import { GameStates } from "@solaris-command/core";
 
 const router = express.Router();
 
 // GET /api/v1/games
 // List open games and my games
 router.get("/", authenticateToken, async (req, res) => {
+  const db = getDb();
   try {
     const { games, myGameIds } = await GameService.listGamesByUser(
+      db,
       new ObjectId(req.user.id)
     );
 
@@ -44,24 +45,30 @@ router.get("/", authenticateToken, async (req, res) => {
 router.post(
   "/:id/join",
   authenticateToken,
+  validate(JoinGameSchema),
   loadGame,
   requirePendingGame,
   async (req, res) => {
+    const db = getDb();
     try {
-      const db = getDb();
       // Check if already joined
-      const existingPlayer = await PlayerService.getByGameAndUserId(req.game._id, new ObjectId(req.user.id))
+      const existingPlayer = await PlayerService.getByGameAndUserId(
+        db,
+        req.game._id,
+        new ObjectId(req.user.id)
+      );
 
       if (existingPlayer) {
         return res.status(400).json({ error: "Already joined this game" });
       }
 
       const newPlayer = await PlayerService.joinGame(
+        db,
         req.game._id,
         new ObjectId(req.user.id),
         {
-          username: req.user.username,
-          // color: ... // TODO request body
+          alias: req.body.alias,
+          color: req.body.color,
         }
       );
 
@@ -86,40 +93,25 @@ router.post(
   loadGame,
   requirePendingGame,
   async (req, res) => {
-    const db = getDb();
-    const session = db.client.startSession();
-
-    try {
-      session.startTransaction();
-
+    await executeInTransaction(async (db, session) => {
       try {
         const result = await PlayerService.leaveGame(
+          db,
           req.game._id,
           new ObjectId(req.user.id),
           session
         );
 
         if (result.deletedCount === 0) {
-          await session.abortTransaction();
           return res.status(400).json({ error: "Not a player in this game" });
         }
       } catch (err: any) {
         if (err.message === "Player not found in this game") {
-          await session.abortTransaction();
           return res.status(400).json({ error: "Not a player in this game" });
         }
         throw err;
       }
-
-      await session.commitTransaction();
-      res.json({ message: "Left game" });
-    } catch (error) {
-      await session.abortTransaction();
-      console.error("Error leaving game:", error);
-      res.status(500).json({ error: "Internal Server Error" });
-    } finally {
-      await session.endSession();
-    }
+    });
   }
 );
 
@@ -130,8 +122,10 @@ router.post(
   loadGame,
   requireActiveGame,
   async (req, res) => {
+    const db = getDb();
     try {
       const result = await PlayerService.concedeGame(
+        db,
         req.game._id,
         new ObjectId(req.user.id)
       );
@@ -155,8 +149,10 @@ router.get(
   authenticateToken,
   loadGame,
   async (req, res) => {
+    const db = getDb();
     try {
       const { response, currentPlayer } = await GameService.getGameState(
+        db,
         req.game,
         req.user.id
       );
@@ -179,9 +175,8 @@ router.get(
 router.get("/:id/events", authenticateToken, async (req, res) => {
   const gameId = new ObjectId(req.params.id);
 
+  const db = getDb();
   try {
-    const db = getDb();
-
     // Check if player is in game
     const player = await db.collection("players").findOne({
       gameId: gameId,
@@ -192,7 +187,7 @@ router.get("/:id/events", authenticateToken, async (req, res) => {
       return res.status(403).json({ error: "Must be a player to view events" });
     }
 
-    const events = await GameService.getGameEvents(gameId);
+    const events = await GameService.getGameEvents(db, gameId);
 
     res.json(events);
   } catch (error) {

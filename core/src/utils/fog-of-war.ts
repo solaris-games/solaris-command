@@ -24,27 +24,27 @@ export const FogOfWar = {
     units.forEach((u) => {
       if (u.playerId.toString() === pidStr) {
         const unitCtlg = UNIT_CATALOG_ID_MAP.get(u.catalogId)!;
-        const hexes = HexUtils.getHexesInRange(
+        const hexes = HexUtils.getHexCoordsInRange(
           u.location,
           unitCtlg.stats.visionRange
         );
-        hexes.forEach((h) => visibleHexes.add(HexUtils.getID(h)));
+        hexes.forEach((h) => visibleHexes.add(HexUtils.getCoordsID(h)));
       }
     });
 
     // 2. Planets
     planets.forEach((p) => {
       if (p.playerId && p.playerId.toString() === pidStr) {
-        const hexes = HexUtils.getHexesInRange(p.location, CONSTANTS.PLANET_VISION_RANGE);
-        hexes.forEach((h) => visibleHexes.add(HexUtils.getID(h)));
+        const hexes = HexUtils.getHexCoordsInRange(p.location, CONSTANTS.PLANET_VISION_RANGE);
+        hexes.forEach((h) => visibleHexes.add(HexUtils.getCoordsID(h)));
       }
     });
 
     // 3. Stations
     stations.forEach((s) => {
       if (s.playerId && s.playerId.toString() === pidStr) {
-        const hexes = HexUtils.getHexesInRange(s.location, CONSTANTS.STATION_VISION_RANGE);
-        hexes.forEach((h) => visibleHexes.add(HexUtils.getID(h)));
+        const hexes = HexUtils.getHexCoordsInRange(s.location, CONSTANTS.STATION_VISION_RANGE);
+        hexes.forEach((h) => visibleHexes.add(HexUtils.getCoordsID(h)));
       }
     });
 
@@ -65,7 +65,7 @@ export const FogOfWar = {
     const pidStr = playerId.toString();
     return allUnits.filter((u) => {
       if (u.playerId.toString() === pidStr) return true; // Own unit
-      return visibleHexes.has(HexUtils.getID(u.location)); // Enemy unit on visible hex
+      return visibleHexes.has(HexUtils.getCoordsID(u.location)); // Enemy unit on visible hex
     });
   },
 };

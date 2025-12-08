@@ -1,4 +1,4 @@
-import { MongoClient, Db } from "mongodb";
+import { MongoClient, Db, ClientSession } from "mongodb";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -47,5 +47,26 @@ export const closeDb = async () => {
     await client.close();
     db = null;
     client = null;
+  }
+};
+
+export const executeInTransaction = async (
+  callback: (db: Db, session: ClientSession) => Promise<any>
+) => {
+  const db = getDb();
+  const session = db.client.startSession();
+
+  try {
+    session.startTransaction();
+
+    const result = await callback(db, session);
+
+    await session.commitTransaction();
+    return result; // Return the result of the callback
+  } catch (e) {
+    await session.abortTransaction();
+    throw e;
+  } finally {
+    await session.endSession();
   }
 };

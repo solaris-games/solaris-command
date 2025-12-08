@@ -1,15 +1,5 @@
-import { ClientSession, ObjectId } from "mongodb";
-import {
-  Game,
-  GameStates,
-  Player,
-  FogOfWar,
-  Unit,
-  Planet,
-  Station,
-  Hex,
-} from "@solaris-command/core";
-import { getDb } from "../db/instance";
+import { Db, ObjectId } from "mongodb";
+import { Game, GameStates, Player, FogOfWar } from "@solaris-command/core";
 import { UnitService } from "./UnitService";
 import { StationService } from "./StationService";
 import { PlanetService } from "./PlanetService";
@@ -17,9 +7,7 @@ import { HexService } from "./HexService";
 import { PlayerService } from "./PlayerService";
 
 export class GameService {
-  static async listGamesByUser(userId: ObjectId) {
-    const db = getDb();
-
+  static async listGamesByUser(db: Db, userId: ObjectId) {
     // 1. Find games where user is a player
     const myPlayers = await db
       .collection<Player>("players")
@@ -44,22 +32,21 @@ export class GameService {
     return { games, myGameIds };
   }
 
-  static async createGame(gameData: any) {
-    const db = getDb();
+  static async createGame(db: Db, gameData: any) {
     const result = await db.collection("games").insertOne(gameData);
     return { id: result.insertedId, ...gameData };
   }
 
-  static async getGameState(game: Game, userId: string) {
+  static async getGameState(db: Db, game: Game, userId: string) {
     // This method assumes 'game' is already loaded (e.g. by middleware)
     const gameId = game._id;
 
     const [players, hexes, allUnits, planets, stations] = await Promise.all([
-      PlayerService.getByGameId(gameId),
-      HexService.getByGameId(gameId),
-      UnitService.getByGameId(gameId),
-      PlanetService.getByGameId(gameId),
-      StationService.getByGameId(gameId),
+      PlayerService.getByGameId(db, gameId),
+      HexService.getByGameId(db, gameId),
+      UnitService.getByGameId(db, gameId),
+      PlanetService.getByGameId(db, gameId),
+      StationService.getByGameId(db, gameId),
     ]);
 
     const currentPlayer = players.find((p) => String(p.userId) === userId);
@@ -105,9 +92,8 @@ export class GameService {
     return { response, currentPlayer };
   }
 
-  static async getGameEvents(gameId: ObjectId) {
-      const db = getDb();
-      return db
+  static async getGameEvents(db: Db, gameId: ObjectId) {
+    return db
       .collection("game_events")
       .find({ gameId })
       .sort({ createdAt: -1 })

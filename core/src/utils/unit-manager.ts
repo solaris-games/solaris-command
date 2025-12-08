@@ -98,36 +98,37 @@ export const UnitManager = {
   },
 
   /**
-   * Find a valid spawn location for a new unit
+   * Finds valid spawn locations for a new unit
    * Rules: Adjacent to Capital, Empty Hex, No Unit.
    */
-  findSpawnLocation(
+  getValidSpawnLocations(
     playerCapital: Planet,
     hexes: Hex[],
     allUnits: Unit[]
-  ): any | null {
+  ): Hex[] {
+    const valid: Hex[] = []
     // Get all neighbors
     const candidates = HexUtils.neighbors(playerCapital.location);
 
     // Filter valid
     for (const coord of candidates) {
-      const hexId = HexUtils.getID(coord);
-      const hex = hexes.find((h) => HexUtils.getID(h.coords) === hexId);
+      const hexId = HexUtils.getCoordsID(coord);
+      const hex = hexes.find((h) => HexUtils.getCoordsID(h.coords) === hexId);
 
       // Must exist and be passable
       if (!hex || MapUtils.isHexImpassable(hex)) continue;
 
       // Must be empty of units
       const isOccupied = allUnits.some(
-        (u) => HexUtils.getID(u.location) === hexId
+        (u) => HexUtils.getCoordsID(u.location) === hexId
       );
       if (isOccupied) continue;
 
       // Found one!
-      return coord;
+      valid.push(hex);
     }
 
-    return null; // Capital is surrounded/blockaded
+    return valid; // If empty: Capital is surrounded/blockaded
   },
 };
 

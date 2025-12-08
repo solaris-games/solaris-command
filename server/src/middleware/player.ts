@@ -20,9 +20,9 @@ export const loadPlayer = async (
   const userId = req.user.id;
   const gameId = req.params.id;
 
-  try {
-    const db = getDb();
+  const db = getDb();
 
+  try {
     const player = await db.collection<Player>("players").findOne({
       gameId: new ObjectId(gameId),
       userId: new ObjectId(userId),
@@ -46,9 +46,9 @@ export const touchPlayer = async (
 ) => {
   // Update the last seen date of the player
   if (req.player) {
+    const db = getDb();
+
     try {
-      const db = getDb();
-      
       await db.collection("players").updateOne(
         { _id: req.player._id },
         {

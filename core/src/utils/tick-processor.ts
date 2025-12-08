@@ -77,20 +77,20 @@ class TickContext {
     // We track unit locations in a Map for O(1) lookup during collision/combat checks.
     // This map is updated continuously as the Tick progresses (e.g., after a Blitz move).
     this.hexLookup = new Map<string, Hex>();
-    hexes.forEach((h) => this.hexLookup.set(HexUtils.getID(h.coords), h));
+    hexes.forEach((h) => this.hexLookup.set(HexUtils.getCoordsID(h.coords), h));
 
     this.unitLocations = new Map<string, Unit>();
-    units.forEach((u) => this.unitLocations.set(HexUtils.getID(u.location), u));
+    units.forEach((u) => this.unitLocations.set(HexUtils.getCoordsID(u.location), u));
 
     // Lookup map for Planets to check for capture logic efficiently
     this.planetLookup = new Map<string, Planet>();
     planets.forEach((p) =>
-      this.planetLookup.set(HexUtils.getID(p.location), p)
+      this.planetLookup.set(HexUtils.getCoordsID(p.location), p)
     );
 
     this.stationLookup = new Map<string, Station>();
     stations.forEach((s) =>
-      this.stationLookup.set(HexUtils.getID(s.location), s)
+      this.stationLookup.set(HexUtils.getCoordsID(s.location), s)
     );
   }
 }
@@ -138,8 +138,8 @@ export class GameUnitMovementContext {
         const nextHex = unit.movement.path[0];
         this.moveIntents.push({
           unit,
-          from: HexUtils.getID(unit.location),
-          to: HexUtils.getID(nextHex),
+          from: HexUtils.getCoordsID(unit.location),
+          to: HexUtils.getCoordsID(nextHex),
           toCoord: nextHex,
         });
       }
@@ -323,7 +323,7 @@ export const TickProcessor = {
         } else if (battleResult.report.defender.retreated) {
           // Defender Retreated
           contextTick.unitLocations.delete(targetHexId); // Left old hex
-          const newDefLoc = HexUtils.getID(defender.location);
+          const newDefLoc = HexUtils.getCoordsID(defender.location);
           contextTick.unitLocations.set(newDefLoc, defender); // Occupy new hex
 
           contextTick.hexUpdates.set(targetHexId, { unitId: null }); // Clear old seat
@@ -337,7 +337,7 @@ export const TickProcessor = {
 
         // Handle Blitz (Advance on Victory)
         if (battleResult.attackerWonHex) {
-          const oldLoc = HexUtils.getID(attacker.location);
+          const oldLoc = HexUtils.getCoordsID(attacker.location);
 
           // Update Memory
           contextTick.unitLocations.delete(oldLoc);
@@ -393,7 +393,7 @@ export const TickProcessor = {
 
         // Moving into a hex that is in a Zone of Control (ZOC) of an enemy unit DOUBLES the MP cost of that hex.
         const isZOC = MapUtils.isHexInEnemyZOC(
-          HexUtils.getID(targetHex.coords),
+          HexUtils.getCoordsID(targetHex.coords),
           String(unit.playerId),
           contextMovement.zocMap
         );

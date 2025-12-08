@@ -23,7 +23,7 @@ export const MapGenerator = {
     const planets: Planet[] = [];
 
     // 1. Generate the Grid (Spiral out from 0,0,0)
-    const coords = HexUtils.getHexesInRange(
+    const coords = HexUtils.getHexCoordsInRange(
       { q: 0, r: 0, s: 0 },
       options.radius
     );

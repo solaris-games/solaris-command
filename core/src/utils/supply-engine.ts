@@ -23,7 +23,7 @@ export const SupplyEngine = {
 
     // Optimization: Create a Map for O(1) Hex Lookup by ID
     const hexMap = new Map<string, Hex>();
-    hexes.forEach((h) => hexMap.set(HexUtils.getID(h.coords), h));
+    hexes.forEach((h) => hexMap.set(HexUtils.getCoordsID(h.coords), h));
 
     // 1. Identify Sources
     // Roots: Always produce supply (Capital Planets)
@@ -85,7 +85,7 @@ export const SupplyEngine = {
         if (visitedNodes.has(nodeId)) continue; // Already powered
 
         // Check if this station sits inside the hexes we just supplied
-        const hexId = HexUtils.getID(node.location);
+        const hexId = HexUtils.getCoordsID(node.location);
 
         if (suppliedHexIds.has(hexId)) {
           // BOOM! Connection established.
@@ -107,7 +107,7 @@ export const SupplyEngine = {
    * Returns the partial update object to save to DB.
    */
   processUnitSupply(unit: Unit, suppliedHexIds: Set<string>): Partial<Unit> {
-    const currentHexId = HexUtils.getID(unit.location);
+    const currentHexId = HexUtils.getCoordsID(unit.location);
     const isSupplied = suppliedHexIds.has(currentHexId);
 
     let newTicksLastSupply = unit.supply.ticksLastSupply;

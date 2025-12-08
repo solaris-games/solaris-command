@@ -25,7 +25,7 @@ export const Pathfinding = {
     const queue: { coord: HexCoords; cost: number }[] = [];
     const results = new Set<string>();
 
-    const startId = HexUtils.getID(start);
+    const startId = HexUtils.getCoordsID(start);
 
     // Init
     queue.push({ coord: start, cost: 0 });
@@ -40,7 +40,7 @@ export const Pathfinding = {
       const neighbors = HexUtils.neighbors(current.coord);
 
       for (const neighbor of neighbors) {
-        const neighborId = HexUtils.getID(neighbor);
+        const neighborId = HexUtils.getCoordsID(neighbor);
         const hexData = hexMap.get(neighborId);
 
         // 1. Check if hex exists and is passable

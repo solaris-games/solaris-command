@@ -22,7 +22,7 @@ export const CombatEngine = {
     }
   ): { report: CombatReport; attackerWonHex: boolean } {
     // 1. Setup Context
-    const hexKey = HexUtils.getID(defender.location);
+    const hexKey = HexUtils.getCoordsID(defender.location);
     const hex = hexLookup.get(hexKey)!;
 
     // 2. Calculate & Predict
@@ -153,7 +153,7 @@ export const CombatEngine = {
     const validRetreats: Hex[] = [];
 
     for (const coord of neighbors) {
-      const hexId = HexUtils.getID(coord);
+      const hexId = HexUtils.getCoordsID(coord);
       const hex = hexLookup.get(hexId);
 
       // Must exist and be passable

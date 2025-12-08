@@ -74,7 +74,7 @@ describe("MapUtils", () => {
       // Should have entries for all 6 neighbors
       const neighbors = HexUtils.neighbors(unit.location);
       neighbors.forEach((n) => {
-        const hexId = HexUtils.getID(n);
+        const hexId = HexUtils.getCoordsID(n);
         expect(zocMap.has(hexId)).toBe(true);
         expect(zocMap.get(hexId)?.has(player1Id)).toBe(true);
       });

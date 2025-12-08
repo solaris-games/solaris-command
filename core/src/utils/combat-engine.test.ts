@@ -82,8 +82,8 @@ describe("CombatEngine", () => {
     const startHex = createHex(0, 0, 0);
 
     hexLookup = new Map();
-    hexLookup.set(HexUtils.getID(combatHex.coords), combatHex);
-    hexLookup.set(HexUtils.getID(startHex.coords), startHex);
+    hexLookup.set(HexUtils.getCoordsID(combatHex.coords), combatHex);
+    hexLookup.set(HexUtils.getCoordsID(startHex.coords), startHex);
 
     // Mock Unit Utils to simulate damage application (simple pass-through or modification)
     // We mock them to return modified arrays so we can check calls
@@ -202,7 +202,7 @@ describe("CombatEngine", () => {
 
       // Create a valid retreat hex
       const retreatHex = createHex(2, 0, -2); // Adjacent to defender (1, 0, -1)
-      hexLookup.set(HexUtils.getID(retreatHex.coords), retreatHex);
+      hexLookup.set(HexUtils.getCoordsID(retreatHex.coords), retreatHex);
 
       // Spy on findRetreatHex logic (implicit in resolveBattle, but we check outcome)
       const result = CombatEngine.resolveBattle(
@@ -278,7 +278,7 @@ describe("CombatEngine", () => {
 
       // Valid retreat hex
       const retreatHex = createHex(2, 0, -2);
-      hexLookup.set(HexUtils.getID(retreatHex.coords), retreatHex);
+      hexLookup.set(HexUtils.getCoordsID(retreatHex.coords), retreatHex);
 
       const result = CombatEngine.resolveBattle(
         attacker,
@@ -334,8 +334,8 @@ describe("CombatEngine", () => {
       const asteroidHex = createHex(2, 0, -2, TerrainTypes.ASTEROID_FIELD);
       const emptyHex = createHex(1, 1, -2, TerrainTypes.EMPTY);
 
-      hexLookup.set(HexUtils.getID(asteroidHex.coords), asteroidHex);
-      hexLookup.set(HexUtils.getID(emptyHex.coords), emptyHex);
+      hexLookup.set(HexUtils.getCoordsID(asteroidHex.coords), asteroidHex);
+      hexLookup.set(HexUtils.getCoordsID(emptyHex.coords), emptyHex);
 
       const retreatHex = CombatEngine.findRetreatHex(
         defender,

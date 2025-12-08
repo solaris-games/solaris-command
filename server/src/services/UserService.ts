@@ -1,23 +1,19 @@
-import { ClientSession, ObjectId } from "mongodb";
+import { ClientSession, Db, ObjectId } from "mongodb";
 import { User } from "@solaris-command/core";
 import { getDb } from "../db/instance";
 import { PlayerService } from "./PlayerService";
 import { PlayerStatus } from "@solaris-command/core";
 
 export class UserService {
-  static async getUserById(userId: ObjectId) {
-    const db = getDb();
+  static async getUserById(db: Db, userId: ObjectId) {
     return db.collection<User>("users").findOne({ _id: userId });
   }
 
-  static async getUserByEmail(email: string) {
-    const db = getDb();
+  static async getUserByEmail(db: Db, email: string) {
     return db.collection<User>("users").findOne({ email });
   }
 
-  static async touchUser(userId: ObjectId) {
-    const db = getDb();
-
+  static async touchUser(db: Db, userId: ObjectId) {
     // Update last seen
     return db.collection("users").updateOne(
       { _id: userId },
@@ -29,9 +25,7 @@ export class UserService {
     );
   }
 
-  static async deleteUser(userId: ObjectId, session?: ClientSession) {
-    const db = getDb();
-
+  static async deleteUser(db: Db, userId: ObjectId, session?: ClientSession) {
     // 1. Delete the user
     const result = await db
       .collection<User>("users")
@@ -42,7 +36,10 @@ export class UserService {
     }
 
     // 2. Handle Active Games -> Set as DEFEATED
-    const activePlayers = await PlayerService.findActivePlayersForUser(userId);
+    const activePlayers = await PlayerService.findActivePlayersForUser(
+      db,
+      userId
+    );
     if (activePlayers.length) {
       // We can do this in bulk or loop. Existing logic did bulk updateMany.
       // But we abstracted setStatus in PlayerService.
@@ -63,6 +60,7 @@ export class UserService {
 
     // 3. Handle Pending Games -> Delete Player & Assets
     const pendingPlayers = await PlayerService.findPendingPlayersForUser(
+      db,
       userId
     );
     if (pendingPlayers.length) {
@@ -84,7 +82,7 @@ export class UserService {
 
       // Let's iterate for now. It's cleaner.
       for (const player of pendingPlayers) {
-        await PlayerService.removePlayerAssets(player._id, session);
+        await PlayerService.removePlayerAssets(db, player._id, session);
       }
     }
 
