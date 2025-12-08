@@ -28,7 +28,6 @@ function createMap(
         coords: coords,
         terrain: terrainOverride.get(id) || TerrainTypes.EMPTY,
         supply: { isInSupply: false, ticksLastSupply: 0, ticksOutOfSupply: 0 },
-        isImpassable: false,
       });
     }
   }
@@ -70,7 +69,7 @@ describe("Pathfinding", () => {
     it("should be blocked by Impassable terrain", () => {
       const map = createMap(3, 3);
       const neighborId = "1,0,-1";
-      map.get(neighborId)!.isImpassable = true;
+      map.get(neighborId)!.terrain = TerrainTypes.RADIATION_STORM;
 
       const reachable = Pathfinding.getReachableHexes(start, 1, map);
 

@@ -27,6 +27,7 @@ Units are the primary method of projecting power.
     * **Frigates:** High MP, low cost.
     * **Destroyers:** The backbone of the fleet. Balanced stats.
     * **Battleships:** Heavy armor, high firepower, low MP.
+    * Any many more...
 
 ### B. Structures
 Fixed assets that define territory and logistics.
@@ -35,7 +36,7 @@ Fixed assets that define territory and logistics.
     * Capturing an enemy *Capital Planet* is devastating, it could very well knock the opposing player out of the game.
 * **Stations:** Deployable logistics hubs. They extend supply range from Planets to deep space.
     * *Pool Limit:* The number of deployable stations is capped by the number of Planets controlled.
-    * When deployed, a station enters provides supply at the beginning of the following cycle.
+    * When deployed, a station provides supply at the beginning of the following cycle.
 
 ### C. Terrain
 The hex grid imposes strategic constraints via terrain types.

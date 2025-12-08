@@ -31,7 +31,6 @@ function createHex(
     playerId: null,
     coords: { q, r, s },
     terrain: terrain,
-    isImpassable: false,
     supply: { isInSupply: true, ticksLastSupply: 0, ticksOutOfSupply: 0 },
   };
 }
@@ -59,7 +58,7 @@ function createUnit(
       suppressedSteps: 0,
     },
     movement: { path: [] },
-    combat: { hexId: null, cooldownEndTick: null },
+    combat: { hexId: null },
     supply: { isInSupply: true, ticksLastSupply: 0, ticksOutOfSupply: 0 },
   } as any;
 }

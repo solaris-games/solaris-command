@@ -52,7 +52,7 @@ export const SupplyEngine = {
     rootSources.forEach((planet) => {
       sourceQueue.push({
         location: planet.location,
-        rangeMP: CONSTANTS.ROOT_SUPPLY_RANGE_MP,
+        rangeMP: CONSTANTS.SUPPLY_RANGE_MP_ROOT,
       });
       visitedNodes.add(planet._id.toString());
     });
@@ -93,7 +93,7 @@ export const SupplyEngine = {
           visitedNodes.add(nodeId);
           sourceQueue.push({
             location: node.location,
-            rangeMP: CONSTANTS.NODE_SUPPLY_RANGE_MP,
+            rangeMP: CONSTANTS.SUPPLY_RANGE_MP_NODE,
           });
         }
       }

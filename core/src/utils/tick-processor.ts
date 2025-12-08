@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb";
-import { TERRAIN_MP_COSTS, UNIT_CATALOG_ID_MAP } from "../data";
+import { CONSTANTS, TERRAIN_MP_COSTS, UNIT_CATALOG_ID_MAP } from "../data";
 import {
   Game,
   Unit,
@@ -584,7 +584,7 @@ export const TickProcessor = {
    */
   calculatePrestigeIncome(ownedPlanets: Planet[]): number {
     return ownedPlanets.reduce(
-      (total, planet) => total + planet.prestigePointsPerCycle,
+      (total, planet) => total + (planet.isCapital ? CONSTANTS.PLANET_PRESTIGE_INCOME_CAPITAL : CONSTANTS.PLANET_PRESTIGE_INCOME),
       0
     );
   },
@@ -594,7 +594,7 @@ export const TickProcessor = {
    */
   calculateVPIncome(ownedPlanets: Planet[]): number {
     return ownedPlanets.reduce(
-      (total, planet) => total + planet.victoryPointsPerCycle,
+      (total, planet) => total + (planet.isCapital ? CONSTANTS.PLANET_VP_INCOME_CAPITAL : CONSTANTS.PLANET_VP_INCOME),
       0
     );
   },

@@ -59,11 +59,6 @@ startServer();
 /**
  * Backend TODO:
  * - Update the GDD
- * - DB schema for user
- * - DB schema for game events
- * - DB schema for migration logs
- * - Extended DB validation (e.g min 0 player prestige)
- * - Double check all DB schemas against models
  * - Extended API validation (See TODOs in routes)
  * - API response mapping layer
  * - Join game spawn locations + starting fleets

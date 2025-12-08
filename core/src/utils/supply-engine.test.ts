@@ -37,7 +37,6 @@ function createHex(q: number, r: number, s: number): Hex {
     playerId: null,
     coords: { q, r, s },
     terrain: TerrainTypes.EMPTY,
-    isImpassable: false,
     supply: { isInSupply: false, ticksLastSupply: 0, ticksOutOfSupply: 0 },
   };
 }
@@ -56,8 +55,6 @@ function createPlanet(
     name: "Test Planet",
     location: { q, r, s },
     isCapital,
-    prestigePointsPerCycle: 10,
-    victoryPointsPerCycle: 1,
     supply: {
       isInSupply: true,
       isRoot: isCapital,
@@ -99,7 +96,7 @@ function createUnit(playerId: ObjectId, q: number, r: number, s: number): Unit {
       suppressedSteps: 0,
     },
     movement: { path: [] },
-    combat: { hexId: null, cooldownEndTick: null },
+    combat: { hexId: null },
     supply: { isInSupply: true, ticksLastSupply: 0, ticksOutOfSupply: 0 },
   } as any; // Casting for brevity
 }
@@ -136,7 +133,7 @@ describe("SupplyEngine", () => {
       // Verify Pathfinding was called correctly with correct args
       expect(Pathfinding.getReachableHexes).toHaveBeenCalledWith(
         capital.location,
-        CONSTANTS.ROOT_SUPPLY_RANGE_MP,
+        CONSTANTS.SUPPLY_RANGE_MP_ROOT,
         expect.any(Map),
         expect.objectContaining({ playerId: String(playerId) })
       );

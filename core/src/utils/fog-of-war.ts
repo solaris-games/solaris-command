@@ -35,7 +35,7 @@ export const FogOfWar = {
     // 2. Planets
     planets.forEach((p) => {
       if (p.playerId && p.playerId.toString() === pidStr) {
-        const hexes = HexUtils.getHexesInRange(p.location, CONSTANTS.GAME_PLANET_VISION_RANGE);
+        const hexes = HexUtils.getHexesInRange(p.location, CONSTANTS.PLANET_VISION_RANGE);
         hexes.forEach((h) => visibleHexes.add(HexUtils.getID(h)));
       }
     });
@@ -43,7 +43,7 @@ export const FogOfWar = {
     // 3. Stations
     stations.forEach((s) => {
       if (s.playerId && s.playerId.toString() === pidStr) {
-        const hexes = HexUtils.getHexesInRange(s.location, CONSTANTS.GAME_STATION_VISION_RANGE);
+        const hexes = HexUtils.getHexesInRange(s.location, CONSTANTS.STATION_VISION_RANGE);
         hexes.forEach((h) => visibleHexes.add(HexUtils.getID(h)));
       }
     });

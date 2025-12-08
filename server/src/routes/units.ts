@@ -89,7 +89,6 @@ router.post(
         },
         combat: {
           hexId: null,
-          cooldownEndTick: null,
           operation: null,
         },
         supply: {
@@ -185,7 +184,6 @@ router.post(
       await UnitService.updateUnitState(req.unit._id, "PREPARING", undefined, {
         hexId,
         type: combatType,
-        cooldownEndTick: null,
       });
 
       res.json({ message: "Attack declared" });
@@ -214,7 +212,6 @@ router.post(
       await UnitService.updateUnitState(req.unit._id, "IDLE", undefined, {
         hexId: null,
         type: null,
-        cooldownEndTick: null,
       });
 
       res.json({ message: "Attack cancelled" });

@@ -12,8 +12,4 @@ export interface Planet {
   supply: SupplySource;
 
   isCapital: boolean;
-
-  // TODO: Do we need these for MVP? Can we use constants instead?
-  prestigePointsPerCycle: number; // How much prestige is awarded to the player per cycle
-  victoryPointsPerCycle: number;
 }

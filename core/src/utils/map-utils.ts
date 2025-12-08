@@ -2,6 +2,7 @@ import { ObjectId } from "mongodb";
 import { Unit } from "../models/unit";
 import { HexUtils } from "./hex-utils";
 import { UNIT_CATALOG_ID_MAP } from "../data";
+import { Hex, TerrainTypes } from "../models";
 
 export const MapUtils = {
   /**
@@ -60,5 +61,12 @@ export const MapUtils = {
     }
 
     return false;
+  },
+
+  isHexImpassable(hex: Hex): boolean {
+    return (
+      hex.terrain === TerrainTypes.GRAVITY_WELL ||
+      hex.terrain === TerrainTypes.RADIATION_STORM
+    );
   },
 };

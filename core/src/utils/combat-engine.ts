@@ -3,6 +3,7 @@ import { Unit, UnitStatus, Hex } from "../models";
 import { CombatOperation, CombatReport, CombatResultType } from "../types";
 import { CombatCalculator } from "./combat-calculator";
 import { HexUtils } from "./hex-utils";
+import { MapUtils } from "./map-utils";
 import { UnitManagerHelper as UnitUtils } from "./unit-manager";
 
 export const CombatEngine = {
@@ -156,7 +157,7 @@ export const CombatEngine = {
       const hex = hexLookup.get(hexId);
 
       // Must exist and be passable
-      if (!hex || hex.isImpassable) continue;
+      if (!hex || MapUtils.isHexImpassable(hex)) continue;
 
       // Must not contain another unit
       if (hex.unitId) continue;

@@ -29,7 +29,6 @@ export interface UnitMovement {
 
 export interface UnitCombat {
   hexId: ObjectId | null; // If Preparing, where are we attacking?
-  cooldownEndTick: number | null; // Which tick does Regrouping end?
   operation: CombatOperation | null;
 }
 

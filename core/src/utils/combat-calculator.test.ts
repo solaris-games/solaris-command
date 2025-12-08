@@ -48,7 +48,7 @@ function createTestUnit(
     },
     supply: { isInSupply: true, ticksLastSupply: 0, ticksOutOfSupply: 0 },
     movement: { path: [] },
-    combat: { hexId: null, cooldownEndTick: null, operation: null },
+    combat: { hexId: null, operation: null },
   } as Unit;
 }
 
@@ -59,7 +59,6 @@ function createHex(terrain: TerrainTypes): Hex {
     unitId: null,
     coords: { q: 0, r: 0, s: 0 },
     terrain: terrain,
-    isImpassable: false,
     // supply field omitted for brevity as it's not used in calculator
   } as Hex;
 }

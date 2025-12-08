@@ -25,11 +25,26 @@ async function migrate() {
 
   try {
     // 1. Ensure Migrations Collection Exists
-    const collections = await db.listCollections({ name: "migrations" }).toArray();
+    const collections = await db
+      .listCollections({ name: "migrations" })
+      .toArray();
     if (collections.length === 0) {
-      await db.createCollection("migrations");
+      await db.createCollection("migrations", {
+        validator: {
+          $jsonSchema: {
+            bsonType: "object",
+            required: ["filename", "executedAt"],
+            properties: {
+              filename: { bsonType: "string" },
+              executedAt: { bsonType: "date" },
+            },
+          },
+        },
+      });
       // Unique index on filename to prevent double execution (though code logic handles it)
-      await db.collection("migrations").createIndex({ filename: 1 }, { unique: true });
+      await db
+        .collection("migrations")
+        .createIndex({ filename: 1 }, { unique: true });
     }
 
     // 2. Get executed migrations
@@ -38,7 +53,9 @@ async function migrate() {
       .find({})
       .sort({ filename: 1 })
       .toArray();
-    const executedFilenames = new Set(executedMigrations.map((m) => m.filename));
+    const executedFilenames = new Set(
+      executedMigrations.map((m) => m.filename)
+    );
 
     // 3. Get file list
     const files = fs
@@ -56,7 +73,9 @@ async function migrate() {
         const migrationModule = await import(migrationPath);
 
         if (typeof migrationModule.up !== "function") {
-          throw new Error(`Migration ${file} does not export an 'up' function.`);
+          throw new Error(
+            `Migration ${file} does not export an 'up' function.`
+          );
         }
 
         await migrationModule.up(db, client);
@@ -69,7 +88,7 @@ async function migrate() {
 
         console.log(`✅ Completed: ${file}`);
       } else {
-        // console.log(`⏩ Skipped (already executed): ${file}`);
+        console.log(`⏩ Skipped (already executed): ${file}`);
       }
     }
 
@@ -84,5 +103,5 @@ async function migrate() {
 
 // Run if called directly
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-    migrate();
+  migrate();
 }

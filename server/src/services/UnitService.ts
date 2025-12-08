@@ -50,7 +50,6 @@ export class UnitService {
       if (combat) {
           if (combat.hexId !== undefined) update.$set["combat.hexId"] = combat.hexId;
           if (combat.type !== undefined) update.$set["combat.type"] = combat.type;
-          if (combat.cooldownEndTick !== undefined) update.$set["combat.cooldownEndTick"] = combat.cooldownEndTick;
       }
 
       return db.collection<Unit>("units").updateOne(

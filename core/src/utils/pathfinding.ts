@@ -44,7 +44,7 @@ export const Pathfinding = {
         const hexData = hexMap.get(neighborId);
 
         // 1. Check if hex exists and is passable
-        if (!hexData || hexData.isImpassable) continue;
+        if (!hexData || MapUtils.isHexImpassable(hexData)) continue;
 
         // 2. Calculate Cost
         let moveCost = TERRAIN_MP_COSTS[hexData.terrain] || 1;

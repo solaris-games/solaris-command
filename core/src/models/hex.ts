@@ -20,7 +20,7 @@ export enum TerrainTypes {
   GAS_CLOUD = "GAS_CLOUD",
 
   // Impassable/Extreme
-  // Effect: Impassable to most units or 3x Move Cost.
+  // Effect: Impassable
   // Mechanical logic: Strategic walls that funnel movement.
   GRAVITY_WELL = "GRAVITY_WELL", // Near stars/black holes
   RADIATION_STORM = "RADIATION_STORM",
@@ -40,6 +40,4 @@ export interface Hex {
   coords: HexCoords; // { q, r, s }
   terrain: TerrainTypes;
   supply: SupplyTarget;
-  // TODO: Do we need this? Can we infer it from the terrain types?
-  isImpassable: boolean; // Blocks movement completely
 }

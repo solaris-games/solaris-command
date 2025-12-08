@@ -2,6 +2,7 @@ import { UNIT_CATALOG_ID_MAP } from "../data";
 import { Hex, Planet, Unit, UnitStatus, UnitStep } from "../models";
 import { UnitSpecialistStepCatalogItem } from "../types";
 import { HexUtils } from "./hex-utils";
+import { MapUtils } from "./map-utils";
 
 // Constants based on GDD
 const STEP_RECOVERY_RATE = 2; // Steps recovered per cycle
@@ -114,7 +115,7 @@ export const UnitManager = {
       const hex = hexes.find((h) => HexUtils.getID(h.coords) === hexId);
 
       // Must exist and be passable
-      if (!hex || hex.isImpassable) continue;
+      if (!hex || MapUtils.isHexImpassable(hex)) continue;
 
       // Must be empty of units
       const isOccupied = allUnits.some(

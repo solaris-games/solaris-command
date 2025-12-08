@@ -95,7 +95,6 @@ export async function up(db: Db, client: MongoClient) {
             "coords",
             "terrain",
             "supply",
-            "isImpassable",
           ],
           properties: {
             gameId: { bsonType: "objectId" },
@@ -128,11 +127,10 @@ export async function up(db: Db, client: MongoClient) {
               required: ["isInSupply", "ticksLastSupply", "ticksOutOfSupply"],
               properties: {
                 isInSupply: { bsonType: "bool" },
-                ticksLastSupply: { bsonType: "int" },
-                ticksOutOfSupply: { bsonType: "int" },
+                ticksLastSupply: { bsonType: "int", minimum: 0 },
+                ticksOutOfSupply: { bsonType: "int", minimum: 0 },
               },
             },
-            isImpassable: { bsonType: "bool" },
           },
         },
       },
@@ -205,8 +203,8 @@ export async function up(db: Db, client: MongoClient) {
                 },
                 ap: { bsonType: "int" },
                 mp: { bsonType: "int" },
-                activeSteps: { bsonType: "int" },
-                suppressedSteps: { bsonType: "int" },
+                activeSteps: { bsonType: "int", minimum: 0 },
+                suppressedSteps: { bsonType: "int", minimum: 0 },
               },
             },
             movement: {
@@ -223,10 +221,9 @@ export async function up(db: Db, client: MongoClient) {
             },
             combat: {
               bsonType: "object",
-              required: ["hexId", "cooldownEndTick", "operation"],
+              required: ["hexId", "operation"],
               properties: {
                 hexId: { bsonType: ["objectId", "null"] },
-                cooldownEndTick: { bsonType: ["int", "null"] },
                 operation: {
                   bsonType: "string",
                   enum: ["STANDARD", "FEINT", "SUPPRESSIVE_FIRE"],
@@ -238,8 +235,8 @@ export async function up(db: Db, client: MongoClient) {
               required: ["isInSupply", "ticksLastSupply", "ticksOutOfSupply"],
               properties: {
                 isInSupply: { bsonType: "bool" },
-                ticksLastSupply: { bsonType: "int" },
-                ticksOutOfSupply: { bsonType: "int" },
+                ticksLastSupply: { bsonType: "int", minimum: 0 },
+                ticksOutOfSupply: { bsonType: "int", minimum: 0 },
               },
             },
           },
@@ -275,14 +272,14 @@ export async function up(db: Db, client: MongoClient) {
           properties: {
             gameId: { bsonType: "objectId" },
             userId: { bsonType: "objectId" },
-            alias: { bsonType: "string" },
-            color: { bsonType: "string" },
+            alias: { bsonType: "string", minLength: 3 },
+            color: { bsonType: "string", minLength: 7, maxLength: 7 },
             status: {
               bsonType: "string",
               enum: ["ACTIVE", "DEFEATED"],
             },
-            prestigePoints: { bsonType: "int" },
-            victoryPoints: { bsonType: "int" },
+            prestigePoints: { bsonType: "int", minimum: 0 },
+            victoryPoints: { bsonType: "int", minimum: 0 },
             lastSeenDate: { bsonType: "date" },
           },
         },
@@ -307,8 +304,6 @@ export async function up(db: Db, client: MongoClient) {
             "location",
             "supply",
             "isCapital",
-            "prestigePointsPerCycle",
-            "victoryPointsPerCycle",
           ],
           properties: {
             gameId: { bsonType: "objectId" },
@@ -332,8 +327,6 @@ export async function up(db: Db, client: MongoClient) {
               },
             },
             isCapital: { bsonType: "bool" },
-            prestigePointsPerCycle: { bsonType: "int" },
-            victoryPointsPerCycle: { bsonType: "int" },
           },
         },
       },
@@ -352,7 +345,7 @@ export async function up(db: Db, client: MongoClient) {
       validator: {
         $jsonSchema: {
           bsonType: "object",
-          required: ["gameId", "playerId", "status", "location", "supply"],
+          required: ["gameId", "playerId", "location", "supply"],
           properties: {
             gameId: { bsonType: "objectId" },
             playerId: { bsonType: "objectId" },
@@ -387,7 +380,21 @@ export async function up(db: Db, client: MongoClient) {
     });
 
     // --- 7. GAME EVENTS (Combat Reports) ---
-    await createCollectionSafe("game_events", {});
+    await createCollectionSafe("game_events", {
+      validator: {
+        $jsonSchema: {
+          bsonType: "object",
+          required: ["gameId", "playerId", "tick", "type", "data"],
+          properties: {
+            gameId: { bsonType: "objectId" },
+            playerId: { bsonType: ["objectId", "null"] },
+            tick: { bsonType: "int" },
+            type: { bsonType: "string" },
+            data: { bsonType: "object" },
+          },
+        },
+      },
+    });
     // TTL Index: Automatically delete reports older than 14 days to save space
     await db
       .collection("game_events")
@@ -401,7 +408,35 @@ export async function up(db: Db, client: MongoClient) {
     // For now, permissive as User model is simple.
     // listCollections approach for Users as we might not want to enforce schema yet or it's simple
     // BUT consistent with createCollectionSafe is better.
-    await createCollectionSafe("users", {});
+    await createCollectionSafe("users", {
+      validator: {
+        $jsonSchema: {
+          bsonType: "object",
+          required: [
+            "googleId",
+            "username",
+            "email",
+            "lastSeenDate",
+            "achievements",
+          ],
+          properties: {
+            googleId: { bsonType: "string" },
+            username: { bsonType: "string" },
+            email: { bsonType: "string" },
+            lastSeenDate: { bsonType: "date" },
+            achievements: {
+              bsonType: "object",
+              required: ["victories", "rank", "renown"],
+              properties: {
+                victories: { bsonType: "int" },
+                rank: { bsonType: "int" },
+                renown: { bsonType: "int" },
+              },
+            },
+          },
+        },
+      },
+    });
 
     // Auth Index: Look up by googleId
     await db.collection("users").createIndex({ googleId: 1 }, { unique: true });

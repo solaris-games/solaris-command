@@ -2,6 +2,7 @@ import { ObjectId } from "mongodb";
 import { HexUtils } from "./hex-utils";
 import { Hex, TerrainTypes, Planet } from "../models";
 import { HexCoords } from "../types";
+import { MapUtils } from "./map-utils";
 
 interface MapGenOptions {
   radius: number; // Size of the galaxy (e.g., 15 hexes)
@@ -38,9 +39,6 @@ export const MapGenerator = {
         terrain: terrain,
         unitId: null,
         supply: { isInSupply: false, ticksLastSupply: 0, ticksOutOfSupply: 0 },
-        isImpassable:
-          terrain === TerrainTypes.GRAVITY_WELL ||
-          terrain === TerrainTypes.RADIATION_STORM,
       });
     });
 
@@ -57,7 +55,6 @@ export const MapGenerator = {
       const hex = hexes.find((h) => HexUtils.equals(h.coords, loc));
       if (hex) {
         hex.terrain = TerrainTypes.EMPTY;
-        hex.isImpassable = false;
       }
     });
 
@@ -73,7 +70,7 @@ export const MapGenerator = {
       const randomHex = hexes[Math.floor(Math.random() * hexes.length)];
 
       // Constraints: Not Impassable, Not near other planets
-      if (randomHex.isImpassable) continue;
+      if (MapUtils.isHexImpassable(randomHex)) continue;
       if (
         planets.some((p) => HexUtils.distance(p.location, randomHex.coords) < 3)
       )
@@ -162,8 +159,6 @@ function createPlanet(
     name: name,
     location: loc,
     isCapital: isCapital,
-    prestigePointsPerCycle: isCapital ? 100 : 25,
-    victoryPointsPerCycle: isCapital ? 10 : 1,
     supply: {
       isInSupply: true,
       isRoot: isCapital,
