@@ -3,7 +3,7 @@ import { HexUtils } from "./hex-utils";
 import { Hex, TerrainTypes, Planet } from "../models";
 import { HexCoords } from "../types";
 import { MapUtils } from "./map-utils";
-import { PLANET_NAMES } from "../data";
+import {  PLANET_NAMES } from "../data";
 
 interface MapGenOptions {
   radius: number; // Size of the galaxy (e.g., 15 hexes)
@@ -21,6 +21,7 @@ export const MapGenerator = {
   } {
     const hexes: Hex[] = [];
     const planets: Planet[] = [];
+    const planetNames = PLANET_NAMES.slice();
 
     // 1. Generate the Grid (Spiral out from 0,0,0)
     const coords = HexUtils.getHexCoordsInRange(
@@ -48,8 +49,7 @@ export const MapGenerator = {
     const capitalLocs = placeCapitals(options.playerCount, options.radius);
 
     capitalLocs.forEach((loc) => {
-      const planetName =
-        PLANET_NAMES[Math.floor(Math.random() * PLANET_NAMES.length)];
+      const planetName = planetNames.splice(Math.floor(Math.random() * PLANET_NAMES.length), 1)[0]
 
       planets.push(createPlanet(gameId, loc, planetName, true));
 
@@ -78,11 +78,13 @@ export const MapGenerator = {
       )
         continue;
 
+      const planetName = planetNames.splice(Math.floor(Math.random() * PLANET_NAMES.length), 1)[0]
+
       planets.push(
         createPlanet(
           gameId,
           randomHex.coords,
-          `Planet ${placedCount + 1}`,
+          planetName,
           false
         )
       );

@@ -15,4 +15,8 @@ export class PlanetService {
   static async getByGameId(db: Db, gameId: ObjectId) {
     return db.collection<Planet>("planets").find({ gameId }).toArray();
   }
+
+  static async insertPlanets(db: Db, planets: Planet[]) {
+    await db.collection("planets").insertMany(planets);
+  }
 }

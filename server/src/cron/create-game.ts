@@ -1,7 +1,14 @@
 import cron from "node-cron";
 import { MongoClient, ObjectId } from "mongodb";
-import { CONSTANTS, GameStates, Game, GAME_NAMES } from "@solaris-command/core";
-import { GameService } from "../services/GameService";
+import {
+  CONSTANTS,
+  GameStates,
+  Game,
+  GAME_NAMES,
+  MapGenerator,
+} from "@solaris-command/core";
+import { executeInTransaction } from "../db";
+import { GameService, HexService, PlanetService } from "../services";
 
 export const CreateGameJob = {
   start(mongoClient: MongoClient) {
@@ -39,8 +46,10 @@ async function checkAndCreateGame(client: MongoClient) {
 
   const gameName = GAME_NAMES[Math.floor(Math.random() * GAME_NAMES.length)];
 
+  const gameId = new ObjectId();
+
   const newGameData: Game = {
-    _id: new ObjectId(),
+    _id: gameId,
     name: gameName,
     description: "Official Server Game",
     settings: {
@@ -64,6 +73,17 @@ async function checkAndCreateGame(client: MongoClient) {
     },
   };
 
-  await GameService.createGame(newGameData);
+  const { hexes, planets } = MapGenerator.generate(gameId, {
+    radius: CONSTANTS.GAME_DEFAULT_GALAXY_RADIUS,
+    playerCount: CONSTANTS.GAME_DEFAULT_PLAYER_COUNT,
+    density: CONSTANTS.GAME_DEFAULT_GALAXY_PLANET_DENSITY,
+  });
+
+  await executeInTransaction(async (db, session) => {
+    await GameService.createGame(db, newGameData);
+    await HexService.insertHexes(db, hexes);
+    await PlanetService.insertPlanets(db, planets);
+  });
+
   console.log("✅ New game created.");
 }

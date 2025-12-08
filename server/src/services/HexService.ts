@@ -15,4 +15,8 @@ export class HexService {
   static async getByGameId(db: Db, gameId: ObjectId) {
     return db.collection<Hex>("hexes").find({ gameId }).toArray();
   }
+
+  static async insertHexes(db: Db, hexes: Hex[]) {
+    await db.collection("hexes").insertMany(hexes);
+  }
 }
