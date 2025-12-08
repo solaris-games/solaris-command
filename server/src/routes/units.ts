@@ -128,6 +128,8 @@ router.post(
         },
       };
 
+      // TODO: Update ownership/ZOC on hexes adjecent to the new unit.
+
       const createdUnit = await executeInTransaction(async (db, session) => {
         const unit = await UnitService.createUnit(db, newUnit, session);
 
