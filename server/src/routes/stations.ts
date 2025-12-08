@@ -45,8 +45,7 @@ router.post(
         supply: {
           isInSupply: true,
           isRoot: false,
-        },
-        // TODO: Need a tickActive and tickDecommissioned
+        }
       };
 
       const createdStation = await StationService.createStation(newStation);
@@ -69,13 +68,9 @@ router.delete(
   loadPlayerStation,
   async (req, res) => {
     try {
-      // Logic: Decommission
-      // Sets state to DECOMMISSIONING, doesn't delete immediately?
-      // "When a player removes a station, it enters this state for 1 Cycle."
-
       await StationService.deleteStation(req.station._id);
 
-      res.json({ message: "Station decommissioning started" });
+      res.json({ message: "Station decommissioned" });
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }

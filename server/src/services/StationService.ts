@@ -27,8 +27,8 @@ export class StationService {
       return { ...station, _id: result.insertedId };
   }
 
-  static async deleteStation(station: Station) {
+  static async deleteStation(stationId: ObjectId) {
       const db = getDb();
-      await db.collection<Station>("stations").deleteOne({ _id: station._id });
+      await db.collection<Station>("stations").deleteOne({ _id: stationId });
   }
 }
