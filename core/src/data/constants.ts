@@ -25,5 +25,12 @@ export const CONSTANTS = {
     GAME_DEFAULT_TICKS_PER_CYCLE: 24,
     GAME_DEFAULT_VICTORY_POINTS: 100,
     GAME_DEFAULT_GALAXY_RADIUS: 30,
-    GAME_DEFAULT_GALAXY_PLANET_DENSITY: "MEDIUM" as ('LOW' | 'MEDIUM' | 'HIGH')
+    GAME_DEFAULT_GALAXY_PLANET_DENSITY: "MEDIUM" as ('LOW' | 'MEDIUM' | 'HIGH'),
+
+    // Starting Config
+    STARTING_FLEET_IDS: [
+        "unit_corvette_01",
+        "unit_frigate_01",
+        "unit_destroyer_01"
+    ]
 }

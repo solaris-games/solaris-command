@@ -3,6 +3,7 @@ import { Unit } from "../models/unit";
 import { HexUtils } from "./hex-utils";
 import { UNIT_CATALOG_ID_MAP } from "../data";
 import { Hex, Planet, TerrainTypes } from "../models";
+import { HexCoords } from "../types/geometry";
 
 export const MapUtils = {
   /**
@@ -74,5 +75,76 @@ export const MapUtils = {
     return planets.find(
       (p) => p.isCapital && String(p.playerId) === String(playerId)
     ) || null;
+  },
+
+  findUnownedCapital(planets: Planet[]): Planet | null {
+    return planets.find((p) => p.isCapital && p.playerId === null) || null;
+  },
+
+  findNearestUnownedPlanet(
+    planets: Planet[],
+    center: HexCoords,
+    excludePlanetId?: ObjectId
+  ): Planet | null {
+    let nearest: Planet | null = null;
+    let minDistance = Infinity;
+
+    for (const planet of planets) {
+      if (planet.playerId) continue; // Must be unowned
+      if (excludePlanetId && planet._id.toString() === excludePlanetId.toString())
+        continue;
+
+      const dist = HexUtils.distance(center, planet.location);
+      if (dist < minDistance) {
+        minDistance = dist;
+        nearest = planet;
+      }
+    }
+
+    return nearest;
+  },
+
+  findNearestFreeHexes(
+    hexes: Hex[],
+    center: HexCoords,
+    count: number
+  ): Hex[] {
+    const results: Hex[] = [];
+    const hexMap = new Map<string, Hex>();
+    hexes.forEach((h) => hexMap.set(HexUtils.getCoordsID(h.coords), h));
+
+    let radius = 1;
+    // Safety break to prevent infinite loops if map is totally full
+    const MAX_RADIUS = 10;
+
+    while (results.length < count && radius <= MAX_RADIUS) {
+      const candidates = HexUtils.getHexCoordsInRing(center, radius);
+
+      // Randomize candidates to prevent directional bias
+      // Fisher-Yates shuffle
+      for (let i = candidates.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+      }
+
+      for (const coord of candidates) {
+        if (results.length >= count) break;
+
+        const hexId = HexUtils.getCoordsID(coord);
+        const hex = hexMap.get(hexId);
+
+        if (
+          hex &&
+          !hex.unitId &&
+          !MapUtils.isHexImpassable(hex)
+        ) {
+          results.push(hex);
+        }
+      }
+
+      radius++;
+    }
+
+    return results;
   },
 };

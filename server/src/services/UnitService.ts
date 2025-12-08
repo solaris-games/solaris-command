@@ -21,6 +21,7 @@ export class UnitService {
   }
 
   static async createUnit(db: Db, unit: Unit, session?: ClientSession) {
+    // Insert unit with session for transaction support
     const result = await db
       .collection<Unit>("units")
       .insertOne(unit, { session });
