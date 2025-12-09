@@ -14,6 +14,7 @@ import { StationService } from "../services/StationService";
 import { loadPlayerStation, loadStations } from "../middleware/station";
 import { executeInTransaction, getDb } from "../db";
 import { PlayerService } from "../services/PlayerService";
+import { StationMapper } from "../map/StationMapper";
 
 const router = express.Router({ mergeParams: true });
 
@@ -91,10 +92,12 @@ router.post(
         return station;
       });
 
-      res.json({
-        station: createdStation,
-        prestigeCost: CONSTANTS.STATION_PRESTIGE_COST
-      });
+      res.json(
+        StationMapper.toBuildStationResponse(
+          createdStation,
+          CONSTANTS.STATION_PRESTIGE_COST
+        )
+      );
     } catch (error: any) {
       console.error("Error building station:", error);
       res.status(500);

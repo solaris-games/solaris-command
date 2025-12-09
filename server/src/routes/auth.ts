@@ -6,6 +6,7 @@ import { User } from "@solaris-command/core";
 import { ObjectId } from "mongodb";
 import { UserService } from "../services/UserService";
 import { ERROR_CODES } from "../middleware";
+import { AuthMapper } from "../map/AuthMapper";
 
 const router = express.Router();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -84,7 +85,7 @@ router.post("/google", async (req, res) => {
       { expiresIn: "7d" } // Long lived session
     );
 
-    res.json({ token: sessionToken, user });
+    res.json(AuthMapper.toLoginResponse(sessionToken, user));
   } catch (error) {
     console.error("Auth Error:", error);
     res.status(401).json({ errorCode: ERROR_CODES.AUTH_FAILED });

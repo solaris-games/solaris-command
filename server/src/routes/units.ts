@@ -32,6 +32,7 @@ import {
 import { UnitService } from "../services/UnitService";
 import { PlayerService } from "../services/PlayerService";
 import { executeInTransaction, getDb } from "../db";
+import { UnitMapper } from "../map/UnitMapper";
 
 const router = express.Router({ mergeParams: true });
 
@@ -150,9 +151,7 @@ router.post(
         return unit;
       });
 
-      res.json({
-        unit: createdUnit,
-      });
+      res.json(UnitMapper.toDeployUnitResponse(createdUnit));
     } catch (error: any) {
       console.error("Error deploying unit:", error);
       res.status(500);
