@@ -19,4 +19,15 @@ export class PlanetService {
   static async insertPlanets(db: Db, planets: Planet[]) {
     await db.collection("planets").insertMany(planets);
   }
+
+  static async assignPlanetToPlayer(
+    db: Db,
+    planetId: ObjectId,
+    playerId: ObjectId,
+    session?: ClientSession
+  ) {
+    return db
+      .collection<Planet>("planets")
+      .updateOne({ _id: planetId }, { $set: { playerId } }, { session });
+  }
 }

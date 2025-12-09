@@ -1,4 +1,4 @@
-import { Db, ObjectId } from "mongodb";
+import { ClientSession, Db, ObjectId } from "mongodb";
 import { Game, GameStates, Player, FogOfWar } from "@solaris-command/core";
 import { UnitService } from "./UnitService";
 import { StationService } from "./StationService";
@@ -99,5 +99,30 @@ export class GameService {
       .sort({ createdAt: -1 })
       .limit(100)
       .toArray();
+  }
+
+  static async updateGameState(
+    db: Db,
+    gameId: ObjectId,
+    update: any,
+    session?: ClientSession
+  ) {
+    return db
+      .collection<Game>("games")
+      .updateOne({ _id: gameId }, { $set: update }, { session });
+  }
+
+  static async incrementPlayerCount(
+    db: Db,
+    gameId: ObjectId,
+    session?: ClientSession
+  ) {
+    return db
+      .collection<Game>("games")
+      .findOneAndUpdate(
+        { _id: gameId },
+        { $inc: { "state.playerCount": 1 } },
+        { session, returnDocument: "after" }
+      );
   }
 }

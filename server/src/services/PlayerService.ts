@@ -73,7 +73,8 @@ export class PlayerService {
     db: Db,
     gameId: ObjectId,
     userId: ObjectId,
-    options: { alias?: string; color?: string }
+    options: { alias?: string; color?: string },
+    session?: ClientSession
   ) {
     const newPlayer: Player = {
       _id: new ObjectId(),
@@ -87,7 +88,7 @@ export class PlayerService {
       lastSeenDate: new Date(),
     };
 
-    await db.collection("players").insertOne(newPlayer);
+    await db.collection("players").insertOne(newPlayer, { session });
     return newPlayer;
   }
 

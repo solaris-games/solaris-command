@@ -19,4 +19,26 @@ export class HexService {
   static async insertHexes(db: Db, hexes: Hex[]) {
     await db.collection("hexes").insertMany(hexes);
   }
+
+  static async updateHexUnit(
+    db: Db,
+    hexId: ObjectId,
+    unitId: ObjectId | null,
+    session?: ClientSession
+  ) {
+    return db
+      .collection<Hex>("hexes")
+      .updateOne({ _id: hexId }, { $set: { unitId } }, { session });
+  }
+
+  static async updateHexOwnership(
+    db: Db,
+    hexId: ObjectId,
+    playerId: ObjectId | null,
+    session?: ClientSession
+  ) {
+    return db
+      .collection<Hex>("hexes")
+      .updateOne({ _id: hexId }, { $set: { playerId } }, { session });
+  }
 }
