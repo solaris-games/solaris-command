@@ -17,7 +17,7 @@ export class PlanetService {
   }
 
   static async insertPlanets(db: Db, planets: Planet[]) {
-    await db.collection("planets").insertMany(planets);
+    await db.collection<Planet>("planets").insertMany(planets);
   }
 
   static async assignPlanetToPlayer(

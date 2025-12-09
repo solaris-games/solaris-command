@@ -77,7 +77,7 @@ class TickContext {
     // We track unit locations in a Map for O(1) lookup during collision/combat checks.
     // This map is updated continuously as the Tick progresses (e.g., after a Blitz move).
     this.hexLookup = new Map<string, Hex>();
-    hexes.forEach((h) => this.hexLookup.set(HexUtils.getCoordsID(h.coords), h));
+    hexes.forEach((h) => this.hexLookup.set(HexUtils.getCoordsID(h.location), h));
 
     this.unitLocations = new Map<string, Unit>();
     units.forEach((u) => this.unitLocations.set(HexUtils.getCoordsID(u.location), u));
@@ -393,7 +393,7 @@ export const TickProcessor = {
 
         // Moving into a hex that is in a Zone of Control (ZOC) of an enemy unit DOUBLES the MP cost of that hex.
         const isZOC = MapUtils.isHexInEnemyZOC(
-          HexUtils.getCoordsID(targetHex.coords),
+          HexUtils.getCoordsID(targetHex.location),
           String(unit.playerId),
           contextMovement.zocMap
         );

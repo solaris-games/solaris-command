@@ -29,10 +29,9 @@ import {
   requireActiveGame,
   requireNonRegoupingUnit,
 } from "../middleware";
-import { UnitService } from "../services/UnitService";
-import { PlayerService } from "../services/PlayerService";
+import { UnitService, PlayerService } from "../services";
 import { executeInTransaction, getDb } from "../db";
-import { UnitMapper } from "../map/UnitMapper";
+import { UnitMapper } from "../map";
 
 const router = express.Router({ mergeParams: true });
 
@@ -115,7 +114,7 @@ router.post(
         gameId: req.game._id,
         playerId: req.player._id,
         catalogId: catalogId,
-        location: hex.coords,
+        location: hex.location,
         steps: initialSteps,
         state: {
           status: UnitStatus.IDLE,

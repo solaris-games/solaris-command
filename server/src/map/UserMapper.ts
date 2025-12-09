@@ -1,9 +1,16 @@
-import { User, UserDetailsResponse } from "@solaris-command/core";
+import { User, UserDetailsResponseSchema } from "@solaris-command/core";
 
 export class UserMapper {
-  static toUserDetailsResponse(user: User): UserDetailsResponse {
-    // We might want to strip internal fields here if User has sensitive data
-    // For now, it seems to match the interface
-    return user;
+  static toUserDetailsResponse(user: User): UserDetailsResponseSchema {
+    return {
+      _id: String(user._id),
+      username: user.username,
+      lastSeenDate: user.lastSeenDate.toISOString(),
+      achievements: {
+        victories: user.achievements.victories,
+        rank: user.achievements.rank,
+        renown: user.achievements.renown,
+      },
+    };
   }
 }

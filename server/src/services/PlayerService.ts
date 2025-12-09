@@ -61,7 +61,7 @@ export class PlayerService {
     session?: ClientSession
   ) {
     await db
-      .collection("players")
+      .collection<Player>("players")
       .updateOne(
         { _id: playerId },
         { $inc: { prestigePoints: -prestige } },
@@ -88,7 +88,7 @@ export class PlayerService {
       lastSeenDate: new Date(),
     };
 
-    await db.collection("players").insertOne(newPlayer, { session });
+    await db.collection<Player>("players").insertOne(newPlayer, { session });
     return newPlayer;
   }
 
@@ -109,7 +109,7 @@ export class PlayerService {
 
   static async leaveGame(db: Db, playerId: ObjectId, session?: ClientSession) {
     const result = await db
-      .collection("players")
+      .collection<Player>("players")
       .deleteOne({ _id: playerId }, { session });
 
     return result;
@@ -121,7 +121,7 @@ export class PlayerService {
     session?: ClientSession
   ) {
     // Update player status to DEFEATED
-    const result = await db.collection("players").updateOne(
+    const result = await db.collection<Player>("players").updateOne(
       {
         _id: playerId,
       },
@@ -140,12 +140,12 @@ export class PlayerService {
     session?: ClientSession
   ) {
     return db
-      .collection("players")
+      .collection<Player>("players")
       .updateOne({ _id: playerId }, { $set: { status } }, { session });
   }
 
   static async touchPlayer(db: Db, playerId: ObjectId) {
-    return db.collection("players").updateOne(
+    return db.collection<Player>("players").updateOne(
       { _id: playerId },
       {
         $set: {

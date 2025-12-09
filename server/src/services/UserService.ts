@@ -1,5 +1,5 @@
 import { ClientSession, Db, ObjectId } from "mongodb";
-import { User } from "@solaris-command/core";
+import { Player, User } from "@solaris-command/core";
 import { getDb } from "../db/instance";
 import { PlayerService } from "./PlayerService";
 import { PlayerStatus } from "@solaris-command/core";
@@ -15,7 +15,7 @@ export class UserService {
 
   static async touchUser(db: Db, userId: ObjectId) {
     // Update last seen
-    return db.collection("users").updateOne(
+    return db.collection<User>("users").updateOne(
       { _id: userId },
       {
         $set: {
@@ -50,7 +50,7 @@ export class UserService {
 
       const playerIds = activePlayers.map((p) => p._id);
       await db
-        .collection("players")
+        .collection<Player>("players")
         .updateMany(
           { _id: { $in: playerIds } },
           { $set: { status: PlayerStatus.DEFEATED } },
@@ -68,7 +68,7 @@ export class UserService {
 
       // Bulk delete players
       await db
-        .collection("players")
+        .collection<Player>("players")
         .deleteMany({ _id: { $in: playerIds } }, { session });
 
       // Bulk remove assets

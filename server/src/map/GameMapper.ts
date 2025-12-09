@@ -1,40 +1,48 @@
 import {
   Game,
-  GameListItem,
-  GameListResponse,
-  JoinGameResponse,
-  GameDetailsResponse,
-  GameEventsResponse,
+  JoinGameResponseSchema,
+  GameEventsResponseSchema,
   Player,
-  Galaxy,
+  GameListItemResponseSchema,
+  GameEvent,
 } from "@solaris-command/core";
 
 export class GameMapper {
   static toGameListResponse(
     games: Game[],
     myGameIds: any[]
-  ): GameListResponse {
+  ): GameListItemResponseSchema[] {
     return games.map((g) => ({
-      id: g._id,
+      _id: String(g._id),
       name: g.name,
       description: g.description,
-      state: g.state,
-      settings: g.settings,
+      state: {
+        status: g.state.status,
+        playerCount: g.state.playerCount,
+        tick: g.state.tick,
+        cycle: g.state.cycle,
+      },
+      settings: {
+        playerCount: g.settings.playerCount,
+      },
       userHasJoined: myGameIds.some((id) => id.toString() === g._id.toString()),
     }));
   }
 
-  static toJoinGameResponse(player: Player): JoinGameResponse {
+  static toJoinGameResponse(player: Player): JoinGameResponseSchema {
     return {
-      player,
+      player, // Safe to use full model
     };
   }
 
-  static toGameDetailsResponse(galaxy: Galaxy): GameDetailsResponse {
-    return galaxy;
-  }
-
-  static toGameEventsResponse(events: any[]): GameEventsResponse {
-    return events;
+  static toGameEventsResponse(events: GameEvent[]): GameEventsResponseSchema[] {
+    return events.map(e => ({
+      _id: String(e._id),
+      gameId: String(e.gameId),
+      playerId: e.playerId?.toString() || null,
+      tick: e.tick,
+      type: e.type,
+      data: e.data
+    }));
   }
 }

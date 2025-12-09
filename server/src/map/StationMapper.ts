@@ -1,15 +1,12 @@
-import {
-  Station,
-  BuildStationResponse,
-} from "@solaris-command/core";
+import { Station, BuildStationResponseSchema } from "@solaris-command/core";
 
 export class StationMapper {
   static toBuildStationResponse(
     station: Station,
     prestigeCost: number
-  ): BuildStationResponse {
+  ): BuildStationResponseSchema {
     return {
-      station,
+      station, // Safe to use full model
       prestigeCost,
     };
   }

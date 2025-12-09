@@ -1,12 +1,21 @@
 import { ClientSession, Db, ObjectId } from "mongodb";
-import { Game, GameStates, Player, FogOfWar } from "@solaris-command/core";
+import { Game, GameStates, Player, FogOfWar, Hex, Planet, Station, Unit } from "@solaris-command/core";
 import { UnitService } from "./UnitService";
 import { StationService } from "./StationService";
 import { PlanetService } from "./PlanetService";
 import { HexService } from "./HexService";
 import { PlayerService } from "./PlayerService";
 
-export class GalaxyService {
+export interface GameGalaxy {
+  game: Game,
+  players: Player[],
+  hexes: Hex[],
+  planets: Planet[],
+  stations: Station[],
+  units: Unit[]
+}
+
+export class GameGalaxyService {
   static async getGameGalaxy(db: Db, game: Game, userId: string) {
     const gameId = game._id;
 

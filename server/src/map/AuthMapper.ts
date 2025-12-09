@@ -1,10 +1,11 @@
-import { User, LoginResponse } from "@solaris-command/core";
+import { User, LoginResponseSchema } from "@solaris-command/core";
+import { UserMapper } from "./UserMapper";
 
 export class AuthMapper {
-  static toLoginResponse(token: string, user: User): LoginResponse {
+  static toLoginResponse(token: string, user: User): LoginResponseSchema {
     return {
       token,
-      user,
+      user: UserMapper.toUserDetailsResponse(user),
     };
   }
 }

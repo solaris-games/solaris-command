@@ -17,6 +17,7 @@ import {
   HexUtils,
   ProcessCycleResult,
   Station,
+  GameEvent,
 } from "@solaris-command/core";
 import { GameService } from "../services";
 
@@ -199,9 +200,9 @@ async function executeGameTick(client: MongoClient, game: Game) {
       updateOne: {
         filter: {
           gameId: gameId,
-          "coords.q": coords.q,
-          "coords.r": coords.r,
-          "coords.s": coords.s,
+          "location.q": coords.q,
+          "location.r": coords.r,
+          "location.s": coords.s,
         },
         update: { $set: update },
       },
@@ -248,9 +249,25 @@ async function executeGameTick(client: MongoClient, game: Game) {
 
   // Save Combat Reports
   if (tickResult.combatReports.length > 0) {
-    await db.collection("game_events").insertMany(
+    // Insert one for the attacker and another for the defender.
+    await db.collection<GameEvent>("game_events").insertMany(
       tickResult.combatReports.map((r) => ({
+        _id: new ObjectId(),
         gameId: gameId,
+        playerId: r.attackerId,
+        tick: newTick,
+        type: "COMBAT_REPORT",
+        data: r,
+        createdAt: new Date(),
+      }))
+    );
+
+    await db.collection<GameEvent>("game_events").insertMany(
+      tickResult.combatReports.map((r) => ({
+        _id: new ObjectId(),
+        gameId: gameId,
+        playerId: r.defenderId,
+        tick: newTick,
         type: "COMBAT_REPORT",
         data: r,
         createdAt: new Date(),

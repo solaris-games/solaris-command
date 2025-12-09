@@ -57,7 +57,7 @@ function createHex(terrain: TerrainTypes): Hex {
     _id: new ObjectId(),
     gameId: new ObjectId(),
     unitId: null,
-    coords: { q: 0, r: 0, s: 0 },
+    location: { q: 0, r: 0, s: 0 },
     terrain: terrain,
     // supply field omitted for brevity as it's not used in calculator
   } as Hex;

@@ -111,7 +111,7 @@ export const MapUtils = {
   ): Hex[] {
     const results: Hex[] = [];
     const hexMap = new Map<string, Hex>();
-    hexes.forEach((h) => hexMap.set(HexUtils.getCoordsID(h.coords), h));
+    hexes.forEach((h) => hexMap.set(HexUtils.getCoordsID(h.location), h));
 
     let radius = 1;
     // Safety break to prevent infinite loops if map is totally full

@@ -10,11 +10,10 @@ import {
   loadPlayer,
   requireActiveGame,
 } from "../middleware";
-import { StationService } from "../services/StationService";
+import { StationService, PlayerService } from "../services";
 import { loadPlayerStation, loadStations } from "../middleware/station";
 import { executeInTransaction, getDb } from "../db";
-import { PlayerService } from "../services/PlayerService";
-import { StationMapper } from "../map/StationMapper";
+import { StationMapper } from "../map";
 
 const router = express.Router({ mergeParams: true });
 
@@ -47,7 +46,7 @@ router.post(
       }
 
       // Make sure hex isn't already occupied by another station.
-      const hexCoordsId = HexUtils.getCoordsID(hex.coords);
+      const hexCoordsId = HexUtils.getCoordsID(hex.location);
       const existingStation = req.stations.find(
         (s) => HexUtils.getCoordsID(s.location) === hexCoordsId
       );
@@ -68,7 +67,7 @@ router.post(
         _id: new ObjectId(),
         gameId: req.game._id,
         playerId: req.player._id,
-        location: hex.coords,
+        location: hex.location,
         supply: {
           isInSupply: true,
           isRoot: false,

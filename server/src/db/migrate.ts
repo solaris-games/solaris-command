@@ -43,7 +43,7 @@ async function migrate() {
       });
       // Unique index on filename to prevent double execution (though code logic handles it)
       await db
-        .collection("migrations")
+        .collection<MigrationLog>("migrations")
         .createIndex({ filename: 1 }, { unique: true });
     }
 
@@ -81,7 +81,7 @@ async function migrate() {
         await migrationModule.up(db, client);
 
         // Log success
-        await db.collection("migrations").insertOne({
+        await db.collection<MigrationLog>("migrations").insertOne({
           filename: file,
           executedAt: new Date(),
         } as any);

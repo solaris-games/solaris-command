@@ -113,7 +113,7 @@ export const UnitManager = {
     // Filter valid
     for (const coord of candidates) {
       const hexId = HexUtils.getCoordsID(coord);
-      const hex = hexes.find((h) => HexUtils.getCoordsID(h.coords) === hexId);
+      const hex = hexes.find((h) => HexUtils.getCoordsID(h.location) === hexId);
 
       // Must exist and be passable
       if (!hex || MapUtils.isHexImpassable(hex)) continue;

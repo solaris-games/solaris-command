@@ -29,9 +29,8 @@ function createHex(
     gameId: new ObjectId(),
     unitId: null,
     playerId: null,
-    coords: { q, r, s },
+    location: { q, r, s },
     terrain: terrain,
-    supply: { isInSupply: true, ticksLastSupply: 0, ticksOutOfSupply: 0 },
   };
 }
 
@@ -82,8 +81,8 @@ describe("CombatEngine", () => {
     const startHex = createHex(0, 0, 0);
 
     hexLookup = new Map();
-    hexLookup.set(HexUtils.getCoordsID(combatHex.coords), combatHex);
-    hexLookup.set(HexUtils.getCoordsID(startHex.coords), startHex);
+    hexLookup.set(HexUtils.getCoordsID(combatHex.location), combatHex);
+    hexLookup.set(HexUtils.getCoordsID(startHex.location), startHex);
 
     // Mock Unit Utils to simulate damage application (simple pass-through or modification)
     // We mock them to return modified arrays so we can check calls
@@ -202,7 +201,7 @@ describe("CombatEngine", () => {
 
       // Create a valid retreat hex
       const retreatHex = createHex(2, 0, -2); // Adjacent to defender (1, 0, -1)
-      hexLookup.set(HexUtils.getCoordsID(retreatHex.coords), retreatHex);
+      hexLookup.set(HexUtils.getCoordsID(retreatHex.location), retreatHex);
 
       // Spy on findRetreatHex logic (implicit in resolveBattle, but we check outcome)
       const result = CombatEngine.resolveBattle(
@@ -216,7 +215,7 @@ describe("CombatEngine", () => {
       expect(result.report.defender.retreated).toBe(true);
       expect(result.report.defender.shattered).toBe(false);
       // Defender should move
-      expect(defender.location).toEqual(retreatHex.coords);
+      expect(defender.location).toEqual(retreatHex.location);
       expect(defender.state.status).toBe(UnitStatus.REGROUPING);
     });
 
@@ -278,7 +277,7 @@ describe("CombatEngine", () => {
 
       // Valid retreat hex
       const retreatHex = createHex(2, 0, -2);
-      hexLookup.set(HexUtils.getCoordsID(retreatHex.coords), retreatHex);
+      hexLookup.set(HexUtils.getCoordsID(retreatHex.location), retreatHex);
 
       const result = CombatEngine.resolveBattle(
         attacker,
@@ -290,7 +289,7 @@ describe("CombatEngine", () => {
 
       expect(result.attackerWonHex).toBe(true);
       // Attacker should now be in defender's old spot
-      expect(attacker.location).toEqual(combatHex.coords);
+      expect(attacker.location).toEqual(combatHex.location);
     });
 
     it("should NOT Advance on Victory if operation is Suppressive Fire", () => {
@@ -321,7 +320,7 @@ describe("CombatEngine", () => {
       );
 
       expect(result.attackerWonHex).toBe(false);
-      expect(attacker.location).not.toEqual(combatHex.coords);
+      expect(attacker.location).not.toEqual(combatHex.location);
     });
   });
 
@@ -334,8 +333,8 @@ describe("CombatEngine", () => {
       const asteroidHex = createHex(2, 0, -2, TerrainTypes.ASTEROID_FIELD);
       const emptyHex = createHex(1, 1, -2, TerrainTypes.EMPTY);
 
-      hexLookup.set(HexUtils.getCoordsID(asteroidHex.coords), asteroidHex);
-      hexLookup.set(HexUtils.getCoordsID(emptyHex.coords), emptyHex);
+      hexLookup.set(HexUtils.getCoordsID(asteroidHex.location), asteroidHex);
+      hexLookup.set(HexUtils.getCoordsID(emptyHex.location), emptyHex);
 
       const retreatHex = CombatEngine.findRetreatHex(
         defender,
@@ -344,7 +343,7 @@ describe("CombatEngine", () => {
       );
 
       expect(retreatHex).toBeDefined();
-      expect(retreatHex?.coords).toEqual(emptyHex.coords);
+      expect(retreatHex?.location).toEqual(emptyHex.location);
     });
 
     it("should NOT retreat into the attacker", () => {

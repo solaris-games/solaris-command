@@ -1,5 +1,5 @@
 import { ClientSession, Db, ObjectId } from "mongodb";
-import { Game, GameStates, Player, FogOfWar } from "@solaris-command/core";
+import { Game, GameStates, Player, FogOfWar, GameEvent } from "@solaris-command/core";
 import { UnitService } from "./UnitService";
 import { StationService } from "./StationService";
 import { PlanetService } from "./PlanetService";
@@ -39,13 +39,13 @@ export class GameService {
   }
 
   static async createGame(db: Db, gameData: any) {
-    const result = await db.collection("games").insertOne(gameData);
+    const result = await db.collection<Game>("games").insertOne(gameData);
     return { id: result.insertedId, ...gameData };
   }
 
   static async getGameEvents(db: Db, gameId: ObjectId) {
     return db
-      .collection("game_events")
+      .collection<GameEvent>("game_events")
       .find({ gameId })
       .sort({ createdAt: -1 })
       .limit(100)

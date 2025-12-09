@@ -67,7 +67,7 @@ export class UnitService {
     session?: ClientSession
   ) {
     // Update Unit
-    await db.collection("units").updateOne(
+    await db.collection<Unit>("units").updateOne(
       { _id: unitId },
       {
         $set: {
@@ -87,7 +87,7 @@ export class UnitService {
     activeSteps: number,
     suppressedSteps: number
   ) {
-    return db.collection("units").updateOne(
+    return db.collection<Unit>("units").updateOne(
       { _id: unitId },
       {
         $set: {
@@ -100,6 +100,6 @@ export class UnitService {
   }
 
   static async deleteUnit(db: Db, unitId: ObjectId) {
-    return db.collection("units").deleteOne({ _id: unitId });
+    return db.collection<Unit>("units").deleteOne({ _id: unitId });
   }
 }

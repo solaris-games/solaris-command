@@ -37,10 +37,9 @@ export const MapGenerator = {
         _id: new ObjectId(),
         playerId: null,
         gameId: gameId,
-        coords: coord,
+        location: coord,
         terrain: terrain,
-        unitId: null,
-        supply: { isInSupply: false, ticksLastSupply: 0, ticksOutOfSupply: 0 },
+        unitId: null
       });
     });
 
@@ -54,7 +53,7 @@ export const MapGenerator = {
       planets.push(createPlanet(gameId, loc, planetName, true));
 
       // Clear terrain at capital
-      const hex = hexes.find((h) => HexUtils.equals(h.coords, loc));
+      const hex = hexes.find((h) => HexUtils.equals(h.location, loc));
       if (hex) {
         hex.terrain = TerrainTypes.EMPTY;
       }
@@ -74,7 +73,7 @@ export const MapGenerator = {
       // Constraints: Not Impassable, Not near other planets
       if (MapUtils.isHexImpassable(randomHex)) continue;
       if (
-        planets.some((p) => HexUtils.distance(p.location, randomHex.coords) < 3)
+        planets.some((p) => HexUtils.distance(p.location, randomHex.location) < 3)
       )
         continue;
 
@@ -83,7 +82,7 @@ export const MapGenerator = {
       planets.push(
         createPlanet(
           gameId,
-          randomHex.coords,
+          randomHex.location,
           planetName,
           false
         )

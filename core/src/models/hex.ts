@@ -37,7 +37,6 @@ export interface Hex {
   unitId: ObjectId | null; // One unit per hex.
   playerId: ObjectId | null;
 
-  coords: HexCoords; // { q, r, s }
+  location: HexCoords; // { q, r, s }
   terrain: TerrainTypes;
-  supply: SupplyTarget;
 }

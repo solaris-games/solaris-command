@@ -78,7 +78,7 @@ export const CombatEngine = {
 
         if (retreatHex) {
           // Successful Retreat
-          defender.location = retreatHex.coords;
+          defender.location = retreatHex.location;
           defender.state.status = UnitStatus.REGROUPING;
           defenderRetreated = true;
           outcome = CombatResultType.RETREAT;
@@ -105,7 +105,7 @@ export const CombatEngine = {
       operationAllowsAdvance
     ) {
       if (settings.advanceOnVictory && attacker.state.mp > 0) {
-        attacker.location = hex.coords;
+        attacker.location = hex.location;
         attackerWonHex = true;
       }
     }
@@ -120,7 +120,7 @@ export const CombatEngine = {
       tick: 0, // Controller should inject current tick
       attackerId: attacker._id,
       defenderId: defender._id,
-      hex: hex.coords,
+      hex: hex.location,
       odds: `${prediction.oddsRatio}:1`,
       roll: prediction.finalScore, // The "Net Score"
 

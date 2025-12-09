@@ -17,7 +17,7 @@ export class HexService {
   }
 
   static async insertHexes(db: Db, hexes: Hex[]) {
-    await db.collection("hexes").insertMany(hexes);
+    await db.collection<Hex>("hexes").insertMany(hexes);
   }
 
   static async updateHexUnit(

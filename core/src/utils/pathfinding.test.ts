@@ -25,9 +25,8 @@ function createMap(
         gameId: gameId,
         unitId: null,
         playerId: null,
-        coords: coords,
+        location: coords,
         terrain: terrainOverride.get(id) || TerrainTypes.EMPTY,
-        supply: { isInSupply: false, ticksLastSupply: 0, ticksOutOfSupply: 0 },
       });
     }
   }

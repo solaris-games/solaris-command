@@ -35,9 +35,8 @@ function createHex(q: number, r: number, s: number): Hex {
     gameId: new ObjectId(),
     unitId: null,
     playerId: null,
-    coords: { q, r, s },
+    location: { q, r, s },
     terrain: TerrainTypes.EMPTY,
-    supply: { isInSupply: false, ticksLastSupply: 0, ticksOutOfSupply: 0 },
   };
 }
 

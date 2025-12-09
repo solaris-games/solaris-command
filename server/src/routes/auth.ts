@@ -61,7 +61,7 @@ router.post("/google", async (req, res) => {
         },
       };
 
-      const result = await db.collection("users").insertOne(newUser);
+      const result = await db.collection<User>("users").insertOne(newUser);
       // user = { ...newUser, _id: result.insertedId } as User; // Casting
       // Re-fetch to be safe
       user = await UserService.getUserById(db, result.insertedId);

@@ -14,11 +14,6 @@ import {
   touchPlayer,
   validate,
 } from "../middleware";
-import { GameService } from "../services/GameService";
-import { PlayerService } from "../services/PlayerService";
-import { PlanetService } from "../services/PlanetService";
-import { HexService } from "../services/HexService";
-import { UnitService } from "../services/UnitService";
 import {
   MapUtils,
   CONSTANTS,
@@ -26,8 +21,15 @@ import {
   GameStates,
   UnitFactory,
 } from "@solaris-command/core";
-import { GalaxyService } from "../services";
-import { GameMapper } from "../map/GameMapper";
+import {
+  GameService,
+  GameGalaxyService,
+  PlayerService,
+  PlanetService,
+  HexService,
+  UnitService,
+} from "../services";
+import { GameMapper, GameGalaxyMapper } from "../map";
 
 const router = express.Router();
 
@@ -144,7 +146,7 @@ router.post(
             catalogId,
             newPlayer._id,
             gameId,
-            hex.coords
+            hex.location
           );
 
           const createdUnit = await UnitService.createUnit(db, unit, session);
@@ -165,7 +167,7 @@ router.post(
 
         // Filter hexes that are in this territory
         const territoryHexes = hexes.filter((h) =>
-          territoryIds.has(HexUtils.getCoordsID(h.coords))
+          territoryIds.has(HexUtils.getCoordsID(h.location))
         );
 
         for (const hex of territoryHexes) {
@@ -292,7 +294,7 @@ router.get(
     const db = getDb();
 
     try {
-      const { galaxy, currentPlayer } = await GalaxyService.getGameGalaxy(
+      const { galaxy, currentPlayer } = await GameGalaxyService.getGameGalaxy(
         db,
         req.game,
         req.user.id
@@ -302,7 +304,9 @@ router.get(
         req.player = currentPlayer; // Feed this into middleware
       }
 
-      res.json(GameMapper.toGameDetailsResponse(galaxy));
+      const currentPlayerId = currentPlayer?._id || null;
+
+      res.json(GameGalaxyMapper.toGameGalaxyResponse(galaxy, currentPlayerId));
     } catch (error) {
       console.error("Error fetching game:", error);
       res.status(500);

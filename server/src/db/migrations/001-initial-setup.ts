@@ -1,3 +1,13 @@
+import {
+  Game,
+  GameEvent,
+  Hex,
+  Planet,
+  Player,
+  Station,
+  Unit,
+  User,
+} from "@solaris-command/core";
 import { Db, MongoClient } from "mongodb";
 
 export async function up(db: Db, client: MongoClient) {
@@ -44,7 +54,13 @@ export async function up(db: Db, client: MongoClient) {
               properties: {
                 status: {
                   bsonType: "string",
-                  enum: ["PENDING", "STARTING", "ACTIVE", "COMPLETED", "LOCKED"],
+                  enum: [
+                    "PENDING",
+                    "STARTING",
+                    "ACTIVE",
+                    "COMPLETED",
+                    "LOCKED",
+                  ],
                 },
                 playerCount: { bsonType: "int" },
                 tick: { bsonType: "int" },
@@ -81,7 +97,7 @@ export async function up(db: Db, client: MongoClient) {
     });
 
     // Index: Find Active games quickly for the Cron Loop
-    await db.collection("games").createIndex({ "state.status": 1 });
+    await db.collection<Game>("games").createIndex({ "state.status": 1 });
 
     // --- 2. HEXES COLLECTION ---
     await createCollectionSafe("hexes", {
@@ -92,7 +108,7 @@ export async function up(db: Db, client: MongoClient) {
             "gameId",
             "unitId",
             "playerId",
-            "coords",
+            "location",
             "terrain",
             "supply",
           ],
@@ -100,7 +116,7 @@ export async function up(db: Db, client: MongoClient) {
             gameId: { bsonType: "objectId" },
             unitId: { bsonType: ["objectId", "null"] },
             playerId: { bsonType: ["objectId", "null"] },
-            coords: {
+            location: {
               bsonType: "object",
               required: ["q", "r", "s"],
               properties: {
@@ -122,15 +138,6 @@ export async function up(db: Db, client: MongoClient) {
                 "INDUSTRIAL_ZONE",
               ],
             },
-            supply: {
-              bsonType: "object",
-              required: ["isInSupply", "ticksLastSupply", "ticksOutOfSupply"],
-              properties: {
-                isInSupply: { bsonType: "bool" },
-                ticksLastSupply: { bsonType: "int", minimum: 0 },
-                ticksOutOfSupply: { bsonType: "int", minimum: 0 },
-              },
-            },
           },
         },
       },
@@ -138,14 +145,14 @@ export async function up(db: Db, client: MongoClient) {
 
     // Index: The Coordinate System (Unique per game)
     await db
-      .collection("hexes")
+      .collection<Hex>("hexes")
       .createIndex(
-        { gameId: 1, "coords.q": 1, "coords.r": 1, "coords.s": 1 },
+        { gameId: 1, "location.q": 1, "location.r": 1, "location.s": 1 },
         { unique: true }
       );
 
     // Index: Region queries
-    await db.collection("hexes").createIndex({ gameId: 1 });
+    await db.collection<Hex>("hexes").createIndex({ gameId: 1 });
 
     // --- 3. UNITS COLLECTION ---
     await createCollectionSafe("units", {
@@ -245,9 +252,9 @@ export async function up(db: Db, client: MongoClient) {
     });
 
     // Index: Find all units for a player
-    await db.collection("units").createIndex({ gameId: 1, playerId: 1 });
+    await db.collection<Unit>("units").createIndex({ gameId: 1, playerId: 1 });
     // Index: Collision Detection / Map population
-    await db.collection("units").createIndex({
+    await db.collection<Unit>("units").createIndex({
       gameId: 1,
       "location.q": 1,
       "location.r": 1,
@@ -287,10 +294,10 @@ export async function up(db: Db, client: MongoClient) {
     });
     // Unique: One player entry per user per game
     await db
-      .collection("players")
+      .collection<Player>("players")
       .createIndex({ gameId: 1, userId: 1 }, { unique: true });
     // Find all players in a game
-    await db.collection("players").createIndex({ gameId: 1 });
+    await db.collection<Player>("players").createIndex({ gameId: 1 });
 
     // --- 5. PLANETS COLLECTION ---
     await createCollectionSafe("planets", {
@@ -331,9 +338,11 @@ export async function up(db: Db, client: MongoClient) {
         },
       },
     });
-    await db.collection("planets").createIndex({ gameId: 1, playerId: 1 });
+    await db
+      .collection<Planet>("planets")
+      .createIndex({ gameId: 1, playerId: 1 });
     // Find planet by location
-    await db.collection("planets").createIndex({
+    await db.collection<Planet>("planets").createIndex({
       gameId: 1,
       "location.q": 1,
       "location.r": 1,
@@ -370,9 +379,11 @@ export async function up(db: Db, client: MongoClient) {
         },
       },
     });
-    await db.collection("stations").createIndex({ gameId: 1, playerId: 1 });
+    await db
+      .collection<Station>("stations")
+      .createIndex({ gameId: 1, playerId: 1 });
     // Find station by location
-    await db.collection("stations").createIndex({
+    await db.collection<Station>("stations").createIndex({
       gameId: 1,
       "location.q": 1,
       "location.r": 1,
@@ -397,10 +408,12 @@ export async function up(db: Db, client: MongoClient) {
     });
     // TTL Index: Automatically delete reports older than 14 days to save space
     await db
-      .collection("game_events")
+      .collection<GameEvent>("game_events")
       .createIndex({ createdAt: 1 }, { expireAfterSeconds: 1209600 });
     // Find events for game
-    await db.collection("game_events").createIndex({ gameId: 1, tick: -1 });
+    await db
+      .collection<GameEvent>("game_events")
+      .createIndex({ gameId: 1, tick: -1 });
 
     // --- 8. USERS COLLECTION ---
     // Often created implicitly, but good to be explicit for indexes.
@@ -439,9 +452,11 @@ export async function up(db: Db, client: MongoClient) {
     });
 
     // Auth Index: Look up by googleId
-    await db.collection("users").createIndex({ googleId: 1 }, { unique: true });
+    await db
+      .collection<User>("users")
+      .createIndex({ googleId: 1 }, { unique: true });
     // Email index (sparse/unique if we want)
-    await db.collection("users").createIndex({ email: 1 });
+    await db.collection<User>("users").createIndex({ email: 1 });
 
     console.log("✅ Initial setup complete.");
   } catch (err: any) {

@@ -1,9 +1,9 @@
-import { Unit, DeployUnitResponse } from "@solaris-command/core";
+import { Unit, DeployUnitResponseSchema } from "@solaris-command/core";
 
 export class UnitMapper {
-  static toDeployUnitResponse(unit: Unit): DeployUnitResponse {
+  static toDeployUnitResponse(unit: Unit): DeployUnitResponseSchema {
     return {
-      unit,
+      unit, // Safe to use full model
     };
   }
 }

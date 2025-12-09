@@ -23,7 +23,7 @@ export const SupplyEngine = {
 
     // Optimization: Create a Map for O(1) Hex Lookup by ID
     const hexMap = new Map<string, Hex>();
-    hexes.forEach((h) => hexMap.set(HexUtils.getCoordsID(h.coords), h));
+    hexes.forEach((h) => hexMap.set(HexUtils.getCoordsID(h.location), h));
 
     // 1. Identify Sources
     // Roots: Always produce supply (Capital Planets)
