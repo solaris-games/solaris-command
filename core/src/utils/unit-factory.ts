@@ -51,9 +51,9 @@ export class UnitFactory {
       },
 
       supply: {
-        sourceId: null,
-        isCutOff: false,
-        cutOffCycles: 0,
+        isInSupply: true,
+        ticksLastSupply: 0,
+        ticksOutOfSupply: 0,
       },
     };
 

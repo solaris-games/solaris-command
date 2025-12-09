@@ -34,7 +34,9 @@ describe("UnitFactory", () => {
         // Sub-objects
         expect(unit.movement.path).toEqual([]);
         expect(unit.combat.hexId).toBeNull();
-        expect(unit.supply.isCutOff).toBe(false);
+        expect(unit.supply.isInSupply).toBe(true);
+        expect(unit.supply.ticksLastSupply).toBe(0);
+        expect(unit.supply.ticksOutOfSupply).toBe(0);
     });
 
     it("should throw error for invalid catalog ID", () => {
