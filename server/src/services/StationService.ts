@@ -16,6 +16,10 @@ export class StationService {
     return db.collection<Station>("stations").find({ gameId }).toArray();
   }
 
+  static async getByPlayerId(db: Db, playerId: ObjectId) {
+    return db.collection<Station>("stations").find({ playerId }).toArray();
+  }
+
   static async getStationById(db: Db, stationId: ObjectId) {
     return db.collection<Station>("stations").findOne({ _id: stationId });
   }

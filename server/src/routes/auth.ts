@@ -5,6 +5,7 @@ import { getDb } from "../db/instance";
 import { User } from "@solaris-command/core";
 import { ObjectId } from "mongodb";
 import { UserService } from "../services/UserService";
+import { ERROR_CODES } from "../middleware";
 
 const router = express.Router();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -15,7 +16,9 @@ router.post("/google", async (req, res) => {
   const { idToken } = req.body;
 
   if (!idToken) {
-    return res.status(400).json({ error: "Missing idToken" });
+    return res
+      .status(400)
+      .json({ errorCode: ERROR_CODES.AUTH_TOKEN_MISSING_ID });
   }
 
   try {
@@ -27,7 +30,9 @@ router.post("/google", async (req, res) => {
     const payload = ticket.getPayload();
 
     if (!payload || !payload.email) {
-      return res.status(400).json({ error: "Invalid Google Token" });
+      return res
+        .status(400)
+        .json({ errorCode: ERROR_CODES.AUTH_INVALID_GOOGLE_TOKEN });
     }
 
     const { email, sub: googleId, name } = payload;
@@ -82,7 +87,7 @@ router.post("/google", async (req, res) => {
     res.json({ token: sessionToken, user });
   } catch (error) {
     console.error("Auth Error:", error);
-    res.status(401).json({ error: "Authentication failed" });
+    res.status(401).json({ errorCode: ERROR_CODES.AUTH_FAILED });
   }
 });
 

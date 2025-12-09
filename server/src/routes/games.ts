@@ -7,7 +7,13 @@ import {
   requireActiveGame,
   requirePendingGame,
 } from "../middleware/game";
-import { JoinGameSchema, touchPlayer, validate } from "../middleware";
+import {
+  ERROR_CODES,
+  JoinGameSchema,
+  loadPlayer,
+  touchPlayer,
+  validate,
+} from "../middleware";
 import { GameService } from "../services/GameService";
 import { PlayerService } from "../services/PlayerService";
 import { PlanetService } from "../services/PlanetService";
@@ -47,7 +53,7 @@ router.get("/", authenticateToken, async (req, res) => {
     res.json(response);
   } catch (error) {
     console.error("Error listing games:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500);
   }
 });
 
@@ -72,12 +78,12 @@ router.post(
         );
 
         if (existingPlayer) {
-          throw new Error("ALREADY_JOINED");
+          throw new Error(ERROR_CODES.USER_ALREADY_JOINED_GAME);
         }
 
         // 2. Check Capacity (req.game loaded before transaction)
         if (req.game.state.playerCount >= req.game.settings.playerCount) {
-          throw new Error("GAME_FULL");
+          throw new Error(ERROR_CODES.GAME_IS_FULL);
         }
 
         // Increment (Blind update)
@@ -100,7 +106,7 @@ router.post(
         const capital = MapUtils.findUnownedCapital(planets);
 
         if (!capital) {
-          throw new Error("NO_CAPITAL_AVAILABLE");
+          throw new Error(ERROR_CODES.GAME_NO_CAPITAL_AVAILABLE);
         }
 
         await PlanetService.assignPlanetToPlayer(
@@ -118,7 +124,7 @@ router.post(
         );
 
         if (!secondPlanet) {
-          throw new Error("NO_SECOND_PLANET_AVAILABLE");
+          throw new Error(ERROR_CODES.GAME_NO_SECOND_PLANET_AVAILABLE);
         }
 
         await PlanetService.assignPlanetToPlayer(
@@ -140,7 +146,7 @@ router.post(
 
         // Make sure there are enough hexes to be able to spawn the player's starting fleet.
         if (fleetIds.length > spawnHexes.length) {
-          throw new Error(`NOT_ENOUGH_SPAWN_HEXES`);
+          throw new Error(ERROR_CODES.GAME_NOT_ENOUGH_SPAWN_HEXES);
         }
 
         for (let i = 0; i < spawnHexes.length; i++) {
@@ -220,32 +226,32 @@ router.post(
 
       res.json({ message: "Joined game", player: result });
     } catch (error: any) {
-      if (error.message === "ALREADY_JOINED") {
-        return res.status(400).json({ error: "Already joined this game" });
+      if (error.message === ERROR_CODES.USER_ALREADY_JOINED_GAME) {
+        return res
+          .status(400)
+          .json({ errorCode: ERROR_CODES.USER_ALREADY_JOINED_GAME });
       }
-      if (error.message === "GAME_FULL") {
-        return res.status(400).json({ error: "Game is full" });
+      if (error.message === ERROR_CODES.GAME_IS_FULL) {
+        return res.status(400).json({ errorCode: ERROR_CODES.GAME_IS_FULL });
       }
-      if (error.message === "NO_CAPITAL_AVAILABLE") {
+      if (error.message === ERROR_CODES.GAME_NO_CAPITAL_AVAILABLE) {
         return res
           .status(500)
-          .json({ error: "No starting locations available" });
+          .json({ errorCode: ERROR_CODES.GAME_NO_CAPITAL_AVAILABLE });
       }
-      if (error.message === "NO_SECOND_PLANET_AVAILABLE") {
-        return res.status(500).json({
-          error: "Map generation error: No secondary planet available",
-        });
-      }
-      if (error.message === "NOT_ENOUGH_SPAWN_HEXES") {
+      if (error.message === ERROR_CODES.GAME_NO_SECOND_PLANET_AVAILABLE) {
         return res
           .status(500)
-          .json({
-            error: "Not enough hexes to spawn player's starting fleet.",
-          });
+          .json({ errorCode: ERROR_CODES.GAME_NO_SECOND_PLANET_AVAILABLE });
+      }
+      if (error.message === ERROR_CODES.GAME_NOT_ENOUGH_SPAWN_HEXES) {
+        return res
+          .status(500)
+          .json({ errorCode: ERROR_CODES.GAME_NOT_ENOUGH_SPAWN_HEXES });
       }
 
       console.error("Error joining game:", error);
-      res.status(500).json({ error: "Internal Server Error" });
+      res.status(500);
     }
   }
 );
@@ -256,26 +262,17 @@ router.post(
   authenticateToken,
   loadGame,
   requirePendingGame,
+  loadPlayer,
   async (req, res) => {
-    await executeInTransaction(async (db, session) => {
-      try {
-        const result = await PlayerService.leaveGame(
-          db,
-          req.game._id,
-          new ObjectId(req.user.id),
-          session
-        );
-
-        if (result.deletedCount === 0) {
-          return res.status(400).json({ error: "Not a player in this game" });
-        }
-      } catch (err: any) {
-        if (err.message === "Player not found in this game") {
-          return res.status(400).json({ error: "Not a player in this game" });
-        }
-        throw err;
-      }
-    });
+    try {
+      await executeInTransaction(async (db, session) => {
+        await PlayerService.leaveGame(db, req.player._id, session);
+        await PlayerService.removePlayerAssets(db, req.player._id, session);
+      });
+    } catch (error) {
+      console.error("Error leaving game:", error);
+      res.status(500);
+    }
   }
 );
 
@@ -285,23 +282,18 @@ router.post(
   authenticateToken,
   loadGame,
   requireActiveGame,
+  loadPlayer,
   async (req, res) => {
     const db = getDb();
     try {
-      const result = await PlayerService.concedeGame(
+      await PlayerService.concedeGame(
         db,
         req.game._id,
         new ObjectId(req.user.id)
       );
-
-      if (result.matchedCount === 0) {
-        return res.status(400).json({ error: "Not a player in this game" });
-      }
-
-      res.json({ message: "Conceded game" });
     } catch (error) {
       console.error("Error conceding game:", error);
-      res.status(500).json({ error: "Internal Server Error" });
+      res.status(500);
     }
   }
 );
@@ -328,7 +320,7 @@ router.get(
       res.json(response);
     } catch (error) {
       console.error("Error fetching game:", error);
-      res.status(500).json({ error: "Internal Server Error" });
+      res.status(500);
     }
   },
   touchPlayer
@@ -348,7 +340,7 @@ router.get("/:id/events", authenticateToken, async (req, res) => {
     });
 
     if (!player) {
-      return res.status(403).json({ error: "Must be a player to view events" });
+      return res.status(403).json({ errorCode: ERROR_CODES.USER_NOT_IN_GAME });
     }
 
     const events = await GameService.getGameEvents(db, gameId);
@@ -356,7 +348,7 @@ router.get("/:id/events", authenticateToken, async (req, res) => {
     res.json(events);
   } catch (error) {
     console.error("Error fetching game events:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500);
   }
 });
 

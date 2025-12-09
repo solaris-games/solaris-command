@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { z, ZodError } from "zod";
+import { ERROR_CODES } from "./error-codes";
 
 export const validate =
   (schema: z.ZodSchema) =>
@@ -10,14 +11,18 @@ export const validate =
     } catch (error) {
       if (error instanceof ZodError) {
         return res.status(400).json({
-          error: "Validation failed",
-          details: error.issues.map((e) => ({ // TODO: Is this `errors` or `issues`?
+          errorCode: ERROR_CODES.REQUEST_VALIDATION_FAILED,
+          details: error.issues.map((e) => ({
+            // TODO: Is this `errors` or `issues`?
             path: e.path.join("."),
             message: e.message,
           })),
         });
       }
-      return res.status(400).json({ error: "Invalid request" });
+
+      return res
+        .status(400)
+        .json({ errorCode: ERROR_CODES.REQUEST_VALIDATION_FAILED });
     }
   };
 
@@ -53,5 +58,5 @@ export const UpgradeUnitSchema = z.object({
 
 export const JoinGameSchema = z.object({
   alias: z.string().min(3),
-  color: z.string().length(7)
+  color: z.string().length(7),
 });

@@ -44,7 +44,7 @@ export async function up(db: Db, client: MongoClient) {
               properties: {
                 status: {
                   bsonType: "string",
-                  enum: ["PENDING", "STARTING", "ACTIVE", "COMPLETED"],
+                  enum: ["PENDING", "STARTING", "ACTIVE", "COMPLETED", "LOCKED"],
                 },
                 playerCount: { bsonType: "int" },
                 tick: { bsonType: "int" },

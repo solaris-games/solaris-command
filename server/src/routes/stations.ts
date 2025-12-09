@@ -1,16 +1,17 @@
 import express from "express";
 import { ObjectId } from "mongodb";
 import { authenticateToken } from "../middleware/auth";
-import { CONSTANTS, Station } from "@solaris-command/core";
+import { CONSTANTS, HexUtils, Station } from "@solaris-command/core";
 import { validate, BuildStationSchema } from "../middleware/validation";
 import {
+  ERROR_CODES,
   loadGame,
   loadHexes,
   loadPlayer,
   requireActiveGame,
 } from "../middleware";
 import { StationService } from "../services/StationService";
-import { loadPlayerStation } from "../middleware/station";
+import { loadPlayerStation, loadStations } from "../middleware/station";
 import { executeInTransaction, getDb } from "../db";
 import { PlayerService } from "../services/PlayerService";
 
@@ -24,26 +25,42 @@ router.post(
   loadGame,
   requireActiveGame,
   loadPlayer,
+  loadStations,
   loadHexes,
   async (req, res) => {
     const { hexId } = req.body;
 
-    const db = getDb();
-
     try {
-      // TODO: Validate that the new station will be in supply, the player
-      // cannot construct a station where the hex is out of supply.
+      // TODO: Validate that the new station will be in supply?
 
       const hex = req.hexes.find((h) => String(h._id) === hexId);
 
       if (!hex) {
-        return res.status(400).json({ error: "Hex ID is invalid." });
+        return res.status(400).json({ errorCode: ERROR_CODES.HEX_ID_INVALID });
+      }
+
+      if (String(hex.playerId) !== String(req.player._id)) {
+        return res
+          .status(400)
+          .json({ errorCode: ERROR_CODES.PLAYER_DOES_NOT_OWN_HEX });
+      }
+
+      // Make sure hex isn't already occupied by another station.
+      const hexCoordsId = HexUtils.getCoordsID(hex.coords);
+      const existingStation = req.stations.find(
+        (s) => HexUtils.getCoordsID(s.location) === hexCoordsId
+      );
+
+      if (existingStation) {
+        return res
+          .status(400)
+          .json({ errorCode: ERROR_CODES.HEX_OCCUPIED_BY_STATION });
       }
 
       if (req.player.prestigePoints < CONSTANTS.STATION_PRESTIGE_COST) {
         return res
           .status(400)
-          .json({ error: "Player cannot afford to purchase this station." });
+          .json({ errorCode: ERROR_CODES.PLAYER_INSUFFICIENT_PRESTIGE });
       }
 
       const newStation: Station = {
@@ -75,11 +92,12 @@ router.post(
       });
 
       res.json({
-        message: "Station construction started",
         station: createdStation,
+        prestigeCost: CONSTANTS.STATION_PRESTIGE_COST
       });
     } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      console.error("Error building station:", error);
+      res.status(500);
     }
   }
 );
@@ -88,16 +106,17 @@ router.post(
 router.delete(
   "/:stationId",
   authenticateToken,
+  loadGame,
+  requireActiveGame,
   loadPlayer,
   loadPlayerStation,
   async (req, res) => {
     const db = getDb();
     try {
       await StationService.deleteStation(db, req.station._id);
-
-      res.json({ message: "Station decommissioned" });
     } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      console.error("Error decomissioning station:", error);
+      res.status(500);
     }
   }
 );

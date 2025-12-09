@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { ERROR_CODES } from "./error-codes";
 
 // Extend Express Request to include user info
 declare global {
@@ -34,7 +35,8 @@ export const authenticateToken = (
       return res.sendStatus(403);
     }
 
-    if (!user) return res.status(401).json({ error: "Unauthorized" });
+    if (!user)
+      return res.status(401).json({ errorCode: ERROR_CODES.USER_UNAUTHORIZED });
 
     req.user = user;
 

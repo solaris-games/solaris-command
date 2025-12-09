@@ -18,6 +18,7 @@ import {
   ProcessCycleResult,
   Station,
 } from "@solaris-command/core";
+import { GameService } from "../services";
 
 // Concurrency Flag: Prevent loop overlapping if processing takes > tick duration
 let isProcessing = false;
@@ -90,6 +91,11 @@ async function processActiveGames(client: MongoClient) {
 async function executeGameTick(client: MongoClient, game: Game) {
   const db = client.db();
   const gameId = game._id;
+
+  // Start by locking the game to prevent players from changing the game state
+  // during tick processing. We don't know how long ticks will take to
+  // process so better to be safe and lock the game now.
+  await GameService.lockGame(db, gameId);
 
   // --- A. LOAD STATE (Scatter-Gather) ---
   // We need to load data from multiple collections to build the game state
@@ -256,6 +262,7 @@ async function executeGameTick(client: MongoClient, game: Game) {
   // Logic: Base Tick Update -> Merge Tick Result (Elimination) -> Merge Cycle Result (Economy/Cycle count)
   let nextGameState: any = {
     ...game.state,
+    status: GameStates.ACTIVE, // Unlocks the game
     tick: newTick,
     lastTickDate: new Date(),
   };
@@ -283,7 +290,9 @@ async function executeGameTick(client: MongoClient, game: Game) {
 
   // IF Game Completed, log it
   if (nextGameState.status === GameStates.COMPLETED) {
-      console.log(`🏆 Game ${gameId} Completed! Winner: ${nextGameState.winnerPlayerId}`);
+    console.log(
+      `🏆 Game ${gameId} Completed! Winner: ${nextGameState.winnerPlayerId}`
+    );
   }
 
   // Execute Bulk Ops

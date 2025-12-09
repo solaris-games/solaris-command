@@ -109,26 +109,12 @@ export class PlayerService {
 
   static async leaveGame(
     db: Db,
-    gameId: ObjectId,
-    userId: ObjectId,
+    playerId: ObjectId,
     session?: ClientSession
   ) {
-    // Find the player first
-    const player = await db
-      .collection<Player>("players")
-      .findOne({ gameId, userId }, { session });
-
-    if (!player) {
-      throw new Error("Player not found in this game");
-    }
-
     const result = await db
       .collection("players")
-      .deleteOne({ _id: player._id }, { session });
-
-    if (result.deletedCount > 0) {
-      await this.removePlayerAssets(db, player._id, session);
-    }
+      .deleteOne({ _id: playerId }, { session });
 
     return result;
   }

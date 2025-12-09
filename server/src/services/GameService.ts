@@ -101,6 +101,18 @@ export class GameService {
       .toArray();
   }
 
+  static async lockGame(db: Db, gameId: ObjectId) {
+    return GameService.updateGameState(db, gameId, {
+      "state.status": GameStates.ACTIVE,
+    });
+  }
+
+  static async unlockGame(db: Db, gameId: ObjectId) {
+    return GameService.updateGameState(db, gameId, {
+      "state.status": GameStates.ACTIVE,
+    });
+  }
+
   static async updateGameState(
     db: Db,
     gameId: ObjectId,

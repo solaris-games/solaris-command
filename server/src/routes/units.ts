@@ -19,6 +19,7 @@ import {
   UpgradeUnitSchema,
 } from "../middleware/validation";
 import {
+  ERROR_CODES,
   loadGame,
   loadHexes,
   loadPlanets,
@@ -51,16 +52,19 @@ router.post(
     try {
       const unitCtlg = UNIT_CATALOG_ID_MAP.get(catalogId);
 
-      if (!unitCtlg) return res.status(400).json({ error: "Invalid Unit ID" });
+      if (!unitCtlg)
+        return res.status(400).json({ errorCode: ERROR_CODES.UNIT_ID_INVALID });
 
       const hex = req.hexes.find((h) => String(h._id) === hexId);
 
       if (!hex) {
-        return res.status(400).json({ error: "Hex ID is invalid." });
+        return res.status(400).json({ errorCode: ERROR_CODES.HEX_ID_INVALID });
       }
 
       if (hex.unitId) {
-        return res.status(400).json({ error: "Hex already contains a unit." });
+        return res
+          .status(400)
+          .json({ errorCode: ERROR_CODES.HEX_OCCUPIED_BY_UNIT });
       }
 
       const playerCapital = MapUtils.findPlayerCapital(
@@ -70,8 +74,7 @@ router.post(
 
       if (playerCapital == null) {
         return res.status(400).json({
-          error:
-            "Cannot deploy unit, the player does not have a capital planet.",
+          errorCode: ERROR_CODES.PLAYER_DOES_NOT_OWN_A_CAPITAL,
         });
       }
 
@@ -84,13 +87,13 @@ router.post(
       if (validSpawnLocations.find((h) => String(h._id) === hexId) == null) {
         return res
           .status(400)
-          .json({ error: "Cannot deploy unit at the target hex." });
+          .json({ errorCode: ERROR_CODES.HEX_INVALID_SPAWN_LOCATION });
       }
 
       if (req.player.prestigePoints < unitCtlg.cost) {
         return res
           .status(400)
-          .json({ error: "Player cannot afford to purchase this step." });
+          .json({ errorCode: ERROR_CODES.PLAYER_INSUFFICIENT_PRESTIGE });
       }
 
       // Generate initial steps using helper
@@ -148,7 +151,8 @@ router.post(
         unit: createdUnit,
       });
     } catch (error: any) {
-      res.status(400).json({ error: error.message || "Error deploying unit" });
+      console.error("Error deploying unit:", error);
+      res.status(500);
     }
   }
 );
@@ -170,12 +174,10 @@ router.post(
 
     try {
       // TODO: Validate path (Pathfinding check logic in core)
-
       await UnitService.updateUnitState(db, req.unit._id, "MOVING", { path });
-
-      res.json({ message: "Move order issued" });
     } catch (error: any) {
-      res.status(400).json({ error: error.message || "Error moving unit" });
+      console.error("Error moving unit:", error);
+      res.status(500);
     }
   }
 );
@@ -194,10 +196,9 @@ router.post(
 
     try {
       await UnitService.updateUnitState(db, req.unit._id, "IDLE", { path: [] });
-
-      res.json({ message: "Move order cancelled" });
     } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      console.error("Error cancelling unit movement:", error);
+      res.status(500);
     }
   }
 );
@@ -220,12 +221,14 @@ router.post(
 
     try {
       if (req.unit.state.ap === 0)
-        return res.status(400).json({ error: "Unit does not have enough AP." });
+        return res
+          .status(400)
+          .json({ errorCode: ERROR_CODES.UNIT_INSUFFICIENT_AP });
 
       const hex = req.hexes.find((h) => String(h._id) === hexId);
 
       if (!hex) {
-        return res.status(400).json({ error: "Hex ID is invalid." });
+        return res.status(400).json({ errorCode: ERROR_CODES.HEX_ID_INVALID });
       }
 
       await UnitService.updateUnitState(
@@ -238,10 +241,9 @@ router.post(
           type: combatType,
         }
       );
-
-      res.json({ message: "Attack declared" });
     } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      console.error("Error declaring attack:", error);
+      res.status(500);
     }
   }
 );
@@ -262,16 +264,15 @@ router.post(
       if (req.unit.combat.hexId == null)
         return res
           .status(400)
-          .json({ error: "Unit has not declared an attack." });
+          .json({ errorCode: ERROR_CODES.UNIT_HAS_NOT_DECLARED_ATTACK });
 
       await UnitService.updateUnitState(db, req.unit._id, "IDLE", undefined, {
         hexId: null,
         type: null,
       });
-
-      res.json({ message: "Attack cancelled" });
     } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      console.error("Error cancelling attack:", error);
+      res.status(500);
     }
   }
 );
@@ -301,11 +302,15 @@ router.post(
       const unitTemplate = UNIT_CATALOG_ID_MAP.get(req.unit.catalogId);
 
       if (!unitTemplate)
-        return res.status(500).json({ error: "Unit template not found" });
+        return res
+          .status(500)
+          .json({ errorCode: ERROR_CODES.UNIT_TEMPLATE_NOT_FOUND });
 
       if (type === "STEP") {
         if (req.unit.steps.length >= unitTemplate.stats.maxSteps) {
-          return res.status(400).json({ error: "Unit already at max steps" });
+          return res
+            .status(400)
+            .json({ errorCode: ERROR_CODES.UNIT_IS_AT_MAX_STEPS });
         }
 
         cost = CONSTANTS.GAME_UNIT_STANDARD_STEP_COST; // TODO: Should be a game setting?
@@ -313,36 +318,44 @@ router.post(
         if (req.player.prestigePoints < cost) {
           return res
             .status(400)
-            .json({ error: "Player cannot afford to purchase this step" });
+            .json({ errorCode: ERROR_CODES.PLAYER_INSUFFICIENT_PRESTIGE });
         }
 
         newSteps = UnitManagerHelper.addSteps(newSteps, 1);
       } else if (type === "SPECIALIST") {
         if (!specialistId)
-          return res.status(400).json({ error: "Specialist ID required" });
+          return res
+            .status(400)
+            .json({ errorCode: ERROR_CODES.UNIT_SPECIALIST_ID_REQUIRED });
 
         const spec = SPECIALIST_STEP_ID_MAP.get(specialistId);
 
         if (!spec)
-          return res.status(400).json({ error: "Invalid specialist ID" });
+          return res
+            .status(400)
+            .json({ errorCode: ERROR_CODES.UNIT_SPECIALIST_ID_INVALID });
 
         // Check Max Steps
         if (req.unit.steps.length >= unitTemplate.stats.maxSteps) {
-          return res.status(400).json({ error: "Unit already at max steps" });
+          return res
+            .status(400)
+            .json({ errorCode: ERROR_CODES.UNIT_IS_AT_MAX_STEPS });
         }
 
         cost = spec.cost;
 
         if (req.player.prestigePoints < cost) {
           return res.status(400).json({
-            error: "Player cannot afford to purchase this specialist step",
+            errorCode: ERROR_CODES.PLAYER_INSUFFICIENT_PRESTIGE,
           });
         }
 
         // Add specialist step (suppressed by default)
         newSteps = UnitManagerHelper.addSteps(newSteps, 1, spec);
       } else {
-        return res.status(400).json({ error: "Invalid upgrade type" });
+        return res
+          .status(400)
+          .json({ errorCode: ERROR_CODES.UNIT_INVALID_UPGRADE_TYPE });
       }
 
       // Recalculate State counts
@@ -368,10 +381,9 @@ router.post(
           session
         );
       });
-
-      res.json({ message: "Unit upgraded", cost });
     } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      console.error("Error upgrading unit:", error);
+      res.status(500);
     }
   }
 );
@@ -405,16 +417,13 @@ router.post(
           activeSteps,
           suppressedSteps
         );
-
-        res.json({ message: "Step scrapped" });
       } else {
         // Delete unit
         await UnitService.deleteUnit(db, req.unit._id);
-
-        res.json({ message: "Unit scrapped" });
       }
     } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      console.error("Error scrapping unit step:", error);
+      res.status(500);
     }
   }
 );

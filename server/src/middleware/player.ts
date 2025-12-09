@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { getDb } from "../db/instance";
 import { ObjectId } from "mongodb";
 import { Player } from "@solaris-command/core";
+import { ERROR_CODES } from "./error-codes";
 
 // Extend Express to include game
 declare global {
@@ -28,14 +29,15 @@ export const loadPlayer = async (
       userId: new ObjectId(userId),
     });
 
-    if (!player) throw new Error("Player not found in this game");
+    if (!player)
+      return res.status(404).json({ errorCode: ERROR_CODES.PLAYER_NOT_FOUND });
 
     req.player = player;
 
     next();
   } catch (error) {
     console.error("Middleware Error:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500);
   }
 };
 
@@ -59,7 +61,7 @@ export const touchPlayer = async (
       );
     } catch (error) {
       console.error("Middleware Error:", error);
-      res.status(500).json({ error: "Internal Server Error" });
+      res.status(500);
     }
   }
 

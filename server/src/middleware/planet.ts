@@ -3,6 +3,7 @@ import { ObjectId } from "mongodb";
 import { Planet } from "@solaris-command/core";
 import { PlanetService } from "../services/PlanetService";
 import { getDb } from "../db";
+import { ERROR_CODES } from "./error-codes";
 
 // Extend Express to include game
 declare global {
@@ -20,7 +21,7 @@ export const loadPlanets = async (
 ) => {
   const gameId = req.params.id;
 
-  if (!gameId) return res.status(400).json({ error: "Game ID required" });
+  if (!gameId) return res.status(400).json({ errorCode: ERROR_CODES.GAME_ID_REQUIRED });
 
   const db = getDb();
 
@@ -32,6 +33,6 @@ export const loadPlanets = async (
     next();
   } catch (error) {
     console.error("Middleware Error:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500);
   }
 };

@@ -5,6 +5,7 @@ export enum GameStates {
   STARTING = "STARTING",
   ACTIVE = "ACTIVE",
   COMPLETED = "COMPLETED",
+  LOCKED = "LOCKED" // Locked by the system during tick processing
 }
 
 export interface GameState {

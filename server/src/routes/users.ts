@@ -3,6 +3,7 @@ import { ObjectId } from "mongodb";
 import { authenticateToken } from "../middleware/auth";
 import { getDb } from "../db/instance";
 import { UserService } from "../services/UserService";
+import { ERROR_CODES } from "../middleware";
 
 const router = express.Router();
 
@@ -14,7 +15,7 @@ router.get("/me", authenticateToken, async (req, res) => {
     const user = await UserService.getUserById(db, new ObjectId(req.user.id));
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ errorCode: ERROR_CODES.USER_NOT_FOUND });
     }
 
     // TODO: Need a mapping layer
@@ -22,7 +23,7 @@ router.get("/me", authenticateToken, async (req, res) => {
     res.json(user);
   } catch (error) {
     console.error("Error fetching user:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500);
   }
 });
 
@@ -45,7 +46,7 @@ router.delete("/me", authenticateToken, async (req, res) => {
       // Existing logic returned 404, but technically didn't abort because it happened before any writes.
       // But if we use transaction, we should be careful.
       // UserService.deleteUser does the delete first. If 0, it returns result.
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ errorCode: ERROR_CODES.USER_NOT_FOUND });
     }
 
     await session.commitTransaction();
@@ -55,7 +56,7 @@ router.delete("/me", authenticateToken, async (req, res) => {
     await session.abortTransaction();
 
     console.error("Error deleting user:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500);
   } finally {
     await session.endSession();
   }

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { getDb } from "../db/instance";
 import { ObjectId } from "mongodb";
 import { Game, GameStates, Player } from "@solaris-command/core";
+import { ERROR_CODES } from "./error-codes";
 
 // Extend Express to include game
 declare global {
@@ -20,7 +21,8 @@ export const loadGame = async (
 ) => {
   const gameId = req.params.id;
 
-  if (!gameId) return res.status(400).json({ error: "Game ID required" });
+  if (!gameId)
+    return res.status(400).json({ errorCode: ERROR_CODES.GAME_ID_REQUIRED });
 
   const db = getDb();
 
@@ -29,14 +31,15 @@ export const loadGame = async (
       .collection<Game>("games")
       .findOne({ _id: new ObjectId(gameId) });
 
-    if (!game) return res.status(404).json({ error: "Game not found" });
+    if (!game)
+      return res.status(404).json({ errorCode: ERROR_CODES.GAME_NOT_FOUND });
 
     req.game = game;
 
     next();
   } catch (error) {
     console.error("Middleware Error:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500);
   }
 };
 
@@ -46,7 +49,7 @@ export const requireActiveGame = async (
   next: NextFunction
 ) => {
   if (req.game.state.status !== GameStates.ACTIVE) {
-    return res.status(400).json({ error: "Game is not active" });
+    return res.status(400).json({ errorCode: ERROR_CODES.GAME_IS_NOT_ACTIVE });
   }
 
   next();
@@ -58,7 +61,7 @@ export const requirePendingGame = async (
   next: NextFunction
 ) => {
   if (req.game.state.status !== GameStates.PENDING) {
-    return res.status(400).json({ error: "Game is not in pending state" });
+    return res.status(400).json({ errorCode: ERROR_CODES.GAME_IS_NOT_PENDING });
   }
 
   next();
