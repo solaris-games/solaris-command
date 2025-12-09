@@ -4,6 +4,7 @@ import { authenticateToken } from "../middleware/auth";
 import { getDb } from "../db/instance";
 import { UserService } from "../services/UserService";
 import { ERROR_CODES } from "../middleware";
+import { UserMapper } from "../map/UserMapper";
 
 const router = express.Router();
 
@@ -18,9 +19,7 @@ router.get("/me", authenticateToken, async (req, res) => {
       return res.status(404).json({ errorCode: ERROR_CODES.USER_NOT_FOUND });
     }
 
-    // TODO: Need a mapping layer
-
-    res.json(user);
+    res.json(UserMapper.toUserDetailsResponse(user));
   } catch (error) {
     console.error("Error fetching user:", error);
     res.status(500);

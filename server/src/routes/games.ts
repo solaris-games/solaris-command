@@ -27,6 +27,7 @@ import {
   UnitFactory,
 } from "@solaris-command/core";
 import { GalaxyService } from "../services";
+import { GameMapper } from "../map/GameMapper";
 
 const router = express.Router();
 
@@ -41,18 +42,7 @@ router.get("/", authenticateToken, async (req, res) => {
       new ObjectId(req.user.id)
     );
 
-    // Map to simple response
-    // TODO: Need mapping layer
-    const response = games.map((g) => ({
-      id: g._id,
-      name: g.name,
-      description: g.description,
-      state: g.state,
-      settings: g.settings,
-      userHasJoined: myGameIds.some((id) => id.toString() === g._id.toString()),
-    }));
-
-    res.json(response);
+    res.json(GameMapper.toGameListResponse(games, myGameIds));
   } catch (error) {
     console.error("Error listing games:", error);
     res.status(500);
@@ -221,7 +211,7 @@ router.post(
         return newPlayer;
       });
 
-      res.json({ player: result });
+      res.json(GameMapper.toJoinGameResponse(result));
     } catch (error: any) {
       if (error.message === ERROR_CODES.USER_ALREADY_JOINED_GAME) {
         return res
@@ -312,7 +302,7 @@ router.get(
         req.player = currentPlayer; // Feed this into middleware
       }
 
-      res.json(galaxy);
+      res.json(GameMapper.toGameDetailsResponse(galaxy));
     } catch (error) {
       console.error("Error fetching game:", error);
       res.status(500);
@@ -346,7 +336,7 @@ router.get(
 
       const events = await GameService.getGameEvents(db, req.game._id);
 
-      res.json(events);
+      res.json(GameMapper.toGameEventsResponse(events));
     } catch (error) {
       console.error("Error fetching game events:", error);
       res.status(500);
