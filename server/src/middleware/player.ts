@@ -3,6 +3,7 @@ import { getDb } from "../db/instance";
 import { ObjectId } from "mongodb";
 import { Player } from "@solaris-command/core";
 import { ERROR_CODES } from "./error-codes";
+import { PlayerService } from "../services";
 
 // Extend Express to include game
 declare global {
@@ -24,21 +25,22 @@ export const loadPlayer = async (
   const db = getDb();
 
   try {
-    const player = await db.collection<Player>("players").findOne({
-      gameId: new ObjectId(gameId),
-      userId: new ObjectId(userId),
-    });
+    const player = await PlayerService.getByGameAndUserId(
+      db,
+      new ObjectId(gameId),
+      new ObjectId(userId)
+    );
 
     if (!player)
       return res.status(404).json({ errorCode: ERROR_CODES.PLAYER_NOT_FOUND });
 
     req.player = player;
-
-    next();
   } catch (error) {
     console.error("Middleware Error:", error);
     res.status(500);
   }
+
+  next();
 };
 
 export const touchPlayer = async (
@@ -47,22 +49,13 @@ export const touchPlayer = async (
   next: NextFunction
 ) => {
   // Update the last seen date of the player
-  if (req.player) {
-    const db = getDb();
+  const db = getDb();
 
-    try {
-      await db.collection("players").updateOne(
-        { _id: req.player._id },
-        {
-          $set: {
-            lastSeenDate: new Date(),
-          },
-        }
-      );
-    } catch (error) {
-      console.error("Middleware Error:", error);
-      res.status(500);
-    }
+  try {
+    await PlayerService.touchPlayer(db, req.player._id);
+  } catch (error) {
+    console.error("Middleware Error:", error);
+    res.status(500);
   }
 
   next();

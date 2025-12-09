@@ -26,6 +26,7 @@ import {
   GameStates,
   UnitFactory,
 } from "@solaris-command/core";
+import { GalaxyService } from "../services";
 
 const router = express.Router();
 
@@ -33,6 +34,7 @@ const router = express.Router();
 // List open games and my games
 router.get("/", authenticateToken, async (req, res) => {
   const db = getDb();
+
   try {
     const { games, myGameIds } = await GameService.listGamesByUser(
       db,
@@ -70,7 +72,7 @@ router.post(
         const gameId = req.game._id;
         const userId = new ObjectId(req.user.id);
 
-        // 1. Check if already joined (Atomic check within transaction not strictly necessary if index unique, but good for logic)
+        // Check if already joined (Atomic check within transaction not strictly necessary if index unique, but good for logic)
         const existingPlayer = await PlayerService.getByGameAndUserId(
           db,
           gameId,
@@ -81,15 +83,7 @@ router.post(
           throw new Error(ERROR_CODES.USER_ALREADY_JOINED_GAME);
         }
 
-        // 2. Check Capacity (req.game loaded before transaction)
-        if (req.game.state.playerCount >= req.game.settings.playerCount) {
-          throw new Error(ERROR_CODES.GAME_IS_FULL);
-        }
-
-        // Increment (Blind update)
-        await GameService.incrementPlayerCount(db, gameId, session);
-
-        // 3. Create Player
+        // Create Player
         const newPlayer = await PlayerService.joinGame(
           db,
           gameId,
@@ -101,7 +95,7 @@ router.post(
           session
         );
 
-        // 4. Assign Capital
+        // Assign Capital
         const planets = await PlanetService.getByGameId(db, gameId);
         const capital = MapUtils.findUnownedCapital(planets);
 
@@ -116,7 +110,7 @@ router.post(
           session
         );
 
-        // 4b. Assign Nearest Unoccupied Planet
+        // Assign Nearest Unoccupied Planet
         const secondPlanet = MapUtils.findNearestUnownedPlanet(
           planets,
           capital.location,
@@ -134,7 +128,7 @@ router.post(
           session
         );
 
-        // 5. Assign Starting Fleet
+        // Assign Starting Fleet
         const hexes = await HexService.getByGameId(db, gameId);
         const fleetIds = CONSTANTS.STARTING_FLEET_IDS;
 
@@ -169,7 +163,7 @@ router.post(
           await HexService.updateHexUnit(db, hex._id, createdUnit._id, session);
         }
 
-        // 6. Assign Territory (Hex Flipping)
+        // Assign Territory (Hex Flipping)
         // Flip hexes within range 3 of capital
         const territoryCoords = HexUtils.getHexCoordsInRange(
           capital.location,
@@ -202,7 +196,10 @@ router.post(
           }
         }
 
-        // 7. Check Game Start (Using req.game count + 1 for current player)
+        // Increment (Blind update)
+        await GameService.incrementPlayerCount(db, gameId, session);
+
+        // Check Game Start (Using req.game count + 1 for current player)
         // Note: req.game.state.playerCount is old value. We add 1.
         if (req.game.state.playerCount + 1 >= req.game.settings.playerCount) {
           const now = new Date();
@@ -224,7 +221,7 @@ router.post(
         return newPlayer;
       });
 
-      res.json({ message: "Joined game", player: result });
+      res.json({ player: result });
     } catch (error: any) {
       if (error.message === ERROR_CODES.USER_ALREADY_JOINED_GAME) {
         return res
@@ -285,12 +282,9 @@ router.post(
   loadPlayer,
   async (req, res) => {
     const db = getDb();
+
     try {
-      await PlayerService.concedeGame(
-        db,
-        req.game._id,
-        new ObjectId(req.user.id)
-      );
+      await PlayerService.concedeGame(db, req.player._id);
     } catch (error) {
       console.error("Error conceding game:", error);
       res.status(500);
@@ -306,8 +300,9 @@ router.get(
   loadGame,
   async (req, res) => {
     const db = getDb();
+
     try {
-      const { response, currentPlayer } = await GameService.getGameState(
+      const { galaxy, currentPlayer } = await GalaxyService.getGameGalaxy(
         db,
         req.game,
         req.user.id
@@ -317,7 +312,7 @@ router.get(
         req.player = currentPlayer; // Feed this into middleware
       }
 
-      res.json(response);
+      res.json(galaxy);
     } catch (error) {
       console.error("Error fetching game:", error);
       res.status(500);
@@ -328,28 +323,35 @@ router.get(
 
 // GET /api/v1/games/:id/events
 // Get game events (as a player)
-router.get("/:id/events", authenticateToken, async (req, res) => {
-  const gameId = new ObjectId(req.params.id);
+router.get(
+  "/:id/events",
+  authenticateToken,
+  loadGame,
+  loadPlayer,
+  async (req, res) => {
+    const db = getDb();
+    try {
+      // Check if player is in game
+      const player = await PlayerService.getByGameAndUserId(
+        db,
+        req.game._id,
+        new ObjectId(req.user.id)
+      );
 
-  const db = getDb();
-  try {
-    // Check if player is in game
-    const player = await db.collection("players").findOne({
-      gameId: gameId,
-      userId: new ObjectId(req.user.id),
-    });
+      if (!player) {
+        return res
+          .status(403)
+          .json({ errorCode: ERROR_CODES.USER_NOT_IN_GAME });
+      }
 
-    if (!player) {
-      return res.status(403).json({ errorCode: ERROR_CODES.USER_NOT_IN_GAME });
+      const events = await GameService.getGameEvents(db, req.game._id);
+
+      res.json(events);
+    } catch (error) {
+      console.error("Error fetching game events:", error);
+      res.status(500);
     }
-
-    const events = await GameService.getGameEvents(db, gameId);
-
-    res.json(events);
-  } catch (error) {
-    console.error("Error fetching game events:", error);
-    res.status(500);
   }
-});
+);
 
 export default router;

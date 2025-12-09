@@ -26,7 +26,7 @@ export const FogOfWar = {
         const unitCtlg = UNIT_CATALOG_ID_MAP.get(u.catalogId)!;
         const hexes = HexUtils.getHexCoordsInRange(
           u.location,
-          unitCtlg.stats.visionRange
+          unitCtlg.stats.los
         );
         hexes.forEach((h) => visibleHexes.add(HexUtils.getCoordsID(h)));
       }

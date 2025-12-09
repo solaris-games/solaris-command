@@ -18,8 +18,8 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       defaultSteps: 1,
       maxSteps: 3,
       initiative: 0,
-      hasZOC: false, // Cannot block movement
-      visionRange: 3
+      zoc: false, // Cannot block movement
+      los: 3
     },
   },
   {
@@ -38,8 +38,8 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       defaultSteps: 2,
       maxSteps: 4,
       initiative: 0,
-      hasZOC: false, // Too small to block effectively
-      visionRange: 1
+      zoc: false, // Too small to block effectively
+      los: 1
     },
   },
 
@@ -60,8 +60,8 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       defaultSteps: 2,
       maxSteps: 4,
       initiative: 1,
-      hasZOC: true,
-      visionRange: 2
+      zoc: true,
+      los: 2
     },
   },
   {
@@ -80,8 +80,8 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       defaultSteps: 3,
       maxSteps: 5,
       initiative: 1,
-      hasZOC: true,
-      visionRange: 2
+      zoc: true,
+      los: 2
     },
   },
 
@@ -102,8 +102,8 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       defaultSteps: 3,
       maxSteps: 5,
       initiative: 2,
-      hasZOC: true,
-      visionRange: 2
+      zoc: true,
+      los: 2
     },
   },
   {
@@ -122,8 +122,8 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       defaultSteps: 4,
       maxSteps: 6,
       initiative: 2,
-      hasZOC: true,
-      visionRange: 2
+      zoc: true,
+      los: 2
     },
   },
 
@@ -144,8 +144,8 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       defaultSteps: 4,
       maxSteps: 6,
       initiative: 3, // Acts late
-      hasZOC: true,
-      visionRange: 2
+      zoc: true,
+      los: 2
     },
   },
   {
@@ -164,8 +164,8 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       defaultSteps: 5,
       maxSteps: 7, // Huge HP pool
       initiative: 3,
-      hasZOC: true,
-      visionRange: 2
+      zoc: true, // Zone of control
+      los: 2 // Line of sight (hex range)
     },
   },
 ];

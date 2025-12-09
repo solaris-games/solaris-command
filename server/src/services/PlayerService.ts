@@ -16,7 +16,7 @@ export class PlayerService {
     return db.collection<Player>("players").find({ gameId }).toArray();
   }
   static async getByGameAndUserId(db: Db, gameId: ObjectId, userId: ObjectId) {
-    return db.collection("players").findOne({
+    return db.collection<Player>("players").findOne({
       gameId: gameId,
       userId: userId,
     });
@@ -107,11 +107,7 @@ export class PlayerService {
     await HexService.removeOwnership(db, playerId, session);
   }
 
-  static async leaveGame(
-    db: Db,
-    playerId: ObjectId,
-    session?: ClientSession
-  ) {
+  static async leaveGame(db: Db, playerId: ObjectId, session?: ClientSession) {
     const result = await db
       .collection("players")
       .deleteOne({ _id: playerId }, { session });
@@ -121,15 +117,13 @@ export class PlayerService {
 
   static async concedeGame(
     db: Db,
-    gameId: ObjectId,
-    userId: ObjectId,
+    playerId: ObjectId,
     session?: ClientSession
   ) {
     // Update player status to DEFEATED
     const result = await db.collection("players").updateOne(
       {
-        gameId,
-        userId: userId, // userId is ObjectId in Player interface
+        _id: playerId,
       },
       {
         $set: { status: PlayerStatus.DEFEATED },
@@ -148,5 +142,16 @@ export class PlayerService {
     return db
       .collection("players")
       .updateOne({ _id: playerId }, { $set: { status } }, { session });
+  }
+
+  static async touchPlayer(db: Db, playerId: ObjectId) {
+    return db.collection("players").updateOne(
+      { _id: playerId },
+      {
+        $set: {
+          lastSeenDate: new Date(),
+        },
+      }
+    );
   }
 }

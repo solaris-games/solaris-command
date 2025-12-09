@@ -67,6 +67,12 @@ router.post(
           .json({ errorCode: ERROR_CODES.HEX_OCCUPIED_BY_UNIT });
       }
 
+      if (String(hex.playerId) !== String(req.player._id)) {
+        return res
+          .status(400)
+          .json({ errorCode: ERROR_CODES.PLAYER_DOES_NOT_OWN_HEX });
+      }
+
       const playerCapital = MapUtils.findPlayerCapital(
         req.planets,
         req.player._id
@@ -131,8 +137,6 @@ router.post(
         },
       };
 
-      // TODO: Update ownership/ZOC on hexes adjecent to the new unit.
-
       const createdUnit = await executeInTransaction(async (db, session) => {
         const unit = await UnitService.createUnit(db, newUnit, session);
 
@@ -147,7 +151,6 @@ router.post(
       });
 
       res.json({
-        message: "Unit deployed",
         unit: createdUnit,
       });
     } catch (error: any) {

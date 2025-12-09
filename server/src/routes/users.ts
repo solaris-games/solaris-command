@@ -50,8 +50,6 @@ router.delete("/me", authenticateToken, async (req, res) => {
     }
 
     await session.commitTransaction();
-
-    res.json({ message: "User deleted successfully" });
   } catch (error) {
     await session.abortTransaction();
 

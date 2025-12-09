@@ -3,13 +3,13 @@ import { getDb } from "../db/instance";
 import { ObjectId } from "mongodb";
 import { Game, GameStates, Player } from "@solaris-command/core";
 import { ERROR_CODES } from "./error-codes";
+import { GameService } from "../services";
 
 // Extend Express to include game
 declare global {
   namespace Express {
     interface Request {
       game: Game;
-      player: Player;
     }
   }
 }
@@ -27,20 +27,18 @@ export const loadGame = async (
   const db = getDb();
 
   try {
-    const game = await db
-      .collection<Game>("games")
-      .findOne({ _id: new ObjectId(gameId) });
+    const game = await GameService.getById(db, new ObjectId(gameId));
 
     if (!game)
       return res.status(404).json({ errorCode: ERROR_CODES.GAME_NOT_FOUND });
 
     req.game = game;
-
-    next();
   } catch (error) {
     console.error("Middleware Error:", error);
     res.status(500);
   }
+
+  next();
 };
 
 export const requireActiveGame = async (

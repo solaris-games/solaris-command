@@ -112,6 +112,7 @@ router.delete(
   loadPlayerStation,
   async (req, res) => {
     const db = getDb();
+    
     try {
       await StationService.deleteStation(db, req.station._id);
     } catch (error: any) {

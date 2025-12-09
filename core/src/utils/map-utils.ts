@@ -23,7 +23,7 @@ export const MapUtils = {
       // Note: Some units (e.g Frigates) do not exert a ZOC
       const unitCtlg = UNIT_CATALOG_ID_MAP.get(unit.catalogId)!;
 
-      if (!unitCtlg.stats.hasZOC) {
+      if (!unitCtlg.stats.zoc) {
         continue;
       }
 

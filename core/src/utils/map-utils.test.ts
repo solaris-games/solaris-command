@@ -9,7 +9,7 @@ import { UNIT_CATALOG_ID_MAP } from "../data";
 const MOCK_FRIGATE_ID = "unit_frigate_01";
 const MOCK_CORVETTE_ID = "unit_corvette_01";
 
-// We need to mock the catalog to control hasZOC
+// We need to mock the catalog to control zoc
 vi.mock("../data", () => ({
   UNIT_CATALOG_ID_MAP: new Map([
     [
@@ -17,7 +17,7 @@ vi.mock("../data", () => ({
       {
         id: "unit_frigate_01",
         class: "FRIGATE",
-        stats: { hasZOC: true }, // Frigates exert ZOC in this test scenario
+        stats: { zoc: true }, // Frigates exert ZOC in this test scenario
       },
     ],
     [
@@ -25,7 +25,7 @@ vi.mock("../data", () => ({
       {
         id: "unit_corvette_01",
         class: "CORVETTE",
-        stats: { hasZOC: false }, // Corvettes do NOT exert ZOC
+        stats: { zoc: false }, // Corvettes do NOT exert ZOC
       },
     ],
   ]),
@@ -80,7 +80,7 @@ describe("MapUtils", () => {
       });
     });
 
-    it("should NOT project ZOC if unit type has hasZOC: false", () => {
+    it("should NOT project ZOC if unit type has zoc: false", () => {
       const unit = createTestUnit(player1Id, MOCK_CORVETTE_ID);
       const units = [unit];
 

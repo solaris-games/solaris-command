@@ -21,18 +21,19 @@ export const loadPlanets = async (
 ) => {
   const gameId = req.params.id;
 
-  if (!gameId) return res.status(400).json({ errorCode: ERROR_CODES.GAME_ID_REQUIRED });
+  if (!gameId)
+    return res.status(400).json({ errorCode: ERROR_CODES.GAME_ID_REQUIRED });
 
   const db = getDb();
 
   try {
-    const hexes = await PlanetService.getByGameId(db, new ObjectId(gameId));
+    const planets = await PlanetService.getByGameId(db, new ObjectId(gameId));
 
-    req.planets = hexes;
-
-    next();
+    req.planets = planets;
   } catch (error) {
     console.error("Middleware Error:", error);
     res.status(500);
   }
+
+  next();
 };

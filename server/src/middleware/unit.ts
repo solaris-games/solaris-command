@@ -22,7 +22,8 @@ export const loadUnits = async (
 ) => {
   const gameId = req.params.id;
 
-  if (!gameId) return res.status(400).json({ errorCode: ERROR_CODES.GAME_ID_REQUIRED });
+  if (!gameId)
+    return res.status(400).json({ errorCode: ERROR_CODES.GAME_ID_REQUIRED });
 
   const db = getDb();
 
@@ -30,12 +31,12 @@ export const loadUnits = async (
     const units = await UnitService.getByGameId(db, new ObjectId(gameId));
 
     req.units = units;
-
-    next();
   } catch (error) {
     console.error("Middleware Error:", error);
     res.status(500);
   }
+
+  next();
 };
 
 export const loadPlayerUnit = async (
@@ -50,17 +51,17 @@ export const loadPlayerUnit = async (
 
     const unit = await UnitService.getUnitById(db, new ObjectId(unitId));
 
-    if (!unit || unit.playerId.toString() !== req.player._id.toString())
+    if (!unit || String(unit.playerId) !== String(req.player._id))
       // Make sure the player owns this unit.
       return res.status(404).json({ errorCode: ERROR_CODES.UNIT_NOT_FOUND });
 
     req.unit = unit;
-
-    next();
   } catch (error) {
     console.error("Middleware Error:", error);
     res.status(500);
   }
+
+  next();
 };
 
 export const requireNonRegoupingUnit = async (

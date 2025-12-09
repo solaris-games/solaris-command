@@ -32,10 +32,10 @@ export interface UnitCatalogItem {
     initiative: number;
 
     // Zone of Control
-    hasZOC: boolean; // Smaller units may not have a ZOC influence
+    zoc: boolean; // Smaller units may not have a ZOC influence
 
     // Vision
-    visionRange: number; // Range in hexes
+    los: number; // Range in hexes
   };
 }
 

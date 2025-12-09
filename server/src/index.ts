@@ -59,11 +59,8 @@ startServer();
 /**
  * Backend TODO:
  * - Update the GDD
- * - Extended API validation (See TODOs in routes)
  * - API response mapping layer
- * - Join game spawn locations + starting fleets
- * - Begin games when full
- * - Map generation
+ * - Custom maps
  * - Google auth setup
  * - DB test user accounts
  * - API testing

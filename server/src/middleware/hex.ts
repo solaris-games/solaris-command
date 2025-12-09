@@ -21,7 +21,8 @@ export const loadHexes = async (
 ) => {
   const gameId = req.params.id;
 
-  if (!gameId) return res.status(400).json({ errorCode: ERROR_CODES.GAME_ID_REQUIRED });
+  if (!gameId)
+    return res.status(400).json({ errorCode: ERROR_CODES.GAME_ID_REQUIRED });
 
   const db = getDb();
 
@@ -29,10 +30,10 @@ export const loadHexes = async (
     const hexes = await HexService.getByGameId(db, new ObjectId(gameId));
 
     req.hexes = hexes;
-
-    next();
   } catch (error) {
     console.error("Middleware Error:", error);
     res.status(500);
   }
+
+  next();
 };

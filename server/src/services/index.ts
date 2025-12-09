@@ -1,3 +1,4 @@
+export * from "./GalaxyService";
 export * from "./GameService";
 export * from "./HexService";
 export * from "./PlanetService";

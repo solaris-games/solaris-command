@@ -30,17 +30,17 @@ export const loadPlayerStation = async (
       new ObjectId(stationId)
     );
 
-    if (!station || station.playerId.toString() !== req.player._id.toString())
+    if (!station || String(station.playerId) !== String(req.player._id))
       // Make sure the player owns this station.
       return res.status(404).json({ errorCode: ERROR_CODES.STATION_NOT_FOUND });
 
     req.station = station;
-
-    next();
   } catch (error) {
     console.error("Middleware Error:", error);
     res.status(500);
   }
+
+  next();
 };
 
 export const loadStations = async (
@@ -56,10 +56,10 @@ export const loadStations = async (
     const stations = await StationService.getByGameId(db, new ObjectId(gameId));
 
     req.stations = stations;
-
-    next();
   } catch (error) {
     console.error("Middleware Error:", error);
     res.status(500);
   }
+
+  next();
 };
