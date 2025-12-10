@@ -199,9 +199,7 @@ export async function up(db: Db, client: MongoClient) {
               required: [
                 "status",
                 "ap",
-                "mp",
-                "activeSteps",
-                "suppressedSteps",
+                "mp"
               ],
               properties: {
                 status: {
@@ -210,8 +208,6 @@ export async function up(db: Db, client: MongoClient) {
                 },
                 ap: { bsonType: "int" },
                 mp: { bsonType: "int" },
-                activeSteps: { bsonType: "int", minimum: 0 },
-                suppressedSteps: { bsonType: "int", minimum: 0 },
               },
             },
             movement: {
@@ -228,13 +224,14 @@ export async function up(db: Db, client: MongoClient) {
             },
             combat: {
               bsonType: "object",
-              required: ["hexId", "operation"],
+              required: ["hexId", "operation", "advanceOnVictory"],
               properties: {
                 hexId: { bsonType: ["objectId", "null"] },
                 operation: {
                   bsonType: "string",
                   enum: ["STANDARD", "FEINT", "SUPPRESSIVE_FIRE"],
                 },
+                advanceOnVictory: { bsonType: "boolean" },
               },
             },
             supply: {

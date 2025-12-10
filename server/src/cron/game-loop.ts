@@ -18,8 +18,10 @@ import {
   ProcessCycleResult,
   Station,
   GameEvent,
+  User,
 } from "@solaris-command/core";
 import { GameService } from "../services";
+import { executeInTransaction } from "../db/instance";
 
 // Concurrency Flag: Prevent loop overlapping if processing takes > tick duration
 let isProcessing = false;
@@ -176,6 +178,7 @@ async function executeGameTick(client: MongoClient, game: Game) {
   // --- D. PERSISTENCE (Bulk Writes) ---
   // We collect all operations into arrays and execute them in batches.
 
+  const userOps: AnyBulkWriteOperation<User>[] = [];
   const unitOps: AnyBulkWriteOperation<Unit>[] = [];
   const hexOps: AnyBulkWriteOperation<Hex>[] = [];
   const planetOps: AnyBulkWriteOperation<Planet>[] = [];
@@ -221,6 +224,20 @@ async function executeGameTick(client: MongoClient, game: Game) {
 
   // Prepare Cycle Updates (If applicable)
   if (cycleResult) {
+    // If there is a winner, increment the user's victories achievement.
+    if (cycleResult.winnerPlayerId) {
+      const winnerPlayer = players.find(
+        (p) => String(p._id) === String(cycleResult.winnerPlayerId)
+      )!;
+
+      userOps.push({
+        updateOne: {
+          filter: { _id: winnerPlayer.userId },
+          update: { $inc: { "achievements.victories": 1 } },
+        },
+      });
+    }
+
     // Unit Updates (Refill AP/MP)
     cycleResult.unitUpdates.forEach((partialUnit, id) => {
       unitOps.push({
@@ -312,29 +329,39 @@ async function executeGameTick(client: MongoClient, game: Game) {
     );
   }
 
-  // Execute Bulk Ops
-  const promises: Promise<BulkWriteResult | DeleteResult>[] = [];
+  await executeInTransaction(async (db, session) => {
+    // Execute Bulk Ops
+    const promises: Promise<BulkWriteResult | DeleteResult>[] = [];
 
-  if (unitOps.length > 0)
-    promises.push(db.collection<Unit>("units").bulkWrite(unitOps));
-  if (hexOps.length > 0)
-    promises.push(db.collection<Hex>("hexes").bulkWrite(hexOps));
-  if (planetOps.length > 0)
-    promises.push(db.collection<Planet>("planets").bulkWrite(planetOps));
-  if (playerOps.length > 0)
-    promises.push(db.collection<Player>("players").bulkWrite(playerOps));
-  if (unitsToDelete.length > 0)
-    promises.push(
-      db.collection<Unit>("units").deleteMany({ _id: { $in: unitsToDelete } })
-    );
-  if (stationsToDelete.length > 0)
-    promises.push(
-      db
-        .collection<Station>("stations")
-        .deleteMany({ _id: { $in: stationsToDelete } })
-    );
+    if (userOps.length > 0)
+      promises.push(db.collection<User>("users").bulkWrite(userOps));
 
-  await Promise.all(promises);
+    if (unitOps.length > 0)
+      promises.push(db.collection<Unit>("units").bulkWrite(unitOps));
+
+    if (hexOps.length > 0)
+      promises.push(db.collection<Hex>("hexes").bulkWrite(hexOps));
+
+    if (planetOps.length > 0)
+      promises.push(db.collection<Planet>("planets").bulkWrite(planetOps));
+
+    if (playerOps.length > 0)
+      promises.push(db.collection<Player>("players").bulkWrite(playerOps));
+
+    if (unitsToDelete.length > 0)
+      promises.push(
+        db.collection<Unit>("units").deleteMany({ _id: { $in: unitsToDelete } })
+      );
+
+    if (stationsToDelete.length > 0)
+      promises.push(
+        db
+          .collection<Station>("stations")
+          .deleteMany({ _id: { $in: stationsToDelete } })
+      );
+
+    await Promise.all(promises);
+  });
 
   console.log(`✅ Tick Complete.`);
 }

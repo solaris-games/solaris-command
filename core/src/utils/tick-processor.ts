@@ -77,10 +77,14 @@ class TickContext {
     // We track unit locations in a Map for O(1) lookup during collision/combat checks.
     // This map is updated continuously as the Tick progresses (e.g., after a Blitz move).
     this.hexLookup = new Map<string, Hex>();
-    hexes.forEach((h) => this.hexLookup.set(HexUtils.getCoordsID(h.location), h));
+    hexes.forEach((h) =>
+      this.hexLookup.set(HexUtils.getCoordsID(h.location), h)
+    );
 
     this.unitLocations = new Map<string, Unit>();
-    units.forEach((u) => this.unitLocations.set(HexUtils.getCoordsID(u.location), u));
+    units.forEach((u) =>
+      this.unitLocations.set(HexUtils.getCoordsID(u.location), u)
+    );
 
     // Lookup map for Planets to check for capture logic efficiently
     this.planetLookup = new Map<string, Planet>();
@@ -100,7 +104,7 @@ export interface ProcessCycleResult {
   playerUpdates: Map<string, Partial<Player>>;
   unitUpdates: Map<string, Partial<Unit>>;
   unitsToRemove: ObjectId[];
-  winnerId: ObjectId | null;
+  winnerPlayerId: ObjectId | null;
 }
 
 class CycleTickContext {
@@ -108,7 +112,7 @@ class CycleTickContext {
   playerUpdates = new Map<string, Partial<Player>>();
   unitsToRemove: ObjectId[] = []; // <--- Track dead units
   gameUpdates: Partial<Game> | null = null;
-  winnerId: ObjectId | null = null;
+  winnerPlayerId: ObjectId | null = null;
 
   constructor() {}
 }
@@ -136,6 +140,14 @@ export class GameUnitMovementContext {
         !context.unitsToRemove.some((id) => String(id) === String(unit._id))
       ) {
         const nextHex = unit.movement.path[0];
+
+        // Bit of defensive programming here to make sure we aren't going to move units that have invalid movement paths.
+        if (!HexUtils.isNeighbor(unit.location, nextHex)) {
+          throw new Error(
+            `Unit next movement hex is not adjacent to the unit's current location.`
+          );
+        }
+
         this.moveIntents.push({
           unit,
           from: HexUtils.getCoordsID(unit.location),
@@ -300,7 +312,7 @@ export const TickProcessor = {
           defender,
           contextTick.hexLookup,
           attacker.combat.operation!,
-          { advanceOnVictory: true }
+          attacker.combat.advanceOnVictory!
         );
 
         // Log Report
@@ -544,12 +556,12 @@ export const TickProcessor = {
       if (newVP >= game.settings.victoryPointsToWin) {
         // If multiple players cross the line same tick, highest wins (tie-break logic needed?)
         if (
-          !context.winnerId ||
+          !context.winnerPlayerId ||
           newVP >
-            (players.find((p) => p._id === context.winnerId)?.victoryPoints ||
-              0)
+            (players.find((p) => p._id === context.winnerPlayerId)
+              ?.victoryPoints || 0)
         ) {
-          context.winnerId = player._id;
+          context.winnerPlayerId = player._id;
         }
       }
     });
@@ -561,11 +573,11 @@ export const TickProcessor = {
         ...game.state,
         cycle: game.state.cycle + 1,
         lastTickDate: new Date(),
-        winnerPlayerId: context.winnerId,
+        winnerPlayerId: context.winnerPlayerId,
       },
     };
 
-    if (context.winnerId) {
+    if (context.winnerPlayerId) {
       context.gameUpdates.state!.status = GameStates.COMPLETED;
       context.gameUpdates.state!.endDate = new Date();
     }
@@ -575,7 +587,7 @@ export const TickProcessor = {
       playerUpdates: context.playerUpdates,
       unitUpdates: context.unitUpdates,
       unitsToRemove: context.unitsToRemove,
-      winnerId: context.winnerId,
+      winnerPlayerId: context.winnerPlayerId,
     };
   },
 
@@ -584,7 +596,11 @@ export const TickProcessor = {
    */
   calculatePrestigeIncome(ownedPlanets: Planet[]): number {
     return ownedPlanets.reduce(
-      (total, planet) => total + (planet.isCapital ? CONSTANTS.PLANET_PRESTIGE_INCOME_CAPITAL : CONSTANTS.PLANET_PRESTIGE_INCOME),
+      (total, planet) =>
+        total +
+        (planet.isCapital
+          ? CONSTANTS.PLANET_PRESTIGE_INCOME_CAPITAL
+          : CONSTANTS.PLANET_PRESTIGE_INCOME),
       0
     );
   },
@@ -594,7 +610,11 @@ export const TickProcessor = {
    */
   calculateVPIncome(ownedPlanets: Planet[]): number {
     return ownedPlanets.reduce(
-      (total, planet) => total + (planet.isCapital ? CONSTANTS.PLANET_VP_INCOME_CAPITAL : CONSTANTS.PLANET_VP_INCOME),
+      (total, planet) =>
+        total +
+        (planet.isCapital
+          ? CONSTANTS.PLANET_VP_INCOME_CAPITAL
+          : CONSTANTS.PLANET_VP_INCOME),
       0
     );
   },

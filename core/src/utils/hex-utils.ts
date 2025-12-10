@@ -71,6 +71,19 @@ export const HexUtils = {
   },
 
   /**
+   * Checks if array of hex coordinates contains the given hex coordinate
+   */
+  includes(hexes: HexCoords[], hex: HexCoords) {
+    return hexes.find((h) => HexUtils.equals(h, hex)) != null;
+  },
+
+  isNeighbor(source: HexCoords, target: HexCoords) {
+    const neighbors = HexUtils.neighbors(source);
+
+    return HexUtils.includes(neighbors, target);
+  },
+
+  /**
    * Get all hexes within a certain radius (filled circle)
    * Essential for: Supply Range, Sensor Range
    */

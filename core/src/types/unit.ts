@@ -35,7 +35,7 @@ export interface UnitCatalogItem {
     zoc: boolean; // Smaller units may not have a ZOC influence
 
     // Vision
-    los: number; // Range in hexes
+    los: number; // Range in hexes (must be at least 2 due to movement bounces)
   };
 }
 

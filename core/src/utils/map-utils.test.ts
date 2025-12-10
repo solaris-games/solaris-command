@@ -35,7 +35,6 @@ vi.mock("../data", () => ({
 function createTestUnit(
   playerId: string,
   catalogId: string,
-  activeSteps: number = 5,
   q: number = 0,
   r: number = 0,
   s: number = 0
@@ -46,13 +45,13 @@ function createTestUnit(
     playerId: new ObjectId(playerId),
     catalogId: catalogId,
     location: { q, r, s },
-    steps: [], // Not used in ZOC calc
+    steps: [
+      { isSuppressed: false, specialistId: null}
+    ], // Not used in ZOC calc
     state: {
       status: UnitStatus.IDLE,
       ap: 1,
       mp: 1,
-      activeSteps: activeSteps,
-      suppressedSteps: 0,
     },
     supply: { isInSupply: true, ticksLastSupply: 0, ticksOutOfSupply: 0 },
     movement: { path: [] },
@@ -91,7 +90,9 @@ describe("MapUtils", () => {
     });
 
     it("should NOT project ZOC if unit is fully suppressed (0 active steps)", () => {
-      const unit = createTestUnit(player1Id, MOCK_FRIGATE_ID, 0); // 0 Active Steps
+      const unit = createTestUnit(player1Id, MOCK_FRIGATE_ID, 0);
+      unit.steps = [{ isSuppressed: true, specialistId: null}] // 0 Active Steps
+      
       const units = [unit];
 
       const zocMap = MapUtils.calculateZOCMap(units);
@@ -101,9 +102,9 @@ describe("MapUtils", () => {
 
     it("should handle overlapping ZOC from multiple units/players", () => {
       // Unit 1 at 0,0,0
-      const u1 = createTestUnit(player1Id, MOCK_FRIGATE_ID, 5, 0, 0, 0);
+      const u1 = createTestUnit(player1Id, MOCK_FRIGATE_ID, 0, 0, 0);
       // Unit 2 at 2,0,-2 (Distance 2 away, shares a neighbor at 1,0,-1)
-      const u2 = createTestUnit(player2Id, MOCK_FRIGATE_ID, 5, 2, 0, -2);
+      const u2 = createTestUnit(player2Id, MOCK_FRIGATE_ID, 2, 0, -2);
 
       const units = [u1, u2];
       const zocMap = MapUtils.calculateZOCMap(units);

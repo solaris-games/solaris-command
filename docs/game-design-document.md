@@ -96,7 +96,7 @@ The player can choose the method of attack, these are as follows:
 * **Standard Attack:** The normal attack type, both units engage in combat.
 * **Feint Attack:** Simulates a limited attack. **Suppresses 1 step from both sides**, useful for weaker units attacking stronger targets.
 * **Suppressive Fire:** Simulates using artillery without actually moving into the attack. **Suppresses 2 steps** from the opposing unit.
-    * This attack is available only if the unit has an **Artillery** specialist step.
+    * This attack is available only if the unit has an **Artillery** specialist step. This attacking specialist step will be suppressed in the attack.
 
 ### Collision Override (The "Interloper" Rule)
 Because Combat resolves before standard Movement, a "Crash" can occur if a third party tries to enter a hex being fought over.

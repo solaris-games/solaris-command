@@ -54,15 +54,3 @@ async function startServer() {
 }
 
 startServer();
-
-
-/**
- * Backend TODO:
- * - Update the GDD
- * - API response mapping layer
- * - Custom maps
- * - Google auth setup
- * - DB test user accounts
- * - API testing
- * - Game tick testing
- */

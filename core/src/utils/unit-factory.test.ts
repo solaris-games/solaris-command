@@ -26,8 +26,6 @@ describe("UnitFactory", () => {
 
         // State
         expect(unit.state.status).toBe(UnitStatus.IDLE);
-        expect(unit.state.activeSteps).toBe(catalogItem.stats.defaultSteps);
-        expect(unit.state.suppressedSteps).toBe(0);
         expect(unit.state.ap).toBe(catalogItem.stats.maxAP);
         expect(unit.state.mp).toBe(catalogItem.stats.maxMP);
 

@@ -2,6 +2,7 @@ import {
   GameGalaxyResponseSchema,
   GameStates,
   HexCoords,
+  UnitManagerHelper,
 } from "@solaris-command/core";
 import { GameGalaxy } from "../services/GameGalaxyService";
 import { ObjectId } from "mongodb";
@@ -83,6 +84,7 @@ export class GameGalaxyMapper {
         prestigePoints: tryMaskField(p._id, p.prestigePoints),
         victoryPoints: p.victoryPoints,
         lastSeenDate: p.lastSeenDate.toISOString(),
+        isUserPlayer: String(userPlayerId) === String(p.userId)
       })),
       hexes: galaxy.hexes.map((h) => ({
         _id: String(h._id),
@@ -124,8 +126,8 @@ export class GameGalaxyMapper {
           status: u.state.status,
           ap: u.state.ap,
           mp: u.state.mp,
-          activeSteps: u.state.activeSteps,
-          suppressedSteps: u.state.suppressedSteps,
+          activeSteps: UnitManagerHelper.getActiveSteps(u).length,
+          suppressedSteps: UnitManagerHelper.getSuppressedSteps(u).length
         },
         movement: {
           path: tryMaskMovementPath(u.playerId, u.movement.path),
@@ -134,6 +136,7 @@ export class GameGalaxyMapper {
           // Note: Masking combat is not needed since combat triggers at the end of the tick.
           hexId: u.combat.hexId?.toString() || null,
           operation: tryMaskField(u.playerId, u.combat.operation),
+          advanceOnVictory: tryMaskField(u.playerId, u.combat.advanceOnVictory)
         },
         supply: {
           isInSupply: u.supply.isInSupply,

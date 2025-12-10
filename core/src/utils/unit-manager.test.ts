@@ -21,8 +21,6 @@ function createTestUnit(overrides: Partial<Unit> = {}): Unit {
       status: UnitStatus.IDLE,
       ap: 0,
       mp: 0,
-      activeSteps: 5,
-      suppressedSteps: 0,
     },
     supply: {
       isInSupply: true,
@@ -43,8 +41,6 @@ describe("UnitManager", () => {
           status: UnitStatus.IDLE,
           ap: 0,
           mp: 0,
-          activeSteps: 5,
-          suppressedSteps: 0,
         },
       });
 
@@ -60,8 +56,6 @@ describe("UnitManager", () => {
           status: UnitStatus.REGROUPING,
           ap: 0,
           mp: 0,
-          activeSteps: 5,
-          suppressedSteps: 0,
         },
       });
 

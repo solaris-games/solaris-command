@@ -44,7 +44,8 @@ export const MoveUnitSchema = z.object({
 
 export const AttackUnitSchema = z.object({
   hexId: z.string(),
-  combatType: z.enum(["STANDARD", "FEINT", "SUPPRESSIVE"]), // Match core types
+  operation: z.enum(["STANDARD", "FEINT", "SUPPRESSIVE"]), // Match core types
+  advanceOnVictory: z.boolean()
 });
 
 export const BuildStationSchema = z.object({

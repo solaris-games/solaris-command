@@ -42,13 +42,11 @@ function createTestUnit(
     state: {
       status: UnitStatus.IDLE,
       ap: 1,
-      mp: 1,
-      activeSteps: activeSteps,
-      suppressedSteps: 0,
+      mp: 1
     },
     supply: { isInSupply: true, ticksLastSupply: 0, ticksOutOfSupply: 0 },
     movement: { path: [] },
-    combat: { hexId: null, operation: null },
+    combat: { hexId: null, operation: null, advanceOnVictory: null },
   } as Unit;
 }
 
@@ -155,20 +153,6 @@ describe("CombatCalculator", () => {
       expect(result.forcedResult?.attacker.suppressed).toBe(1);
       expect(result.forcedResult?.defender.suppressed).toBe(1);
       expect(result.forcedResult?.attacker.steps).toBe(0);
-    });
-
-    it("should throw error for SUPPRESSIVE_FIRE without Artillery", () => {
-      const attacker = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5); // No artillery
-      const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5);
-
-      expect(() => {
-        CombatCalculator.calculate(
-          attacker,
-          defender,
-          emptyHex,
-          CombatOperation.SUPPRESSIVE_FIRE
-        );
-      }).toThrow();
     });
 
     it("should return forced result for SUPPRESSIVE_FIRE with Artillery", () => {

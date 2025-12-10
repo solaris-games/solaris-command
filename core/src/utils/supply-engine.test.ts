@@ -91,8 +91,6 @@ function createUnit(playerId: ObjectId, q: number, r: number, s: number): Unit {
       status: UnitStatus.IDLE,
       ap: 1,
       mp: 1,
-      activeSteps: 1,
-      suppressedSteps: 0,
     },
     movement: { path: [] },
     combat: { hexId: null },

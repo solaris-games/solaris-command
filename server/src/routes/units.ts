@@ -10,6 +10,9 @@ import {
   CONSTANTS,
   UnitManager,
   MapUtils,
+  CombatOperation,
+  SpecialistStepTypes,
+  HexUtils,
 } from "@solaris-command/core";
 import {
   validate,
@@ -120,8 +123,6 @@ router.post(
           status: UnitStatus.IDLE,
           ap: 0,
           mp: Math.floor(unitCtlg.stats.maxMP / 2), // Units start with half MP
-          activeSteps: 0,
-          suppressedSteps: initialSteps.length,
         },
         movement: {
           path: [],
@@ -129,6 +130,7 @@ router.post(
         combat: {
           hexId: null,
           operation: null,
+          advanceOnVictory: null,
         },
         supply: {
           isInSupply: true,
@@ -173,9 +175,14 @@ router.post(
 
     const db = getDb();
 
+    // Unit must be idle to declare movement
+    if (req.unit.state.status !== UnitStatus.IDLE) {
+      return res.status(400).json({ errorCode: ERROR_CODES.UNIT_IS_NOT_IDLE });
+    }
+
     try {
       // TODO: Validate path (Pathfinding check logic in core)
-      await UnitService.updateUnitState(db, req.unit._id, "MOVING", { path });
+      await UnitService.declareUnitMovement(db, req.unit._id, { path });
     } catch (error: any) {
       console.error("Error moving unit:", error);
       res.status(500);
@@ -195,8 +202,15 @@ router.post(
   async (req, res) => {
     const db = getDb();
 
+    // Unit must be moving to cancel movement
+    if (req.unit.state.status !== UnitStatus.MOVING) {
+      return res
+        .status(400)
+        .json({ errorCode: ERROR_CODES.UNIT_IS_NOT_MOVING });
+    }
+
     try {
-      await UnitService.updateUnitState(db, req.unit._id, "IDLE", { path: [] });
+      await UnitService.cancelUnitMovement(db, req.unit._id);
     } catch (error: any) {
       console.error("Error cancelling unit movement:", error);
       res.status(500);
@@ -216,32 +230,57 @@ router.post(
   requireNonRegoupingUnit,
   loadHexes,
   async (req, res) => {
-    const { hexId, combatType } = req.body;
+    const { hexId, operation, advanceOnVictory } = req.body;
 
     const db = getDb();
 
-    try {
-      if (req.unit.state.ap === 0)
-        return res
-          .status(400)
-          .json({ errorCode: ERROR_CODES.UNIT_INSUFFICIENT_AP });
+    // Unit must be idle to declare an attack
+    if (req.unit.state.status !== UnitStatus.IDLE) {
+      return res.status(400).json({ errorCode: ERROR_CODES.UNIT_IS_NOT_IDLE });
+    }
 
-      const hex = req.hexes.find((h) => String(h._id) === hexId);
+    // Must have AP
+    if (req.unit.state.ap === 0)
+      return res
+        .status(400)
+        .json({ errorCode: ERROR_CODES.UNIT_INSUFFICIENT_AP });
 
-      if (!hex) {
-        return res.status(400).json({ errorCode: ERROR_CODES.HEX_ID_INVALID });
-      }
+    // Hex must be valid
+    const hex = req.hexes.find((h) => String(h._id) === hexId);
 
-      await UnitService.updateUnitState(
-        db,
-        req.unit._id,
-        "PREPARING",
-        undefined,
-        {
-          hexId,
-          type: combatType,
-        }
+    if (!hex) {
+      return res.status(400).json({ errorCode: ERROR_CODES.HEX_ID_INVALID });
+    }
+
+    // Hex must be adjacent
+    if (!HexUtils.isNeighbor(req.unit.location, hex.location)) {
+      return res.status(400).json({ errorCode: ERROR_CODES.HEX_IS_NOT_ADJACENT });
+    }
+    
+    // Hex must be occupied by a unit
+    if (!hex.unitId) {
+      return res.status(400).json({ errorCode: ERROR_CODES.HEX_IS_NOT_OCCUPIED_BY_UNIT });
+    }
+
+    // If suppressive fire, then must have an artillery spec.
+    if (operation === CombatOperation.SUPPRESSIVE_FIRE) {
+      const hasArtillery = UnitManagerHelper.unitHasActiveSpecialistStep(
+        req.unit
       );
+
+      if (!hasArtillery) {
+        return res.status(400).json({
+          errorCode: ERROR_CODES.UNIT_MUST_HAVE_ACTIVE_ARTILLERY_SPECIALIST,
+        });
+      }
+    }
+
+    try {
+      await UnitService.declareUnitAttack(db, req.unit._id, {
+        hexId,
+        operation,
+        advanceOnVictory,
+      });
     } catch (error: any) {
       console.error("Error declaring attack:", error);
       res.status(500);
@@ -261,16 +300,20 @@ router.post(
   async (req, res) => {
     const db = getDb();
 
-    try {
-      if (req.unit.combat.hexId == null)
-        return res
-          .status(400)
-          .json({ errorCode: ERROR_CODES.UNIT_HAS_NOT_DECLARED_ATTACK });
+    // Unit must be preparing an attack to cancel
+    if (req.unit.state.status !== UnitStatus.PREPARING) {
+      return res
+        .status(400)
+        .json({ errorCode: ERROR_CODES.UNIT_IS_NOT_PREPARING });
+    }
 
-      await UnitService.updateUnitState(db, req.unit._id, "IDLE", undefined, {
-        hexId: null,
-        type: null,
-      });
+    if (req.unit.combat.hexId == null)
+      return res
+        .status(400)
+        .json({ errorCode: ERROR_CODES.UNIT_HAS_NOT_DECLARED_ATTACK });
+
+    try {
+      await UnitService.cancelUnitAttack(db, req.unit._id);
     } catch (error: any) {
       console.error("Error cancelling attack:", error);
       res.status(500);
@@ -291,11 +334,6 @@ router.post(
     const { type, specialistId } = req.body;
 
     try {
-      // Logic: Upgrade
-      // 1. Cost calculation
-      // 2. Check limits (max steps)
-      // 3. Apply upgrade
-
       let cost = 0;
       let newSteps = [...req.unit.steps];
 
@@ -306,6 +344,13 @@ router.post(
         return res
           .status(500)
           .json({ errorCode: ERROR_CODES.UNIT_TEMPLATE_NOT_FOUND });
+
+      // Unit must be in supply to upgrade
+      if (!req.unit.supply.isInSupply) {
+        return res
+          .status(400)
+          .json({ errorCode: ERROR_CODES.UNIT_IS_NOT_IN_SUPPLY });
+      }
 
       if (type === "STEP") {
         if (req.unit.steps.length >= unitTemplate.stats.maxSteps) {
@@ -359,18 +404,12 @@ router.post(
           .json({ errorCode: ERROR_CODES.UNIT_INVALID_UPGRADE_TYPE });
       }
 
-      // Recalculate State counts
-      const activeSteps = newSteps.filter((s) => !s.isSuppressed).length;
-      const suppressedSteps = newSteps.length - activeSteps;
-
       await executeInTransaction(async (db, session) => {
         // Apply Upgrade
         await UnitService.upgradeUnit(
           db,
           req.unit._id,
           newSteps,
-          activeSteps,
-          suppressedSteps,
           session
         );
 
@@ -400,23 +439,24 @@ router.post(
   async (req, res) => {
     const db = getDb();
 
+    // Unit must be in supply to scrap
+    if (!req.unit.supply.isInSupply) {
+      return res
+        .status(400)
+        .json({ errorCode: ERROR_CODES.UNIT_IS_NOT_IN_SUPPLY });
+    }
+
     try {
       // If there's more than 1 step then we scrap it, otherwise we delete the entire unit.
       if (req.unit.steps.length > 1) {
         // Reduce step
         const newSteps = UnitManagerHelper.scrapSteps(req.unit.steps, 1);
 
-        // Recalculate State counts
-        const activeSteps = newSteps.filter((s) => !s.isSuppressed).length;
-        const suppressedSteps = newSteps.length - activeSteps;
-
         // Apply
         await UnitService.scrapUnitStep(
           db,
           req.unit._id,
           newSteps,
-          activeSteps,
-          suppressedSteps
         );
       } else {
         // Delete unit

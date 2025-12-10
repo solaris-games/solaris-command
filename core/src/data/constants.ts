@@ -10,8 +10,8 @@ export const CONSTANTS = {
     PLANET_VP_INCOME: 1,
 
     // Vision
-    PLANET_VISION_RANGE: 3,
-    STATION_VISION_RANGE: 2,
+    PLANET_VISION_RANGE: 5,
+    STATION_VISION_RANGE: 3,
 
     // Stations
     STATION_PRESTIGE_COST: 250,

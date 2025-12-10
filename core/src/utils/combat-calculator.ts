@@ -2,6 +2,7 @@ import {
   TERRAIN_COMBAT_SHIFTS,
   SPECIALIST_STEP_ID_MAP,
   UNIT_CATALOG_ID_MAP,
+  COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE,
 } from "../data";
 import { Unit, Hex, TerrainTypes } from "../models";
 import {
@@ -12,6 +13,7 @@ import {
   CombatResultType,
   CombatForcedResult,
 } from "../types";
+import { UnitManagerHelper } from "./unit-manager";
 
 export interface CombatPrediction {
   attackPower: number;
@@ -65,25 +67,8 @@ export const CombatCalculator = {
         resultType: CombatResultType.SUPPRESS,
       };
     } else if (operation === CombatOperation.SUPPRESSIVE_FIRE) {
-      // Validation: Must have Artillery Specialist
-      const hasArtillery = attacker.steps.some((s) => {
-        if (!s.specialistId || s.isSuppressed) return false;
-        const spec = SPECIALIST_STEP_ID_MAP.get(s.specialistId);
-        return spec?.type === SpecialistStepTypes.ARTILLERY;
-      });
-
-      if (!hasArtillery) {
-        throw new Error(
-          "Unit cannot perform Suppressive Fire without an active Artillery specialist."
-        );
-      }
-
-      // Suppressive Fire: 0 vs 2 Suppress (Fixed)
-      forcedResult = {
-        attacker: { steps: 0, suppressed: 0 },
-        defender: { steps: 0, suppressed: 2, retreat: false, shattered: false },
-        resultType: CombatResultType.SUPPRESS,
-      };
+      // Suppressive Fire forced result:
+      forcedResult = COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE;
     }
 
     return {
@@ -104,7 +89,7 @@ export const CombatCalculator = {
     const unitCtlg = UNIT_CATALOG_ID_MAP.get(unit.catalogId)!;
 
     // Count Active Steps (Base Stats)
-    const activeSteps = unit.steps.filter((s) => !s.isSuppressed).length;
+    const activeSteps = UnitManagerHelper.getActiveSteps(unit).length;
 
     let power = isAttacking
       ? unitCtlg.stats.attack * activeSteps
@@ -223,15 +208,15 @@ export const CombatCalculator = {
     if (ratio >= 2.0) return 2;
     if (ratio >= 1.5) return 1;
     if (ratio >= 1.0) return 0;
-    
+
     // For defender advantage (ratio < 1), we inverse it to find the bracket
     // e.g. Ratio 0.66 is 1:1.5 => Inverse is 1.5
     const inverse = 1 / ratio;
-    
+
     if (inverse >= 3.0) return -3;
     if (inverse >= 2.0) return -2;
     if (inverse >= 1.5) return -1;
-    
+
     return 0; // Fallback for 1:1 to 1:1.49 range (technically should be caught by ratio >= 1.0 check but floating point safety)
   },
 };

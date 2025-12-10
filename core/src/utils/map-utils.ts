@@ -4,6 +4,7 @@ import { HexUtils } from "./hex-utils";
 import { UNIT_CATALOG_ID_MAP } from "../data";
 import { Hex, Planet, TerrainTypes } from "../models";
 import { HexCoords } from "../types/geometry";
+import { UnitManagerHelper } from "./unit-manager";
 
 export const MapUtils = {
   /**
@@ -16,7 +17,7 @@ export const MapUtils = {
 
     for (const unit of units) {
       // Note: Fully suppressed units do not exert a ZOC.
-      if (unit.state.activeSteps === 0) {
+      if (UnitManagerHelper.getActiveSteps(unit).length === 0) {
         continue;
       }
 

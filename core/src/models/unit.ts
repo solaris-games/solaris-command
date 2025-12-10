@@ -10,12 +10,8 @@ export enum UnitStatus {
 
 export interface UnitState {
   status: UnitStatus;
-
   ap: number; // Action Points (Refills every cycle)
   mp: number; // Movement Points (Refills every cycle)
-
-  activeSteps: number; // e.g., 5 (Current health)
-  suppressedSteps: number; // e.g., 2 (Temporarily disabled)
 }
 
 export interface UnitStep {
@@ -30,6 +26,7 @@ export interface UnitMovement {
 export interface UnitCombat {
   hexId: ObjectId | null; // If Preparing, where are we attacking?
   operation: CombatOperation | null;
+  advanceOnVictory: boolean | null;
 }
 
 export interface Unit {

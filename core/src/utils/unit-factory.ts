@@ -35,8 +35,6 @@ export class UnitFactory {
 
       state: {
         status: UnitStatus.IDLE,
-        activeSteps: catalogItem.stats.defaultSteps,
-        suppressedSteps: 0,
         ap: catalogItem.stats.maxAP,
         mp: catalogItem.stats.maxMP,
       },
@@ -48,6 +46,7 @@ export class UnitFactory {
       combat: {
         hexId: null,
         operation: null,
+        advanceOnVictory: null,
       },
 
       supply: {

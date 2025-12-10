@@ -1,5 +1,10 @@
 import { ClientSession, Db, ObjectId } from "mongodb";
-import { Unit } from "@solaris-command/core";
+import {
+  Unit,
+  UnitCombat,
+  UnitMovement,
+  UnitStatus,
+} from "@solaris-command/core";
 import { executeInTransaction, getDb } from "../db/instance";
 import { PlayerService } from "./PlayerService";
 
@@ -32,28 +37,62 @@ export class UnitService {
     return db.collection<Unit>("units").updateOne({ _id: unitId }, update);
   }
 
-  static async updateUnitState(
+  static async declareUnitMovement(
     db: Db,
     unitId: ObjectId,
-    newState: any,
-    movement?: any,
-    combat?: any
+    movement: UnitMovement
   ) {
     const update: any = {
       $set: {
-        "state.status": newState,
+        "state.status": UnitStatus.MOVING,
+        movement: {
+          path: movement.path,
+        },
       },
     };
 
-    if (movement) {
-      if (movement.path) update.$set["movement.path"] = movement.path;
-    }
+    return db.collection<Unit>("units").updateOne({ _id: unitId }, update);
+  }
 
-    if (combat) {
-      if (combat.hexId !== undefined)
-        update.$set["combat.hexId"] = combat.hexId;
-      if (combat.type !== undefined) update.$set["combat.type"] = combat.type;
-    }
+  static async cancelUnitMovement(db: Db, unitId: ObjectId) {
+    const update: any = {
+      $set: {
+        "state.status": UnitStatus.IDLE,
+        movement: {
+          path: null,
+        },
+      },
+    };
+
+    return db.collection<Unit>("units").updateOne({ _id: unitId }, update);
+  }
+
+  static async declareUnitAttack(db: Db, unitId: ObjectId, combat: UnitCombat) {
+    const update: any = {
+      $set: {
+        "state.status": UnitStatus.PREPARING,
+        combat: {
+          hexId: combat.hexId,
+          operation: combat.operation,
+          advanceOnVictory: combat.advanceOnVictory,
+        },
+      },
+    };
+
+    return db.collection<Unit>("units").updateOne({ _id: unitId }, update);
+  }
+
+  static async cancelUnitAttack(db: Db, unitId: ObjectId) {
+    const update: any = {
+      $set: {
+        "state.status": UnitStatus.IDLE,
+        combat: {
+          hexId: null,
+          operation: null,
+          advanceOnVictory: null,
+        },
+      },
+    };
 
     return db.collection<Unit>("units").updateOne({ _id: unitId }, update);
   }
@@ -62,8 +101,6 @@ export class UnitService {
     db: Db,
     unitId: ObjectId,
     newSteps: any[],
-    activeSteps: number,
-    suppressedSteps: number,
     session?: ClientSession
   ) {
     // Update Unit
@@ -72,8 +109,6 @@ export class UnitService {
       {
         $set: {
           steps: newSteps,
-          "state.activeSteps": activeSteps,
-          "state.suppressedSteps": suppressedSteps,
         },
       },
       { session }
@@ -84,16 +119,12 @@ export class UnitService {
     db: Db,
     unitId: ObjectId,
     newSteps: any[],
-    activeSteps: number,
-    suppressedSteps: number
   ) {
     return db.collection<Unit>("units").updateOne(
       { _id: unitId },
       {
         $set: {
-          steps: newSteps,
-          "state.activeSteps": activeSteps,
-          "state.suppressedSteps": suppressedSteps,
+          steps: newSteps
         },
       }
     );

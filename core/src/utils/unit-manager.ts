@@ -1,6 +1,6 @@
-import { UNIT_CATALOG_ID_MAP } from "../data";
+import { SPECIALIST_STEP_ID_MAP, UNIT_CATALOG_ID_MAP } from "../data";
 import { Hex, Planet, Unit, UnitStatus, UnitStep } from "../models";
-import { UnitSpecialistStepCatalogItem } from "../types";
+import { SpecialistStepTypes, UnitSpecialistStepCatalogItem } from "../types";
 import { HexUtils } from "./hex-utils";
 import { MapUtils } from "./map-utils";
 
@@ -61,21 +61,16 @@ export const UnitManager = {
       }
     }
 
-    // 3. Recalculate Derived Stats (Active Steps)
-    // We calculate this here so we don't have to do O(N) counts every time we read the DB
-    const activeSteps = newSteps.filter((s) => !s.isSuppressed).length;
-    const suppressedSteps = newSteps.length - activeSteps;
-
-    // 4. Status Check (Did it die?)
+    // 3. Status Check (Did it die?)
     if (newSteps.length === 0) {
       // Logic for "Destroyed" handled by caller, but we set stats to 0
       return {
         steps: [],
-        state: { ...unit.state, activeSteps: 0, suppressedSteps: 0 },
+        state: { ...unit.state },
       };
     }
 
-    // 5. Reset Action States
+    // 4. Reset Action States
     // If unit was 'PREPARING' or 'MOVING', do we reset it?
     // Usually, cycle resets happen at quiet times, but we should ensure AP/MP fill
     // doesn't override a specific locked state if needed.
@@ -91,8 +86,6 @@ export const UnitManager = {
         status: newStatus,
         ap: newAP,
         mp: newMP,
-        activeSteps,
-        suppressedSteps,
       },
     };
   },
@@ -106,14 +99,14 @@ export const UnitManager = {
     hexes: Hex[],
     allUnits: Unit[]
   ): Hex[] {
-    const valid: Hex[] = []
+    const valid: Hex[] = [];
     // Get all neighbors
     const candidates = HexUtils.neighbors(playerCapital.location);
 
     // Filter valid
     for (const coord of candidates) {
       const hexId = HexUtils.getCoordsID(coord);
-      const hex = hexes.find((h) => HexUtils.getCoordsID(h.location) === hexId);
+      const hex = hexes.find((h) => HexUtils.equals(h.location, coord));
 
       // Must exist and be passable
       if (!hex || MapUtils.isHexImpassable(hex)) continue;
@@ -135,6 +128,18 @@ export const UnitManager = {
 // --- Private Helpers ---
 
 export const UnitManagerHelper = {
+  getActiveSteps(unit: Unit) {
+    return unit.steps.filter(
+      (s) => !s.isSuppressed
+    )
+  },
+
+  getSuppressedSteps(unit: Unit) {
+    return unit.steps.filter(
+      (s) => s.isSuppressed
+    )
+  },
+
   /**
    * Suppress N active steps (FIFO / Left-to-Right)
    * Scans from Index 0. Finds the first ACTIVE step and suppresses it.
@@ -208,5 +213,15 @@ export const UnitManagerHelper = {
       remaining.pop(); // Remove from End
     }
     return remaining;
+  },
+
+  unitHasActiveSpecialistStep(unit: Unit) {
+    const hasArtillery = unit.steps.some((s) => {
+      if (!s.specialistId || s.isSuppressed) return false;
+      const spec = SPECIALIST_STEP_ID_MAP.get(s.specialistId);
+      return spec?.type === SpecialistStepTypes.ARTILLERY;
+    });
+
+    return hasArtillery;
   },
 };

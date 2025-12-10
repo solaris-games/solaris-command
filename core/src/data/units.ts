@@ -7,7 +7,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
     class: UnitClasses.CORVETTE,
     name: "Patrol Corvette",
     description:
-      "Extremely fast reconnaissance vessel. Useful for deep space scouting and harassment.",
+      "Long range reconnaissance vessel. Useful for deep space scouting and harassment.",
     cost: 25,
     stats: {
       attack: 1,
@@ -19,7 +19,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxSteps: 3,
       initiative: 0,
       zoc: false, // Cannot block movement
-      los: 3
+      los: 5
     },
   },
   {
@@ -27,7 +27,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
     class: UnitClasses.FRIGATE,
     name: "Strike Frigate",
     description:
-      "Fast screening vessel. The standard workhorse for wolf-pack tactics and screening larger fleets.",
+      "Long range screening vessel. The standard workhorse for wolf-pack tactics and screening larger fleets.",
     cost: 50,
     stats: {
       attack: 2,
@@ -39,7 +39,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxSteps: 4,
       initiative: 0,
       zoc: false, // Too small to block effectively
-      los: 1
+      los: 5
     },
   },
 
@@ -61,7 +61,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxSteps: 4,
       initiative: 1,
       zoc: true,
-      los: 2
+      los: 4
     },
   },
   {
@@ -81,7 +81,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxSteps: 5,
       initiative: 1,
       zoc: true,
-      los: 2
+      los: 4
     },
   },
 
@@ -91,7 +91,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
     class: UnitClasses.HEAVY_CRUISER,
     name: "Armored Cruiser",
     description:
-      "A durable line combatant. Trades the speed of light cruisers for heavy plating and sustained combat endurance.",
+      "A durable line combatant. Trades the range of light cruisers for heavy plating and sustained combat endurance.",
     cost: 160,
     stats: {
       attack: 5,
@@ -103,7 +103,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxSteps: 5,
       initiative: 2,
       zoc: true,
-      los: 2
+      los: 3
     },
   },
   {
@@ -123,7 +123,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxSteps: 6,
       initiative: 2,
       zoc: true,
-      los: 2
+      los: 3
     },
   },
 
@@ -133,7 +133,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
     class: UnitClasses.BATTLESHIP,
     name: "Capital Battleship",
     description:
-      "Heavily armored behemoth. Slow, but possesses devastating firepower and the armor to shrug off lighter attacks.",
+      "Heavily armored behemoth. Short range, but possesses devastating firepower and the armor to shrug off lighter attacks.",
     cost: 200,
     stats: {
       attack: 6,
@@ -153,7 +153,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
     class: UnitClasses.DREADNOUGHT,
     name: "Planetary Siege Dreadnought",
     description:
-      "The ultimate projection of power. Extremely slow and expensive, but nearly impervious to standard weapons.",
+      "The ultimate projection of power. Short range and expensive, but nearly impervious to standard weapons.",
     cost: 350,
     stats: {
       attack: 9,

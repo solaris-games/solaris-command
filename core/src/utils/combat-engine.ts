@@ -1,12 +1,52 @@
-import { CombatTables, TERRAIN_MP_COSTS } from "../data";
+import {
+  CombatTables,
+  SPECIALIST_STEP_ID_MAP,
+  TERRAIN_MP_COSTS,
+} from "../data";
 import { Unit, UnitStatus, Hex } from "../models";
-import { CombatOperation, CombatReport, CombatResultType } from "../types";
+import {
+  CombatOperation,
+  CombatReport,
+  CombatResultType,
+  SpecialistStepTypes,
+} from "../types";
 import { CombatCalculator } from "./combat-calculator";
 import { HexUtils } from "./hex-utils";
 import { MapUtils } from "./map-utils";
 import { UnitManagerHelper as UnitUtils } from "./unit-manager";
 
 export const CombatEngine = {
+  validateBattle(
+    attacker: Unit,
+    defender: Unit,
+    hex: Hex,
+    operation: CombatOperation,
+    advanceOnVictory: boolean
+  ) {
+    if (attacker.state.status !== UnitStatus.PREPARING)
+      throw new Error("Attacker must be 'PREPARING' to order to attack.");
+
+    if (attacker.state.ap === 0)
+      throw new Error("Attacker does not have enough AP to attack.");
+
+    if (!HexUtils.isNeighbor(attacker.location, hex.location))
+      throw new Error("Defender's hex is not adjacent to attacker.");
+
+    if (!hex.unitId)
+      throw new Error("Defender's hex is not occupied by a unit.");
+
+    if (operation === CombatOperation.SUPPRESSIVE_FIRE) {
+      // Must have Artillery Specialist for suppressive fire attacks.
+      const hasArtillery = UnitUtils.unitHasActiveSpecialistStep(attacker);
+
+      if (!hasArtillery) {
+        throw new Error(
+          "Attacker cannot perform Suppressive Fire without an active Artillery specialist."
+        );
+      }
+    }
+  },
+
   /**
    * RESOLVE BATTLE
    * This function mutates the unit objects in memory.
@@ -17,13 +57,21 @@ export const CombatEngine = {
     defender: Unit,
     hexLookup: Map<string, Hex>,
     operation: CombatOperation,
-    settings: {
-      advanceOnVictory: boolean;
-    }
+    advanceOnVictory: boolean
   ): { report: CombatReport; attackerWonHex: boolean } {
     // 1. Setup Context
     const hexKey = HexUtils.getCoordsID(defender.location);
     const hex = hexLookup.get(hexKey)!;
+
+    // Combat is complicated and we should do some defensive programming here.
+    // Validate that the battle is in the right state before proceeding.
+    CombatEngine.validateBattle(
+      attacker,
+      defender,
+      hex,
+      operation,
+      advanceOnVictory
+    );
 
     // 2. Calculate & Predict
     // We pass the requested operation (defaulting to STANDARD if undefined)
@@ -40,23 +88,24 @@ export const CombatEngine = {
       : CombatTables.getResult(prediction.finalScore);
 
     // 4. Apply Damage (Attacker)
-    attacker.steps = UnitUtils.suppressSteps(
-      attacker.steps,
-      resultEntry.attacker.suppressed
-    );
+    // Note: We kill steps first, then suppress the remaining steps.
     attacker.steps = UnitUtils.killSteps(
       attacker.steps,
       resultEntry.attacker.steps
     );
+    attacker.steps = UnitUtils.suppressSteps(
+      attacker.steps,
+      resultEntry.attacker.suppressed
+    );
 
     // 5. Apply Damage (Defender)
-    defender.steps = UnitUtils.suppressSteps(
-      defender.steps,
-      resultEntry.defender.suppressed
-    );
     defender.steps = UnitUtils.killSteps(
       defender.steps,
       resultEntry.defender.steps
+    );
+    defender.steps = UnitUtils.suppressSteps(
+      defender.steps,
+      resultEntry.defender.suppressed
     );
 
     // 6. Check for Destruction
@@ -104,14 +153,29 @@ export const CombatEngine = {
       (!defenderAlive || defenderRetreated) &&
       operationAllowsAdvance
     ) {
-      if (settings.advanceOnVictory && attacker.state.mp > 0) {
+      if (advanceOnVictory && attacker.state.mp > 0) {
         attacker.location = hex.location;
         attackerWonHex = true;
       }
     }
 
+    // In suppressive fire attacks, suppress the first artillery specialist.
+    // (There must be at least one artillery specialist to execute this type of attack)
+    if (operation === CombatOperation.SUPPRESSIVE_FIRE) {
+      const firstArtSpec = attacker.steps
+        .filter((s) => s.specialistId && !s.isSuppressed)
+        .find((s) => {
+          const specCtlg = SPECIALIST_STEP_ID_MAP.get(s.specialistId!)!;
+
+          return specCtlg.type === SpecialistStepTypes.ARTILLERY;
+        })!;
+
+      firstArtSpec.isSuppressed = true;
+    }
+
     // 9. Set Cooldowns
     if (attackerAlive) attacker.state.status = UnitStatus.REGROUPING;
+
     if (defenderAlive && !defenderRetreated)
       defender.state.status = UnitStatus.REGROUPING;
 
