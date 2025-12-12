@@ -194,6 +194,25 @@ describe("CombatCalculator", () => {
       expect(result.finalScore).toBe(-1); // 0 (Odds) - 1 (Terrain)
     });
 
+    it("should apply Terrain Shifts - Stealth", () => {
+      const attacker = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5);
+      const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5);
+      const asteroidHex = createHex(TerrainTypes.NEBULA);
+
+      const result = CombatCalculator.calculate(
+        attacker,
+        defender,
+        asteroidHex
+      );
+
+      const entrenchment = result.shifts.find(
+        (s) => s.type === CombatShiftType.STEALTH
+      );
+      expect(entrenchment).toBeDefined();
+      expect(entrenchment?.value).toBe(1);
+      expect(result.finalScore).toBe(1);
+    });
+
     it("should apply Armor Shift (Battleship vs Frigate)", () => {
       const attacker = createTestUnit(CATALOG_UNIT_BATTLESHIP_ID, 5); // Armor 2
       const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5); // Armor 0
@@ -266,6 +285,20 @@ describe("CombatCalculator", () => {
       const emptyHex = createHex(TerrainTypes.EMPTY);
 
       const result = CombatCalculator.calculate(attacker, defender, emptyHex);
+
+      // Should NOT have Armor shift
+      const armorShift = result.shifts.find(
+        (s) => s.type === CombatShiftType.ARMOR
+      );
+      expect(armorShift).toBeUndefined();
+    });
+
+    it("should Negate Armor if hex is fortified", () => {
+      const attacker = createTestUnit(CATALOG_UNIT_BATTLESHIP_ID, 5); // Armor 2
+      const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5);
+      const hex = createHex(TerrainTypes.INDUSTRIAL_ZONE);
+
+      const result = CombatCalculator.calculate(attacker, defender, hex);
 
       // Should NOT have Armor shift
       const armorShift = result.shifts.find(

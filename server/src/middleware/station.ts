@@ -1,9 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { ObjectId } from "mongodb";
-import { Station } from "@solaris-command/core";
+import { ERROR_CODES, Station } from "@solaris-command/core";
 import { StationService } from "../services/StationService";
 import { getDb } from "../db";
-import { ERROR_CODES } from "./error-codes";
 
 // Extend Express to include game
 declare global {

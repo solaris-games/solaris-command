@@ -57,9 +57,8 @@ export interface UnitSpecialistStepCatalogItem {
   stats: {
     attack: number;
     defense: number;
-    armor: number;
-    artillery: number;
-    siege: number;
-    logistics: boolean; // TODO: Implement logic in supply phase for this.
+    armor: number; // Armor shift for attackers, negated vs. high defense hexes and torpedo specialists.
+    artillery: number; // Artillery shift
+    siege: number; // Siege shift vs. high defense hexes.
   };
 }

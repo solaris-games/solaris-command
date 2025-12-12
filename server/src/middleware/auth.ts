@@ -1,6 +1,6 @@
+import { ERROR_CODES } from "@solaris-command/core";
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { ERROR_CODES } from "./error-codes";
 
 // Extend Express Request to include user info
 declare global {

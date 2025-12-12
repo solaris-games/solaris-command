@@ -236,6 +236,9 @@ async function executeGameTick(client: MongoClient, game: Game) {
           update: { $inc: { "achievements.victories": 1 } },
         },
       });
+
+      // TODO: Calculate rank increments for all players.
+      // TODO: AFK players should get negative rank equal to the number of players in the game.
     }
 
     // Unit Updates (Refill AP/MP)

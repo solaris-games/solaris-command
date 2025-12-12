@@ -1,9 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { ObjectId } from "mongodb";
-import { Hex } from "@solaris-command/core";
+import { ERROR_CODES, Hex } from "@solaris-command/core";
 import { HexService } from "../services/HexService";
 import { getDb } from "../db";
-import { ERROR_CODES } from "./error-codes";
 
 // Extend Express to include game
 declare global {

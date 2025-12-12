@@ -1,5 +1,6 @@
 import { TerrainTypes } from "../models";
 import { CombatShift, CombatShiftType } from "../types";
+import { CONSTANTS } from "./constants";
 
 export const TERRAIN_MP_COSTS: Record<TerrainTypes, number> = {
   [TerrainTypes.EMPTY]: 1,
@@ -16,18 +17,24 @@ export const TERRAIN_COMBAT_SHIFTS: Record<TerrainTypes, CombatShift | null> = {
   [TerrainTypes.EMPTY]: null, // No shift
   [TerrainTypes.ASTEROID_FIELD]: {
     type: CombatShiftType.ENTRENCHMENT,
-    value: -1, // Defender bonus
+    value: CONSTANTS.COMBAT_SHIFT_ENTRENCHMENT_LOW, // Defender bonus
   },
   [TerrainTypes.DEBRIS_FIELD]: {
     type: CombatShiftType.ENTRENCHMENT,
-    value: -2,
+    value: CONSTANTS.COMBAT_SHIFT_ENTRENCHMENT_HIGH,
   },
-  [TerrainTypes.NEBULA]: null,
-  [TerrainTypes.GAS_CLOUD]: null,
+  [TerrainTypes.NEBULA]: {
+    type: CombatShiftType.STEALTH,
+    value: CONSTANTS.COMBAT_SHIFT_STEALTH_LOW, // Attacker bonus
+  },
+  [TerrainTypes.GAS_CLOUD]: {
+    type: CombatShiftType.STEALTH,
+    value: CONSTANTS.COMBAT_SHIFT_STEALTH_HIGH,
+  },
   [TerrainTypes.GRAVITY_WELL]: null,
   [TerrainTypes.RADIATION_STORM]: null,
   [TerrainTypes.INDUSTRIAL_ZONE]: {
     type: CombatShiftType.FORTIFICATIONS,
-    value: -3,
+    value: CONSTANTS.COMBAT_SHIFT_FORTIFICATIONS,
   },
 };

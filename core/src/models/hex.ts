@@ -9,7 +9,7 @@ export enum TerrainTypes {
 
   // Defensive Cover
   // Effect: Moderate Move penalty. Defense bonus.
-  // Mechanical logic: 'Screening' ships (Frigates) excel here; Capital ships lose "Armor" bonuses.
+  // Mechanical logic: 'Screening' ships (Frigates) excel here; Attackers lose "Armor" bonuses.
   ASTEROID_FIELD = "ASTEROID_FIELD",
   DEBRIS_FIELD = "DEBRIS_FIELD",
 
@@ -27,7 +27,7 @@ export enum TerrainTypes {
 
   // Urban/Fortified
   // Effect: Massive Defense bonus.
-  // Mechanical logic: Megastructures provide high defense.
+  // Mechanical logic: Megastructures provide high defense. Attackers lose "Armor" bonuses.
   INDUSTRIAL_ZONE = "INDUSTRIAL_ZONE",
 }
 

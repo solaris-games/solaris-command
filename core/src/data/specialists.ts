@@ -14,7 +14,6 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
       armor: 0,
       artillery: 1,
       siege: 0,
-      logistics: false,
     },
   },
   {
@@ -30,7 +29,6 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
       armor: 0,
       artillery: 0,
       siege: 2,
-      logistics: false,
     },
   },
   {
@@ -46,23 +44,6 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
       armor: 0,
       artillery: 0,
       siege: 0,
-      logistics: false,
-    },
-  },
-  {
-    id: "spec_logistics_01",
-    type: SpecialistStepTypes.LOGISTICS,
-    name: "Fleet Tender",
-    description:
-      "Carries fuel and repair drones. Extends the unit's Out of Supply grace period by 1 Cycle.",
-    cost: 125,
-    stats: {
-      attack: 0,
-      defense: 0,
-      armor: 0,
-      artillery: 0,
-      siege: 0,
-      logistics: true,
     },
   },
   {
@@ -78,7 +59,6 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
       armor: 0,
       artillery: 0,
       siege: 0,
-      logistics: false,
     },
   },
   {
@@ -94,7 +74,6 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
       armor: 1,
       artillery: 0,
       siege: 0,
-      logistics: false,
     },
   },
 ];

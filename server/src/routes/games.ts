@@ -9,10 +9,9 @@ import {
 } from "../middleware/game";
 import {
   ERROR_CODES,
-  JoinGameSchema,
   loadPlayer,
   touchPlayer,
-  validate,
+  validateRequest,
 } from "../middleware";
 import {
   MapUtils,
@@ -20,6 +19,7 @@ import {
   HexUtils,
   GameStates,
   UnitFactory,
+  JoinGameRequestSchema,
 } from "@solaris-command/core";
 import {
   GameService,
@@ -55,7 +55,7 @@ router.get("/", authenticateToken, async (req, res) => {
 router.post(
   "/:id/join",
   authenticateToken,
-  validate(JoinGameSchema),
+  validateRequest(JoinGameRequestSchema),
   loadGame,
   requirePendingGame,
   async (req, res) => {

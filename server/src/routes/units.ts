@@ -11,17 +11,13 @@ import {
   UnitManager,
   MapUtils,
   CombatOperation,
-  SpecialistStepTypes,
   HexUtils,
   Pathfinding,
+  DeployUnitRequestSchema,
+  MoveUnitRequestSchema,
+  AttackUnitRequestSchema,
+  UpgradeUnitRequestSchema,
 } from "@solaris-command/core";
-import {
-  validate,
-  DeployUnitSchema,
-  MoveUnitSchema,
-  AttackUnitSchema,
-  UpgradeUnitSchema,
-} from "../middleware/validation";
 import {
   ERROR_CODES,
   loadGame,
@@ -32,6 +28,7 @@ import {
   loadUnits,
   requireActiveGame,
   requireNonRegoupingUnit,
+  validateRequest,
 } from "../middleware";
 import { UnitService, PlayerService } from "../services";
 import { executeInTransaction, getDb } from "../db";
@@ -43,7 +40,7 @@ const router = express.Router({ mergeParams: true });
 router.post(
   "/deploy",
   authenticateToken,
-  validate(DeployUnitSchema),
+  validateRequest(DeployUnitRequestSchema),
   loadGame,
   requireActiveGame,
   loadPlayer,
@@ -165,7 +162,7 @@ router.post(
 router.post(
   "/:unitId/move",
   authenticateToken,
-  validate(MoveUnitSchema),
+  validateRequest(MoveUnitRequestSchema),
   loadGame,
   requireActiveGame,
   loadPlayer,
@@ -242,7 +239,7 @@ router.post(
 router.post(
   "/:unitId/attack",
   authenticateToken,
-  validate(AttackUnitSchema),
+  validateRequest(AttackUnitRequestSchema),
   loadGame,
   requireActiveGame,
   loadPlayer,
@@ -345,7 +342,7 @@ router.post(
 router.post(
   "/:unitId/upgrade",
   authenticateToken,
-  validate(UpgradeUnitSchema),
+  validateRequest(UpgradeUnitRequestSchema),
   loadGame,
   requireActiveGame,
   loadPlayer,

@@ -3,6 +3,7 @@ import {
   SPECIALIST_STEP_ID_MAP,
   UNIT_CATALOG_ID_MAP,
   COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE,
+  CONSTANTS,
 } from "../data";
 import { Unit, Hex, TerrainTypes } from "../models";
 import {
@@ -113,12 +114,9 @@ export const CombatCalculator = {
    * Helper: Determine all active Shifts
    */
   calculateShifts(attacker: Unit, defender: Unit, hex: Hex): CombatShift[] {
-    const attackerUnitCtlg = UNIT_CATALOG_ID_MAP.get(attacker.catalogId)!;
-    const defenderUnitCtlg = UNIT_CATALOG_ID_MAP.get(defender.catalogId)!;
-
     const shifts: CombatShift[] = [];
 
-    // --- 1. Terrain Shifts (Defender Bonus) ---
+    // --- 1. Terrain Shifts (Attacker/Defender Bonus) ---
     const terrainShift = TERRAIN_COMBAT_SHIFTS[hex.terrain];
 
     if (terrainShift) {
@@ -126,9 +124,10 @@ export const CombatCalculator = {
     }
 
     // --- 2. Specialist: MARINES (Siege) ---
-    // Marines negate fortification bonuses on Stations/Industrial
-    if (hex.terrain === TerrainTypes.INDUSTRIAL_ZONE) {
+    // Marines negate fortification bonuses on high defense hexes
+    if (terrainShift && terrainShift.value < 0) {
       const siegeVal = this.getSpecialistShiftSum(attacker, "siege");
+
       if (siegeVal > 0) {
         // Use the specific SIEGE type for clarity in UI reports
         shifts.push({ type: CombatShiftType.SIEGE, value: siegeVal });
@@ -137,14 +136,53 @@ export const CombatCalculator = {
 
     // --- 3. Specialist: ARTILLERY ---
     const artilleryVal = this.getSpecialistShiftSum(attacker, "artillery");
+
     if (artilleryVal > 0) {
       shifts.push({ type: CombatShiftType.ARTILLERY, value: artilleryVal });
     }
 
     // --- 4. Armor vs Torpedoes ---
+    const armorShift = this.getArmorShift(attacker, defender, terrainShift);
+
+    if (armorShift) {
+      shifts.push(armorShift);
+    }
+
+    return shifts;
+  },
+
+  /**
+   * Helper: Sum up a specific stat from all active specialists
+   */
+  getSpecialistShiftSum(unit: Unit, stat: "artillery" | "siege"): number {
+    return unit.steps.reduce((sum, step) => {
+      if (!step.isSuppressed && step.specialistId) {
+        const specialist = SPECIALIST_STEP_ID_MAP.get(step.specialistId)!;
+
+        return sum + (specialist.stats[stat] || 0);
+      }
+      return sum;
+    }, 0);
+  },
+
+  getArmorShift(
+    attacker: Unit,
+    defender: Unit,
+    terrainShift: CombatShift | null
+  ): CombatShift | null {
+    const attackerUnitCtlg = UNIT_CATALOG_ID_MAP.get(attacker.catalogId)!;
+    const defenderUnitCtlg = UNIT_CATALOG_ID_MAP.get(defender.catalogId)!;
+
+    // When armored units attack into hexes with defender shift
+    if (terrainShift && terrainShift.value < 0) {
+      return {
+        type: CombatShiftType.ARMOR_TERRAIN_PENALTY,
+        value: CONSTANTS.COMBAT_SHIFT_ARMOR_TERRAIN_PENALTY,
+      };
+    }
+
     // Rule: Armor Shift applies if Attacker Armor > Defender Armor.
     // Exception: If Defender has Active Torpedoes, Armor Shift is negated.
-
     const defenderHasTorpedo = defender.steps.some((s) => {
       const hasTorpedoSpec = s.specialistId
         ? SPECIALIST_STEP_ID_MAP.get(s.specialistId)!.type ===
@@ -154,43 +192,27 @@ export const CombatCalculator = {
       return !s.isSuppressed && hasTorpedoSpec;
     });
 
-    if (!defenderHasTorpedo) {
-      const armorDiff =
-        (attackerUnitCtlg.stats.armor || 0) -
-        (defenderUnitCtlg.stats.armor || 0);
-
-      // Only Attacker gets armor bonus in offensive combat (Heavy ships crushing light ships)
-      // If defender has better armor, it usually just reflects in their high Defense stat,
-      // preventing a high Ratio score, so we don't apply negative shifts here typically.
-      if (armorDiff > 0) {
-        shifts.push({
-          type: CombatShiftType.ARMOR,
-          value: Math.min(MAX_ARMOR_SHIFT, armorDiff),
-        });
-      }
-    } else {
-      // Optional: Add a visual indicator that Armor was negated?
-      // shifts.push({ type: 'TORPEDO_PIERCE', value: 0 });
+    if (defenderHasTorpedo) {
+      return {
+        type: CombatShiftType.ARMOR_TORPEDO_PENALTY,
+        value: CONSTANTS.COMBAT_SHIFT_ARMOR_TORPEDO_PENALTY,
+      };
     }
 
-    return shifts;
-  },
+    const armorDiff =
+      (attackerUnitCtlg.stats.armor || 0) - (defenderUnitCtlg.stats.armor || 0);
 
-  /**
-   * Helper: Sum up a specific stat from all active specialists
-   */
-  getSpecialistShiftSum(
-    unit: Unit,
-    stat: "artillery" | "siege" | "armor"
-  ): number {
-    return unit.steps.reduce((sum, step) => {
-      if (!step.isSuppressed && step.specialistId) {
-        const specialist = SPECIALIST_STEP_ID_MAP.get(step.specialistId)!;
+    // Only Attacker gets armor bonus in offensive combat (Heavy ships crushing light ships)
+    // If defender has better armor, it usually just reflects in their high Defense stat,
+    // preventing a high Ratio score, so we don't apply negative shifts here typically.
+    if (armorDiff > 0) {
+      return {
+        type: CombatShiftType.ARMOR,
+        value: Math.min(MAX_ARMOR_SHIFT, armorDiff),
+      };
+    }
 
-        return sum + (specialist.stats[stat] || 0);
-      }
-      return sum;
-    }, 0);
+    return null;
   },
 
   /**

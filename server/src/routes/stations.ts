@@ -1,14 +1,14 @@
 import express from "express";
 import { ObjectId } from "mongodb";
 import { authenticateToken } from "../middleware/auth";
-import { CONSTANTS, HexUtils, Station } from "@solaris-command/core";
-import { validate, BuildStationSchema } from "../middleware/validation";
+import { BuildStationRequestSchema, CONSTANTS, HexUtils, Station } from "@solaris-command/core";
 import {
   ERROR_CODES,
   loadGame,
   loadHexes,
   loadPlayer,
   requireActiveGame,
+  validateRequest,
 } from "../middleware";
 import { StationService, PlayerService } from "../services";
 import { loadPlayerStation, loadStations } from "../middleware/station";
@@ -21,7 +21,7 @@ const router = express.Router({ mergeParams: true });
 router.post(
   "/",
   authenticateToken,
-  validate(BuildStationSchema),
+  validateRequest(BuildStationRequestSchema),
   loadGame,
   requireActiveGame,
   loadPlayer,
