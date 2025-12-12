@@ -13,6 +13,7 @@ import {
   CombatOperation,
   SpecialistStepTypes,
   HexUtils,
+  Pathfinding,
 } from "@solaris-command/core";
 import {
   validate,
@@ -170,6 +171,7 @@ router.post(
   loadPlayer,
   loadPlayerUnit,
   requireNonRegoupingUnit,
+  loadHexes,
   async (req, res) => {
     const { path } = req.body; // Hex[]
 
@@ -180,8 +182,26 @@ router.post(
       return res.status(400).json({ errorCode: ERROR_CODES.UNIT_IS_NOT_IDLE });
     }
 
+    // Convert hex list to map for easier lookup in pathfinding
+    const hexMap = new Map<string, any>();
+    req.hexes.forEach((hex) => {
+      hexMap.set(HexUtils.getCoordsID(hex.location), hex);
+    });
+
     try {
-      // TODO: Validate path (Pathfinding check logic in core)
+      const validationResult = Pathfinding.validatePath(
+        req.unit.location,
+        path,
+        req.unit.state.mp,
+        hexMap
+      );
+
+      if (!validationResult.valid) {
+        return res
+          .status(400)
+          .json({ errorCode: validationResult.error || ERROR_CODES.REQUEST_VALIDATION_FAILED });
+      }
+
       await UnitService.declareUnitMovement(db, req.unit._id, { path });
     } catch (error: any) {
       console.error("Error moving unit:", error);

@@ -79,4 +79,69 @@ export const Pathfinding = {
 
     return results;
   },
+
+  validatePath(
+    start: HexCoords,
+    path: HexCoords[],
+    currentMp: number,
+    hexMap: Map<string, Hex>
+  ): { valid: boolean; error?: string } {
+    let current = start;
+    let totalCost = 0;
+
+    for (const step of path) {
+      // 1. Check Adjacency
+      if (!HexUtils.isNeighbor(current, step)) {
+        return {
+          valid: false,
+          error: "MOVEMENT_PATH_INVALID", // Non-adjacent step
+        };
+      }
+
+      // 2. Get Hex Data
+      const stepId = HexUtils.getCoordsID(step);
+      const hexData = hexMap.get(stepId);
+
+      if (!hexData) {
+        return {
+          valid: false,
+          error: "MOVEMENT_PATH_INVALID", // Hex does not exist in map
+        };
+      }
+
+      // 3. Check Impassable
+      if (MapUtils.isHexImpassable(hexData)) {
+        return {
+          valid: false,
+          error: "MOVEMENT_PATH_IMPASSABLE",
+        };
+      }
+
+      // 4. Calculate Cost
+      const moveCost = TERRAIN_MP_COSTS[hexData.terrain] || 1;
+
+      // Impassable terrain has high cost defined in data, but double check logic
+      if (moveCost >= 999) {
+          return {
+              valid: false,
+              error: "MOVEMENT_PATH_IMPASSABLE",
+          };
+      }
+
+      totalCost += moveCost;
+
+      // 5. Check MP Budget
+      if (totalCost > currentMp) {
+        return {
+          valid: false,
+          error: "MOVEMENT_PATH_TOO_EXPENSIVE",
+        };
+      }
+
+      // Advance
+      current = step;
+    }
+
+    return { valid: true };
+  },
 };
