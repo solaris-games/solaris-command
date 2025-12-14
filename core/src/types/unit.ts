@@ -45,7 +45,11 @@ export enum SpecialistStepTypes {
   RECON = "RECON", // Intel / ZOC movement
   LOGISTICS = "LOGISTICS", // OOS Survival
   TORPEDO = "TORPEDO", // Anti-Capital Ship (Armor Piercing)
-  FLAK = "FLAK", // Defensive / Anti-Specialist
+  ARMOR = "ARMOR", // Defensive / Anti-Specialist
+  HEAVY_WEAPONS = "HEAVY_WEAPONS", // High Attack
+  SHIELDS = "SHIELDS", // High Defense
+  PROPULSION = "PROPULSION", // MP
+  COMMAND = "COMMAND", // AP
 }
 
 export interface UnitSpecialistStepCatalogItem {
@@ -60,5 +64,10 @@ export interface UnitSpecialistStepCatalogItem {
     armor: number; // Armor shift for attackers, negated vs. high defense hexes and torpedo specialists.
     artillery: number; // Artillery shift
     siege: number; // Siege shift vs. high defense hexes.
+  };
+  bonuses: {
+    mpMultiplier: number;
+    apAdd: number;
+    visionAdd: number;
   };
 }

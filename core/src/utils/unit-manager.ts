@@ -18,8 +18,18 @@ export const UnitManager = {
     const isInSupply = unit.supply.isInSupply;
 
     // 1. Initialize Logic Variables
-    let newAP = unitCtlg.stats.maxAP;
-    let newMP = unitCtlg.stats.maxMP;
+    // Calculate Base Max Stats + Specialist Bonuses
+    let calculatedMaxAP = unitCtlg.stats.maxAP;
+    let calculatedMaxMP = unitCtlg.stats.maxMP;
+
+    // Iterate through current active specialists to apply bonuses
+    // Note: We use unit.steps because we care about the state *before* OOS penalties might strip them?
+    // Actually, if a specialist is suppressed, it shouldn't provide bonuses.
+    // But recovery happens in this same function. The order matters.
+    // GDD: "Units are resupplied... MP/AP restored".
+    // We should probably calculate bonuses based on the state *after* recovery (if any).
+
+    // Let's first handle recovery, then calculate maxes.
     let newSteps = [...unit.steps]; // Clone array to mutate
     let newStatus = unit.state.status;
 
@@ -30,32 +40,72 @@ export const UnitManager = {
       // Recover suppressed steps (FIFO - First In, First Out, or just simple iteration)
       let recoveredCount = 0;
       newSteps = newSteps.map((step) => {
-        if (step.isSuppressed && recoveredCount < CONSTANTS.UNIT_STEP_RECOVERY_RATE) {
+        if (
+          step.isSuppressed &&
+          recoveredCount < CONSTANTS.UNIT_STEP_RECOVERY_RATE
+        ) {
           recoveredCount++;
           return { ...step, isSuppressed: false };
         }
         return step;
       });
-    } else {
+    }
+
+    // --- CALCULATE BONUSES (Post-Recovery) ---
+    // Now that we have the potentially recovered steps, we calculate MP/AP bonuses.
+    // We only count active (non-suppressed) specialists.
+    let mpMultiplier = 1;
+    let apAdd = 0;
+
+    newSteps.forEach((step) => {
+      if (!step.isSuppressed && step.specialistId) {
+        const spec = SPECIALIST_STEP_ID_MAP.get(step.specialistId);
+        if (spec && spec.bonuses) {
+          if (spec.bonuses.mpMultiplier) {
+            // Apply multiplier. If we have multiple, do they stack additively or multiplicatively?
+            // "x1.5 max MP". Two of them -> x2.25? or x2.0?
+            // User said: "Allow MP stacking". Assuming multiplicative is standard for "x1.5".
+            mpMultiplier *= spec.bonuses.mpMultiplier;
+          }
+          if (spec.bonuses.apAdd) {
+            apAdd += spec.bonuses.apAdd;
+          }
+        }
+      }
+    });
+
+    calculatedMaxMP = Math.floor(calculatedMaxMP * mpMultiplier);
+    calculatedMaxAP = calculatedMaxAP + apAdd;
+
+    let newAP = calculatedMaxAP;
+    let newMP = calculatedMaxMP;
+
+    if (!isInSupply) {
       // --- OOS PENALTY LOGIC ---
       // Based on GDD Tier List
 
       // Tier 2: Starvation (2 Cycles) -> AP = 0, Suppress 2 Steps
       if (cyclesOOS >= 2) {
         newAP = 0;
-        newSteps = UnitManagerHelper.suppressSteps(newSteps, CONSTANTS.UNIT_STEP_OOS_SUPPRESS_RATE);
+        newSteps = UnitManagerHelper.suppressSteps(
+          newSteps,
+          CONSTANTS.UNIT_STEP_OOS_SUPPRESS_RATE
+        );
       }
 
       // Tier 3: Crippled (3 Cycles) -> AP = 0, MP Halved, Suppress ALL
       if (cyclesOOS >= 3) {
         newAP = 0;
-        newMP = Math.ceil(unitCtlg.stats.maxMP / 2);
+        newMP = Math.ceil(calculatedMaxMP / 2);
         newSteps = UnitManagerHelper.suppressSteps(newSteps, 999); // Suppress all
       }
 
       // Tier 4: Collapse (4+ Cycles) -> Tier 3 + Destroy 3 Steps
       if (cyclesOOS >= 4) {
-        newSteps = UnitManagerHelper.killSteps(newSteps, CONSTANTS.UNIT_STEP_OOS_KILL_RATE);
+        newSteps = UnitManagerHelper.killSteps(
+          newSteps,
+          CONSTANTS.UNIT_STEP_OOS_KILL_RATE
+        );
       }
     }
 

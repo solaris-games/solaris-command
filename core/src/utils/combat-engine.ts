@@ -73,6 +73,10 @@ export const CombatEngine = {
       advanceOnVictory
     );
 
+    // Deduct AP Cost
+    // We deduct 1 AP for the attack action.
+    attacker.state.ap = Math.max(0, attacker.state.ap - 1);
+
     // 2. Calculate & Predict
     // We pass the requested operation (defaulting to STANDARD if undefined)
     const prediction = CombatCalculator.calculate(

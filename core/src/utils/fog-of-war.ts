@@ -4,7 +4,11 @@ import { Unit } from "../models/unit";
 import { Planet } from "../models/planet";
 import { Station } from "../models/station";
 import { ObjectId } from "mongodb";
-import { CONSTANTS, UNIT_CATALOG_ID_MAP } from "../data";
+import {
+  CONSTANTS,
+  SPECIALIST_STEP_ID_MAP,
+  UNIT_CATALOG_ID_MAP,
+} from "../data";
 
 export const FogOfWar = {
   /**
@@ -24,9 +28,21 @@ export const FogOfWar = {
     units.forEach((u) => {
       if (u.playerId.toString() === pidStr) {
         const unitCtlg = UNIT_CATALOG_ID_MAP.get(u.catalogId)!;
+
+        // Calculate Vision Bonus from Specialists
+        let visionAdd = 0;
+        u.steps.forEach((step) => {
+          if (!step.isSuppressed && step.specialistId) {
+            const spec = SPECIALIST_STEP_ID_MAP.get(step.specialistId);
+            if (spec && spec.bonuses && spec.bonuses.visionAdd) {
+              visionAdd += spec.bonuses.visionAdd;
+            }
+          }
+        });
+
         const hexes = HexUtils.getHexCoordsInRange(
           u.location,
-          unitCtlg.stats.los
+          unitCtlg.stats.los + visionAdd
         );
         hexes.forEach((h) => visibleHexes.add(HexUtils.getCoordsID(h)));
       }
