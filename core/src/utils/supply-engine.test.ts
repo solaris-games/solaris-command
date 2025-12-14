@@ -100,10 +100,12 @@ function createUnit(playerId: ObjectId, q: number, r: number, s: number): Unit {
 
 describe("SupplyEngine", () => {
   const playerId = new ObjectId();
-  const hexes = [createHex(0, 0, 0), createHex(1, 0, -1), createHex(2, 0, -2)]; // Minimal map
+  let hexes: Hex[] = []
 
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    hexes = [createHex(0, 0, 0), createHex(1, 0, -1), createHex(2, 0, -2)]; // Minimal map
   });
 
   describe("calculatePlayerSupplyNetwork", () => {
@@ -204,17 +206,17 @@ describe("SupplyEngine", () => {
     });
   });
 
-  describe("processUnitSupply", () => {
+  describe("processSupplyTarget", () => {
     it("should reset counters if unit is in supply", () => {
       const unit = createUnit(playerId, 0, 0, 0);
       unit.supply.ticksOutOfSupply = 5;
 
       const network = new Set(["0,0,0"]);
 
-      const update = SupplyEngine.processUnitSupply(unit, network);
+      const supply = SupplyEngine.processSupplyTarget(unit.supply, unit.location, network);
 
-      expect(update.supply?.isInSupply).toBe(true);
-      expect(update.supply?.ticksOutOfSupply).toBe(0);
+      expect(supply.isInSupply).toBe(true);
+      expect(supply.ticksOutOfSupply).toBe(0);
     });
 
     it("should increment counters if unit is out of supply", () => {
@@ -223,10 +225,10 @@ describe("SupplyEngine", () => {
 
       const network = new Set(["0,0,0"]);
 
-      const update = SupplyEngine.processUnitSupply(unit, network);
+      const supply = SupplyEngine.processSupplyTarget(unit.supply, unit.location, network);
 
-      expect(update.supply?.isInSupply).toBe(false);
-      expect(update.supply?.ticksOutOfSupply).toBe(6);
+      expect(supply.isInSupply).toBe(false);
+      expect(supply.ticksOutOfSupply).toBe(6);
     });
   });
 });

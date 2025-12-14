@@ -172,6 +172,13 @@ router.post(
   async (req, res) => {
     const { path } = req.body; // Hex[]
 
+    // Validate that the movement path isn't longer than an entire cycle.
+    if (req.path.length > CONSTANTS.GAME_DEFAULT_TICKS_PER_CYCLE) {
+      return res
+        .status(400)
+        .json({ errorCode: ERROR_CODES.UNIT_MOVEMENT_PATH_TOO_LONG });
+    }
+
     const db = getDb();
 
     // Unit must be idle to declare movement
@@ -196,7 +203,10 @@ router.post(
       if (!validationResult.valid) {
         return res
           .status(400)
-          .json({ errorCode: validationResult.error || ERROR_CODES.REQUEST_VALIDATION_FAILED });
+          .json({
+            errorCode:
+              validationResult.error || ERROR_CODES.REQUEST_VALIDATION_FAILED,
+          });
       }
 
       await UnitService.declareUnitMovement(db, req.unit._id, { path });
@@ -271,12 +281,16 @@ router.post(
 
     // Hex must be adjacent
     if (!HexUtils.isNeighbor(req.unit.location, hex.location)) {
-      return res.status(400).json({ errorCode: ERROR_CODES.HEX_IS_NOT_ADJACENT });
+      return res
+        .status(400)
+        .json({ errorCode: ERROR_CODES.HEX_IS_NOT_ADJACENT });
     }
-    
+
     // Hex must be occupied by a unit
     if (!hex.unitId) {
-      return res.status(400).json({ errorCode: ERROR_CODES.HEX_IS_NOT_OCCUPIED_BY_UNIT });
+      return res
+        .status(400)
+        .json({ errorCode: ERROR_CODES.HEX_IS_NOT_OCCUPIED_BY_UNIT });
     }
 
     // If suppressive fire, then must have an artillery spec.
@@ -423,12 +437,7 @@ router.post(
 
       await executeInTransaction(async (db, session) => {
         // Apply Upgrade
-        await UnitService.upgradeUnit(
-          db,
-          req.unit._id,
-          newSteps,
-          session
-        );
+        await UnitService.upgradeUnit(db, req.unit._id, newSteps, session);
 
         // Deduct Cost
         await PlayerService.deductPrestigePoints(
@@ -470,11 +479,7 @@ router.post(
         const newSteps = UnitManagerHelper.scrapSteps(req.unit.steps, 1);
 
         // Apply
-        await UnitService.scrapUnitStep(
-          db,
-          req.unit._id,
-          newSteps,
-        );
+        await UnitService.scrapUnitStep(db, req.unit._id, newSteps);
       } else {
         // Delete unit
         await UnitService.deleteUnit(db, req.unit._id);

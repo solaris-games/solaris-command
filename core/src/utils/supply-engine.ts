@@ -6,6 +6,7 @@ import { HexCoords } from "../types/geometry";
 import { Pathfinding } from "./pathfinding";
 import { MapUtils } from "./map-utils";
 import { CONSTANTS } from "../data";
+import { SupplyTarget } from "../types";
 
 export const SupplyEngine = {
   /**
@@ -22,8 +23,10 @@ export const SupplyEngine = {
     const suppliedHexIds = new Set<string>();
 
     // Optimization: Create a Map for O(1) Hex Lookup by ID
-    const hexMap = new Map<string, Hex>();
-    hexes.forEach((h) => hexMap.set(HexUtils.getCoordsID(h.location), h));
+    const playerHexMap = new Map<string, Hex>();
+    hexes
+      .filter((h) => h.playerId && String(h.playerId) === String(playerId)) // Supply only applies to player owned hexes
+      .forEach((h) => playerHexMap.set(HexUtils.getCoordsID(h.location), h));
 
     // 1. Identify Sources
     // Roots: Always produce supply (Capital Planets)
@@ -65,7 +68,7 @@ export const SupplyEngine = {
       const reachableHexIDs = Pathfinding.getReachableHexes(
         currentSource.location,
         currentSource.rangeMP,
-        hexMap,
+        playerHexMap,
         {
           playerId: String(playerId),
           zocMap,
@@ -103,15 +106,14 @@ export const SupplyEngine = {
   },
 
   /**
-   * Updates a Unit's supply status based on the network.
-   * Returns the partial update object to save to DB.
+   * Updates a supply target's (e.g Unit) status based on the network.
    */
-  processUnitSupply(unit: Unit, suppliedHexIds: Set<string>): Partial<Unit> {
-    const currentHexId = HexUtils.getCoordsID(unit.location);
+  processSupplyTarget(supply: SupplyTarget, location: HexCoords, suppliedHexIds: Set<string>): SupplyTarget {
+    const currentHexId = HexUtils.getCoordsID(location);
     const isSupplied = suppliedHexIds.has(currentHexId);
 
-    let newTicksLastSupply = unit.supply.ticksLastSupply;
-    let newTicksOutOfSupply = unit.supply.ticksOutOfSupply;
+    let newTicksLastSupply = supply.ticksLastSupply;
+    let newTicksOutOfSupply = supply.ticksOutOfSupply;
 
     if (isSupplied) {
       // In Supply: Reset counters
@@ -124,12 +126,9 @@ export const SupplyEngine = {
     }
 
     return {
-      supply: {
-        ...unit.supply,
-        isInSupply: isSupplied,
-        ticksLastSupply: newTicksLastSupply,
-        ticksOutOfSupply: newTicksOutOfSupply,
-      },
+      isInSupply: isSupplied,
+      ticksLastSupply: newTicksLastSupply,
+      ticksOutOfSupply: newTicksOutOfSupply,
     };
   },
 

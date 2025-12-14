@@ -228,6 +228,23 @@ describe("CombatCalculator", () => {
       expect(armorShift?.value).toBe(3);
     });
 
+    it("should apply Armor Shift with specialist", () => {
+      const attacker = createTestUnit(CATALOG_UNIT_BATTLESHIP_ID, 5); // Armor 2
+      const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5); // Armor 0
+      const emptyHex = createHex(TerrainTypes.EMPTY);
+
+      attacker.steps[0].specialistId = 'spec_flak_01' // Armor 1
+
+      const result = CombatCalculator.calculate(attacker, defender, emptyHex);
+
+      // Armor Diff = 3. Shift should be +3.
+      const armorShift = result.shifts.find(
+        (s) => s.type === CombatShiftType.ARMOR
+      );
+      expect(armorShift).toBeDefined();
+      expect(armorShift?.value).toBe(4);
+    });
+
     it("should apply Artillery Shift", () => {
       // Attacker has Artillery Spec (+1 Arty Shift)
       const attacker = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5, [
@@ -286,11 +303,11 @@ describe("CombatCalculator", () => {
 
       const result = CombatCalculator.calculate(attacker, defender, emptyHex);
 
-      // Should NOT have Armor shift
+      // Should have armor torpedo penalty
       const armorShift = result.shifts.find(
-        (s) => s.type === CombatShiftType.ARMOR
+        (s) => s.type === CombatShiftType.ARMOR_TORPEDO_PENALTY
       );
-      expect(armorShift).toBeUndefined();
+      expect(armorShift).not.toBeUndefined();
     });
 
     it("should Negate Armor if hex is fortified", () => {
@@ -300,11 +317,11 @@ describe("CombatCalculator", () => {
 
       const result = CombatCalculator.calculate(attacker, defender, hex);
 
-      // Should NOT have Armor shift
+      // Should have armor terrain penalty
       const armorShift = result.shifts.find(
-        (s) => s.type === CombatShiftType.ARMOR
+        (s) => s.type === CombatShiftType.ARMOR_TERRAIN_PENALTY
       );
-      expect(armorShift).toBeUndefined();
+      expect(armorShift).not.toBeUndefined();
     });
   });
 });

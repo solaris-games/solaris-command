@@ -103,14 +103,14 @@ export interface ProcessCycleResult {
   gameUpdates: Partial<Game>;
   playerUpdates: Map<string, Partial<Player>>;
   unitUpdates: Map<string, Partial<Unit>>;
-  unitsToRemove: ObjectId[];
+  unitsToRemove: ObjectId[]; // Track starved units
   winnerPlayerId: ObjectId | null;
 }
 
 class CycleTickContext {
   unitUpdates = new Map<string, Partial<Unit>>();
   playerUpdates = new Map<string, Partial<Player>>();
-  unitsToRemove: ObjectId[] = []; // <--- Track dead units
+  unitsToRemove: ObjectId[] = []; // <--- Track killed units
   gameUpdates: Partial<Game> | null = null;
   winnerPlayerId: ObjectId | null = null;
 
@@ -232,6 +232,7 @@ export const TickProcessor = {
 
     TickProcessor.processTickUnitCombat(context);
     TickProcessor.processTickUnitMovement(context);
+    TickProcessor.processTickPlayerSupply(context);
     TickProcessor.processTickWinnerCheck(context);
 
     return {
@@ -447,6 +448,38 @@ export const TickProcessor = {
     });
   },
 
+  processTickPlayerSupply(context: TickContext) {
+    // Process each Player independently
+    context.players.forEach((player) => {
+      const playerIdStr = player._id.toString();
+
+      // Calculate the supply network for this player and update
+      // each unit's supply status.
+      const supplyNetwork = SupplyEngine.calculatePlayerSupplyNetwork(
+        player._id,
+        context.hexes,
+        context.planets,
+        context.stations,
+        context.units
+      );
+
+      const playerUnits = context.units.filter(
+        (u) => u.playerId.toString() === playerIdStr
+      );
+
+      playerUnits.forEach((unit) => {
+        // Update the unit's supply status
+        unit.supply = SupplyEngine.processSupplyTarget(
+          unit.supply,
+          unit.location,
+          supplyNetwork
+        );
+
+        context.unitUpdates.set(unit._id.toString(), unit);
+      });
+    });
+  },
+
   processTickWinnerCheck(context: TickContext) {
     // We only check for elimination victory here.
     // Economic victory (VP) is checked in the Cycle Processor.
@@ -480,41 +513,24 @@ export const TickProcessor = {
   processCycle(
     game: Game,
     players: Player[],
-    hexes: Hex[],
     units: Unit[],
-    planets: Planet[],
-    stations: Station[]
+    planets: Planet[]
   ): ProcessCycleResult {
     const context = new CycleTickContext();
 
-    // 1. Process each Player independently
+    // Process each Player independently
     players.forEach((player) => {
       const playerIdStr = player._id.toString();
 
-      // --- A. LOGISTICS PHASE ---
-      const supplyNetwork = SupplyEngine.calculatePlayerSupplyNetwork(
-        player._id,
-        hexes,
-        planets,
-        stations,
-        units
-      );
-
+      // LOGISTICS PHASE
       const playerUnits = units.filter(
         (u) => u.playerId.toString() === playerIdStr
       );
 
       playerUnits.forEach((unit) => {
-        // 1. Determine Supply Status
-        const supplyUpdate = SupplyEngine.processUnitSupply(
-          unit,
-          supplyNetwork
-        );
-        const unitWithSupply = { ...unit, ...supplyUpdate } as Unit;
-
-        // 2. Run Cycle Logic (Refill AP/MP, Recovery, or Penalties)
+        // Run Cycle Logic (Refill AP/MP, Recovery, or Penalties)
         const cycleUpdate = UnitManager.processCycle(
-          unitWithSupply,
+          unit,
           game.settings.ticksPerCycle
         );
 
@@ -528,13 +544,12 @@ export const TickProcessor = {
         } else {
           // Unit lives, queue update
           context.unitUpdates.set(unit._id.toString(), {
-            ...supplyUpdate,
             ...cycleUpdate,
           });
         }
       });
 
-      // --- B. ECONOMY PHASE ---
+      // --- ECONOMY PHASE ---
       const ownedPlanets = planets.filter(
         (p) => String(p.playerId) === playerIdStr
       );
@@ -552,7 +567,7 @@ export const TickProcessor = {
         victoryPoints: newVP,
       });
 
-      // --- C. VICTORY CHECK ---
+      // --- VICTORY CHECK ---
       if (newVP >= game.settings.victoryPointsToWin) {
         // If multiple players cross the line same tick, highest wins (tie-break logic needed?)
         if (

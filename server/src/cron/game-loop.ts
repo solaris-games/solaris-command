@@ -168,10 +168,8 @@ async function executeGameTick(client: MongoClient, game: Game) {
     cycleResult = TickProcessor.processCycle(
       game,
       players,
-      updatedHexes,
       updatedUnits,
-      updatedPlanets,
-      liveStations
+      updatedPlanets
     );
   }
 
@@ -269,6 +267,7 @@ async function executeGameTick(client: MongoClient, game: Game) {
 
   // Save Combat Reports
   if (tickResult.combatReports.length > 0) {
+    // TODO: Put these into the transaction
     // Insert one for the attacker and another for the defender.
     await db.collection<GameEvent>("game_events").insertMany(
       tickResult.combatReports.map((r) => ({
