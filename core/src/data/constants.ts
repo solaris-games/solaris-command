@@ -9,6 +9,10 @@ export const CONSTANTS = {
     PLANET_VP_INCOME_CAPITAL: 3,
     PLANET_VP_INCOME: 1,
 
+    UNIT_STEP_RECOVERY_RATE: 2, // Steps recovered per cycle
+    UNIT_STEP_OOS_SUPPRESS_RATE: 2,
+    UNIT_STEP_OOS_KILL_RATE: 3,
+
     // Vision
     PLANET_VISION_RANGE: 5,
     STATION_VISION_RANGE: 3,

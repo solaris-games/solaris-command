@@ -72,10 +72,15 @@ export const MapUtils = {
     );
   },
 
+  findPlayerPlanets(planets: Planet[], playerId: ObjectId): Planet[] {
+    return planets.filter((p) => String(p.playerId) === String(playerId));
+  },
+
   findPlayerCapital(planets: Planet[], playerId: ObjectId): Planet | null {
-    return planets.find(
-      (p) => p.isCapital && String(p.playerId) === String(playerId)
-    ) || null;
+    return (
+      MapUtils.findPlayerPlanets(planets, playerId).find((p) => p.isCapital) ||
+      null
+    );
   },
 
   findUnownedCapital(planets: Planet[]): Planet | null {
@@ -92,7 +97,10 @@ export const MapUtils = {
 
     for (const planet of planets) {
       if (planet.playerId) continue; // Must be unowned
-      if (excludePlanetId && planet._id.toString() === excludePlanetId.toString())
+      if (
+        excludePlanetId &&
+        planet._id.toString() === excludePlanetId.toString()
+      )
         continue;
 
       const dist = HexUtils.distance(center, planet.location);
@@ -105,11 +113,7 @@ export const MapUtils = {
     return nearest;
   },
 
-  findNearestFreeHexes(
-    hexes: Hex[],
-    center: HexCoords,
-    count: number
-  ): Hex[] {
+  findNearestFreeHexes(hexes: Hex[], center: HexCoords, count: number): Hex[] {
     const results: Hex[] = [];
     const hexMap = new Map<string, Hex>();
     hexes.forEach((h) => hexMap.set(HexUtils.getCoordsID(h.location), h));
@@ -134,11 +138,7 @@ export const MapUtils = {
         const hexId = HexUtils.getCoordsID(coord);
         const hex = hexMap.get(hexId);
 
-        if (
-          hex &&
-          !hex.unitId &&
-          !MapUtils.isHexImpassable(hex)
-        ) {
+        if (hex && !hex.unitId && !MapUtils.isHexImpassable(hex)) {
           results.push(hex);
         }
       }

@@ -74,19 +74,9 @@ router.post(
           .json({ errorCode: ERROR_CODES.PLAYER_DOES_NOT_OWN_HEX });
       }
 
-      const playerCapital = MapUtils.findPlayerCapital(
-        req.planets,
-        req.player._id
-      );
-
-      if (playerCapital == null) {
-        return res.status(400).json({
-          errorCode: ERROR_CODES.PLAYER_DOES_NOT_OWN_A_CAPITAL,
-        });
-      }
-
       const validSpawnLocations = UnitManager.getValidSpawnLocations(
-        playerCapital!,
+        req.player._id,
+        req.planets,
         req.hexes,
         req.units
       );
