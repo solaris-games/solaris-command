@@ -151,6 +151,21 @@ export async function up(db: Db, client: MongoClient) {
         { unique: true }
       );
 
+    // Index: Game ID and Player
+    await db
+      .collection<Hex>("hexes")
+      .createIndex(
+        { gameId: 1 },
+        { unique: true }
+      );
+
+    await db
+      .collection<Hex>("hexes")
+      .createIndex(
+        { gameId: 1, playerId: 1 },
+        { unique: true }
+      );
+
     // Index: Region queries
     await db.collection<Hex>("hexes").createIndex({ gameId: 1 });
 

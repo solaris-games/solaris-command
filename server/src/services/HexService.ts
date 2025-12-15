@@ -16,6 +16,31 @@ export class HexService {
     return db.collection<Hex>("hexes").find({ gameId }).toArray();
   }
 
+  static async getByGameIdAndPlayerId(
+    db: Db,
+    gameId: ObjectId,
+    playerId: ObjectId
+  ) {
+    return db.collection<Hex>("hexes").find({ gameId, playerId }).toArray();
+  }
+
+  static async getByGameAndId(db: Db, gameId: ObjectId, hexId: ObjectId) {
+    return db.collection<Hex>("hexes").findOne({
+      gameId,
+      _id: hexId,
+    });
+  }
+
+  static async getByGameAndIds(db: Db, gameId: ObjectId, hexIds: ObjectId[]) {
+    return db
+      .collection<Hex>("hexes")
+      .find({
+        gameId,
+        _id: { $in: hexIds },
+      })
+      .toArray();
+  }
+
   static async insertHexes(db: Db, hexes: Hex[]) {
     await db.collection<Hex>("hexes").insertMany(hexes);
   }

@@ -1,16 +1,20 @@
 import express from "express";
 import { ObjectId } from "mongodb";
 import { authenticateToken } from "../middleware/auth";
-import { BuildStationRequestSchema, CONSTANTS, HexUtils, Station } from "@solaris-command/core";
+import {
+  BuildStationRequestSchema,
+  CONSTANTS,
+  HexUtils,
+  Station,
+} from "@solaris-command/core";
 import {
   ERROR_CODES,
   loadGame,
-  loadHexes,
   loadPlayer,
   requireActiveGame,
   validateRequest,
 } from "../middleware";
-import { StationService, PlayerService } from "../services";
+import { StationService, PlayerService, HexService } from "../services";
 import { loadPlayerStation, loadStations } from "../middleware/station";
 import { executeInTransaction, getDb } from "../db";
 import { StationMapper } from "../map";
@@ -26,14 +30,19 @@ router.post(
   requireActiveGame,
   loadPlayer,
   loadStations,
-  loadHexes,
   async (req, res) => {
-    const { hexId } = req.body;
+    const { hexId }: { hexId: string } = req.body;
+
+    const db = getDb();
 
     try {
       // TODO: Validate that the new station will be in supply?
 
-      const hex = req.hexes.find((h) => String(h._id) === hexId);
+      const hex = await HexService.getByGameAndId(
+        db,
+        req.game._id,
+        new ObjectId(hexId)
+      );
 
       if (!hex) {
         return res.status(400).json({ errorCode: ERROR_CODES.HEX_ID_INVALID });
@@ -114,7 +123,7 @@ router.delete(
   loadPlayerStation,
   async (req, res) => {
     const db = getDb();
-    
+
     try {
       await StationService.deleteStation(db, req.station._id);
     } catch (error: any) {

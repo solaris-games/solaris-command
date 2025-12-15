@@ -19,16 +19,16 @@ import {
 import {
   ERROR_CODES,
   loadGame,
-  loadHexes,
   loadPlanets,
   loadPlayer,
+  loadPlayerHexes,
   loadPlayerUnit,
   loadUnits,
   requireActiveGame,
   requireNonRegoupingUnit,
   validateRequest,
 } from "../middleware";
-import { UnitService, PlayerService } from "../services";
+import { UnitService, PlayerService, HexService } from "../services";
 import { executeInTransaction, getDb } from "../db";
 import { UnitMapper } from "../map";
 
@@ -42,7 +42,7 @@ router.post(
   loadGame,
   requireActiveGame,
   loadPlayer,
-  loadHexes,
+  loadPlayerHexes,
   loadPlanets,
   loadUnits,
   async (req, res) => {
@@ -156,9 +156,8 @@ router.post(
   loadPlayer,
   loadPlayerUnit,
   requireNonRegoupingUnit,
-  loadHexes,
   async (req, res) => {
-    const { path } = req.body; // Hex[]
+    const { hexIdPath }: { hexIdPath: string[] } = req.body; // (Hex IDs)
 
     // Validate that the movement path isn't longer than an entire cycle.
     if (req.path.length > CONSTANTS.GAME_DEFAULT_TICKS_PER_CYCLE) {
@@ -174,30 +173,36 @@ router.post(
       return res.status(400).json({ errorCode: ERROR_CODES.UNIT_IS_NOT_IDLE });
     }
 
+    // Load only the hexes that the request body contains, this is better than loading ALL hexes in the game.
+    const hexIds = hexIdPath.map((id) => new ObjectId(id));
+    req.hexes = await HexService.getByGameAndIds(db, req.game._id, hexIds);
+
     // Convert hex list to map for easier lookup in pathfinding
     const hexMap = new Map<string, any>();
     req.hexes.forEach((hex) => {
       hexMap.set(HexUtils.getCoordsID(hex.location), hex);
     });
 
+    const hexPath = req.hexes.map((h) => h.location);
+
     try {
       const validationResult = Pathfinding.validatePath(
         req.unit.location,
-        path,
+        hexPath,
         req.unit.state.mp,
         hexMap
       );
 
       if (!validationResult.valid) {
-        return res
-          .status(400)
-          .json({
-            errorCode:
-              validationResult.error || ERROR_CODES.REQUEST_VALIDATION_FAILED,
-          });
+        return res.status(400).json({
+          errorCode:
+            validationResult.error || ERROR_CODES.REQUEST_VALIDATION_FAILED,
+        });
       }
 
-      await UnitService.declareUnitMovement(db, req.unit._id, { path });
+      await UnitService.declareUnitMovement(db, req.unit._id, {
+        path: hexPath,
+      });
     } catch (error: any) {
       console.error("Error moving unit:", error);
       res.status(500);
@@ -243,9 +248,16 @@ router.post(
   loadPlayer,
   loadPlayerUnit,
   requireNonRegoupingUnit,
-  loadHexes,
   async (req, res) => {
-    const { hexId, operation, advanceOnVictory } = req.body;
+    const {
+      hexId,
+      operation,
+      advanceOnVictory,
+    }: {
+      hexId: string;
+      operation: CombatOperation;
+      advanceOnVictory: boolean;
+    } = req.body;
 
     const db = getDb();
 
@@ -261,7 +273,11 @@ router.post(
         .json({ errorCode: ERROR_CODES.UNIT_INSUFFICIENT_AP });
 
     // Hex must be valid
-    const hex = req.hexes.find((h) => String(h._id) === hexId);
+    const hex = await HexService.getByGameAndId(
+      db,
+      req.game._id,
+      new ObjectId(hexId)
+    );
 
     if (!hex) {
       return res.status(400).json({ errorCode: ERROR_CODES.HEX_ID_INVALID });
@@ -283,9 +299,7 @@ router.post(
 
     // If suppressive fire, then must have an artillery spec.
     if (operation === CombatOperation.SUPPRESSIVE_FIRE) {
-      const hasArtillery = UnitManager.unitHasActiveSpecialistStep(
-        req.unit
-      );
+      const hasArtillery = UnitManager.unitHasActiveSpecialistStep(req.unit);
 
       if (!hasArtillery) {
         return res.status(400).json({
@@ -296,7 +310,7 @@ router.post(
 
     try {
       await UnitService.declareUnitAttack(db, req.unit._id, {
-        hexId,
+        hexId: new ObjectId(hexId),
         operation,
         advanceOnVictory,
       });

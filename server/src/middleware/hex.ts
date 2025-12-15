@@ -36,3 +36,27 @@ export const loadHexes = async (
 
   next();
 };
+
+export const loadPlayerHexes = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const gameId = req.params.id;
+
+  if (!gameId)
+    return res.status(400).json({ errorCode: ERROR_CODES.GAME_ID_REQUIRED });
+
+  const db = getDb();
+
+  try {
+    const hexes = await HexService.getByGameId(db, new ObjectId(gameId));
+
+    req.hexes = hexes;
+  } catch (error) {
+    console.error("Middleware Error:", error);
+    res.status(500);
+  }
+
+  next();
+};

@@ -1,19 +1,12 @@
 import { z } from "zod";
 
-// Common Schemas
-export const HexRequestSchema = z.object({
-  q: z.number(),
-  r: z.number(),
-  s: z.number(),
-});
-
 export const DeployUnitRequestSchema = z.object({
   catalogId: z.string(),
   hexId: z.string(),
 });
 
 export const MoveUnitRequestSchema = z.object({
-  path: z.array(HexRequestSchema).min(1), // TODO: This should be an array of hex IDs?
+  hexIdPath: z.array(z.string()).min(1), // Array of Hex IDs.
 });
 
 export const AttackUnitRequestSchema = z.object({
