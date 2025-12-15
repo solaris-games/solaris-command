@@ -31,7 +31,7 @@ describe("UnitFactory", () => {
 
         // Sub-objects
         expect(unit.movement.path).toEqual([]);
-        expect(unit.combat.hexId).toBeNull();
+        expect(unit.combat.location).toBeNull();
         expect(unit.supply.isInSupply).toBe(true);
         expect(unit.supply.ticksLastSupply).toBe(0);
         expect(unit.supply.ticksOutOfSupply).toBe(0);

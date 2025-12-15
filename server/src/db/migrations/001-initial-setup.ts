@@ -154,17 +154,11 @@ export async function up(db: Db, client: MongoClient) {
     // Index: Game ID and Player
     await db
       .collection<Hex>("hexes")
-      .createIndex(
-        { gameId: 1 },
-        { unique: true }
-      );
+      .createIndex({ gameId: 1 }, { unique: true });
 
     await db
       .collection<Hex>("hexes")
-      .createIndex(
-        { gameId: 1, playerId: 1 },
-        { unique: true }
-      );
+      .createIndex({ gameId: 1, playerId: 1 }, { unique: true });
 
     // Index: Region queries
     await db.collection<Hex>("hexes").createIndex({ gameId: 1 });
@@ -211,11 +205,7 @@ export async function up(db: Db, client: MongoClient) {
             },
             state: {
               bsonType: "object",
-              required: [
-                "status",
-                "ap",
-                "mp"
-              ],
+              required: ["status", "ap", "mp"],
               properties: {
                 status: {
                   bsonType: "string",
@@ -239,9 +229,17 @@ export async function up(db: Db, client: MongoClient) {
             },
             combat: {
               bsonType: "object",
-              required: ["hexId", "operation", "advanceOnVictory"],
+              required: ["location", "operation", "advanceOnVictory"],
               properties: {
-                hexId: { bsonType: ["objectId", "null"] },
+                location: {
+                  bsonType: ["object", "null"],
+                  required: ["q", "r", "s"],
+                  properties: {
+                    q: { bsonType: "int" },
+                    r: { bsonType: "int" },
+                    s: { bsonType: "int" },
+                  },
+                },
                 operation: {
                   bsonType: "string",
                   enum: ["STANDARD", "FEINT", "SUPPRESSIVE_FIRE"],
@@ -306,7 +304,9 @@ export async function up(db: Db, client: MongoClient) {
 
     // Find all players in a game
     await db.collection<Player>("players").createIndex({ gameId: 1 });
-    await db.collection<Player>("players").createIndex({ gameId: 1, userId: 1 });
+    await db
+      .collection<Player>("players")
+      .createIndex({ gameId: 1, userId: 1 });
 
     // --- 5. PLANETS COLLECTION ---
     await createCollectionSafe("planets", {
@@ -348,13 +348,9 @@ export async function up(db: Db, client: MongoClient) {
       },
     });
 
-    await db
-      .collection<Planet>("planets")
-      .createIndex({ gameId: 1 });
-    
-    await db
-      .collection<Planet>("planets")
-      .createIndex({ playerId: 1 });
+    await db.collection<Planet>("planets").createIndex({ gameId: 1 });
+
+    await db.collection<Planet>("planets").createIndex({ playerId: 1 });
 
     // --- 6. STATIONS COLLECTION ---
     await createCollectionSafe("stations", {
@@ -387,13 +383,9 @@ export async function up(db: Db, client: MongoClient) {
       },
     });
 
-    await db
-      .collection<Station>("stations")
-      .createIndex({ gameId: 1 });
+    await db.collection<Station>("stations").createIndex({ gameId: 1 });
 
-    await db
-      .collection<Station>("stations")
-      .createIndex({ playerId: 1 });
+    await db.collection<Station>("stations").createIndex({ playerId: 1 });
 
     // --- 7. GAME EVENTS (Combat Reports) ---
     await createCollectionSafe("game_events", {
@@ -462,9 +454,11 @@ export async function up(db: Db, client: MongoClient) {
     await db
       .collection<User>("users")
       .createIndex({ googleId: 1 }, { unique: true });
-      
+
     // Email index
-    await db.collection<User>("users").createIndex({ email: 1 }, { unique: true });
+    await db
+      .collection<User>("users")
+      .createIndex({ email: 1 }, { unique: true });
 
     console.log("✅ Initial setup complete.");
   } catch (err: any) {

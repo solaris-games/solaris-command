@@ -118,8 +118,9 @@ export interface GameGalaxyResponseSchema {
       path: HexCoords[];
     };
     combat: {
-      hexId: string | null;
+      location: HexCoords | null;
       operation: CombatOperation | null;
+      advanceOnVictory: boolean | null;
     };
     supply: SupplyTarget;
   }[];

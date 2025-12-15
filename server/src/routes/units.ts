@@ -15,6 +15,8 @@ import {
   MoveUnitRequestSchema,
   AttackUnitRequestSchema,
   UpgradeUnitRequestSchema,
+  HexCoords,
+  HexCoordsId,
 } from "@solaris-command/core";
 import {
   ERROR_CODES,
@@ -114,7 +116,7 @@ router.post(
           path: [],
         },
         combat: {
-          hexId: null,
+          location: null,
           operation: null,
           advanceOnVictory: null,
         },
@@ -178,7 +180,7 @@ router.post(
     req.hexes = await HexService.getByGameAndIds(db, req.game._id, hexIds);
 
     // Convert hex list to map for easier lookup in pathfinding
-    const hexMap = new Map<string, any>();
+    const hexMap = new Map<HexCoordsId, any>();
     req.hexes.forEach((hex) => {
       hexMap.set(HexUtils.getCoordsID(hex.location), hex);
     });
@@ -250,11 +252,11 @@ router.post(
   requireNonRegoupingUnit,
   async (req, res) => {
     const {
-      hexId,
+      location,
       operation,
       advanceOnVictory,
     }: {
-      hexId: string;
+      location: HexCoords;
       operation: CombatOperation;
       advanceOnVictory: boolean;
     } = req.body;
@@ -273,10 +275,10 @@ router.post(
         .json({ errorCode: ERROR_CODES.UNIT_INSUFFICIENT_AP });
 
     // Hex must be valid
-    const hex = await HexService.getByGameAndId(
+    const hex = await HexService.getByGameAndLocation(
       db,
       req.game._id,
-      new ObjectId(hexId)
+      location
     );
 
     if (!hex) {
@@ -310,7 +312,7 @@ router.post(
 
     try {
       await UnitService.declareUnitAttack(db, req.unit._id, {
-        hexId: new ObjectId(hexId),
+        location,
         operation,
         advanceOnVictory,
       });
@@ -340,7 +342,7 @@ router.post(
         .json({ errorCode: ERROR_CODES.UNIT_IS_NOT_PREPARING });
     }
 
-    if (req.unit.combat.hexId == null)
+    if (req.unit.combat.location == null)
       return res
         .status(400)
         .json({ errorCode: ERROR_CODES.UNIT_HAS_NOT_DECLARED_ATTACK });

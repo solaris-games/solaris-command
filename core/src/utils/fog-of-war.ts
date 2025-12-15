@@ -1,4 +1,4 @@
-import { HexCoords } from "../types";
+import { HexCoords, HexCoordsId } from "../types";
 import { HexUtils } from "./hex-utils";
 import { Unit } from "../models/unit";
 import { Planet } from "../models/planet";
@@ -16,17 +16,17 @@ export const FogOfWar = {
    * Based on the location of their Units, Planets, and Stations.
    */
   getVisibleHexes(
-    playerId: string | ObjectId,
+    playerId: ObjectId,
     units: Unit[],
     planets: Planet[],
     stations: Station[]
-  ): Set<string> {
-    const visibleHexes = new Set<string>();
-    const pidStr = playerId.toString();
+  ): Set<HexCoordsId> {
+    const visibleHexes = new Set<HexCoordsId>();
+    const pidStr = String(playerId);
 
     // 1. Units
     units.forEach((u) => {
-      if (u.playerId.toString() === pidStr) {
+      if (String(u.playerId) === pidStr) {
         const unitCtlg = UNIT_CATALOG_ID_MAP.get(u.catalogId)!;
 
         // Calculate Vision Bonus from Specialists
@@ -50,7 +50,7 @@ export const FogOfWar = {
 
     // 2. Planets
     planets.forEach((p) => {
-      if (p.playerId && p.playerId.toString() === pidStr) {
+      if (p.playerId && String(p.playerId) === pidStr) {
         const hexes = HexUtils.getHexCoordsInRange(p.location, CONSTANTS.PLANET_VISION_RANGE);
         hexes.forEach((h) => visibleHexes.add(HexUtils.getCoordsID(h)));
       }
@@ -58,7 +58,7 @@ export const FogOfWar = {
 
     // 3. Stations
     stations.forEach((s) => {
-      if (s.playerId && s.playerId.toString() === pidStr) {
+      if (s.playerId && String(s.playerId) === pidStr) {
         const hexes = HexUtils.getHexCoordsInRange(s.location, CONSTANTS.STATION_VISION_RANGE);
         hexes.forEach((h) => visibleHexes.add(HexUtils.getCoordsID(h)));
       }
@@ -74,13 +74,13 @@ export const FogOfWar = {
    *  - Enemy units that are on visible hexes
    */
   filterVisibleUnits(
-    playerId: string | ObjectId,
+    playerId: ObjectId,
     allUnits: Unit[],
-    visibleHexes: Set<string>
+    visibleHexes: Set<HexCoordsId>
   ): Unit[] {
-    const pidStr = playerId.toString();
+    const pidStr = String(playerId);
     return allUnits.filter((u) => {
-      if (u.playerId.toString() === pidStr) return true; // Own unit
+      if (String(u.playerId) === pidStr) return true; // Own unit
       return visibleHexes.has(HexUtils.getCoordsID(u.location)); // Enemy unit on visible hex
     });
   },

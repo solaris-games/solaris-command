@@ -8,6 +8,7 @@ import {
   CombatOperation,
   CombatReport,
   CombatResultType,
+  HexCoordsId,
   SpecialistStepTypes,
 } from "../types";
 import { CombatCalculator } from "./combat-calculator";
@@ -55,7 +56,7 @@ export const CombatEngine = {
   resolveBattle(
     attacker: Unit,
     defender: Unit,
-    hexLookup: Map<string, Hex>,
+    hexLookup: Map<HexCoordsId, Hex>,
     operation: CombatOperation,
     advanceOnVictory: boolean
   ): { report: CombatReport; attackerWonHex: boolean } {
@@ -215,7 +216,7 @@ export const CombatEngine = {
   findRetreatHex(
     unit: Unit,
     threat: Unit,
-    hexLookup: Map<string, Hex>
+    hexLookup: Map<HexCoordsId, Hex>
   ): Hex | null {
     const neighbors = HexUtils.neighbors(unit.location);
     const validRetreats: Hex[] = [];

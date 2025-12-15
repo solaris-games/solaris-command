@@ -173,7 +173,7 @@ router.post(
         for (const hex of territoryHexes) {
           if (
             hex.playerId &&
-            hex.playerId.toString() !== newPlayer._id.toString()
+            String(hex.playerId) !== String(newPlayer._id)
           ) {
             // Contested! Set to null
             await HexService.updateHexOwnership(db, hex._id, null, session);

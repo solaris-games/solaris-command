@@ -28,7 +28,7 @@ function createTestUnit(overrides: Partial<Unit> = {}): Unit {
       ticksOutOfSupply: 0,
     },
     movement: { path: [] },
-    combat: { hexId: null },
+    combat: { location: null },
     ...overrides,
   } as Unit;
 }

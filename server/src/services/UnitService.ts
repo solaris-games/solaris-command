@@ -70,7 +70,7 @@ export class UnitService {
       $set: {
         "state.status": UnitStatus.PREPARING,
         combat: {
-          hexId: combat.hexId,
+          location: combat.location,
           operation: combat.operation,
           advanceOnVictory: combat.advanceOnVictory,
         },
@@ -83,7 +83,7 @@ export class UnitService {
       $set: {
         "state.status": UnitStatus.IDLE,
         combat: {
-          hexId: null,
+          location: null,
           operation: null,
           advanceOnVictory: null,
         },

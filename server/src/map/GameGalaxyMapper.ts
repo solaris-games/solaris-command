@@ -133,8 +133,8 @@ export class GameGalaxyMapper {
           path: tryMaskMovementPath(u.playerId, u.movement.path),
         },
         combat: {
-          // Note: Masking combat is not needed since combat triggers at the end of the tick.
-          hexId: u.combat.hexId?.toString() || null,
+          // Note: Masking combat location is not needed since combat triggers at the end of the tick.
+          location: u.combat.location || null,
           operation: tryMaskField(u.playerId, u.combat.operation),
           advanceOnVictory: tryMaskField(u.playerId, u.combat.advanceOnVictory)
         },

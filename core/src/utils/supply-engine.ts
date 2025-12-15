@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 import { Planet, Station, Unit } from "../models";
 import { Hex } from "../models/hex"; // Assuming Hex model exports TerrainTypes
 import { HexUtils } from "./hex-utils";
-import { HexCoords } from "../types/geometry";
+import { HexCoords, HexCoordsId } from "../types/geometry";
 import { Pathfinding } from "./pathfinding";
 import { MapUtils } from "./map-utils";
 import { CONSTANTS } from "../data";
@@ -19,11 +19,11 @@ export const SupplyEngine = {
     planets: Planet[],
     stations: Station[],
     units: Unit[]
-  ): Set<string> {
-    const suppliedHexIds = new Set<string>();
+  ): Set<HexCoordsId> {
+    const suppliedHexIds = new Set<HexCoordsId>();
 
     // Optimization: Create a Map for O(1) Hex Lookup by ID
-    const playerHexMap = new Map<string, Hex>();
+    const playerHexMap = new Map<HexCoordsId, Hex>();
     hexes
       .filter((h) => h.playerId && String(h.playerId) === String(playerId)) // Supply only applies to player owned hexes
       .forEach((h) => playerHexMap.set(HexUtils.getCoordsID(h.location), h));
@@ -57,7 +57,7 @@ export const SupplyEngine = {
         location: planet.location,
         rangeMP: CONSTANTS.SUPPLY_RANGE_MP_ROOT,
       });
-      visitedNodes.add(planet._id.toString());
+      visitedNodes.add(String(planet._id));
     });
 
     // 3. Propagate Supply
@@ -70,7 +70,7 @@ export const SupplyEngine = {
         currentSource.rangeMP,
         playerHexMap,
         {
-          playerId: String(playerId),
+          playerId,
           zocMap,
         }
       );
@@ -83,7 +83,7 @@ export const SupplyEngine = {
       // C. Check if this source activated any "Dark" Stations/Planets
       // (A station is 'Dark' if it hasn't been visited/powered yet)
       for (const node of nodes) {
-        const nodeId = node._id.toString();
+        const nodeId = String(node._id);
 
         if (visitedNodes.has(nodeId)) continue; // Already powered
 
@@ -108,7 +108,7 @@ export const SupplyEngine = {
   /**
    * Updates a supply target's (e.g Unit) status based on the network.
    */
-  processSupplyTarget(supply: SupplyTarget, location: HexCoords, suppliedHexIds: Set<string>): SupplyTarget {
+  processSupplyTarget(supply: SupplyTarget, location: HexCoords, suppliedHexIds: Set<HexCoordsId>): SupplyTarget {
     const currentHexId = HexUtils.getCoordsID(location);
     const isSupplied = suppliedHexIds.has(currentHexId);
 
@@ -132,10 +132,4 @@ export const SupplyEngine = {
     };
   },
 
-  /**
-   * Helper: Check if a specific hex is in supply (for UI overlays)
-   */
-  isHexSupplied(hexId: string, network: Set<string>): boolean {
-    return network.has(hexId);
-  },
 };

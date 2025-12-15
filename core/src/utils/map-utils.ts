@@ -3,8 +3,9 @@ import { Unit } from "../models/unit";
 import { HexUtils } from "./hex-utils";
 import { UNIT_CATALOG_ID_MAP } from "../data";
 import { Hex, Planet, TerrainTypes } from "../models";
-import { HexCoords } from "../types/geometry";
+import { HexCoords, HexCoordsId } from "../types/geometry";
 import { UnitManager } from "./unit-manager";
+import { ZocMap } from "./pathfinding";
 
 export const MapUtils = {
   /**
@@ -12,8 +13,8 @@ export const MapUtils = {
    * Key: Hex ID
    * Value: Set of Player IDs that exert ZOC into this hex.
    */
-  calculateZOCMap(units: Unit[]): Map<string, Set<string>> {
-    const zocMap = new Map<string, Set<string>>();
+  calculateZOCMap(units: Unit[]): ZocMap {
+    const zocMap = new Map<HexCoordsId, Set<string>>(); // Coord ID, Player Id
 
     for (const unit of units) {
       // Note: Fully suppressed units do not exert a ZOC.
@@ -39,7 +40,7 @@ export const MapUtils = {
         }
 
         // Add this player to the ZOC set for this hex
-        zocMap.get(hexId)!.add(unit.playerId.toString());
+        zocMap.get(hexId)!.add(String(unit.playerId));
       }
     }
 
@@ -50,16 +51,16 @@ export const MapUtils = {
    * Check if a specific player is affected by ZOC in a target hex
    */
   isHexInEnemyZOC(
-    hexId: string,
-    playerId: string,
-    zocMap: Map<string, Set<string>>
+    hexCoordsId: HexCoordsId,
+    playerId: ObjectId,
+    zocMap: Map<HexCoordsId, Set<string>> // Coord ID, Player Id
   ): boolean {
-    const exertors = zocMap.get(hexId);
+    const exertors = zocMap.get(hexCoordsId);
     if (!exertors) return false;
 
     // If there is ANY player ID in the set that is NOT me, it is Enemy ZOC.
     for (const id of exertors) {
-      if (id !== playerId) return true;
+      if (id !== String(playerId)) return true;
     }
 
     return false;
@@ -99,7 +100,7 @@ export const MapUtils = {
       if (planet.playerId) continue; // Must be unowned
       if (
         excludePlanetId &&
-        planet._id.toString() === excludePlanetId.toString()
+        String(planet._id) === String(excludePlanetId)
       )
         continue;
 
@@ -115,7 +116,7 @@ export const MapUtils = {
 
   findNearestFreeHexes(hexes: Hex[], center: HexCoords, count: number): Hex[] {
     const results: Hex[] = [];
-    const hexMap = new Map<string, Hex>();
+    const hexMap = new Map<HexCoordsId, Hex>();
     hexes.forEach((h) => hexMap.set(HexUtils.getCoordsID(h.location), h));
 
     let radius = 1;

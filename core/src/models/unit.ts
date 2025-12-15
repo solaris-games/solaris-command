@@ -24,7 +24,7 @@ export interface UnitMovement {
 }
 
 export interface UnitCombat {
-  hexId: ObjectId | null; // If Preparing, where are we attacking?
+  location: HexCoords | null; // If Preparing, where are we attacking?
   operation: CombatOperation | null;
   advanceOnVictory: boolean | null;
 }

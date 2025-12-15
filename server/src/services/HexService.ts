@@ -1,5 +1,5 @@
 import { ClientSession, Db, ObjectId } from "mongodb";
-import { Hex } from "@solaris-command/core";
+import { Hex, HexCoords } from "@solaris-command/core";
 
 export class HexService {
   static async removeOwnership(
@@ -28,6 +28,19 @@ export class HexService {
     return db.collection<Hex>("hexes").findOne({
       gameId,
       _id: hexId,
+    });
+  }
+
+  static async getByGameAndLocation(
+    db: Db,
+    gameId: ObjectId,
+    location: HexCoords
+  ) {
+    return db.collection<Hex>("hexes").findOne({
+      gameId,
+      "coord.q": location.q,
+      "coord.r": location.r,
+      "coord.s": location.s,
     });
   }
 

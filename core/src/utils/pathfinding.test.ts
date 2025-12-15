@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { Pathfinding } from "./pathfinding";
+import { Pathfinding, ZocContext } from "./pathfinding";
 import { Hex, TerrainTypes } from "../models/hex";
-import { HexCoords } from "../types/geometry";
+import { HexCoords, HexCoordsId } from "../types/geometry";
 import { ObjectId } from "mongodb";
 import { HexUtils } from "./hex-utils";
 
@@ -9,9 +9,9 @@ import { HexUtils } from "./hex-utils";
 function createMap(
   width: number,
   height: number,
-  terrainOverride: Map<string, TerrainTypes> = new Map()
-): Map<string, Hex> {
-  const map = new Map<string, Hex>();
+  terrainOverride: Map<HexCoordsId, TerrainTypes> = new Map()
+): Map<HexCoordsId, Hex> {
+  const map = new Map<HexCoordsId, Hex>();
   const gameId = new ObjectId();
 
   for (let q = -width; q <= width; q++) {
@@ -35,18 +35,18 @@ function createMap(
 
 // --- HELPER: Create ZOC Context ---
 function createZocContext(
-  enemyId: string,
-  hexes: string[]
-): { playerId: string; zocMap: Map<string, Set<string>> } {
-  const zocMap = new Map<string, Set<string>>();
-  const enemySet = new Set([enemyId]);
+  enemyId: ObjectId,
+  hexes: HexCoordsId[]
+): ZocContext {
+  const zocMap = new Map<HexCoordsId, Set<string>>();
+  const enemySet = new Set([String(enemyId)]);
 
   hexes.forEach((hexId) => {
     zocMap.set(hexId, enemySet);
   });
 
   return {
-    playerId: "my-player-id", // I am this player
+    playerId: new ObjectId("693fe8f299c840c2b4d9135d"), // I am this player
     zocMap: zocMap,
   };
 }
@@ -93,7 +93,10 @@ describe("Pathfinding", () => {
     it("should double cost for ZOC", () => {
       const map = createMap(3, 3);
       const zocHexId = "1,0,-1"; // Base Cost 1
-      const zocContext = createZocContext("enemy-id", [zocHexId]);
+      const zocContext = createZocContext(
+        new ObjectId("693fe8f299c840c2b4d9135e"), // Enemy ID
+        [zocHexId]
+      );
 
       // With ZOC, cost becomes 2.
       // MP 1 -> Fail

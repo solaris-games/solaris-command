@@ -4,6 +4,8 @@ export interface HexCoords {
   s: number;
 }
 
+export interface HexCoordsId extends String {} // For better type safety.
+
 // Helper to ensure valid Cube Coordinates
 export function isValidHex(h: HexCoords): boolean {
   return h.q + h.r + h.s === 0;

@@ -77,7 +77,7 @@ router.post("/google", async (req, res) => {
     // 3. Issue Session JWT
     const sessionToken = jwt.sign(
       {
-        id: user._id.toString(),
+        id: String(user._id),
         email: user.email,
         username: user.username,
       },

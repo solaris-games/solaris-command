@@ -1,4 +1,4 @@
-import { HexCoords } from "../types";
+import { HexCoords, HexCoordsId } from "../types";
 
 // The 6 directions in Cube Coordinates
 // Order: NE, E, SE, SW, W, NW
@@ -133,7 +133,7 @@ export const HexUtils = {
    * Format: "q,r,s"
    * Used for: Map keys, Set keys
    */
-  getCoordsID(hex: HexCoords): string {
+  getCoordsID(hex: HexCoords): HexCoordsId {
     return `${hex.q},${hex.r},${hex.s}`;
   },
 

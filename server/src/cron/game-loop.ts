@@ -146,12 +146,12 @@ async function executeGameTick(client: MongoClient, game: Game) {
 
     // Merge Tick updates into memory objects
     const updatedHexes = hexes.map((h) => {
-      const update = tickResult.hexUpdates.get(h._id.toString());
+      const update = tickResult.hexUpdates.get(String(h._id));
       return update ? { ...h, ...update } : h;
     }) as Hex[];
 
     const updatedPlanets = planets.map((p) => {
-      const update = tickResult.planetUpdates.get(p._id.toString());
+      const update = tickResult.planetUpdates.get(String(p._id));
       return update ? { ...p, ...update } : p;
     }) as Planet[];
 

@@ -93,7 +93,7 @@ function createUnit(playerId: ObjectId, q: number, r: number, s: number): Unit {
       mp: 1,
     },
     movement: { path: [] },
-    combat: { hexId: null },
+    combat: { location: null },
     supply: { isInSupply: true, ticksLastSupply: 0, ticksOutOfSupply: 0 },
   } as any; // Casting for brevity
 }
@@ -134,7 +134,7 @@ describe("SupplyEngine", () => {
         capital.location,
         CONSTANTS.SUPPLY_RANGE_MP_ROOT,
         expect.any(Map),
-        expect.objectContaining({ playerId: String(playerId) })
+        expect.objectContaining({ playerId })
       );
     });
 

@@ -6,6 +6,7 @@ import {
   CombatResultType,
   CombatForcedResult,
   SpecialistStepTypes,
+  HexCoordsId,
 } from "../types";
 import { CombatCalculator } from "./combat-calculator";
 import { CombatTables, SPECIALIST_STEP_MAP } from "../data";
@@ -64,7 +65,7 @@ function createUnit(
       mp: mp
     },
     movement: { path: [] },
-    combat: { hexId: null },
+    combat: { location: null },
     supply: { isInSupply: true, ticksLastSupply: 0, ticksOutOfSupply: 0 },
   } as any;
 }
@@ -74,7 +75,7 @@ describe("CombatEngine", () => {
   const defenderId = new ObjectId().toString();
   let attacker: Unit;
   let defender: Unit;
-  let hexLookup: Map<string, Hex>;
+  let hexLookup: Map<HexCoordsId, Hex>;
   let combatHex: Hex;
 
   beforeEach(() => {

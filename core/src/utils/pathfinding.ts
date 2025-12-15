@@ -1,12 +1,15 @@
+import { ObjectId } from "mongodb";
 import { TERRAIN_MP_COSTS } from "../data";
 import { Hex } from "../models/hex";
-import { HexCoords } from "../types/geometry";
+import { HexCoords, HexCoordsId } from "../types/geometry";
 import { HexUtils } from "./hex-utils";
 import { MapUtils } from "./map-utils";
 
-interface ZocContext {
-  playerId: string;
-  zocMap: Map<string, Set<string>>; // Key: Hex ID, Value: Set of Player IDs that exert ZOC into this hex.
+export interface ZocMap extends Map<HexCoordsId, Set<string>> {} // Key: Hex Coords ID, Value: Set of Player IDs that exert ZOC into this hex.
+
+export interface ZocContext {
+  playerId: ObjectId;
+  zocMap: ZocMap;
 }
 
 export const Pathfinding = {
@@ -18,12 +21,12 @@ export const Pathfinding = {
   getReachableHexes(
     start: HexCoords,
     maxCost: number,
-    hexMap: Map<string, Hex>,
+    hexMap: Map<HexCoordsId, Hex>,
     zocContext?: ZocContext // Optional: If provided, applies ZOC penalties
-  ): Set<string> {
-    const visited = new Map<string, number>(); // HexID -> Cost to reach
+  ): Set<HexCoordsId> {
+    const visited = new Map<HexCoordsId, number>(); // HexID -> Cost to reach
     const queue: { coord: HexCoords; cost: number }[] = [];
-    const results = new Set<string>();
+    const results = new Set<HexCoordsId>();
 
     const startId = HexUtils.getCoordsID(start);
 
@@ -84,7 +87,7 @@ export const Pathfinding = {
     start: HexCoords,
     path: HexCoords[],
     currentMp: number,
-    hexMap: Map<string, Hex>
+    hexMap: Map<HexCoordsId, Hex>
   ): { valid: boolean; error?: string } {
     let current = start;
     let totalCost = 0;
@@ -122,10 +125,10 @@ export const Pathfinding = {
 
       // Impassable terrain has high cost defined in data, but double check logic
       if (moveCost >= 999) {
-          return {
-              valid: false,
-              error: "MOVEMENT_PATH_IMPASSABLE",
-          };
+        return {
+          valid: false,
+          error: "MOVEMENT_PATH_IMPASSABLE",
+        };
       }
 
       totalCost += moveCost;

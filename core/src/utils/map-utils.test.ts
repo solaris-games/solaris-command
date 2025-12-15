@@ -4,6 +4,7 @@ import { MapUtils } from "./map-utils";
 import { Unit, UnitStatus } from "../models/unit";
 import { HexUtils } from "./hex-utils";
 import { UNIT_CATALOG_ID_MAP } from "../data";
+import { HexCoordsId } from "../types";
 
 // --- MOCKS ---
 const MOCK_FRIGATE_ID = "unit_frigate_01";
@@ -33,7 +34,7 @@ vi.mock("../data", () => ({
 
 // --- FACTORY ---
 function createTestUnit(
-  playerId: string,
+  playerId: ObjectId,
   catalogId: string,
   q: number = 0,
   r: number = 0,
@@ -45,9 +46,7 @@ function createTestUnit(
     playerId: new ObjectId(playerId),
     catalogId: catalogId,
     location: { q, r, s },
-    steps: [
-      { isSuppressed: false, specialistId: null}
-    ], // Not used in ZOC calc
+    steps: [{ isSuppressed: false, specialistId: null }], // Not used in ZOC calc
     state: {
       status: UnitStatus.IDLE,
       ap: 1,
@@ -55,13 +54,13 @@ function createTestUnit(
     },
     supply: { isInSupply: true, ticksLastSupply: 0, ticksOutOfSupply: 0 },
     movement: { path: [] },
-    combat: { hexId: null },
+    combat: { location: null },
   } as unknown as Unit;
 }
 
 describe("MapUtils", () => {
-  const player1Id = new ObjectId().toString();
-  const player2Id = new ObjectId().toString();
+  const player1Id = new ObjectId();
+  const player2Id = new ObjectId();
 
   describe("calculateZOCMap", () => {
     it("should project ZOC into all 6 adjacent hexes for a valid unit", () => {
@@ -75,7 +74,7 @@ describe("MapUtils", () => {
       neighbors.forEach((n) => {
         const hexId = HexUtils.getCoordsID(n);
         expect(zocMap.has(hexId)).toBe(true);
-        expect(zocMap.get(hexId)?.has(player1Id)).toBe(true);
+        expect(zocMap.get(hexId)?.has(String(player1Id))).toBe(true);
       });
     });
 
@@ -91,8 +90,8 @@ describe("MapUtils", () => {
 
     it("should NOT project ZOC if unit is fully suppressed (0 active steps)", () => {
       const unit = createTestUnit(player1Id, MOCK_FRIGATE_ID, 0);
-      unit.steps = [{ isSuppressed: true, specialistId: null}] // 0 Active Steps
-      
+      unit.steps = [{ isSuppressed: true, specialistId: null }]; // 0 Active Steps
+
       const units = [unit];
 
       const zocMap = MapUtils.calculateZOCMap(units);
@@ -117,13 +116,13 @@ describe("MapUtils", () => {
       const exertors = zocMap.get(sharedHexId);
 
       expect(exertors?.size).toBe(2);
-      expect(exertors?.has(player1Id)).toBe(true);
-      expect(exertors?.has(player2Id)).toBe(true);
+      expect(exertors?.has(String(player1Id))).toBe(true);
+      expect(exertors?.has(String(player2Id))).toBe(true);
     });
   });
 
   describe("isHexInEnemyZOC", () => {
-    const zocMap = new Map<string, Set<string>>();
+    const zocMap = new Map<HexCoordsId, Set<string>>();
     const hexId = "1,0,-1";
 
     it("should return false if no ZOC in hex", () => {
@@ -131,17 +130,17 @@ describe("MapUtils", () => {
     });
 
     it("should return false if ZOC is only from self", () => {
-      zocMap.set(hexId, new Set([player1Id]));
+      zocMap.set(hexId, new Set([String(player1Id)]));
       expect(MapUtils.isHexInEnemyZOC(hexId, player1Id, zocMap)).toBe(false);
     });
 
     it("should return true if ZOC is from enemy", () => {
-      zocMap.set(hexId, new Set([player2Id]));
+      zocMap.set(hexId, new Set([String(player2Id)]));
       expect(MapUtils.isHexInEnemyZOC(hexId, player1Id, zocMap)).toBe(true);
     });
 
     it("should return true if ZOC is mixed (self + enemy)", () => {
-      zocMap.set(hexId, new Set([player1Id, player2Id]));
+      zocMap.set(hexId, new Set([String(player1Id), String(player2Id)]));
       // Still true because an enemy exerts ZOC there, making movement hard
       expect(MapUtils.isHexInEnemyZOC(hexId, player1Id, zocMap)).toBe(true);
     });

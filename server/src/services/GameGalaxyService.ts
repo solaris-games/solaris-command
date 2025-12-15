@@ -59,7 +59,7 @@ export class GameGalaxyService {
       // Spectator or Pending
       if (game.state.status === GameStates.PENDING && currentPlayer) {
         galaxy.units = allUnits.filter(
-          (u) => u.playerId.toString() === currentPlayer._id.toString()
+          (u) => String(u.playerId) === String(currentPlayer._id)
         );
       } else {
         // Spectator: See map (hexes, planets, stations) but NO units
