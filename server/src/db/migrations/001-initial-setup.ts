@@ -34,8 +34,9 @@ export async function up(db: Db, client: MongoClient) {
       validator: {
         $jsonSchema: {
           bsonType: "object",
-          required: ["name", "description", "state", "settings"],
+          required: ["mapId", "name", "description", "state", "settings"],
           properties: {
+            mapId: { bsonType: "string" },
             name: { bsonType: "string" },
             description: { bsonType: "string" },
             state: {

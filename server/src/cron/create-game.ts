@@ -6,6 +6,7 @@ import {
   Game,
   GAME_NAMES,
   MapGenerator,
+  GAME_MAPS
 } from "@solaris-command/core";
 import { executeInTransaction } from "../db";
 import { GameService, HexService, PlanetService } from "../services";
@@ -42,7 +43,7 @@ async function checkAndCreateGame(client: MongoClient) {
 
   console.log("Creating new Offical Game...");
 
-  const now = new Date();
+  const map = GAME_MAPS[0] // TODO: Pick a random map from an 'official' pool.
 
   const gameName = GAME_NAMES[Math.floor(Math.random() * GAME_NAMES.length)];
 
@@ -50,34 +51,31 @@ async function checkAndCreateGame(client: MongoClient) {
 
   const newGameData: Game = {
     _id: gameId,
+    mapId: map.id,
     name: gameName,
     description: "Official Server Game",
     settings: {
       tickDurationMS: CONSTANTS.GAME_DEFAULT_TICK_DURATION_MS,
       ticksPerCycle: CONSTANTS.GAME_DEFAULT_TICKS_PER_CYCLE,
-      victoryPointsToWin: CONSTANTS.GAME_DEFAULT_VICTORY_POINTS,
-      playerCount: CONSTANTS.GAME_DEFAULT_PLAYER_COUNT,
+      victoryPointsToWin: CONSTANTS.GAME_DEFAULT_VICTORY_POINTS, // TODO: Move into map?
+      playerCount: map.playerCount,
       combatVersion: "v1",
       movementVersion: "v1",
     },
     state: {
       status: GameStates.PENDING,
-      playerCount: 0,
+      playerCount: map.playerCount,
       tick: 0,
       cycle: 0,
       createdDate: new Date(),
       startDate: null,
       endDate: null,
-      lastTickDate: now,
+      lastTickDate: null,
       winnerPlayerId: null,
     },
   };
 
-  const { hexes, planets } = MapGenerator.generate(gameId, {
-    radius: CONSTANTS.GAME_DEFAULT_GALAXY_RADIUS,
-    playerCount: CONSTANTS.GAME_DEFAULT_PLAYER_COUNT,
-    density: CONSTANTS.GAME_DEFAULT_GALAXY_PLANET_DENSITY,
-  });
+  const { hexes, planets } = MapGenerator.generateFromGameMap(gameId, map);
 
   await executeInTransaction(async (db, session) => {
     await GameService.createGame(db, newGameData);

@@ -31,6 +31,7 @@ export interface GameSettings {
 
 export interface Game {
   _id: ObjectId;
+  mapId: string; // Name of the map used to generate the game's galaxy.
 
   name: string;
   description: string;

@@ -5,10 +5,10 @@ import { CONSTANTS } from "./constants";
 export const TERRAIN_MP_COSTS: Record<TerrainTypes, number> = {
   [TerrainTypes.EMPTY]: 1,
   [TerrainTypes.ASTEROID_FIELD]: 2,
-  [TerrainTypes.DEBRIS_FIELD]: 2,
-  [TerrainTypes.NEBULA]: 3,
-  [TerrainTypes.GAS_CLOUD]: 3,
-  [TerrainTypes.INDUSTRIAL_ZONE]: 3,
+  [TerrainTypes.DEBRIS_FIELD]: 3,
+  [TerrainTypes.NEBULA]: 2,
+  [TerrainTypes.GAS_CLOUD]: 2,
+  [TerrainTypes.INDUSTRIAL_ZONE]: 4,
   [TerrainTypes.GRAVITY_WELL]: 999, // Impassable
   [TerrainTypes.RADIATION_STORM]: 999,
 };

@@ -34,7 +34,7 @@ export class GameGalaxyMapper {
 
     // Masks movement paths so that a player can only
     // see the next upcoming movement of enemy units.
-    const tryMaskMovementPath = (playerId: ObjectId, path: HexCoords[]) => {
+    const tryMaskMovementPath = (playerId: ObjectId, path: HexCoords[]): HexCoords[] => {
       // Do not mask for completed games.
       if (galaxy.game.state.status === GameStates.COMPLETED) {
         return path;
@@ -50,12 +50,13 @@ export class GameGalaxyMapper {
       }
 
       // Return the first one only (mask)
-      return [path.at[0]];
+      return [path[0]];
     };
 
     return {
       game: {
         _id: String(galaxy.game._id),
+        mapId: galaxy.game.mapId,
         name: galaxy.game.name,
         description: galaxy.game.description,
         state: {

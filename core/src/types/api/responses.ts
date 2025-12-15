@@ -47,6 +47,7 @@ export interface GameListItemResponseSchema {
 export interface GameGalaxyResponseSchema {
   game: {
     _id: string;
+    mapId: string;
     name: string;
     description: string;
     state: {
