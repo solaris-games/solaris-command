@@ -9,6 +9,7 @@ import userRoutes from "./routes/users";
 import gameRoutes from "./routes/games";
 import unitRoutes from "./routes/units";
 import stationRoutes from "./routes/stations";
+import playerRoutes from "./routes/players";
 import { CreateGameJob } from "./cron/create-game";
 
 dotenv.config();
@@ -42,10 +43,11 @@ async function startServer() {
     // Note: Express Router with mergeParams allows accessing :id from parent
     app.use("/api/v1/games/:id/units", unitRoutes);
     app.use("/api/v1/games/:id/stations", stationRoutes);
+    app.use("/api/v1/players", playerRoutes)
 
     // Status route
     app.get("/status", (req, res) => {
-      res.json({ status: "Solaris: Command Server Online" });
+      return res.status(200).json({ status: "Solaris: Command Server Online" });
     });
   } catch (err) {
     console.error("Failed to start server:", err);

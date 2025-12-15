@@ -47,7 +47,10 @@ router.get("/", authenticateToken, async (req, res) => {
     res.json(GameMapper.toGameListResponse(games, myGameIds));
   } catch (error) {
     console.error("Error listing games:", error);
-    res.status(500);
+    
+    return res.status(500).json({
+      errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
+    });
   }
 });
 
@@ -171,10 +174,7 @@ router.post(
         );
 
         for (const hex of territoryHexes) {
-          if (
-            hex.playerId &&
-            String(hex.playerId) !== String(newPlayer._id)
-          ) {
+          if (hex.playerId && String(hex.playerId) !== String(newPlayer._id)) {
             // Contested! Set to null
             await HexService.updateHexOwnership(db, hex._id, null, session);
           } else {
@@ -240,7 +240,10 @@ router.post(
       }
 
       console.error("Error joining game:", error);
-      res.status(500);
+      
+      return res.status(500).json({
+        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
     }
   }
 );
@@ -260,8 +263,13 @@ router.post(
       });
     } catch (error) {
       console.error("Error leaving game:", error);
-      res.status(500);
+      
+      return res.status(500).json({
+        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
     }
+
+    res.json({});
   }
 );
 
@@ -279,8 +287,13 @@ router.post(
       await PlayerService.concedeGame(db, req.player._id);
     } catch (error) {
       console.error("Error conceding game:", error);
-      res.status(500);
+      
+      return res.status(500).json({
+        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
     }
+
+    return res.json({});
   }
 );
 
@@ -309,7 +322,10 @@ router.get(
       res.json(GameGalaxyMapper.toGameGalaxyResponse(galaxy, currentPlayerId));
     } catch (error) {
       console.error("Error fetching game:", error);
-      res.status(500);
+      
+      return res.status(500).json({
+        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
     }
   },
   touchPlayer
@@ -343,7 +359,10 @@ router.get(
       res.json(GameMapper.toGameEventsResponse(events));
     } catch (error) {
       console.error("Error fetching game events:", error);
-      res.status(500);
+      
+      return res.status(500).json({
+        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
     }
   }
 );

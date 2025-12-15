@@ -15,10 +15,18 @@ export class PlayerService {
   static async getByGameId(db: Db, gameId: ObjectId) {
     return db.collection<Player>("players").find({ gameId }).toArray();
   }
+
   static async getByGameAndUserId(db: Db, gameId: ObjectId, userId: ObjectId) {
     return db.collection<Player>("players").findOne({
       gameId: gameId,
       userId: userId,
+    });
+  }
+  
+  static async getByGameAndPlayerId(db: Db, gameId: ObjectId, playerId: ObjectId) {
+    return db.collection<Player>("players").findOne({
+      gameId: gameId,
+      playerId: playerId,
     });
   }
 
@@ -52,6 +60,21 @@ export class PlayerService {
         status: PlayerStatus.ACTIVE,
       })
       .toArray();
+  }
+
+  static async incrementPrestigePoints(
+    db: Db,
+    playerId: ObjectId,
+    prestige: number,
+    session?: ClientSession
+  ) {
+    await db
+      .collection<Player>("players")
+      .updateOne(
+        { _id: playerId },
+        { $inc: { prestigePoints: prestige } },
+        { session }
+      );
   }
 
   static async deductPrestigePoints(

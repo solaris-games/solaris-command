@@ -108,8 +108,13 @@ router.post(
       );
     } catch (error: any) {
       console.error("Error building station:", error);
-      res.status(500);
+
+      return res.status(500).json({
+        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
     }
+
+    return res.status(201).json({});
   }
 );
 
@@ -128,8 +133,13 @@ router.delete(
       await StationService.deleteStation(db, req.station._id);
     } catch (error: any) {
       console.error("Error decomissioning station:", error);
-      res.status(500);
+
+      return res.status(500).json({
+        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
     }
+
+    res.json({});
   }
 );
 

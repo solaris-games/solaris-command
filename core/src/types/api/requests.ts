@@ -19,7 +19,7 @@ export const MoveUnitRequestSchema = z.object({
 export const AttackUnitRequestSchema = z.object({
   location: HexRequestSchema,
   operation: z.enum(["STANDARD", "FEINT", "SUPPRESSIVE"]), // Match core types
-  advanceOnVictory: z.boolean()
+  advanceOnVictory: z.boolean(),
 });
 
 export const BuildStationRequestSchema = z.object({
@@ -34,4 +34,9 @@ export const UpgradeUnitRequestSchema = z.object({
 export const JoinGameRequestSchema = z.object({
   alias: z.string().min(3),
   color: z.string().length(7),
+});
+
+export const TradePrestigeRequestSchema = z.object({
+  targetPlayerId: z.string().length(24),
+  prestige: z.number().min(1),
 });

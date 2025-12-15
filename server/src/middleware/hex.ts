@@ -31,7 +31,10 @@ export const loadHexes = async (
     req.hexes = hexes;
   } catch (error) {
     console.error("Middleware Error:", error);
-    res.status(500);
+    
+    return res.status(500).json({ 
+        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR 
+    });
   }
 
   next();
@@ -55,7 +58,10 @@ export const loadPlayerHexes = async (
     req.hexes = hexes;
   } catch (error) {
     console.error("Middleware Error:", error);
-    res.status(500);
+    
+    return res.status(500).json({ 
+        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR 
+    });
   }
 
   next();

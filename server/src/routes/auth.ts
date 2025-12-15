@@ -88,7 +88,8 @@ router.post("/google", async (req, res) => {
     res.json(AuthMapper.toLoginResponse(sessionToken, user));
   } catch (error) {
     console.error("Auth Error:", error);
-    res.status(401).json({ errorCode: ERROR_CODES.AUTH_FAILED });
+    
+    return res.status(401).json({ errorCode: ERROR_CODES.AUTH_FAILED });
   }
 });
 

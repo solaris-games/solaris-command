@@ -22,7 +22,10 @@ router.get("/me", authenticateToken, async (req, res) => {
     res.json(UserMapper.toUserDetailsResponse(user));
   } catch (error) {
     console.error("Error fetching user:", error);
-    res.status(500);
+
+    return res.status(500).json({
+      errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
+    });
   }
 });
 
@@ -53,10 +56,15 @@ router.delete("/me", authenticateToken, async (req, res) => {
     await session.abortTransaction();
 
     console.error("Error deleting user:", error);
-    res.status(500);
+
+    return res.status(500).json({
+      errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
+    });
   } finally {
     await session.endSession();
   }
+
+  res.json({});
 });
 
 export default router;

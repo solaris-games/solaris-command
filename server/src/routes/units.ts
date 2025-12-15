@@ -143,8 +143,13 @@ router.post(
       res.json(UnitMapper.toDeployUnitResponse(createdUnit));
     } catch (error: any) {
       console.error("Error deploying unit:", error);
-      res.status(500);
+      
+      return res.status(500).json({
+        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
     }
+
+    return res.status(201).json({});
   }
 );
 
@@ -207,8 +212,13 @@ router.post(
       });
     } catch (error: any) {
       console.error("Error moving unit:", error);
-      res.status(500);
+      
+      return res.status(500).json({
+        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
     }
+
+    res.json({});
   }
 );
 
@@ -235,8 +245,13 @@ router.post(
       await UnitService.cancelUnitMovement(db, req.unit._id);
     } catch (error: any) {
       console.error("Error cancelling unit movement:", error);
-      res.status(500);
+      
+      return res.status(500).json({
+        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
     }
+
+    res.json({});
   }
 );
 
@@ -318,8 +333,13 @@ router.post(
       });
     } catch (error: any) {
       console.error("Error declaring attack:", error);
-      res.status(500);
+      
+      return res.status(500).json({
+        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
     }
+
+    res.json({});
   }
 );
 
@@ -351,8 +371,13 @@ router.post(
       await UnitService.cancelUnitAttack(db, req.unit._id);
     } catch (error: any) {
       console.error("Error cancelling attack:", error);
-      res.status(500);
+      
+      return res.status(500).json({
+        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
     }
+
+    res.json({});
   }
 );
 
@@ -453,8 +478,13 @@ router.post(
       });
     } catch (error: any) {
       console.error("Error upgrading unit:", error);
-      res.status(500);
+      
+      return res.status(500).json({
+        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
     }
+
+    res.json({});
   }
 );
 
@@ -490,8 +520,13 @@ router.post(
       }
     } catch (error: any) {
       console.error("Error scrapping unit step:", error);
-      res.status(500);
+      
+      return res.status(500).json({
+        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
     }
+
+    res.json({});
   }
 );
 

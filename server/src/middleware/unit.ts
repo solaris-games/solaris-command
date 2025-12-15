@@ -32,7 +32,10 @@ export const loadUnits = async (
     req.units = units;
   } catch (error) {
     console.error("Middleware Error:", error);
-    res.status(500);
+    
+    return res.status(500).json({ 
+        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR 
+    });
   }
 
   next();
@@ -57,7 +60,10 @@ export const loadPlayerUnit = async (
     req.unit = unit;
   } catch (error) {
     console.error("Middleware Error:", error);
-    res.status(500);
+    
+    return res.status(500).json({ 
+        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR 
+    });
   }
 
   next();

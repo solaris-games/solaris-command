@@ -31,7 +31,10 @@ export const loadPlanets = async (
     req.planets = planets;
   } catch (error) {
     console.error("Middleware Error:", error);
-    res.status(500);
+    
+    return res.status(500).json({ 
+        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR 
+    });
   }
 
   next();
