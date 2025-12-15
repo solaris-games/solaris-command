@@ -14,7 +14,7 @@ import {
 import { CombatReport } from "../types";
 import { CombatEngine } from "./combat-engine";
 import { HexUtils } from "./hex-utils";
-import { UnitManager, UnitManagerHelper } from "./unit-manager";
+import { UnitManager } from "./unit-manager";
 import { SupplyEngine } from "./supply-engine";
 import { MapUtils } from "./map-utils";
 
@@ -22,8 +22,9 @@ import { MapUtils } from "./map-utils";
 // This will make it more manageable to write unit tests for.
 
 export interface ProcessTickResult {
+  // Note: Unit updates are not present here since units are ALWAYS updated every tick. We do not need to keep track of individual unit updates.
+
   gameUpdates: Partial<Game> | null;
-  unitUpdates: Map<string, Unit>; // Full unit objects (heavily mutated)
   hexUpdates: Map<string, Partial<Hex>>; // Partial updates (unitId, playerId)
   planetUpdates: Map<string, Partial<Planet>>; // Capture updates
   combatReports: CombatReport[]; // Logs for the UI
@@ -50,7 +51,6 @@ class TickContext {
 
   // --- OUTPUT CONTAINERS ---
   gameUpdates: Partial<Game> | null = null;
-  unitUpdates = new Map<string, Unit>();
   hexUpdates = new Map<string, Partial<Hex>>();
   planetUpdates = new Map<string, Partial<Planet>>();
   combatReports: CombatReport[] = [];
@@ -100,15 +100,15 @@ class TickContext {
 }
 
 export interface ProcessCycleResult {
+  // Note: Unit updates are not present here since units are ALWAYS updated every tick. We do not need to keep track of individual unit updates.
+
   gameUpdates: Partial<Game>;
   playerUpdates: Map<string, Partial<Player>>;
-  unitUpdates: Map<string, Partial<Unit>>;
-  unitsToRemove: ObjectId[]; // Track starved units
+  unitsToDelete: ObjectId[]; // Track starved units
   winnerPlayerId: ObjectId | null;
 }
 
 class CycleTickContext {
-  unitUpdates = new Map<string, Partial<Unit>>();
   playerUpdates = new Map<string, Partial<Player>>();
   unitsToRemove: ObjectId[] = []; // <--- Track killed units
   gameUpdates: Partial<Game> | null = null;
@@ -237,7 +237,6 @@ export const TickProcessor = {
 
     return {
       gameUpdates: context.gameUpdates,
-      unitUpdates: context.unitUpdates,
       hexUpdates: context.hexUpdates,
       planetUpdates: context.planetUpdates,
       combatReports: context.combatReports,
@@ -302,7 +301,6 @@ export const TickProcessor = {
         ) {
           attacker.state.status = UnitStatus.REGROUPING; // Attack fails/cancels
           attacker.combat.hexId = null;
-          contextTick.unitUpdates.set(attacker._id.toString(), attacker);
           continue;
         }
 
@@ -319,10 +317,6 @@ export const TickProcessor = {
         // Log Report
         battleResult.report.tick = contextTick.currentTick;
         contextTick.combatReports.push(battleResult.report);
-
-        // Queue State Updates
-        contextTick.unitUpdates.set(attacker._id.toString(), attacker);
-        contextTick.unitUpdates.set(defender._id.toString(), defender);
 
         // Check Casualties
         if (attacker.steps.length === 0)
@@ -387,11 +381,8 @@ export const TickProcessor = {
         intents.forEach(({ unit }) => {
           unit.state.mp = 0; // Lose momentum
           unit.movement.path = []; // Clear the path
-          unit.steps = UnitManagerHelper.suppressSteps(unit.steps, 1); // Take damage
+          unit.steps = UnitManager.suppressSteps(unit.steps, 1); // Take damage
           unit.state.status = UnitStatus.REGROUPING; // Forced stop
-
-          // Update DB
-          context.unitUpdates.set(unit._id.toString(), unit);
         });
         // Note: Occupier is unaffected (Interloper Rule)
       } else {
@@ -419,7 +410,6 @@ export const TickProcessor = {
         if (unit.state.mp < mpCost) {
           unit.state.status = UnitStatus.IDLE;
           unit.movement.path = [];
-          context.unitUpdates.set(unit._id.toString(), unit);
           return; // Exit this specific move intent
         }
 
@@ -432,8 +422,6 @@ export const TickProcessor = {
         if (unit.movement.path.length === 0 || unit.state.mp === 0) {
           unit.state.status = UnitStatus.IDLE;
         }
-
-        context.unitUpdates.set(unit._id.toString(), unit);
 
         // Update Working Set (for next logic steps, though this is the end of tick)
         context.unitLocations.delete(intent.from);
@@ -474,8 +462,6 @@ export const TickProcessor = {
           unit.location,
           supplyNetwork
         );
-
-        context.unitUpdates.set(unit._id.toString(), unit);
       });
     });
   },
@@ -529,23 +515,16 @@ export const TickProcessor = {
 
       playerUnits.forEach((unit) => {
         // Run Cycle Logic (Refill AP/MP, Recovery, or Penalties)
-        const cycleUpdate = UnitManager.processCycle(
+        UnitManager.processCycle(
           unit,
           game.settings.ticksPerCycle
         );
 
-        // 3. Check for Death (Starvation/Collapse)
-        // We merge the proposed updates to check the resulting steps
-        const resultingSteps = cycleUpdate.steps || unit.steps;
-
-        if (resultingSteps.length === 0) {
+        // Check for Death (Starvation/Collapse)
+        // We merge the update to check the resulting steps
+        if (unit.steps.length === 0) {
           // Unit died this cycle
           context.unitsToRemove.push(unit._id);
-        } else {
-          // Unit lives, queue update
-          context.unitUpdates.set(unit._id.toString(), {
-            ...cycleUpdate,
-          });
         }
       });
 
@@ -600,8 +579,7 @@ export const TickProcessor = {
     return {
       gameUpdates: context.gameUpdates,
       playerUpdates: context.playerUpdates,
-      unitUpdates: context.unitUpdates,
-      unitsToRemove: context.unitsToRemove,
+      unitsToDelete: context.unitsToRemove,
       winnerPlayerId: context.winnerPlayerId,
     };
   },

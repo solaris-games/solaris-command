@@ -3,13 +3,11 @@ import { ObjectId } from "mongodb";
 import { authenticateToken } from "../middleware/auth";
 import {
   Unit,
-  UnitManagerHelper,
+  UnitManager,
   UnitStatus,
   SPECIALIST_STEP_ID_MAP,
   UNIT_CATALOG_ID_MAP,
   CONSTANTS,
-  UnitManager,
-  MapUtils,
   CombatOperation,
   HexUtils,
   Pathfinding,
@@ -95,7 +93,7 @@ router.post(
 
       // Generate initial steps using helper
       // "New units spawn ... They spawn with All Steps Suppressed." - GDD
-      const initialSteps = UnitManagerHelper.addSteps(
+      const initialSteps = UnitManager.addSteps(
         [],
         unitCtlg.stats.defaultSteps
       );
@@ -285,7 +283,7 @@ router.post(
 
     // If suppressive fire, then must have an artillery spec.
     if (operation === CombatOperation.SUPPRESSIVE_FIRE) {
-      const hasArtillery = UnitManagerHelper.unitHasActiveSpecialistStep(
+      const hasArtillery = UnitManager.unitHasActiveSpecialistStep(
         req.unit
       );
 
@@ -388,7 +386,7 @@ router.post(
             .json({ errorCode: ERROR_CODES.PLAYER_INSUFFICIENT_PRESTIGE });
         }
 
-        newSteps = UnitManagerHelper.addSteps(newSteps, 1);
+        newSteps = UnitManager.addSteps(newSteps, 1);
       } else if (type === "SPECIALIST") {
         if (!specialistId)
           return res
@@ -418,7 +416,7 @@ router.post(
         }
 
         // Add specialist step (suppressed by default)
-        newSteps = UnitManagerHelper.addSteps(newSteps, 1, spec);
+        newSteps = UnitManager.addSteps(newSteps, 1, spec);
       } else {
         return res
           .status(400)
@@ -466,7 +464,7 @@ router.post(
       // If there's more than 1 step then we scrap it, otherwise we delete the entire unit.
       if (req.unit.steps.length > 1) {
         // Reduce step
-        const newSteps = UnitManagerHelper.scrapSteps(req.unit.steps, 1);
+        const newSteps = UnitManager.scrapSteps(req.unit.steps, 1);
 
         // Apply
         await UnitService.scrapUnitStep(db, req.unit._id, newSteps);

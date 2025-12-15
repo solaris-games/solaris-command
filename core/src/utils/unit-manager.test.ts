@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { ObjectId } from "mongodb";
 import { Unit, UnitStatus } from "../models";
-import { UnitManager, UnitManagerHelper } from "./unit-manager";
+import { UnitManager } from "./unit-manager";
 import { UNIT_CATALOG_ID_MAP } from "../data";
 
 // --- FACTORY HELPER ---
@@ -44,10 +44,10 @@ describe("UnitManager", () => {
         },
       });
 
-      const update = UnitManager.processCycle(unit, TICKS_PER_CYCLE);
+      UnitManager.processCycle(unit, TICKS_PER_CYCLE);
 
-      expect(update.state?.ap).toBe(CATALOG_UNIT.stats.maxAP);
-      expect(update.state?.mp).toBe(CATALOG_UNIT.stats.maxMP);
+      expect(unit.state.ap).toBe(CATALOG_UNIT.stats.maxAP);
+      expect(unit.state.mp).toBe(CATALOG_UNIT.stats.maxMP);
     });
 
     it("should reset REGROPING status to IDLE", () => {
@@ -59,9 +59,9 @@ describe("UnitManager", () => {
         },
       });
 
-      const update = UnitManager.processCycle(unit, TICKS_PER_CYCLE);
+      UnitManager.processCycle(unit, TICKS_PER_CYCLE);
 
-      expect(update.state?.status).toBe(UnitStatus.IDLE);
+      expect(unit.state.status).toBe(UnitStatus.IDLE);
     });
 
     it("should recover suppressed steps (up to Recovery Rate)", () => {
@@ -75,10 +75,10 @@ describe("UnitManager", () => {
 
       const unit = createTestUnit({ steps });
 
-      const update = UnitManager.processCycle(unit, TICKS_PER_CYCLE);
+      UnitManager.processCycle(unit, TICKS_PER_CYCLE);
 
       // Expect: 2 recovered (Recovery Rate = 2), 1 still suppressed
-      const suppressedCount = update.steps?.filter(
+      const suppressedCount = unit.steps.filter(
         (s) => s.isSuppressed
       ).length;
       expect(suppressedCount).toBe(1);
@@ -97,14 +97,14 @@ describe("UnitManager", () => {
         steps: [{ isSuppressed: true, specialistId: null }],
       });
 
-      const update = UnitManager.processCycle(unit, TICKS_PER_CYCLE);
+      UnitManager.processCycle(unit, TICKS_PER_CYCLE);
 
       // Check: Normal AP/MP refill happens in Tier 1?
       // Logic check: Logic says "if (isInSupply) ... else { checks tiers }"
       // Tier 1 (cyclesOOS = 1) is not >= 2, so it falls through.
       // It gets AP/MP refill, but NO recovery.
-      expect(update.state?.ap).toBe(CATALOG_UNIT.stats.maxAP);
-      expect(update.steps![0].isSuppressed).toBe(true);
+      expect(unit.state.ap).toBe(CATALOG_UNIT.stats.maxAP);
+      expect(unit.steps[0].isSuppressed).toBe(true);
     });
 
     it("should handle Tier 2 OOS (2 Cycles): Starvation (0 AP, Suppress 2)", () => {
@@ -121,12 +121,12 @@ describe("UnitManager", () => {
         ],
       });
 
-      const update = UnitManager.processCycle(unit, TICKS_PER_CYCLE);
+      UnitManager.processCycle(unit, TICKS_PER_CYCLE);
 
-      expect(update.state?.ap).toBe(0); // Starvation
+      expect(unit.state.ap).toBe(0); // Starvation
 
       // Should suppress 2 steps
-      const suppressed = update.steps?.filter((s) => s.isSuppressed).length;
+      const suppressed = unit.steps.filter((s) => s.isSuppressed).length;
       expect(suppressed).toBe(2);
     });
 
@@ -143,13 +143,13 @@ describe("UnitManager", () => {
         ],
       });
 
-      const update = UnitManager.processCycle(unit, TICKS_PER_CYCLE);
+      UnitManager.processCycle(unit, TICKS_PER_CYCLE);
 
-      expect(update.state?.ap).toBe(0);
-      expect(update.state?.mp).toBe(Math.ceil(CATALOG_UNIT.stats.maxMP / 2));
+      expect(unit.state.ap).toBe(0);
+      expect(unit.state.mp).toBe(Math.ceil(CATALOG_UNIT.stats.maxMP / 2));
 
       // All steps suppressed
-      const active = update.steps?.filter((s) => !s.isSuppressed).length;
+      const active = unit.steps.filter((s) => !s.isSuppressed).length;
       expect(active).toBe(0);
     });
 
@@ -163,18 +163,18 @@ describe("UnitManager", () => {
         steps: Array(5).fill({ isSuppressed: false, specialistId: null }),
       });
 
-      const update = UnitManager.processCycle(unit, TICKS_PER_CYCLE);
+      UnitManager.processCycle(unit, TICKS_PER_CYCLE);
 
       // Should kill 3 steps (5 - 3 = 2 remaining)
-      expect(update.steps?.length).toBe(2);
+      expect(unit.steps.length).toBe(2);
       // Also applies Tier 3 effects (Suppress all remaining)
-      const active = update.steps?.filter((s) => !s.isSuppressed).length;
+      const active = unit.steps.filter((s) => !s.isSuppressed).length;
       expect(active).toBe(0);
     });
   });
 });
 
-describe("UnitManagerHelper", () => {
+describe("UnitManager", () => {
   describe("killSteps (FIFO)", () => {
     it("should remove steps from the front (Index 0)", () => {
       const steps = [
@@ -183,7 +183,7 @@ describe("UnitManagerHelper", () => {
         { isSuppressed: false, specialistId: "C" }, // 2
       ];
 
-      const result = UnitManagerHelper.killSteps(steps, 2);
+      const result = UnitManager.killSteps(steps, 2);
 
       expect(result.length).toBe(1);
       expect(result[0].specialistId).toBe("C"); // A and B died
@@ -199,7 +199,7 @@ describe("UnitManagerHelper", () => {
         { isSuppressed: false, specialistId: "D" }, // Safe
       ];
 
-      const result = UnitManagerHelper.suppressSteps(steps, 2);
+      const result = UnitManager.suppressSteps(steps, 2);
 
       expect(result[0].isSuppressed).toBe(true); // Was already
       expect(result[1].isSuppressed).toBe(true); // Suppressed
@@ -212,7 +212,7 @@ describe("UnitManagerHelper", () => {
     it("should add new steps to the back as suppressed", () => {
       const steps = [{ isSuppressed: false, specialistId: "A" }];
 
-      const result = UnitManagerHelper.addSteps(steps, 2);
+      const result = UnitManager.addSteps(steps, 2);
 
       expect(result.length).toBe(3);
       // Old step is first
@@ -230,7 +230,7 @@ describe("UnitManagerHelper", () => {
         { isSuppressed: false, specialistId: "B" },
       ];
 
-      const result = UnitManagerHelper.scrapSteps(steps, 1);
+      const result = UnitManager.scrapSteps(steps, 1);
 
       expect(result.length).toBe(1);
       expect(result[0].specialistId).toBe("A");

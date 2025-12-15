@@ -41,7 +41,7 @@ export interface UnitCatalogItem {
 
 export enum SpecialistStepTypes {
   ARTILLERY = "ARTILLERY", // Indirect fire / Offensive Shift
-  MARINES = "MARINES", // Assault / Planet Capture
+  ENGINEERS = "ENGINEERS", // Assault / Planet Capture
   RECON = "RECON", // Intel / ZOC movement
   LOGISTICS = "LOGISTICS", // OOS Survival
   TORPEDO = "TORPEDO", // Anti-Capital Ship (Armor Piercing)

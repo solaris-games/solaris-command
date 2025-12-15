@@ -103,7 +103,7 @@ async function executeGameTick(client: MongoClient, game: Game) {
   // --- A. LOAD STATE (Scatter-Gather) ---
   // We need to load data from multiple collections to build the game state
 
-  const [hexes, units, players, planets, stations] = await Promise.all([
+  let [hexes, units, players, planets, stations] = await Promise.all([
     db.collection<Hex>("hexes").find({ gameId: gameId }).toArray(),
     db.collection<Unit>("units").find({ gameId: gameId }).toArray(),
     db.collection<Player>("players").find({ gameId: gameId }).toArray(),
@@ -139,13 +139,9 @@ async function executeGameTick(client: MongoClient, game: Game) {
     // no longer present in the game.
 
     // Remove dead entities from arrays so they aren't processed in cycle
-    const liveUnits = units.filter(
+    units = units.filter(
       (u) =>
         !tickResult.unitsToRemove.some((id) => String(id) === String(u._id))
-    );
-    const liveStations = stations.filter(
-      (s) =>
-        !tickResult.stationsToRemove.some((id) => String(id) === String(s._id))
     );
 
     // Merge Tick updates into memory objects
@@ -153,11 +149,6 @@ async function executeGameTick(client: MongoClient, game: Game) {
       const update = tickResult.hexUpdates.get(h._id.toString());
       return update ? { ...h, ...update } : h;
     }) as Hex[];
-
-    const updatedUnits = liveUnits.map((u) => {
-      const update = tickResult.unitUpdates.get(u._id.toString());
-      return update ? { ...u, ...update } : u;
-    }) as Unit[];
 
     const updatedPlanets = planets.map((p) => {
       const update = tickResult.planetUpdates.get(p._id.toString());
@@ -168,7 +159,7 @@ async function executeGameTick(client: MongoClient, game: Game) {
     cycleResult = TickProcessor.processCycle(
       game,
       players,
-      updatedUnits,
+      units,
       updatedPlanets
     );
   }
@@ -183,16 +174,6 @@ async function executeGameTick(client: MongoClient, game: Game) {
   const playerOps: AnyBulkWriteOperation<Player>[] = [];
   const unitsToDelete: ObjectId[] = [...tickResult.unitsToRemove];
   const stationsToDelete: ObjectId[] = [...tickResult.stationsToRemove];
-
-  // Prepare Unit Updates (From Tick)
-  tickResult.unitUpdates.forEach((unit, id) => {
-    unitOps.push({
-      updateOne: {
-        filter: { _id: new ObjectId(id) },
-        update: { $set: unit }, // Overwrite with new state
-      },
-    });
-  });
 
   // Prepare Hex Updates (From Tick)
   tickResult.hexUpdates.forEach((update, hexIdStr) => {
@@ -239,16 +220,6 @@ async function executeGameTick(client: MongoClient, game: Game) {
       // TODO: AFK players should get negative rank equal to the number of players in the game.
     }
 
-    // Unit Updates (Refill AP/MP)
-    cycleResult.unitUpdates.forEach((partialUnit, id) => {
-      unitOps.push({
-        updateOne: {
-          filter: { _id: new ObjectId(id) },
-          update: { $set: partialUnit },
-        },
-      });
-    });
-
     // Player Updates (Prestige/VP)
     cycleResult.playerUpdates.forEach((update, id) => {
       playerOps.push({
@@ -260,8 +231,24 @@ async function executeGameTick(client: MongoClient, game: Game) {
     });
 
     // Dead Units from Starvation
-    cycleResult.unitsToRemove.forEach((id) => unitsToDelete.push(id));
+    cycleResult.unitsToDelete.forEach((id) => unitsToDelete.push(id));
   }
+
+  // Prepare Unit Updates
+  // Remove dead entities from arrays so they aren't processed in DB update operations.
+  units = units.filter(
+    (u) => !tickResult.unitsToRemove.some((id) => String(id) === String(u._id))
+  );
+
+  // Note: Units are ALWAYS fully updated. We process unit movement, combat and supply every tick.
+  units.forEach((unit) => {
+    unitOps.push({
+      updateOne: {
+        filter: { _id: unit._id },
+        update: { $set: unit }, // Overwrite with new state
+      },
+    });
+  });
 
   // 5. EXECUTE DB OPERATIONS
 

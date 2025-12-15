@@ -17,6 +17,7 @@ describe("FogOfWar", () => {
       catalogId: "unit_corvette_01", // Hex range of 3
       playerId: pid,
       location: { q, r, s: -q - r },
+      steps: [{ isSuppressed: false, specialistId: null }]
       // ... minimal other props
     } as any);
 

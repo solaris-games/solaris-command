@@ -14,7 +14,7 @@ import {
   CombatResultType,
   CombatForcedResult,
 } from "../types";
-import { UnitManagerHelper } from "./unit-manager";
+import { UnitManager } from "./unit-manager";
 
 export interface CombatPrediction {
   attackPower: number;
@@ -88,7 +88,7 @@ export const CombatCalculator = {
     const unitCtlg = UNIT_CATALOG_ID_MAP.get(unit.catalogId)!;
 
     // Count Active Steps (Base Stats)
-    const activeSteps = UnitManagerHelper.getActiveSteps(unit).length;
+    const activeSteps = UnitManager.getActiveSteps(unit).length;
 
     let power = isAttacking
       ? unitCtlg.stats.attack * activeSteps
@@ -121,8 +121,8 @@ export const CombatCalculator = {
       shifts.push(terrainShift);
     }
 
-    // --- 2. Specialist: MARINES (Siege) ---
-    // Marines negate fortification bonuses on high defense hexes
+    // --- 2. Specialist: ENGINEERS (Siege) ---
+    // Engineers negate fortification bonuses on high defense hexes
     if (terrainShift && terrainShift.value < 0) {
       const siegeVal = this.getSpecialistShiftSum(attacker, "siege");
 

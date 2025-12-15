@@ -2,7 +2,7 @@ import {
   GameGalaxyResponseSchema,
   GameStates,
   HexCoords,
-  UnitManagerHelper,
+  UnitManager,
 } from "@solaris-command/core";
 import { GameGalaxy } from "../services/GameGalaxyService";
 import { ObjectId } from "mongodb";
@@ -126,8 +126,8 @@ export class GameGalaxyMapper {
           status: u.state.status,
           ap: u.state.ap,
           mp: u.state.mp,
-          activeSteps: UnitManagerHelper.getActiveSteps(u).length,
-          suppressedSteps: UnitManagerHelper.getSuppressedSteps(u).length
+          activeSteps: UnitManager.getActiveSteps(u).length,
+          suppressedSteps: UnitManager.getSuppressedSteps(u).length
         },
         movement: {
           path: tryMaskMovementPath(u.playerId, u.movement.path),

@@ -9,7 +9,7 @@ import {
 } from "../types";
 import { CombatCalculator } from "./combat-calculator";
 import { CombatTables, SPECIALIST_STEP_MAP } from "../data";
-import { UnitManagerHelper as UnitUtils } from "./unit-manager";
+import { UnitManager as UnitUtils } from "./unit-manager";
 import { ObjectId } from "mongodb";
 import { HexUtils } from "./hex-utils";
 

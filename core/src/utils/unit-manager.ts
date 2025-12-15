@@ -11,7 +11,7 @@ export const UnitManager = {
    * Handles: AP/MP Refill, Supply Recovery, OOS Penalties.
    * Returns: A set of updates to apply to the Unit in the DB.
    */
-  processCycle(unit: Unit, ticksPerCycle: number): Partial<Unit> {
+  processCycle(unit: Unit, ticksPerCycle: number): void {
     const unitCtlg = UNIT_CATALOG_ID_MAP.get(unit.catalogId)!;
 
     const cyclesOOS = Math.floor(unit.supply.ticksOutOfSupply / ticksPerCycle);
@@ -22,16 +22,9 @@ export const UnitManager = {
     let calculatedMaxAP = unitCtlg.stats.maxAP;
     let calculatedMaxMP = unitCtlg.stats.maxMP;
 
-    // Iterate through current active specialists to apply bonuses
-    // Note: We use unit.steps because we care about the state *before* OOS penalties might strip them?
-    // Actually, if a specialist is suppressed, it shouldn't provide bonuses.
-    // But recovery happens in this same function. The order matters.
-    // GDD: "Units are resupplied... MP/AP restored".
-    // We should probably calculate bonuses based on the state *after* recovery (if any).
-
-    // Let's first handle recovery, then calculate maxes.
-    let newSteps = [...unit.steps]; // Clone array to mutate
-    let newStatus = unit.state.status;
+    // Handle unit recovery first, then we will calculate MP/AP restoration.
+    // Note that we do recovery first since some specialists provide MP/AP bonuses
+    // and we want to do those AFTER step recovery.
 
     // 2. Handle Supply States (The "Stick" & "Carrot")
 
@@ -39,7 +32,7 @@ export const UnitManager = {
       // --- RECOVERY LOGIC ---
       // Recover suppressed steps (FIFO - First In, First Out, or just simple iteration)
       let recoveredCount = 0;
-      newSteps = newSteps.map((step) => {
+      unit.steps = unit.steps.map((step) => {
         if (
           step.isSuppressed &&
           recoveredCount < CONSTANTS.UNIT_STEP_RECOVERY_RATE
@@ -57,14 +50,12 @@ export const UnitManager = {
     let mpMultiplier = 1;
     let apAdd = 0;
 
-    newSteps.forEach((step) => {
+    unit.steps.forEach((step) => {
       if (!step.isSuppressed && step.specialistId) {
         const spec = SPECIALIST_STEP_ID_MAP.get(step.specialistId);
         if (spec && spec.bonuses) {
           if (spec.bonuses.mpMultiplier) {
-            // Apply multiplier. If we have multiple, do they stack additively or multiplicatively?
-            // "x1.5 max MP". Two of them -> x2.25? or x2.0?
-            // User said: "Allow MP stacking". Assuming multiplicative is standard for "x1.5".
+            // Multiplicative stacking
             mpMultiplier *= spec.bonuses.mpMultiplier;
           }
           if (spec.bonuses.apAdd) {
@@ -77,8 +68,8 @@ export const UnitManager = {
     calculatedMaxMP = Math.floor(calculatedMaxMP * mpMultiplier);
     calculatedMaxAP = calculatedMaxAP + apAdd;
 
-    let newAP = calculatedMaxAP;
-    let newMP = calculatedMaxMP;
+    unit.state.ap = calculatedMaxAP;
+    unit.state.mp = calculatedMaxMP;
 
     if (!isInSupply) {
       // --- OOS PENALTY LOGIC ---
@@ -86,56 +77,40 @@ export const UnitManager = {
 
       // Tier 2: Starvation (2 Cycles) -> AP = 0, Suppress 2 Steps
       if (cyclesOOS >= 2) {
-        newAP = 0;
-        newSteps = UnitManagerHelper.suppressSteps(
-          newSteps,
+        unit.state.ap = 0;
+        unit.steps = UnitManager.suppressSteps(
+          unit.steps,
           CONSTANTS.UNIT_STEP_OOS_SUPPRESS_RATE
         );
       }
 
       // Tier 3: Crippled (3 Cycles) -> AP = 0, MP Halved, Suppress ALL
       if (cyclesOOS >= 3) {
-        newAP = 0;
-        newMP = Math.ceil(calculatedMaxMP / 2);
-        newSteps = UnitManagerHelper.suppressSteps(newSteps, 999); // Suppress all
+        unit.state.ap = 0;
+        unit.state.mp = Math.ceil(calculatedMaxMP / 2);
+        unit.steps = UnitManager.suppressSteps(unit.steps, 999); // Suppress all
       }
 
       // Tier 4: Collapse (4+ Cycles) -> Tier 3 + Destroy 3 Steps
       if (cyclesOOS >= 4) {
-        newSteps = UnitManagerHelper.killSteps(
-          newSteps,
+        unit.steps = UnitManager.killSteps(
+          unit.steps,
           CONSTANTS.UNIT_STEP_OOS_KILL_RATE
         );
       }
     }
 
     // 3. Status Check (Did it die?)
-    if (newSteps.length === 0) {
-      // Logic for "Destroyed" handled by caller, but we set stats to 0
-      return {
-        steps: [],
-        state: { ...unit.state },
-      };
+    if (unit.steps.length === 0) {
+      unit.steps = [];
     }
 
     // 4. Reset Action States
-    // If unit was 'PREPARING' or 'MOVING', do we reset it?
-    // Usually, cycle resets happen at quiet times, but we should ensure AP/MP fill
-    // doesn't override a specific locked state if needed.
-    // For now, we assume Cycle refill happens peacefully.
-    if (newStatus === UnitStatus.REGROUPING) {
-      newStatus = UnitStatus.IDLE;
+    // Note: This only applies to units that are regrouping.
+    // Other statuses e.g PREPARING or MOVING are handled by combat and movement logic separately.
+    if (unit.state.status === UnitStatus.REGROUPING) {
+      unit.state.status = UnitStatus.IDLE;
     }
-
-    return {
-      steps: newSteps,
-      state: {
-        ...unit.state,
-        status: newStatus,
-        ap: newAP,
-        mp: newMP,
-      },
-    };
   },
 
   /**
@@ -177,11 +152,7 @@ export const UnitManager = {
 
     return valid; // If empty: Capital is surrounded/blockaded
   },
-};
 
-// --- Private Helpers ---
-
-export const UnitManagerHelper = {
   getActiveSteps(unit: Unit) {
     return unit.steps.filter((s) => !s.isSuppressed);
   },

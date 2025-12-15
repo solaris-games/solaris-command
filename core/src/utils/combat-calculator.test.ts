@@ -9,7 +9,7 @@ const CATALOG_UNIT_FRIGATE_ID = "unit_frigate_01";
 const CATALOG_UNIT_BATTLESHIP_ID = "unit_battleship_01";
 const CATALOG_SPEC_ARTILLERY_ID = "spec_artillery_01";
 const CATALOG_SPEC_TORPEDO_ID = "spec_torpedo_01";
-const CATALOG_SPEC_MARINES_ID = "spec_marines_01";
+const CATALOG_SPEC_ENGINEERS_ID = "spec_engineers_01";
 
 // --- FACTORY ---
 function createTestUnit(
@@ -265,7 +265,7 @@ describe("CombatCalculator", () => {
     it("should apply Siege Shift vs Industrial Zones", () => {
       // Attacker has Marines (+2 Siege)
       const attacker = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5, [
-        CATALOG_SPEC_MARINES_ID,
+        CATALOG_SPEC_ENGINEERS_ID,
       ]);
       const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5);
       // Defending in Fortified Zone (-3 Fortification)

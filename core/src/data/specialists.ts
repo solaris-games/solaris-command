@@ -6,7 +6,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     type: SpecialistStepTypes.ARTILLERY,
     name: "Artillery",
     description:
-      "Long-range kinetic bombardment. Applies an Artillery Shift before main combat begins.",
+      "Long-range kinetic bombardment.",
     cost: 150,
     stats: {
       attack: 2,
@@ -22,11 +22,11 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     },
   },
   {
-    id: "spec_marines_01",
-    type: SpecialistStepTypes.MARINES,
+    id: "spec_engineers_01",
+    type: SpecialistStepTypes.ENGINEERS,
     name: "Engineers",
     description:
-      "Elite infantry for boarding actions and planetary assault. Negates defensive bonuses of Stations and Planets.",
+      "Elite infantry for boarding actions and planetary assault. Negates defensive bonuses.",
     cost: 100,
     stats: {
       attack: 1,
@@ -46,7 +46,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     type: SpecialistStepTypes.RECON,
     name: "Recon",
     description:
-      "Advanced sensors and electronic warfare. Increases vision range and allows retreat through enemy ZOC.",
+      "Advanced sensors and electronic warfare. Increases vision range.",
     cost: 75,
     stats: {
       attack: 0,

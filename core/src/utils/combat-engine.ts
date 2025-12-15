@@ -13,7 +13,7 @@ import {
 import { CombatCalculator } from "./combat-calculator";
 import { HexUtils } from "./hex-utils";
 import { MapUtils } from "./map-utils";
-import { UnitManagerHelper as UnitUtils } from "./unit-manager";
+import { UnitManager as UnitUtils } from "./unit-manager";
 
 export const CombatEngine = {
   validateBattle(
