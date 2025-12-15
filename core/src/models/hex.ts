@@ -1,6 +1,5 @@
 import { ObjectId } from "mongodb";
 import { HexCoords } from "../types/geometry";
-import { SupplyTarget } from "../types/supply";
 
 export enum TerrainTypes {
   // Standard Open Space

@@ -4,12 +4,14 @@
   "workspaces": [
     "core",
     "server",
-    "client"
+    "client",
+    "client-map-generator"
   ],
   "scripts": {
     "test:core": "npm test --workspace=core",
     "dev:server": "npm run dev --workspace=server",
-    "dev:client": "npm run dev --workspace=client"
+    "dev:client": "npm run dev --workspace=client",
+    "dev:map-gen": "npm run dev --workspace=client-map-generator"
   },
   "devDependencies": {
     "vitest": "^4.0.14"
