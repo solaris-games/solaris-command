@@ -48,7 +48,7 @@ export const MapGenerator = {
     const capitalLocs = placeCapitals(options.playerCount, options.radius);
 
     capitalLocs.forEach((loc) => {
-      const planetName = planetNames.splice(Math.floor(Math.random() * PLANET_NAMES.length), 1)[0]
+      const planetName = planetNames.splice(Math.floor(Math.random() * PLANET_NAMES.length), 1)[0]!
 
       planets.push(createPlanet(gameId, loc, planetName, true));
 
@@ -68,7 +68,7 @@ export const MapGenerator = {
 
     while (placedCount < resourceCount && attempts < 1000) {
       attempts++;
-      const randomHex = hexes[Math.floor(Math.random() * hexes.length)];
+      const randomHex = hexes[Math.floor(Math.random() * hexes.length)]!;
 
       // Constraints: Not Impassable, Not near other planets
       if (MapUtils.isHexImpassable(randomHex)) continue;
@@ -77,7 +77,7 @@ export const MapGenerator = {
       )
         continue;
 
-      const planetName = planetNames.splice(Math.floor(Math.random() * PLANET_NAMES.length), 1)[0]
+      const planetName = planetNames.splice(Math.floor(Math.random() * PLANET_NAMES.length), 1)[0]!
 
       planets.push(
         createPlanet(
