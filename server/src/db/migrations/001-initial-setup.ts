@@ -263,15 +263,9 @@ export async function up(db: Db, client: MongoClient) {
       },
     });
 
-    // Index: Find all units for a player
-    await db.collection<Unit>("units").createIndex({ gameId: 1, playerId: 1 });
-    // Index: Collision Detection / Map population
-    await db.collection<Unit>("units").createIndex({
-      gameId: 1,
-      "location.q": 1,
-      "location.r": 1,
-      "location.s": 1,
-    });
+    // Indexes:
+    await db.collection<Unit>("units").createIndex({ gameId: 1 });
+    await db.collection<Unit>("units").createIndex({ playerId: 1 });
 
     // --- 4. PLAYERS COLLECTION ---
     await createCollectionSafe("players", {
@@ -304,12 +298,15 @@ export async function up(db: Db, client: MongoClient) {
         },
       },
     });
+
     // Unique: One player entry per user per game
     await db
       .collection<Player>("players")
       .createIndex({ gameId: 1, userId: 1 }, { unique: true });
+
     // Find all players in a game
     await db.collection<Player>("players").createIndex({ gameId: 1 });
+    await db.collection<Player>("players").createIndex({ gameId: 1, userId: 1 });
 
     // --- 5. PLANETS COLLECTION ---
     await createCollectionSafe("planets", {
@@ -350,16 +347,14 @@ export async function up(db: Db, client: MongoClient) {
         },
       },
     });
+
     await db
       .collection<Planet>("planets")
-      .createIndex({ gameId: 1, playerId: 1 });
-    // Find planet by location
-    await db.collection<Planet>("planets").createIndex({
-      gameId: 1,
-      "location.q": 1,
-      "location.r": 1,
-      "location.s": 1,
-    });
+      .createIndex({ gameId: 1 });
+    
+    await db
+      .collection<Planet>("planets")
+      .createIndex({ playerId: 1 });
 
     // --- 6. STATIONS COLLECTION ---
     await createCollectionSafe("stations", {
@@ -391,16 +386,14 @@ export async function up(db: Db, client: MongoClient) {
         },
       },
     });
+
     await db
       .collection<Station>("stations")
-      .createIndex({ gameId: 1, playerId: 1 });
-    // Find station by location
-    await db.collection<Station>("stations").createIndex({
-      gameId: 1,
-      "location.q": 1,
-      "location.r": 1,
-      "location.s": 1,
-    });
+      .createIndex({ gameId: 1 });
+
+    await db
+      .collection<Station>("stations")
+      .createIndex({ playerId: 1 });
 
     // --- 7. GAME EVENTS (Combat Reports) ---
     await createCollectionSafe("game_events", {
@@ -418,10 +411,12 @@ export async function up(db: Db, client: MongoClient) {
         },
       },
     });
+
     // TTL Index: Automatically delete reports older than 14 days to save space
     await db
       .collection<GameEvent>("game_events")
       .createIndex({ createdAt: 1 }, { expireAfterSeconds: 1209600 });
+
     // Find events for game
     await db
       .collection<GameEvent>("game_events")
@@ -467,8 +462,9 @@ export async function up(db: Db, client: MongoClient) {
     await db
       .collection<User>("users")
       .createIndex({ googleId: 1 }, { unique: true });
-    // Email index (sparse/unique if we want)
-    await db.collection<User>("users").createIndex({ email: 1 });
+      
+    // Email index
+    await db.collection<User>("users").createIndex({ email: 1 }, { unique: true });
 
     console.log("✅ Initial setup complete.");
   } catch (err: any) {

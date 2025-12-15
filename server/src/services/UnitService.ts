@@ -55,20 +55,18 @@ export class UnitService {
   }
 
   static async cancelUnitMovement(db: Db, unitId: ObjectId) {
-    const update: any = {
+    return db.collection<Unit>("units").updateOne({ _id: unitId }, {
       $set: {
         "state.status": UnitStatus.IDLE,
         movement: {
-          path: null,
+          path: [],
         },
       },
-    };
-
-    return db.collection<Unit>("units").updateOne({ _id: unitId }, update);
+    });
   }
 
   static async declareUnitAttack(db: Db, unitId: ObjectId, combat: UnitCombat) {
-    const update: any = {
+    return db.collection<Unit>("units").updateOne({ _id: unitId }, {
       $set: {
         "state.status": UnitStatus.PREPARING,
         combat: {
@@ -77,13 +75,11 @@ export class UnitService {
           advanceOnVictory: combat.advanceOnVictory,
         },
       },
-    };
-
-    return db.collection<Unit>("units").updateOne({ _id: unitId }, update);
+    });
   }
 
   static async cancelUnitAttack(db: Db, unitId: ObjectId) {
-    const update: any = {
+    return db.collection<Unit>("units").updateOne({ _id: unitId }, {
       $set: {
         "state.status": UnitStatus.IDLE,
         combat: {
@@ -92,9 +88,7 @@ export class UnitService {
           advanceOnVictory: null,
         },
       },
-    };
-
-    return db.collection<Unit>("units").updateOne({ _id: unitId }, update);
+    });
   }
 
   static async upgradeUnit(
