@@ -2,6 +2,7 @@
 node_modules
 dist
 build
+map-gen.log
 
 # global env files
 .env
