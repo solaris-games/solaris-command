@@ -216,6 +216,11 @@ const handleHexCapture = (context: TickContext, hex: Hex, unit: Unit) => {
 
   const hexCoordsId = HexUtils.getCoordsID(hex.location);
 
+  // TODO: Flip adjacent EMPTY hexes that are not in enemy ZoC and are not planets or stations.
+  // TODO: Only if recon spec?
+  // TODO: Do this only if the unit projects a ZoC.
+  // Note: It is ok to do this sequentially since all units move together at the same time, ZoC will not change between individual unit movements.
+
   // 2. Flip Planet Ownership (if one exists here)
   const planet = context.planetLookup.get(hexCoordsId);
   if (planet && String(planet.playerId) !== String(unit.playerId)) {
