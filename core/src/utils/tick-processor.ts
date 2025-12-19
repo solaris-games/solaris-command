@@ -140,6 +140,8 @@ export class GameUnitMovementContext {
         unit.state.mp > 0 &&
         !context.unitsToRemove.some((id) => String(id) === String(unit._id))
       ) {
+        // TODO: We would like to use Hex IDs in the path instead of coords,
+        // this will allow us to refactor the hexLookup to use hex IDs instead of coords.
         const nextHex = unit.movement.path[0];
 
         // Bit of defensive programming here to make sure we aren't going to move units that have invalid movement paths.
