@@ -2,6 +2,7 @@ import { ObjectId } from "mongodb";
 import { Hex, Planet } from "../models";
 import { GameMap } from "../types";
 import { PLANET_NAMES } from "../data";
+import { HexUtils } from "./hex-utils";
 
 export const MapGenerator = {
   generateFromGameMap(
@@ -22,8 +23,10 @@ export const MapGenerator = {
       return {
         _id: new ObjectId(),
         gameId,
-        unitId: null,
         playerId: null,
+        planetId: null, // We will update this later
+        stationId: null,
+        unitId: null,
         location: h.location!,
         terrain: h.terrain!,
       };
@@ -43,16 +46,23 @@ export const MapGenerator = {
         );
       }
 
-      const name = planetNames.splice(
+      const planetId = new ObjectId();
+
+      // Update the hex's planet id
+      const hex = hexes.find((h) => HexUtils.equals(h.location, p.location))!;
+      hex.planetId = planetId;
+
+      const planetName = planetNames.splice(
         Math.floor(Math.random() * planetNames.length),
         1
       )[0]!;
 
       return {
-        _id: new ObjectId(),
+        _id: planetId,
         gameId,
+        hexId: hex._id,
         playerId: null,
-        name,
+        name: planetName,
         location: p.location!,
         isCapital: p.isCapital!,
         supply: {

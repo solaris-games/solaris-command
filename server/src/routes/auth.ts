@@ -2,10 +2,9 @@ import express from "express";
 import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
 import { getDb } from "../db/instance";
-import { User } from "@solaris-command/core";
+import { ERROR_CODES, User } from "@solaris-command/core";
 import { ObjectId } from "mongodb";
 import { UserService } from "../services/UserService";
-import { ERROR_CODES } from "../middleware";
 import { AuthMapper } from "../map/AuthMapper";
 
 const router = express.Router();

@@ -161,7 +161,8 @@ export class GameUnitMovementContext {
 
     // Group intents by Destination
     this.moveIntents.forEach((intent) => {
-      if (!this.movesByDest.has(intent.toCoordId)) this.movesByDest.set(intent.toCoordId, []);
+      if (!this.movesByDest.has(intent.toCoordId))
+        this.movesByDest.set(intent.toCoordId, []);
       this.movesByDest.get(intent.toCoordId)!.push(intent);
     });
 
@@ -187,11 +188,11 @@ const handleHexCapture = (context: TickContext, hex: Hex, unit: Unit) => {
   const existingHexUpdate = context.hexUpdates.get(String(hex._id)) || {};
   context.hexUpdates.set(String(hex._id), {
     ...existingHexUpdate,
-    unitId: unit._id, // Unit is now seated here
     playerId: unit.playerId, // Territory flips to Unit owner
+    unitId: unit._id, // Unit is now seated here
   });
 
-  const hexCoordsId = HexUtils.getCoordsID(hex.location)
+  const hexCoordsId = HexUtils.getCoordsID(hex.location);
 
   // 2. Flip Planet Ownership (if one exists here)
   const planet = context.planetLookup.get(hexCoordsId);
@@ -205,6 +206,12 @@ const handleHexCapture = (context: TickContext, hex: Hex, unit: Unit) => {
   const station = context.stationLookup.get(hexCoordsId);
   if (station && String(station.playerId) !== String(unit.playerId)) {
     context.stationsToRemove.push(station._id);
+
+    const existingHexUpdate = context.hexUpdates.get(String(hex._id)) || {};
+    context.hexUpdates.set(String(hex._id), {
+      ...existingHexUpdate,
+      stationId: null, // Station is removed from the hex
+    });
   }
 };
 
@@ -340,7 +347,8 @@ export const TickProcessor = {
 
           contextTick.hexUpdates.set(String(targetHex._id), { unitId: null }); // Clear old seat
           // Note: Defender implicitly "captures" retreat hex, or at least occupies it
-          const existing = contextTick.hexUpdates.get(String(newDefHex._id)) || {};
+          const existing =
+            contextTick.hexUpdates.get(String(newDefHex._id)) || {};
           contextTick.hexUpdates.set(String(newDefHex._id), {
             ...existing,
             unitId: defender._id,
@@ -420,6 +428,7 @@ export const TickProcessor = {
         }
 
         // Apply State Changes
+        unit.hexId = targetHex._id;
         unit.location = intent.toHexCoord;
         unit.state.mp = Math.max(0, unit.state.mp - mpCost);
         unit.movement.path.shift(); // Pop the step
@@ -522,10 +531,7 @@ export const TickProcessor = {
 
       playerUnits.forEach((unit) => {
         // Run Cycle Logic (Refill AP/MP, Recovery, or Penalties)
-        UnitManager.processCycle(
-          unit,
-          game.settings.ticksPerCycle
-        );
+        UnitManager.processCycle(unit, game.settings.ticksPerCycle);
 
         // Check for Death (Starvation/Collapse)
         // We merge the update to check the resulting steps

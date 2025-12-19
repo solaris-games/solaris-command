@@ -30,8 +30,10 @@ function createHex(
   return {
     _id: new ObjectId(),
     gameId: new ObjectId(),
-    unitId,
     playerId: null,
+    unitId,
+    planetId: null,
+    stationId: null,
     location: { q, r, s },
     terrain: terrain,
   };
@@ -51,6 +53,7 @@ function createUnit(
     gameId: new ObjectId(),
     playerId: new ObjectId(playerId),
     catalogId: "unit_frigate_01",
+    hexId: new ObjectId(),
     location: { q, r, s },
     steps: [
       { isSuppressed: false, specialistId: null },
@@ -62,7 +65,7 @@ function createUnit(
     state: {
       status,
       ap: 1,
-      mp: mp
+      mp: mp,
     },
     movement: { path: [] },
     combat: { location: null },
@@ -82,8 +85,22 @@ describe("CombatEngine", () => {
     vi.clearAllMocks();
 
     // Setup basic scenario: Attacker at 0,0,0 vs Defender at 1,0,-1
-    attacker = createUnit(attackerId, new ObjectId().toString(), 0, 0, 0, UnitStatus.PREPARING);
-    defender = createUnit(defenderId, new ObjectId().toString(), 1, 0, -1, UnitStatus.IDLE);
+    attacker = createUnit(
+      attackerId,
+      new ObjectId().toString(),
+      0,
+      0,
+      0,
+      UnitStatus.PREPARING
+    );
+    defender = createUnit(
+      defenderId,
+      new ObjectId().toString(),
+      1,
+      0,
+      -1,
+      UnitStatus.IDLE
+    );
 
     combatHex = createHex(1, 0, -1, defender._id); // Where defender is
     const startHex = createHex(0, 0, 0, attacker._id);
@@ -222,9 +239,15 @@ describe("CombatEngine", () => {
 
       // Verify Damage
       expect(UnitUtils.killSteps).toHaveBeenCalledWith(expect.anything(), 1);
-      expect(UnitUtils.suppressSteps).toHaveBeenCalledWith(expect.anything(), 2);
+      expect(UnitUtils.suppressSteps).toHaveBeenCalledWith(
+        expect.anything(),
+        2
+      );
       expect(UnitUtils.killSteps).toHaveBeenCalledWith(expect.anything(), 3);
-      expect(UnitUtils.suppressSteps).toHaveBeenCalledWith(expect.anything(), 4);
+      expect(UnitUtils.suppressSteps).toHaveBeenCalledWith(
+        expect.anything(),
+        4
+      );
     });
 
     it("should handle Retreat logic", () => {
@@ -261,6 +284,7 @@ describe("CombatEngine", () => {
       expect(result.report.defender.retreated).toBe(true);
       expect(result.report.defender.shattered).toBe(false);
       // Defender should move
+      expect(defender.hexId.toString()).toEqual(retreatHex._id.toString());
       expect(defender.location).toEqual(retreatHex.location);
       expect(defender.state.status).toBe(UnitStatus.REGROUPING);
     });
@@ -325,7 +349,7 @@ describe("CombatEngine", () => {
       const retreatHex = createHex(2, 0, -2, null);
       hexLookup.set(HexUtils.getCoordsID(retreatHex.location), retreatHex);
 
-      attacker.state.mp = 99 // Make sure attacker has lots of MP for this test.
+      attacker.state.mp = 99; // Make sure attacker has lots of MP for this test.
 
       const result = CombatEngine.resolveBattle(
         attacker,
@@ -337,6 +361,7 @@ describe("CombatEngine", () => {
 
       expect(result.attackerWonHex).toBe(true);
       // Attacker should now be in defender's old spot
+      expect(attacker.hexId.toString()).toEqual(combatHex._id.toString());
       expect(attacker.location).toEqual(combatHex.location);
     });
 
@@ -361,7 +386,7 @@ describe("CombatEngine", () => {
       const retreatHex = createHex(2, 0, -2, null);
       hexLookup.set(HexUtils.getCoordsID(retreatHex.location), retreatHex);
 
-      attacker.state.mp = 0 // Not enough MP to move.
+      attacker.state.mp = 0; // Not enough MP to move.
 
       const result = CombatEngine.resolveBattle(
         attacker,
@@ -373,6 +398,7 @@ describe("CombatEngine", () => {
 
       expect(result.attackerWonHex).toBe(false);
       // Attacker should now be in defender's old spot
+      expect(attacker.hexId.toString()).not.toEqual(combatHex._id.toString());
       expect(attacker.location).not.toEqual(combatHex.location);
     });
 
@@ -383,9 +409,11 @@ describe("CombatEngine", () => {
         { isSuppressed: false, specialistId: null },
       ];
 
-      vi.mocked(UnitUtils.unitHasActiveSpecialistStep).mockImplementation(() => {
-        return false;
-      });
+      vi.mocked(UnitUtils.unitHasActiveSpecialistStep).mockImplementation(
+        () => {
+          return false;
+        }
+      );
 
       expect(() => {
         CombatEngine.resolveBattle(
@@ -421,9 +449,11 @@ describe("CombatEngine", () => {
         SpecialistStepTypes.ARTILLERY
       )!.id;
 
-      vi.mocked(UnitUtils.unitHasActiveSpecialistStep).mockImplementation(() => {
-        return true;
-      });
+      vi.mocked(UnitUtils.unitHasActiveSpecialistStep).mockImplementation(
+        () => {
+          return true;
+        }
+      );
 
       const result = CombatEngine.resolveBattle(
         attacker,
@@ -434,6 +464,7 @@ describe("CombatEngine", () => {
       );
 
       expect(result.attackerWonHex).toBe(false);
+      expect(attacker.hexId.toString()).not.toEqual(combatHex._id.toString());
       expect(attacker.location).not.toEqual(combatHex.location);
     });
 
@@ -463,9 +494,11 @@ describe("CombatEngine", () => {
         SpecialistStepTypes.ARTILLERY
       )!.id;
 
-      vi.mocked(UnitUtils.unitHasActiveSpecialistStep).mockImplementation(() => {
-        return true;
-      });
+      vi.mocked(UnitUtils.unitHasActiveSpecialistStep).mockImplementation(
+        () => {
+          return true;
+        }
+      );
 
       CombatEngine.resolveBattle(
         attacker,
@@ -486,7 +519,13 @@ describe("CombatEngine", () => {
       // Neighbor 1: Asteroid (Cost 2) at 2,0,-2
       // Neighbor 2: Empty (Cost 1) at 1,1,-2
 
-      const asteroidHex = createHex(2, 0, -2, null, TerrainTypes.ASTEROID_FIELD);
+      const asteroidHex = createHex(
+        2,
+        0,
+        -2,
+        null,
+        TerrainTypes.ASTEROID_FIELD
+      );
       const emptyHex = createHex(1, 1, -2, null, TerrainTypes.EMPTY);
 
       hexLookup.set(HexUtils.getCoordsID(asteroidHex.location), asteroidHex);

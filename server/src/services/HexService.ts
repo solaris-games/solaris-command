@@ -69,6 +69,17 @@ export class HexService {
       .updateOne({ _id: hexId }, { $set: { unitId } }, { session });
   }
 
+  static async updateHexStation(
+    db: Db,
+    hexId: ObjectId,
+    stationId: ObjectId | null,
+    session?: ClientSession
+  ) {
+    return db
+      .collection<Hex>("hexes")
+      .updateOne({ _id: hexId }, { $set: { stationId } }, { session });
+  }
+
   static async updateHexOwnership(
     db: Db,
     hexId: ObjectId,

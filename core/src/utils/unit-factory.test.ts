@@ -8,11 +8,12 @@ describe("UnitFactory", () => {
     it("should create a unit with correct structure", () => {
         const playerId = new ObjectId();
         const gameId = new ObjectId();
+        const hexId = new ObjectId();
         const coords = { q: 0, r: 0, s: 0 };
         const catalogId = "unit_corvette_01";
         const catalogItem = UNIT_CATALOG_ID_MAP.get(catalogId)!;
 
-        const unit = UnitFactory.createUnit(catalogId, playerId, gameId, coords);
+        const unit = UnitFactory.createUnit(catalogId, playerId, gameId, hexId, coords);
 
         expect(unit).toBeDefined();
         expect(unit.playerId.toString()).toBe(playerId.toString());
@@ -39,7 +40,7 @@ describe("UnitFactory", () => {
 
     it("should throw error for invalid catalog ID", () => {
         expect(() => {
-            UnitFactory.createUnit("invalid_id", new ObjectId(), new ObjectId(), { q:0, r:0, s:0 });
+            UnitFactory.createUnit("invalid_id", new ObjectId(), new ObjectId(), new ObjectId(), { q:0, r:0, s:0 });
         }).toThrow();
     });
 });

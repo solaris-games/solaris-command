@@ -7,9 +7,10 @@ export interface Planet {
   gameId: ObjectId;
   playerId: ObjectId | null;
 
-  name: string;
-  location: HexCoords; // TODO: This should be a hex ID or we add hexId to this model?
-  supply: SupplySource;
+  hexId: ObjectId;
+  location: HexCoords;
 
+  name: string;
   isCapital: boolean;
+  supply: SupplySource;
 }

@@ -7,6 +7,8 @@ export interface Station {
   gameId: ObjectId;
   playerId: ObjectId;
 
-  location: HexCoords; // TODO: This should be a hex ID or we add hexId to this model?
+  hexId: ObjectId;
+  location: HexCoords;
+  
   supply: SupplySource;
 }

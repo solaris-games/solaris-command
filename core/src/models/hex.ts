@@ -33,8 +33,10 @@ export enum TerrainTypes {
 export interface Hex {
   _id: ObjectId;
   gameId: ObjectId;
-  unitId: ObjectId | null; // One unit per hex.
   playerId: ObjectId | null;
+  planetId: ObjectId | null;
+  stationId: ObjectId | null;
+  unitId: ObjectId | null; // One unit per hex.
 
   location: HexCoords; // { q, r, s }
   terrain: TerrainTypes;

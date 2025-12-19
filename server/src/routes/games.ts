@@ -8,12 +8,12 @@ import {
   requirePendingGame,
 } from "../middleware/game";
 import {
-  ERROR_CODES,
   loadPlayer,
   touchPlayer,
   validateRequest,
 } from "../middleware";
 import {
+  ERROR_CODES,
   MapUtils,
   CONSTANTS,
   HexUtils,
@@ -149,6 +149,7 @@ router.post(
             catalogId,
             newPlayer._id,
             gameId,
+            hex._id,
             hex.location
           );
 

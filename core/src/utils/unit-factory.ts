@@ -8,6 +8,7 @@ export class UnitFactory {
     catalogId: string,
     playerId: ObjectId,
     gameId: ObjectId,
+    hexId: ObjectId,
     location: HexCoords
   ): Unit {
     const catalogItem = UNIT_CATALOG_ID_MAP.get(catalogId);
@@ -30,6 +31,7 @@ export class UnitFactory {
       gameId: gameId,
       playerId: playerId,
       catalogId: catalogId,
+      hexId: hexId,
       location: location,
       steps: steps,
 

@@ -89,8 +89,10 @@ export class GameGalaxyMapper {
       })),
       hexes: galaxy.hexes.map((h) => ({
         _id: String(h._id),
-        unitId: h.unitId?.toString() || null,
         playerId: h.playerId?.toString() || null,
+        planetId: h.planetId?.toString() || null,
+        stationId: h.stationId?.toString() || null,
+        unitId: h.unitId?.toString() || null,
         location: h.location,
         terrain: h.terrain
       })),
@@ -98,6 +100,7 @@ export class GameGalaxyMapper {
         _id: String(p._id),
         playerId: p.playerId?.toString() || null,
         name: p.name,
+        hexId: String(p.hexId),
         location: p.location,
         supply: {
           isInSupply: p.supply.isInSupply,
@@ -108,6 +111,7 @@ export class GameGalaxyMapper {
       stations: galaxy.stations.map((s) => ({
         _id: String(s._id),
         playerId: String(s.playerId),
+        hexId: String(s.hexId),
         location: s.location,
         supply: {
           isInSupply: s.supply.isInSupply,
@@ -118,6 +122,7 @@ export class GameGalaxyMapper {
         _id: String(u._id),
         playerId: String(u.playerId),
         catalogId: u.catalogId,
+        hexId: String(u.hexId),
         location: u.location,
         steps: u.steps.map((s) => ({
           isSuppressed: s.isSuppressed,

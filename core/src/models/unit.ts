@@ -35,9 +35,9 @@ export interface Unit {
   playerId: ObjectId;
   catalogId: string;
 
-  // TODO: hexId, we should have both location and hexId for easy implementation.
-
+  hexId: ObjectId;
   location: HexCoords;
+
   steps: UnitStep[];
   state: UnitState;
   movement: UnitMovement;

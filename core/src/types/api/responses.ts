@@ -80,6 +80,8 @@ export interface GameGalaxyResponseSchema {
   }[];
   hexes: {
     _id: string;
+    planetId: string | null;
+    stationId: string | null;
     unitId: string | null;
     playerId: string | null;
     location: HexCoords;
@@ -88,14 +90,16 @@ export interface GameGalaxyResponseSchema {
   planets: {
     _id: string;
     playerId: string | null;
-    name: string;
+    hexId: string;
     location: HexCoords;
-    supply: SupplySource;
+    name: string;
     isCapital: boolean;
+    supply: SupplySource;
   }[];
   stations: {
     _id: string;
     playerId: string;
+    hexId: string;
     location: HexCoords;
     supply: SupplySource;
   }[];
@@ -103,6 +107,7 @@ export interface GameGalaxyResponseSchema {
     _id: string;
     playerId: string;
     catalogId: string;
+    hexId: string;
     location: HexCoords;
     steps: {
       isSuppressed: boolean;

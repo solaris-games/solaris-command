@@ -107,16 +107,20 @@ export async function up(db: Db, client: MongoClient) {
           bsonType: "object",
           required: [
             "gameId",
-            "unitId",
             "playerId",
+            "planetId",
+            "stationId",
+            "unitId",
             "location",
             "terrain",
             "supply",
           ],
           properties: {
             gameId: { bsonType: "objectId" },
-            unitId: { bsonType: ["objectId", "null"] },
             playerId: { bsonType: ["objectId", "null"] },
+            planetId: { bsonType: "objectId" },
+            stationId: { bsonType: ["objectId", "null"] },
+            unitId: { bsonType: ["objectId", "null"] },
             location: {
               bsonType: "object",
               required: ["q", "r", "s"],
@@ -316,6 +320,7 @@ export async function up(db: Db, client: MongoClient) {
           bsonType: "object",
           required: [
             "gameId",
+            "hexId",
             "playerId",
             "name",
             "location",
@@ -324,7 +329,8 @@ export async function up(db: Db, client: MongoClient) {
           ],
           properties: {
             gameId: { bsonType: "objectId" },
-            playerId: { bsonType: "objectId" },
+            hexId: { bsonType: "objectId" },
+            playerId: { bsonType: ["objectId", "null"] },
             name: { bsonType: "string" },
             location: {
               bsonType: "object",
@@ -358,10 +364,11 @@ export async function up(db: Db, client: MongoClient) {
       validator: {
         $jsonSchema: {
           bsonType: "object",
-          required: ["gameId", "playerId", "location", "supply"],
+          required: ["gameId", "playerId", "hexId", "location", "supply"],
           properties: {
             gameId: { bsonType: "objectId" },
             playerId: { bsonType: "objectId" },
+            hexId: { bsonType: "objectId" },
             location: {
               bsonType: "object",
               required: ["q", "r", "s"],

@@ -4,11 +4,11 @@ import { authenticateToken } from "../middleware/auth";
 import {
   BuildStationRequestSchema,
   CONSTANTS,
+  ERROR_CODES,
   HexUtils,
   Station,
 } from "@solaris-command/core";
 import {
-  ERROR_CODES,
   loadGame,
   loadPlayer,
   requireActiveGame,
@@ -75,6 +75,7 @@ router.post(
       const newStation: Station = {
         _id: new ObjectId(),
         gameId: req.game._id,
+        hexId: hex._id,
         playerId: req.player._id,
         location: hex.location,
         supply: {
@@ -89,6 +90,8 @@ router.post(
           newStation,
           session
         );
+
+        await HexService.updateHexStation(db, hex._id, newStation._id, session);
 
         await PlayerService.deductPrestigePoints(
           db,
@@ -127,10 +130,11 @@ router.delete(
   loadPlayer,
   loadPlayerStation,
   async (req, res) => {
-    const db = getDb();
-
     try {
-      await StationService.deleteStation(db, req.station._id);
+      await executeInTransaction(async (db, session) => {
+        await StationService.deleteStation(db, req.station._id);
+        await HexService.updateHexStation(db, req.station.hexId, null);
+      });
     } catch (error: any) {
       console.error("Error decomissioning station:", error);
 

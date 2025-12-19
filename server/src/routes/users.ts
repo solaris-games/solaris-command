@@ -3,8 +3,8 @@ import { ObjectId } from "mongodb";
 import { authenticateToken } from "../middleware/auth";
 import { getDb } from "../db/instance";
 import { UserService } from "../services/UserService";
-import { ERROR_CODES } from "../middleware";
 import { UserMapper } from "../map/UserMapper";
+import { ERROR_CODES } from "@solaris-command/core";
 
 const router = express.Router();
 

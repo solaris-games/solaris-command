@@ -132,6 +132,7 @@ export const CombatEngine = {
 
         if (retreatHex) {
           // Successful Retreat
+          defender.hexId = retreatHex._id;
           defender.location = retreatHex.location;
           defender.state.status = UnitStatus.REGROUPING;
           defenderRetreated = true;
@@ -158,7 +159,11 @@ export const CombatEngine = {
       (!defenderAlive || defenderRetreated) &&
       operationAllowsAdvance
     ) {
-      if (advanceOnVictory && attacker.state.mp > TERRAIN_MP_COSTS[hex.terrain]) {
+      if (
+        advanceOnVictory &&
+        attacker.state.mp > TERRAIN_MP_COSTS[hex.terrain]
+      ) {
+        attacker.hexId = hex._id;
         attacker.location = hex.location;
         attackerWonHex = true;
       }

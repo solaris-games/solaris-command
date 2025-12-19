@@ -17,9 +17,9 @@ import {
   UpgradeUnitRequestSchema,
   HexCoords,
   HexCoordsId,
+  ERROR_CODES,
 } from "@solaris-command/core";
 import {
-  ERROR_CODES,
   loadGame,
   loadPlanets,
   loadPlayer,
@@ -105,6 +105,7 @@ router.post(
         gameId: req.game._id,
         playerId: req.player._id,
         catalogId: catalogId,
+        hexId: hex._id,
         location: hex.location,
         steps: initialSteps,
         state: {
