@@ -140,7 +140,8 @@ export class GameGalaxyMapper {
         },
         combat: {
           // Note: Masking combat location is not needed since combat triggers at the end of the tick.
-          location: u.combat.location || null,
+          hexId: u.combat.hexId,
+          location: u.combat.location,
           operation: tryMaskField(u.playerId, u.combat.operation),
           advanceOnVictory: tryMaskField(u.playerId, u.combat.advanceOnVictory)
         },

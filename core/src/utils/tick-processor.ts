@@ -311,6 +311,7 @@ export const TickProcessor = {
           String(defender.playerId) === String(attacker.playerId)
         ) {
           attacker.state.status = UnitStatus.REGROUPING; // Attack fails/cancels
+          attacker.combat.hexId = null;
           attacker.combat.location = null;
           continue;
         }

@@ -46,6 +46,7 @@ export class UnitFactory {
       },
 
       combat: {
+        hexId: null,
         location: null,
         operation: null,
         advanceOnVictory: null,

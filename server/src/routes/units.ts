@@ -117,6 +117,7 @@ router.post(
           path: [],
         },
         combat: {
+          hexId: null,
           location: null,
           operation: null,
           advanceOnVictory: null,
@@ -328,6 +329,7 @@ router.post(
 
     try {
       await UnitService.declareUnitAttack(db, req.unit._id, {
+        hexId: hex._id,
         location,
         operation,
         advanceOnVictory,
@@ -363,7 +365,7 @@ router.post(
         .json({ errorCode: ERROR_CODES.UNIT_IS_NOT_PREPARING });
     }
 
-    if (req.unit.combat.location == null)
+    if (req.unit.combat.hexId == null && req.unit.combat.location == null)
       return res
         .status(400)
         .json({ errorCode: ERROR_CODES.UNIT_HAS_NOT_DECLARED_ATTACK });

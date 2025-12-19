@@ -234,8 +234,9 @@ export async function up(db: Db, client: MongoClient) {
             },
             combat: {
               bsonType: "object",
-              required: ["location", "operation", "advanceOnVictory"],
+              required: ["hexId", "location", "operation", "advanceOnVictory"],
               properties: {
+                hexId: { bsonType: ["objectId", "null"] },
                 location: {
                   bsonType: ["object", "null"],
                   required: ["q", "r", "s"],
