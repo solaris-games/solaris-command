@@ -158,7 +158,7 @@ export const CombatEngine = {
       (!defenderAlive || defenderRetreated) &&
       operationAllowsAdvance
     ) {
-      if (advanceOnVictory && attacker.state.mp > 0) {
+      if (advanceOnVictory && attacker.state.mp > TERRAIN_MP_COSTS[hex.terrain]) {
         attacker.location = hex.location;
         attackerWonHex = true;
       }

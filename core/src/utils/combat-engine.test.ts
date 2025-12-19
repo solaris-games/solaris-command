@@ -9,7 +9,7 @@ import {
   HexCoordsId,
 } from "../types";
 import { CombatCalculator } from "./combat-calculator";
-import { CombatTables, SPECIALIST_STEP_MAP } from "../data";
+import { CombatTables, SPECIALIST_STEP_MAP, TERRAIN_MP_COSTS } from "../data";
 import { UnitManager as UnitUtils } from "./unit-manager";
 import { ObjectId } from "mongodb";
 import { HexUtils } from "./hex-utils";
@@ -325,6 +325,8 @@ describe("CombatEngine", () => {
       const retreatHex = createHex(2, 0, -2, null);
       hexLookup.set(HexUtils.getCoordsID(retreatHex.location), retreatHex);
 
+      attacker.state.mp = 99 // Make sure attacker has lots of MP for this test.
+
       const result = CombatEngine.resolveBattle(
         attacker,
         defender,
@@ -336,6 +338,42 @@ describe("CombatEngine", () => {
       expect(result.attackerWonHex).toBe(true);
       // Attacker should now be in defender's old spot
       expect(attacker.location).toEqual(combatHex.location);
+    });
+
+    it("should NOT Advance on Victory if enabled and defender moved and the attacker does not have enough MP", () => {
+      // Mock Result: Retreat
+      const retreatResult: CombatForcedResult = {
+        attacker: { steps: 0, suppressed: 0 },
+        defender: { steps: 0, suppressed: 0, retreat: true, shattered: false },
+        resultType: CombatResultType.RETREAT,
+      };
+      vi.mocked(CombatCalculator.calculate).mockReturnValue({
+        attackPower: 10,
+        defensePower: 10,
+        oddsRatio: 1,
+        oddsScore: 0,
+        shifts: [],
+        finalScore: 0,
+        forcedResult: retreatResult,
+      });
+
+      // Valid retreat hex
+      const retreatHex = createHex(2, 0, -2, null);
+      hexLookup.set(HexUtils.getCoordsID(retreatHex.location), retreatHex);
+
+      attacker.state.mp = 0 // Not enough MP to move.
+
+      const result = CombatEngine.resolveBattle(
+        attacker,
+        defender,
+        hexLookup,
+        CombatOperation.STANDARD,
+        true
+      );
+
+      expect(result.attackerWonHex).toBe(false);
+      // Attacker should now be in defender's old spot
+      expect(attacker.location).not.toEqual(combatHex.location);
     });
 
     it("should throw error for SUPPRESSIVE_FIRE without Artillery", () => {
