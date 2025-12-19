@@ -170,7 +170,7 @@ export const UnitManager = {
     let suppressedCount = 0;
 
     // Map creates a new array, preserving order
-    return steps.map((step) => {
+    const newSteps = steps.map((step) => {
       // If we still need to suppress, and this step is currently active
       if (suppressedCount < count && !step.isSuppressed) {
         suppressedCount++;
@@ -178,6 +178,19 @@ export const UnitManager = {
       }
       return step;
     });
+
+    return newSteps
+
+    // TODO: Kill steps if they are suppressed more than once. 
+    // Requires a lot of rework of combat engine (predictions, combat result etc)
+
+    // // If there are still steps remaining, then kill the rest
+    // // Double suppression is a kill
+    // if (suppressedCount < count) {
+    //   return UnitManager.killSteps(newSteps, count - suppressedCount)
+    // }
+
+    // return newSteps
   },
 
   /**
