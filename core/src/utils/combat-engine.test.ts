@@ -104,6 +104,8 @@ describe("CombatEngine", () => {
 
     combatHex = createHex(1, 0, -1, defender._id); // Where defender is
     const startHex = createHex(0, 0, 0, attacker._id);
+    attacker.hexId = startHex._id;
+    defender.hexId = combatHex._id;
 
     hexLookup = new Map();
     hexLookup.set(HexUtils.getCoordsID(combatHex.location), combatHex);
@@ -284,9 +286,22 @@ describe("CombatEngine", () => {
       expect(result.report.defender.retreated).toBe(true);
       expect(result.report.defender.shattered).toBe(false);
       // Defender should move
+      expect(result.defenderHex.unitId).toBeNull();
+      expect(result.retreatHex).not.toBeNull();
+      expect(result.retreatHex!.unitId!.toString()).toEqual(
+        defender._id.toString()
+      );
       expect(defender.hexId.toString()).toEqual(retreatHex._id.toString());
       expect(defender.location).toEqual(retreatHex.location);
       expect(defender.state.status).toBe(UnitStatus.REGROUPING);
+
+      // Attacker should stay put
+      expect(result.attackerHex.unitId!.toString()).toEqual(
+        attacker._id.toString()
+      );
+      expect(attacker.hexId.toString()).toEqual(
+        result.attackerHex._id.toString()
+      );
     });
 
     it("should Shatter defender if they cannot retreat", () => {
@@ -361,6 +376,10 @@ describe("CombatEngine", () => {
 
       expect(result.attackerWonHex).toBe(true);
       // Attacker should now be in defender's old spot
+      expect(result.attackerHex.unitId).toBeNull();
+      expect(result.defenderHex.unitId!.toString()).toEqual(
+        attacker._id.toString()
+      );
       expect(attacker.hexId.toString()).toEqual(combatHex._id.toString());
       expect(attacker.location).toEqual(combatHex.location);
     });

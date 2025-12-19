@@ -50,11 +50,14 @@ export interface CombatReport {
   tick: number;
   attackerId: ObjectId;
   defenderId: ObjectId;
-  hex: HexCoords;
+
+  hexId: ObjectId;
+  location: HexCoords;
 
   // The "Dice Roll" outcome
   odds: string; // e.g. "3:1"
   roll: number;
+  outcome: CombatResultType;
 
   attacker: {
     combatValue: number; // Total attack value * number of active steps

@@ -59,17 +59,23 @@ export const CombatEngine = {
     hexLookup: Map<HexCoordsId, Hex>,
     operation: CombatOperation,
     advanceOnVictory: boolean
-  ): { report: CombatReport; attackerWonHex: boolean } {
+  ): {
+    report: CombatReport;
+    attackerHex: Hex;
+    defenderHex: Hex;
+    retreatHex: Hex | null;
+    attackerWonHex: boolean;
+  } {
     // 1. Setup Context
-    const hexKey = HexUtils.getCoordsID(defender.location);
-    const hex = hexLookup.get(hexKey)!;
+    const defenderHex = hexLookup.get(HexUtils.getCoordsID(defender.location))!;
+    const attackerHex = hexLookup.get(HexUtils.getCoordsID(attacker.location))!;
 
     // Combat is complicated and we should do some defensive programming here.
     // Validate that the battle is in the right state before proceeding.
     CombatEngine.validateBattle(
       attacker,
       defender,
-      hex,
+      defenderHex,
       operation,
       advanceOnVictory
     );
@@ -83,7 +89,7 @@ export const CombatEngine = {
     const prediction = CombatCalculator.calculate(
       attacker,
       defender,
-      hex,
+      defenderHex,
       operation
     );
 
@@ -122,9 +128,11 @@ export const CombatEngine = {
     let defenderShattered = false;
 
     // 7. Handle Retreat / Shatter Logic
+    let retreatHex: Hex | null = null;
+
     if (defenderAlive && attackerAlive) {
       if (resultEntry.defender.retreat) {
-        const retreatHex = CombatEngine.findRetreatHex(
+        retreatHex = CombatEngine.findRetreatHex(
           defender,
           attacker,
           hexLookup
@@ -132,9 +140,13 @@ export const CombatEngine = {
 
         if (retreatHex) {
           // Successful Retreat
+          defenderHex.unitId = null;
+          retreatHex.unitId = defender._id;
+
           defender.hexId = retreatHex._id;
           defender.location = retreatHex.location;
           defender.state.status = UnitStatus.REGROUPING;
+
           defenderRetreated = true;
           outcome = CombatResultType.RETREAT;
         } else {
@@ -161,10 +173,14 @@ export const CombatEngine = {
     ) {
       if (
         advanceOnVictory &&
-        attacker.state.mp > TERRAIN_MP_COSTS[hex.terrain]
+        attacker.state.mp > TERRAIN_MP_COSTS[defenderHex.terrain]
       ) {
-        attacker.hexId = hex._id;
-        attacker.location = hex.location;
+        attackerHex.unitId = null;
+        defenderHex.unitId = attacker._id;
+
+        attacker.hexId = defenderHex._id;
+        attacker.location = defenderHex.location;
+
         attackerWonHex = true;
       }
     }
@@ -194,10 +210,11 @@ export const CombatEngine = {
       tick: 0, // Controller should inject current tick
       attackerId: attacker._id,
       defenderId: defender._id,
-      hex: hex.location,
+      hexId: defenderHex._id,
+      location: defenderHex.location,
       odds: `${prediction.oddsRatio}:1`,
       roll: prediction.finalScore, // The "Net Score"
-
+      outcome,
       attacker: {
         combatValue: prediction.attackPower,
         shifts: prediction.shifts,
@@ -212,7 +229,7 @@ export const CombatEngine = {
       },
     };
 
-    return { report, attackerWonHex };
+    return { report, attackerHex, defenderHex, retreatHex, attackerWonHex };
   },
 
   /**

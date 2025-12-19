@@ -144,24 +144,13 @@ async function executeGameTick(client: MongoClient, game: Game) {
         !tickResult.unitsToRemove.some((id) => String(id) === String(u._id))
     );
 
-    // Merge Tick updates into memory objects
-    const updatedHexes = hexes.map((h) => {
-      const update = tickResult.hexUpdates.get(String(h._id));
-      return update ? { ...h, ...update } : h;
-    }) as Hex[];
-
-    const updatedPlanets = planets.map((p) => {
-      const update = tickResult.planetUpdates.get(String(p._id));
-      return update ? { ...p, ...update } : p;
-    }) as Planet[];
+    stations = stations.filter(
+      (s) =>
+        !tickResult.stationsToRemove.some((id) => String(id) === String(s._id))
+    );
 
     // Run the Economy/Logistics Logic
-    cycleResult = TickProcessor.processCycle(
-      game,
-      players,
-      units,
-      updatedPlanets
-    );
+    cycleResult = TickProcessor.processCycle(game, players, units, planets);
   }
 
   // --- D. PERSISTENCE (Bulk Writes) ---
@@ -240,7 +229,8 @@ async function executeGameTick(client: MongoClient, game: Game) {
     (u) => !tickResult.unitsToRemove.some((id) => String(id) === String(u._id))
   );
 
-  // Note: Units are ALWAYS fully updated. We process unit movement, combat and supply every tick.
+  // Note: Units are ALWAYS fully updated. We process unit movement, combat and supply every tick
+  // so we might as well update everything.
   units.forEach((unit) => {
     unitOps.push({
       updateOne: {
@@ -291,19 +281,19 @@ async function executeGameTick(client: MongoClient, game: Game) {
   };
 
   // 1. Merge Tick updates (e.g. Elimination Victory)
-  if (tickResult.gameUpdates && tickResult.gameUpdates.state) {
+  if (tickResult.gameStateUpdates && tickResult.gameStateUpdates) {
     nextGameState = {
       ...nextGameState,
-      ...tickResult.gameUpdates.state,
+      ...tickResult.gameStateUpdates,
     };
   }
 
   // 2. Merge Cycle updates (e.g. Cycle++ or VP Victory)
   // Cycle updates generally take precedence as they happen "after" the tick logic
-  if (cycleResult && cycleResult.gameUpdates && cycleResult.gameUpdates.state) {
+  if (cycleResult && cycleResult.gameStateUpdates) {
     nextGameState = {
       ...nextGameState,
-      ...cycleResult.gameUpdates.state,
+      ...cycleResult.gameStateUpdates,
     };
   }
 

@@ -40,4 +40,7 @@ export interface Hex {
 
   location: HexCoords; // { q, r, s }
   terrain: TerrainTypes;
+
+  // TODO: Add ZoC influence
+  // TODO: Add supply
 }

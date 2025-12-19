@@ -10,6 +10,7 @@ import {
   Player,
   GameStates,
   PlayerStatus,
+  GameState,
 } from "../models";
 import { CombatReport, HexCoords, HexCoordsId } from "../types";
 import { CombatEngine } from "./combat-engine";
@@ -24,7 +25,7 @@ import { MapUtils } from "./map-utils";
 export interface ProcessTickResult {
   // Note: Unit updates are not present here since units are ALWAYS updated every tick. We do not need to keep track of individual unit updates.
 
-  gameUpdates: Partial<Game> | null;
+  gameStateUpdates: Partial<GameState> | null;
   hexUpdates: Map<string, Partial<Hex>>; // Partial updates (unitId, playerId)
   planetUpdates: Map<string, Partial<Planet>>; // Capture updates
   combatReports: CombatReport[]; // Logs for the UI
@@ -50,7 +51,7 @@ class TickContext {
   stationLookup = new Map<HexCoordsId, Station>();
 
   // --- OUTPUT CONTAINERS ---
-  gameUpdates: Partial<Game> | null = null;
+  gameStateUpdates: Partial<GameState> | null = null;
   hexUpdates = new Map<string, Partial<Hex>>();
   planetUpdates = new Map<string, Partial<Planet>>();
   combatReports: CombatReport[] = [];
@@ -97,12 +98,30 @@ class TickContext {
       this.stationLookup.set(HexUtils.getCoordsID(s.location), s)
     );
   }
+
+  appendHexUpdate(hexId: ObjectId, update: Partial<Hex>) {
+    const existing = this.hexUpdates.get(String(hexId)) || {};
+
+    this.hexUpdates.set(String(hexId), {
+      ...existing,
+      ...update,
+    });
+  }
+
+  appendPlanetUpdate(planetId: ObjectId, update: Partial<Planet>) {
+    const existing = this.planetUpdates.get(String(planetId)) || {};
+
+    this.planetUpdates.set(String(planetId), {
+      ...existing,
+      ...update,
+    });
+  }
 }
 
 export interface ProcessCycleResult {
   // Note: Unit updates are not present here since units are ALWAYS updated every tick. We do not need to keep track of individual unit updates.
 
-  gameUpdates: Partial<Game>;
+  gameStateUpdates: Partial<GameState>;
   playerUpdates: Map<string, Partial<Player>>;
   unitsToDelete: ObjectId[]; // Track starved units
   winnerPlayerId: ObjectId | null;
@@ -111,7 +130,7 @@ export interface ProcessCycleResult {
 class CycleTickContext {
   playerUpdates = new Map<string, Partial<Player>>();
   unitsToRemove: ObjectId[] = []; // <--- Track killed units
-  gameUpdates: Partial<Game> | null = null;
+  gameStateUpdates: Partial<GameState> | null = null;
   winnerPlayerId: ObjectId | null = null;
 
   constructor() {}
@@ -187,11 +206,12 @@ export class GameUnitMovementContext {
  */
 const handleHexCapture = (context: TickContext, hex: Hex, unit: Unit) => {
   // 1. Flip Hex Ownership
-  const existingHexUpdate = context.hexUpdates.get(String(hex._id)) || {};
-  context.hexUpdates.set(String(hex._id), {
-    ...existingHexUpdate,
-    playerId: unit.playerId, // Territory flips to Unit owner
-    unitId: unit._id, // Unit is now seated here
+  hex.playerId = unit.playerId;
+  hex.unitId = unit._id;
+
+  context.appendHexUpdate(hex._id, {
+    playerId: unit.playerId,
+    unitId: unit._id,
   });
 
   const hexCoordsId = HexUtils.getCoordsID(hex.location);
@@ -199,7 +219,9 @@ const handleHexCapture = (context: TickContext, hex: Hex, unit: Unit) => {
   // 2. Flip Planet Ownership (if one exists here)
   const planet = context.planetLookup.get(hexCoordsId);
   if (planet && String(planet.playerId) !== String(unit.playerId)) {
-    context.planetUpdates.set(String(planet._id), {
+    planet.playerId = unit.playerId; // Update in-memory object
+
+    context.appendPlanetUpdate(planet._id, {
       playerId: unit.playerId,
     });
   }
@@ -207,11 +229,10 @@ const handleHexCapture = (context: TickContext, hex: Hex, unit: Unit) => {
   // 3. Destroy hostile stations
   const station = context.stationLookup.get(hexCoordsId);
   if (station && String(station.playerId) !== String(unit.playerId)) {
-    context.stationsToRemove.push(station._id);
+    hex.stationId = null; // Update in-memory object
 
-    const existingHexUpdate = context.hexUpdates.get(String(hex._id)) || {};
-    context.hexUpdates.set(String(hex._id), {
-      ...existingHexUpdate,
+    context.stationsToRemove.push(station._id);
+    context.appendHexUpdate(hex._id, {
       stationId: null, // Station is removed from the hex
     });
   }
@@ -249,7 +270,7 @@ export const TickProcessor = {
     TickProcessor.processTickWinnerCheck(context);
 
     return {
-      gameUpdates: context.gameUpdates,
+      gameStateUpdates: context.gameStateUpdates,
       hexUpdates: context.hexUpdates,
       planetUpdates: context.planetUpdates,
       combatReports: context.combatReports,
@@ -332,45 +353,64 @@ export const TickProcessor = {
         battleResult.report.tick = contextTick.currentTick;
         contextTick.combatReports.push(battleResult.report);
 
-        // Check Casualties
-        if (attacker.steps.length === 0)
-          contextTick.unitsToRemove.push(attacker._id);
-
+        // Defender:
         if (defender.steps.length === 0) {
           // Defender Destroyed
           contextTick.unitsToRemove.push(defender._id);
           contextTick.unitLocations.delete(targetHexCoordsId); // Remove from board
-          contextTick.hexUpdates.set(String(targetHex._id), { unitId: null }); // Clear seat
-        } else if (battleResult.report.defender.retreated) {
-          // Defender Retreated
-          contextTick.unitLocations.delete(targetHexCoordsId); // Left old hex
-          const newDefLoc = HexUtils.getCoordsID(defender.location);
-          const newDefHex = contextTick.hexLookup.get(newDefLoc)!;
-          contextTick.unitLocations.set(newDefLoc, defender); // Occupy new hex
 
-          contextTick.hexUpdates.set(String(targetHex._id), { unitId: null }); // Clear old seat
-          // Note: Defender implicitly "captures" retreat hex, or at least occupies it
-          const existing =
-            contextTick.hexUpdates.get(String(newDefHex._id)) || {};
-          contextTick.hexUpdates.set(String(newDefHex._id), {
-            ...existing,
+          contextTick.appendHexUpdate(battleResult.defenderHex._id, {
+            unitId: null,
+          });
+        } else if (
+          battleResult.report.defender.retreated &&
+          battleResult.retreatHex
+        ) {
+          // Move the defender
+          contextTick.unitLocations.delete(
+            HexUtils.getCoordsID(battleResult.defenderHex.location)
+          );
+          contextTick.unitLocations.set(
+            HexUtils.getCoordsID(battleResult.retreatHex.location),
+            defender
+          );
+
+          // Update the hex
+          contextTick.appendHexUpdate(battleResult.defenderHex._id, {
+            unitId: null,
+          });
+          contextTick.appendHexUpdate(battleResult.retreatHex._id, {
             unitId: defender._id,
           });
         }
 
-        // Handle Blitz (Advance on Victory)
-        if (battleResult.attackerWonHex) {
-          const oldLoc = HexUtils.getCoordsID(attacker.location);
-          const oldHex = contextTick.hexLookup.get(oldLoc)!;
+        // Attacker:
+        if (attacker.steps.length === 0) {
+          contextTick.unitsToRemove.push(attacker._id);
+          contextTick.unitLocations.delete(
+            HexUtils.getCoordsID(battleResult.attackerHex.location)
+          ); // Remove from board
+          contextTick.appendHexUpdate(battleResult.attackerHex._id, {
+            unitId: null,
+          });
+        } else if (battleResult.attackerWonHex) {
+          // Move the attacker
+          contextTick.unitLocations.delete(
+            HexUtils.getCoordsID(battleResult.attackerHex.location)
+          );
+          contextTick.unitLocations.set(
+            HexUtils.getCoordsID(battleResult.defenderHex.location),
+            attacker
+          );
 
-          // Update Memory
-          contextTick.unitLocations.delete(oldLoc);
-          contextTick.unitLocations.set(targetHexCoordsId, attacker);
+          // Update the hexes
+          contextTick.appendHexUpdate(battleResult.attackerHex._id, {
+            unitId: null,
+          });
+          contextTick.appendHexUpdate(battleResult.defenderHex._id, {
+            unitId: attacker._id,
+          });
 
-          // Update DB: Vacate old hex
-          contextTick.hexUpdates.set(String(oldHex._id), { unitId: null });
-
-          // Update DB: Capture new hex (and planet)
           handleHexCapture(contextTick, targetHex, attacker);
         }
       }
@@ -441,13 +481,24 @@ export const TickProcessor = {
           unit.state.status = UnitStatus.IDLE;
         }
 
-        // Update Working Set (for next logic steps, though this is the end of tick)
+        // Update Hexes: Move from old to new
+        const fromHex = context.hexLookup.get(intent.fromCoordId)!;
+        const toHex = context.hexLookup.get(intent.toCoordId)!;
+
+        fromHex.unitId = null;
+        toHex.unitId = unit._id;
+
+        // Update Working Set
         context.unitLocations.delete(intent.fromCoordId);
         context.unitLocations.set(intent.toCoordId, unit);
 
-        // Update Hexes: Vacate Old
-        const fromHex = context.hexLookup.get(intent.fromCoordId)!;
-        context.hexUpdates.set(String(fromHex._id), { unitId: null });
+        // Update hexes
+        context.appendHexUpdate(fromHex._id, {
+          unitId: null,
+        });
+        context.appendHexUpdate(toHex._id, {
+          unitId: unit._id,
+        });
 
         // Update Hexes: Capture New
         handleHexCapture(context, targetHex, unit);
@@ -499,13 +550,16 @@ export const TickProcessor = {
     if (activePlayers.length === 1) {
       const winner = activePlayers[0];
 
-      context.gameUpdates = {
-        state: {
-          ...context.game.state,
-          status: GameStates.COMPLETED,
-          winnerPlayerId: winner._id,
-          endDate: new Date(),
-        },
+      // Update in-memory object
+      context.game.state.status = GameStates.COMPLETED;
+      context.game.state.winnerPlayerId = winner._id;
+      context.game.state.endDate = new Date();
+
+      // DB update:
+      context.gameStateUpdates = {
+        status: context.game.state.status,
+        winnerPlayerId: context.game.state.winnerPlayerId,
+        endDate: context.game.state.endDate,
       };
     }
   },
@@ -578,22 +632,19 @@ export const TickProcessor = {
 
     // 2. Game State Update
     // Note: We only increment the Cycle count here. The Ticks are incremented by another process.
-    context.gameUpdates = {
-      state: {
-        ...game.state,
-        cycle: game.state.cycle + 1,
-        lastTickDate: new Date(),
-        winnerPlayerId: context.winnerPlayerId,
-      },
+    context.gameStateUpdates = {
+      cycle: game.state.cycle + 1,
+      lastTickDate: new Date(),
+      winnerPlayerId: context.winnerPlayerId,
     };
 
     if (context.winnerPlayerId) {
-      context.gameUpdates.state!.status = GameStates.COMPLETED;
-      context.gameUpdates.state!.endDate = new Date();
+      context.gameStateUpdates.status = GameStates.COMPLETED;
+      context.gameStateUpdates.endDate = new Date();
     }
 
     return {
-      gameUpdates: context.gameUpdates,
+      gameStateUpdates: context.gameStateUpdates,
       playerUpdates: context.playerUpdates,
       unitsToDelete: context.unitsToRemove,
       winnerPlayerId: context.winnerPlayerId,
