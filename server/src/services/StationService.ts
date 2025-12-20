@@ -4,24 +4,30 @@ import { Station } from "@solaris-command/core";
 export class StationService {
   static async deleteByPlayerId(
     db: Db,
+    gameId: ObjectId,
     playerId: ObjectId,
     session?: ClientSession
   ) {
     return db
       .collection<Station>("stations")
-      .deleteMany({ playerId }, { session });
+      .deleteMany({ gameId, playerId }, { session });
   }
 
   static async getByGameId(db: Db, gameId: ObjectId) {
     return db.collection<Station>("stations").find({ gameId }).toArray();
   }
 
-  static async getByPlayerId(db: Db, playerId: ObjectId) {
-    return db.collection<Station>("stations").find({ playerId }).toArray();
+  static async getByPlayerId(db: Db, gameId: ObjectId, playerId: ObjectId) {
+    return db
+      .collection<Station>("stations")
+      .find({ gameId, playerId })
+      .toArray();
   }
 
-  static async getStationById(db: Db, stationId: ObjectId) {
-    return db.collection<Station>("stations").findOne({ _id: stationId });
+  static async getStationById(db: Db, gameId: ObjectId, stationId: ObjectId) {
+    return db
+      .collection<Station>("stations")
+      .findOne({ gameId, _id: stationId });
   }
 
   static async createStation(
@@ -35,7 +41,9 @@ export class StationService {
     return { ...station, _id: result.insertedId };
   }
 
-  static async deleteStation(db: Db, stationId: ObjectId) {
-    await db.collection<Station>("stations").deleteOne({ _id: stationId });
+  static async deleteStation(db: Db, gameId: ObjectId, stationId: ObjectId) {
+    await db
+      .collection<Station>("stations")
+      .deleteOne({ gameId, _id: stationId });
   }
 }

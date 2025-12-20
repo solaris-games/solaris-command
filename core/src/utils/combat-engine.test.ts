@@ -9,7 +9,7 @@ import {
   HexCoordsId,
 } from "../types";
 import { CombatCalculator } from "./combat-calculator";
-import { CombatTables, SPECIALIST_STEP_MAP, TERRAIN_MP_COSTS } from "../data";
+import { CombatTables, SPECIALIST_STEP_MAP } from "../data";
 import { UnitManager as UnitUtils } from "./unit-manager";
 import { ObjectId } from "mongodb";
 import { HexUtils } from "./hex-utils";
@@ -36,6 +36,7 @@ function createHex(
     stationId: null,
     location: { q, r, s },
     terrain: terrain,
+    zoc: [],
   };
 }
 
@@ -285,14 +286,16 @@ describe("CombatEngine", () => {
 
       expect(result.report.defender.retreated).toBe(true);
       expect(result.report.defender.shattered).toBe(false);
+
       // Defender should move
-      expect(result.defenderHex.unitId).toBeNull();
-      expect(result.retreatHex).not.toBeNull();
-      expect(result.retreatHex!.unitId!.toString()).toEqual(
-        defender._id.toString()
+      expect(UnitUtils.moveUnit).toHaveBeenCalledWith(
+        defender,
+        result.defenderHex,
+        result.retreatHex,
+        null,
+        expect.anything()
       );
-      expect(defender.hexId.toString()).toEqual(retreatHex._id.toString());
-      expect(defender.location).toEqual(retreatHex.location);
+
       expect(defender.state.status).toBe(UnitStatus.REGROUPING);
 
       // Attacker should stay put
@@ -375,13 +378,14 @@ describe("CombatEngine", () => {
       );
 
       expect(result.attackerWonHex).toBe(true);
-      // Attacker should now be in defender's old spot
-      expect(result.attackerHex.unitId).toBeNull();
-      expect(result.defenderHex.unitId!.toString()).toEqual(
-        attacker._id.toString()
+
+      expect(UnitUtils.moveUnit).toHaveBeenCalledWith(
+        attacker,
+        result.attackerHex,
+        result.defenderHex,
+        expect.anything(),
+        expect.anything()
       );
-      expect(attacker.hexId.toString()).toEqual(combatHex._id.toString());
-      expect(attacker.location).toEqual(combatHex.location);
     });
 
     it("should NOT Advance on Victory if enabled and defender moved and the attacker does not have enough MP", () => {

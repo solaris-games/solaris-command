@@ -7,11 +7,7 @@ import {
   requireActiveGame,
   requirePendingGame,
 } from "../middleware/game";
-import {
-  loadPlayer,
-  touchPlayer,
-  validateRequest,
-} from "../middleware";
+import { loadPlayer, touchPlayer, validateRequest } from "../middleware";
 import {
   ERROR_CODES,
   MapUtils,
@@ -47,7 +43,7 @@ router.get("/", authenticateToken, async (req, res) => {
     res.json(GameMapper.toGameListResponse(games, myGameIds));
   } catch (error) {
     console.error("Error listing games:", error);
-    
+
     return res.status(500).json({
       errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
     });
@@ -100,6 +96,7 @@ router.post(
 
         await PlanetService.assignPlanetToPlayer(
           db,
+          req.game._id,
           capital._id,
           newPlayer._id,
           session
@@ -118,6 +115,7 @@ router.post(
 
         await PlanetService.assignPlanetToPlayer(
           db,
+          req.game._id,
           secondPlanet._id,
           newPlayer._id,
           session
@@ -156,7 +154,21 @@ router.post(
           const createdUnit = await UnitService.createUnit(db, unit, session);
 
           // Update Hex
-          await HexService.updateHexUnit(db, hex._id, createdUnit._id, session);
+          await HexService.updateHexUnit(
+            db,
+            req.game._id,
+            hex._id,
+            createdUnit._id,
+            session
+          );
+
+          await HexService.addUnitToAdjacentHexZOC(
+            db,
+            req.game._id,
+            hex,
+            unit,
+            session
+          );
         }
 
         // Assign Territory (Hex Flipping)
@@ -177,11 +189,18 @@ router.post(
         for (const hex of territoryHexes) {
           if (hex.playerId && String(hex.playerId) !== String(newPlayer._id)) {
             // Contested! Set to null
-            await HexService.updateHexOwnership(db, hex._id, null, session);
+            await HexService.updateHexOwnership(
+              db,
+              req.game._id,
+              hex._id,
+              null,
+              session
+            );
           } else {
             // Claim it
             await HexService.updateHexOwnership(
               db,
+              req.game._id,
               hex._id,
               newPlayer._id,
               session
@@ -241,7 +260,7 @@ router.post(
       }
 
       console.error("Error joining game:", error);
-      
+
       return res.status(500).json({
         errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
@@ -259,12 +278,22 @@ router.post(
   async (req, res) => {
     try {
       await executeInTransaction(async (db, session) => {
-        await PlayerService.leaveGame(db, req.player._id, session);
-        await PlayerService.removePlayerAssets(db, req.player._id, session);
+        await PlayerService.leaveGame(
+          db,
+          req.game._id,
+          req.player._id,
+          session
+        );
+        await PlayerService.removePlayerAssets(
+          db,
+          req.game._id,
+          req.player._id,
+          session
+        );
       });
     } catch (error) {
       console.error("Error leaving game:", error);
-      
+
       return res.status(500).json({
         errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
@@ -285,10 +314,10 @@ router.post(
     const db = getDb();
 
     try {
-      await PlayerService.concedeGame(db, req.player._id);
+      await PlayerService.concedeGame(db, req.game._id, req.player._id);
     } catch (error) {
       console.error("Error conceding game:", error);
-      
+
       return res.status(500).json({
         errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
@@ -323,7 +352,7 @@ router.get(
       res.json(GameGalaxyMapper.toGameGalaxyResponse(galaxy, currentPlayerId));
     } catch (error) {
       console.error("Error fetching game:", error);
-      
+
       return res.status(500).json({
         errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
@@ -360,7 +389,7 @@ router.get(
       res.json(GameMapper.toGameEventsResponse(events));
     } catch (error) {
       console.error("Error fetching game events:", error);
-      
+
       return res.status(500).json({
         errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
       });

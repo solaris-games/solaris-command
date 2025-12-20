@@ -32,9 +32,9 @@ export const loadUnits = async (
     req.units = units;
   } catch (error) {
     console.error("Middleware Error:", error);
-    
-    return res.status(500).json({ 
-        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR 
+
+    return res.status(500).json({
+      errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
     });
   }
 
@@ -46,12 +46,17 @@ export const loadPlayerUnit = async (
   res: Response,
   next: NextFunction
 ) => {
+  const gameId = req.params.id;
   const { unitId } = req.params;
 
   try {
     const db = getDb();
 
-    const unit = await UnitService.getUnitById(db, new ObjectId(unitId));
+    const unit = await UnitService.getUnitById(
+      db,
+      new ObjectId(gameId),
+      new ObjectId(unitId)
+    );
 
     if (!unit || String(unit.playerId) !== String(req.player._id))
       // Make sure the player owns this unit.
@@ -60,9 +65,9 @@ export const loadPlayerUnit = async (
     req.unit = unit;
   } catch (error) {
     console.error("Middleware Error:", error);
-    
-    return res.status(500).json({ 
-        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR 
+
+    return res.status(500).json({
+      errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
     });
   }
 

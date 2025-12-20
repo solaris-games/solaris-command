@@ -1,7 +1,16 @@
 import { ObjectId } from "mongodb";
-import { CONSTANTS, SPECIALIST_STEP_ID_MAP, UNIT_CATALOG_ID_MAP } from "../data";
+import {
+  CONSTANTS,
+  ERROR_CODES,
+  SPECIALIST_STEP_ID_MAP,
+  UNIT_CATALOG_ID_MAP,
+} from "../data";
 import { Hex, Planet, Unit, UnitStatus, UnitStep } from "../models";
-import { SpecialistStepTypes, UnitSpecialistStepCatalogItem } from "../types";
+import {
+  HexCoordsId,
+  SpecialistStepTypes,
+  UnitSpecialistStepCatalogItem,
+} from "../types";
 import { HexUtils } from "./hex-utils";
 import { MapUtils } from "./map-utils";
 
@@ -113,6 +122,43 @@ export const UnitManager = {
     }
   },
 
+  moveUnit(
+    unit: Unit,
+    source: Hex,
+    destination: Hex,
+    mpCost: number | null, // null if not applicable
+    hexLookup: Map<HexCoordsId, Hex>
+  ) {
+    if (mpCost != null && unit.state.mp < mpCost) {
+      throw new Error(ERROR_CODES.UNIT_INSUFFICIENT_MP);
+    }
+
+    if (mpCost != null && unit.movement.path.length === 0) {
+      throw new Error(ERROR_CODES.UNIT_IS_NOT_MOVING);
+    }
+
+    // Before the unit moves, clear ZOC from nearby hexes
+    MapUtils.removeUnitHexZOC(unit, hexLookup);
+
+    // Move the unit
+    unit.hexId = destination._id;
+    unit.location = destination.location;
+
+    // Update unit state
+    if (mpCost != null) {
+      unit.state.mp = Math.max(0, unit.state.mp - mpCost); // Reduce MP
+      unit.movement.path.shift(); // Pop the step
+    }
+
+    // Update hexes
+    source.unitId = null;
+    destination.unitId = unit._id;
+    destination.playerId = unit.playerId; // Capture the destination hex
+
+    // Unit has moved, update ZOC of nearby hexes
+    MapUtils.addUnitHexZOC(unit, hexLookup);
+  },
+
   /**
    * Finds valid spawn locations for a new unit
    * Rules: Adjacent to any player owned planet, Empty Hex, No Unit.
@@ -137,8 +183,13 @@ export const UnitManager = {
       const hexId = HexUtils.getCoordsID(coord);
       const hex = hexes.find((h) => HexUtils.equals(h.location, coord));
 
-      // Must exist and be passable
-      if (!hex || MapUtils.isHexImpassable(hex)) continue;
+      // Must exist, be passable and not in enemy ZOC
+      if (
+        !hex ||
+        MapUtils.isHexImpassable(hex) ||
+        MapUtils.isHexInEnemyZOC(hex, playerId)
+      )
+        continue;
 
       // Must be empty of units
       const isOccupied = allUnits.some(
@@ -179,9 +230,9 @@ export const UnitManager = {
       return step;
     });
 
-    return newSteps
+    return newSteps;
 
-    // TODO: Kill steps if they are suppressed more than once. 
+    // TODO: Kill steps if they are suppressed more than once.
     // Requires a lot of rework of combat engine (predictions, combat result etc)
 
     // // If there are still steps remaining, then kill the rest

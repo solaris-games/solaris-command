@@ -5,24 +5,25 @@ import {
   UnitMovement,
   UnitStatus,
 } from "@solaris-command/core";
-import { executeInTransaction, getDb } from "../db/instance";
-import { PlayerService } from "./PlayerService";
 
 export class UnitService {
   static async deleteByPlayerId(
     db: Db,
+    gameId: ObjectId,
     playerId: ObjectId,
     session?: ClientSession
   ) {
-    return db.collection<Unit>("units").deleteMany({ playerId }, { session });
+    return db
+      .collection<Unit>("units")
+      .deleteMany({ gameId, playerId }, { session });
   }
 
   static async getByGameId(db: Db, gameId: ObjectId) {
     return db.collection<Unit>("units").find({ gameId }).toArray();
   }
 
-  static async getUnitById(db: Db, unitId: ObjectId) {
-    return db.collection<Unit>("units").findOne({ _id: unitId });
+  static async getUnitById(db: Db, gameId: ObjectId, unitId: ObjectId) {
+    return db.collection<Unit>("units").findOne({ gameId, _id: unitId });
   }
 
   static async createUnit(db: Db, unit: Unit, session?: ClientSession) {
@@ -33,12 +34,20 @@ export class UnitService {
     return { ...unit, _id: result.insertedId };
   }
 
-  static async updateUnit(db: Db, unitId: ObjectId, update: any) {
-    return db.collection<Unit>("units").updateOne({ _id: unitId }, update);
+  static async updateUnit(
+    db: Db,
+    gameId: ObjectId,
+    unitId: ObjectId,
+    update: any
+  ) {
+    return db
+      .collection<Unit>("units")
+      .updateOne({ gameId, _id: unitId }, update);
   }
 
   static async declareUnitMovement(
     db: Db,
+    gameId: ObjectId,
     unitId: ObjectId,
     movement: UnitMovement
   ) {
@@ -51,57 +60,74 @@ export class UnitService {
       },
     };
 
-    return db.collection<Unit>("units").updateOne({ _id: unitId }, update);
+    return db
+      .collection<Unit>("units")
+      .updateOne({ gameId, _id: unitId }, update);
   }
 
-  static async cancelUnitMovement(db: Db, unitId: ObjectId) {
-    return db.collection<Unit>("units").updateOne({ _id: unitId }, {
-      $set: {
-        "state.status": UnitStatus.IDLE,
-        movement: {
-          path: [],
+  static async cancelUnitMovement(db: Db, gameId: ObjectId, unitId: ObjectId) {
+    return db.collection<Unit>("units").updateOne(
+      { gameId, _id: unitId },
+      {
+        $set: {
+          "state.status": UnitStatus.IDLE,
+          movement: {
+            path: [],
+          },
         },
-      },
-    });
+      }
+    );
   }
 
-  static async declareUnitAttack(db: Db, unitId: ObjectId, combat: UnitCombat) {
-    return db.collection<Unit>("units").updateOne({ _id: unitId }, {
-      $set: {
-        "state.status": UnitStatus.PREPARING,
-        combat: {
-          hexId: combat.hexId,
-          location: combat.location,
-          operation: combat.operation,
-          advanceOnVictory: combat.advanceOnVictory,
+  static async declareUnitAttack(
+    db: Db,
+    gameId: ObjectId,
+    unitId: ObjectId,
+    combat: UnitCombat
+  ) {
+    return db.collection<Unit>("units").updateOne(
+      { gameId, _id: unitId },
+      {
+        $set: {
+          "state.status": UnitStatus.PREPARING,
+          combat: {
+            hexId: combat.hexId,
+            location: combat.location,
+            operation: combat.operation,
+            advanceOnVictory: combat.advanceOnVictory,
+          },
         },
-      },
-    });
+      }
+    );
   }
 
-  static async cancelUnitAttack(db: Db, unitId: ObjectId) {
-    return db.collection<Unit>("units").updateOne({ _id: unitId }, {
-      $set: {
-        "state.status": UnitStatus.IDLE,
-        combat: {
-          hexId: null,
-          location: null,
-          operation: null,
-          advanceOnVictory: null,
+  static async cancelUnitAttack(db: Db, gameId: ObjectId, unitId: ObjectId) {
+    return db.collection<Unit>("units").updateOne(
+      { gameId, _id: unitId },
+      {
+        $set: {
+          "state.status": UnitStatus.IDLE,
+          combat: {
+            hexId: null,
+            location: null,
+            operation: null,
+            advanceOnVictory: null,
+          },
         },
-      },
-    });
+      }
+    );
   }
 
   static async upgradeUnit(
     db: Db,
+    gameId: ObjectId,
     unitId: ObjectId,
     newSteps: any[],
     session?: ClientSession
   ) {
     // Update Unit
     await db.collection<Unit>("units").updateOne(
-      { _id: unitId },
+      { gameId, _id: unitId },
       {
         $set: {
           steps: newSteps,
@@ -113,20 +139,21 @@ export class UnitService {
 
   static async scrapUnitStep(
     db: Db,
+    gameId: ObjectId,
     unitId: ObjectId,
-    newSteps: any[],
+    newSteps: any[]
   ) {
     return db.collection<Unit>("units").updateOne(
-      { _id: unitId },
+      { gameId, _id: unitId },
       {
         $set: {
-          steps: newSteps
+          steps: newSteps,
         },
       }
     );
   }
 
-  static async deleteUnit(db: Db, unitId: ObjectId) {
-    return db.collection<Unit>("units").deleteOne({ _id: unitId });
+  static async deleteUnit(db: Db, gameId: ObjectId, unitId: ObjectId) {
+    return db.collection<Unit>("units").deleteOne({ gameId, _id: unitId });
   }
 }

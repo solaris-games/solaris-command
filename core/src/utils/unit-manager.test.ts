@@ -1,8 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
 import { ObjectId } from "mongodb";
-import { Unit, UnitStatus } from "../models";
+import { Hex, Unit, UnitStatus } from "../models";
 import { UnitManager } from "./unit-manager";
 import { UNIT_CATALOG_ID_MAP } from "../data";
+import { HexCoordsId } from "../types";
+import { HexUtils } from "./hex-utils";
 
 // --- FACTORY HELPER ---
 const CATALOG_UNIT_ID = "unit_frigate_01";
@@ -15,6 +17,7 @@ function createTestUnit(overrides: Partial<Unit> = {}): Unit {
     gameId: new ObjectId(),
     playerId: new ObjectId(),
     catalogId: CATALOG_UNIT_ID,
+    hexId: new ObjectId(),
     location: { q: 0, r: 0, s: 0 },
     steps: Array(5).fill({ isSuppressed: false, specialistId: null }), // 5 Active Steps
     state: {
@@ -78,9 +81,7 @@ describe("UnitManager", () => {
       UnitManager.processCycle(unit, TICKS_PER_CYCLE);
 
       // Expect: 2 recovered (Recovery Rate = 2), 1 still suppressed
-      const suppressedCount = unit.steps.filter(
-        (s) => s.isSuppressed
-      ).length;
+      const suppressedCount = unit.steps.filter((s) => s.isSuppressed).length;
       expect(suppressedCount).toBe(1);
     });
   });
@@ -235,5 +236,58 @@ describe("UnitManager", () => {
       expect(result.length).toBe(1);
       expect(result[0].specialistId).toBe("A");
     });
+  });
+});
+
+describe("UnitManager", () => {
+  it("should move a unit and update hexes", () => {
+    const playerId = new ObjectId();
+    const unitId = new ObjectId();
+    const mpCost = 1;
+
+    const fromHex: Hex = {
+      _id: new ObjectId(),
+      playerId,
+      unitId,
+      location: { q: 0, r: 0, s: 0 },
+    } as Hex;
+
+    const toHex: Hex = {
+      _id: new ObjectId(),
+      playerId,
+      unitId: null,
+      location: { q: 0, r: 0, s: 1 },
+    } as Hex;
+
+    const hexLookup = new Map<HexCoordsId, Hex>([
+      [HexUtils.getCoordsID(fromHex.location!), fromHex],
+      [HexUtils.getCoordsID(toHex.location!), toHex],
+    ]);
+
+    const unit = createTestUnit({
+      state: {
+        status: UnitStatus.MOVING,
+        ap: 0,
+        mp: 1,
+      },
+      movement: {
+        path: [
+          toHex.location
+        ]
+      }
+    });
+
+    UnitManager.moveUnit(unit, fromHex, toHex, mpCost, hexLookup);
+
+    expect(fromHex.unitId).toBeNull();
+
+    expect(toHex.unitId).not.toBeNull();
+    expect(toHex.unitId!.toString()).toEqual(unit._id.toString());
+    expect(toHex.playerId).not.toBeNull()
+    expect(toHex.playerId!.toString()).toEqual(unit.playerId.toString())
+
+    expect(unit.location).toEqual(toHex.location)
+    expect(unit.hexId.toString()).toEqual(toHex._id.toString())
+    expect(unit.movement.path.length).toEqual(0)
   });
 });

@@ -1,6 +1,5 @@
 import { ClientSession, Db, ObjectId } from "mongodb";
 import { Player, User } from "@solaris-command/core";
-import { getDb } from "../db/instance";
 import { PlayerService } from "./PlayerService";
 import { PlayerStatus } from "@solaris-command/core";
 
@@ -63,6 +62,7 @@ export class UserService {
       db,
       userId
     );
+
     if (pendingPlayers.length) {
       const playerIds = pendingPlayers.map((p) => p._id);
 
@@ -73,7 +73,12 @@ export class UserService {
 
       // Iterate over each player and remove their game assets.
       for (const player of pendingPlayers) {
-        await PlayerService.removePlayerAssets(db, player._id, session);
+        await PlayerService.removePlayerAssets(
+          db,
+          player.gameId,
+          player._id,
+          session
+        );
       }
     }
 

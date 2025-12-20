@@ -29,6 +29,7 @@ export const MapGenerator = {
         unitId: null,
         location: h.location!,
         terrain: h.terrain!,
+        zoc: []
       };
     });
 

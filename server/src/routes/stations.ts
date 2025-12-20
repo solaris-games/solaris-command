@@ -91,10 +91,17 @@ router.post(
           session
         );
 
-        await HexService.updateHexStation(db, hex._id, newStation._id, session);
+        await HexService.updateHexStation(
+          db,
+          req.game._id,
+          hex._id,
+          newStation._id,
+          session
+        );
 
         await PlayerService.deductPrestigePoints(
           db,
+          req.game._id,
           req.player._id,
           CONSTANTS.STATION_PRESTIGE_COST,
           session
@@ -132,8 +139,13 @@ router.delete(
   async (req, res) => {
     try {
       await executeInTransaction(async (db, session) => {
-        await StationService.deleteStation(db, req.station._id);
-        await HexService.updateHexStation(db, req.station.hexId, null);
+        await StationService.deleteStation(db, req.game._id, req.station._id);
+        await HexService.updateHexStation(
+          db,
+          req.game._id,
+          req.station.hexId,
+          null
+        );
       });
     } catch (error: any) {
       console.error("Error decomissioning station:", error);

@@ -5,13 +5,6 @@ import { HexCoords, HexCoordsId } from "../types/geometry";
 import { HexUtils } from "./hex-utils";
 import { MapUtils } from "./map-utils";
 
-export interface ZocMap extends Map<HexCoordsId, Set<string>> {} // Key: Hex Coords ID, Value: Set of Player IDs that exert ZOC into this hex.
-
-export interface ZocContext {
-  playerId: ObjectId;
-  zocMap: ZocMap;
-}
-
 export const Pathfinding = {
   /**
    * Dijkstra / Flood Fill.
@@ -22,7 +15,7 @@ export const Pathfinding = {
     start: HexCoords,
     maxCost: number,
     hexMap: Map<HexCoordsId, Hex>,
-    zocContext?: ZocContext // Optional: If provided, applies ZOC penalties
+    playerId: ObjectId | null // If from the perspective of a player
   ): Set<HexCoordsId> {
     const visited = new Map<HexCoordsId, number>(); // HexID -> Cost to reach
     const queue: { coord: HexCoords; cost: number }[] = [];
@@ -46,31 +39,18 @@ export const Pathfinding = {
         const neighborId = HexUtils.getCoordsID(neighbor);
         const hexData = hexMap.get(neighborId);
 
-        // 1. Check if hex exists and is passable
+        // Check if hex exists and is passable
         if (!hexData || MapUtils.isHexImpassable(hexData)) continue;
 
-        // 2. Calculate Cost
-        let moveCost = TERRAIN_MP_COSTS[hexData.terrain] || 1;
+        // Calculate Cost (Apply ZOC if applicable)
+        const mpCost = MapUtils.getHexMPCost(hexData, playerId);
 
-        // 3. Apply ZOC Multiplier (If context exists)
-        if (zocContext) {
-          const isZOC = MapUtils.isHexInEnemyZOC(
-            neighborId,
-            zocContext.playerId,
-            zocContext.zocMap
-          );
+        const newCost = current.cost + mpCost;
 
-          if (isZOC) {
-            moveCost *= 2; // Double Cost Rule
-          }
-        }
-
-        const newCost = current.cost + moveCost;
-
-        // 4. Check Budget
+        // Check Budget
         if (newCost > maxCost) continue;
 
-        // 5. Check if we found a cheaper path to this hex
+        // Check if we found a cheaper path to this hex
         const existingCost = visited.get(neighborId);
         if (existingCost === undefined || newCost < existingCost) {
           visited.set(neighborId, newCost);

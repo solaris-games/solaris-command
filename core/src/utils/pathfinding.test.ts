@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { Pathfinding, ZocContext } from "./pathfinding";
+import { Pathfinding } from "./pathfinding";
 import { Hex, TerrainTypes } from "../models/hex";
 import { HexCoords, HexCoordsId } from "../types/geometry";
 import { ObjectId } from "mongodb";
@@ -22,33 +22,18 @@ function createMap(
 
       map.set(id, {
         _id: new ObjectId(),
+        planetId: null,
+        stationId: null,
         gameId: gameId,
         unitId: null,
         playerId: null,
         location: coords,
         terrain: terrainOverride.get(id) || TerrainTypes.EMPTY,
+        zoc: []
       });
     }
   }
   return map;
-}
-
-// --- HELPER: Create ZOC Context ---
-function createZocContext(
-  enemyId: ObjectId,
-  hexes: HexCoordsId[]
-): ZocContext {
-  const zocMap = new Map<HexCoordsId, Set<string>>();
-  const enemySet = new Set([String(enemyId)]);
-
-  hexes.forEach((hexId) => {
-    zocMap.set(hexId, enemySet);
-  });
-
-  return {
-    playerId: new ObjectId("693fe8f299c840c2b4d9135d"), // I am this player
-    zocMap: zocMap,
-  };
 }
 
 describe("Pathfinding", () => {
@@ -57,7 +42,7 @@ describe("Pathfinding", () => {
 
     it("should return correct hexes for MP 1 (Neighbors)", () => {
       const map = createMap(3, 3);
-      const reachable = Pathfinding.getReachableHexes(start, 1, map);
+      const reachable = Pathfinding.getReachableHexes(start, 1, map, null);
 
       // Center (0 cost) + 6 Neighbors (1 cost)
       expect(reachable.size).toBe(7);
@@ -70,7 +55,7 @@ describe("Pathfinding", () => {
       const neighborId = "1,0,-1";
       map.get(neighborId)!.terrain = TerrainTypes.RADIATION_STORM;
 
-      const reachable = Pathfinding.getReachableHexes(start, 1, map);
+      const reachable = Pathfinding.getReachableHexes(start, 1, map, null);
 
       expect(reachable.has(neighborId)).toBe(false);
       expect(reachable.size).toBe(6); // Center + 5 neighbors
@@ -82,21 +67,25 @@ describe("Pathfinding", () => {
       map.get(asteroidId)!.terrain = TerrainTypes.ASTEROID_FIELD;
 
       // With 1 MP, cannot enter Asteroid field
-      const reachable1 = Pathfinding.getReachableHexes(start, 1, map);
+      const reachable1 = Pathfinding.getReachableHexes(start, 1, map, null);
       expect(reachable1.has(asteroidId)).toBe(false);
 
       // With 2 MP, can enter
-      const reachable2 = Pathfinding.getReachableHexes(start, 2, map);
+      const reachable2 = Pathfinding.getReachableHexes(start, 2, map, null);
       expect(reachable2.has(asteroidId)).toBe(true);
     });
 
     it("should double cost for ZOC", () => {
       const map = createMap(3, 3);
-      const zocHexId = "1,0,-1"; // Base Cost 1
-      const zocContext = createZocContext(
-        new ObjectId("693fe8f299c840c2b4d9135e"), // Enemy ID
-        [zocHexId]
-      );
+      const ZOCHexId = "1,0,-1"; // Base Cost 1
+
+      const playerId = new ObjectId()
+      const enemyPlayerId = new ObjectId()
+
+      map.get(ZOCHexId)!.zoc.push({
+        playerId: enemyPlayerId,
+        unitId: new ObjectId()
+      })
 
       // With ZOC, cost becomes 2.
       // MP 1 -> Fail
@@ -104,18 +93,18 @@ describe("Pathfinding", () => {
         start,
         1,
         map,
-        zocContext
+        playerId
       );
-      expect(reachable1.has(zocHexId)).toBe(false);
+      expect(reachable1.has(ZOCHexId)).toBe(false);
 
       // MP 2 -> Success
       const reachable2 = Pathfinding.getReachableHexes(
         start,
         2,
         map,
-        zocContext
+        playerId
       );
-      expect(reachable2.has(zocHexId)).toBe(true);
+      expect(reachable2.has(ZOCHexId)).toBe(true);
     });
   });
 

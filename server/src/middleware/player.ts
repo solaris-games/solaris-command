@@ -36,9 +36,9 @@ export const loadPlayer = async (
     req.player = player;
   } catch (error) {
     console.error("Middleware Error:", error);
-    
-    return res.status(500).json({ 
-        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR 
+
+    return res.status(500).json({
+      errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
     });
   }
 
@@ -50,16 +50,18 @@ export const touchPlayer = async (
   res: Response,
   next: NextFunction
 ) => {
+  const gameId = req.params.id;
+
   // Update the last seen date of the player
   const db = getDb();
 
   try {
-    await PlayerService.touchPlayer(db, req.player._id);
+    await PlayerService.touchPlayer(db, new ObjectId(gameId), req.player._id);
   } catch (error) {
     console.error("Middleware Error:", error);
-    
-    return res.status(500).json({ 
-        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR 
+
+    return res.status(500).json({
+      errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
     });
   }
 

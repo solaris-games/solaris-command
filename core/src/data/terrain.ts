@@ -2,9 +2,6 @@ import { TerrainTypes } from "../models";
 import { CombatShift, CombatShiftType } from "../types";
 import { CONSTANTS } from "./constants";
 
-// TODO: Anywhere that references terrain costs must also factor in ZoC since
-// ZoC affects the MP cost of hex terrain.
-
 export const TERRAIN_MP_COSTS: Record<TerrainTypes, number> = {
   [TerrainTypes.EMPTY]: 1,
   [TerrainTypes.ASTEROID_FIELD]: 2,

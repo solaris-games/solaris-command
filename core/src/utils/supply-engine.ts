@@ -4,7 +4,6 @@ import { Hex } from "../models/hex"; // Assuming Hex model exports TerrainTypes
 import { HexUtils } from "./hex-utils";
 import { HexCoords, HexCoordsId } from "../types/geometry";
 import { Pathfinding } from "./pathfinding";
-import { MapUtils } from "./map-utils";
 import { CONSTANTS } from "../data";
 import { SupplyTarget } from "../types";
 
@@ -42,8 +41,6 @@ export const SupplyEngine = {
       (s) => String(s.playerId) === String(playerId)
     );
 
-    const zocMap = MapUtils.calculateZOCMap(units);
-
     const nodes: (Planet | Station)[] = [...playerPlanets, ...playerStations];
 
     // Queue for Supply Propagation
@@ -69,10 +66,7 @@ export const SupplyEngine = {
         currentSource.location,
         currentSource.rangeMP,
         playerHexMap,
-        {
-          playerId,
-          zocMap,
-        }
+        playerId
       );
 
       // B. Add to the master list of supplied hexes

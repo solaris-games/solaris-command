@@ -4,12 +4,17 @@ import { Planet } from "@solaris-command/core";
 export class PlanetService {
   static async removeOwnership(
     db: Db,
+    gameId: ObjectId,
     playerId: ObjectId,
     session?: ClientSession
   ) {
     return db
       .collection<Planet>("planets")
-      .updateMany({ playerId }, { $set: { playerId: null } }, { session });
+      .updateMany(
+        { gameId, playerId },
+        { $set: { playerId: null } },
+        { session }
+      );
   }
 
   static async getByGameId(db: Db, gameId: ObjectId) {
@@ -22,12 +27,17 @@ export class PlanetService {
 
   static async assignPlanetToPlayer(
     db: Db,
+    gameId: ObjectId,
     planetId: ObjectId,
     playerId: ObjectId,
     session?: ClientSession
   ) {
     return db
       .collection<Planet>("planets")
-      .updateOne({ _id: planetId }, { $set: { playerId } }, { session });
+      .updateOne(
+        { gameId, _id: planetId },
+        { $set: { playerId } },
+        { session }
+      );
   }
 }

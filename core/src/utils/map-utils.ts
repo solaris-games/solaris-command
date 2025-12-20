@@ -1,69 +1,88 @@
 import { ObjectId } from "mongodb";
 import { Unit } from "../models/unit";
 import { HexUtils } from "./hex-utils";
-import { UNIT_CATALOG_ID_MAP } from "../data";
+import { TERRAIN_MP_COSTS, UNIT_CATALOG_ID_MAP } from "../data";
 import { Hex, Planet, TerrainTypes } from "../models";
 import { HexCoords, HexCoordsId } from "../types/geometry";
-import { UnitManager } from "./unit-manager";
-import { ZocMap } from "./pathfinding";
 
 export const MapUtils = {
   /**
-   * Generates a map of Zone of Control.
-   * Key: Hex ID
-   * Value: Set of Player IDs that exert ZOC into this hex.
+   * Calculates the MP cost for the player to move a unit into a hex. Accounts for ZOC influence.
    */
-  calculateZOCMap(units: Unit[]): ZocMap {
-    const zocMap = new Map<HexCoordsId, Set<string>>(); // Coord ID, Player Id
+  getHexMPCost(hex: Hex, playerId: ObjectId | null) {
+    let mpCost = TERRAIN_MP_COSTS[hex.terrain];
 
-    for (const unit of units) {
-      // Note: Fully suppressed units do not exert a ZOC.
-      if (UnitManager.getActiveSteps(unit).length === 0) {
-        continue;
-      }
-
-      // Note: Some units (e.g Frigates) do not exert a ZOC
-      const unitCtlg = UNIT_CATALOG_ID_MAP.get(unit.catalogId)!;
-
-      if (!unitCtlg.stats.zoc) {
-        continue;
-      }
-
-      // 1. Get all adjacent hexes (ZOC projection)
-      const neighbors = HexUtils.neighbors(unit.location);
-
-      for (const neighbor of neighbors) {
-        const hexId = HexUtils.getCoordsID(neighbor);
-
-        if (!zocMap.has(hexId)) {
-          zocMap.set(hexId, new Set<string>());
-        }
-
-        // Add this player to the ZOC set for this hex
-        zocMap.get(hexId)!.add(String(unit.playerId));
-      }
+    if (playerId && MapUtils.isHexInEnemyZOC(hex, playerId)) {
+      mpCost *= 2;
     }
 
-    return zocMap;
+    return mpCost;
   },
 
   /**
    * Check if a specific player is affected by ZOC in a target hex
    */
-  isHexInEnemyZOC(
-    hexCoordsId: HexCoordsId,
-    playerId: ObjectId,
-    zocMap: Map<HexCoordsId, Set<string>> // Coord ID, Player Id
-  ): boolean {
-    const exertors = zocMap.get(hexCoordsId);
-    if (!exertors) return false;
+  isHexInEnemyZOC(hex: Hex, playerId: ObjectId) {
+    return hex.zoc.some((z) => String(z.playerId) !== String(playerId));
+  },
 
-    // If there is ANY player ID in the set that is NOT me, it is Enemy ZOC.
-    for (const id of exertors) {
-      if (id !== String(playerId)) return true;
+  removeUnitHexZOC(unit: Unit, hexLookup: Map<HexCoordsId, Hex>) {
+    const unitCtlg = UNIT_CATALOG_ID_MAP.get(unit.catalogId)!;
+
+    // Do not need to do this if unit doesn't project a ZOC.
+    if (!unitCtlg.stats.zoc) {
+      return;
     }
 
-    return false;
+    // Get all of the neighbors (plus the current hex) and remove ZOC influence
+    const ZOCCoords = HexUtils.neighbors(unit.location).concat([unit.location]);
+
+    ZOCCoords.forEach((coords) => {
+      const hex = hexLookup.get(HexUtils.getCoordsID(coords))!;
+
+      if (hex) {
+        const existing = hex.zoc.findIndex(
+          (z) => String(z.unitId) === String(unit._id)
+        );
+
+        if (existing > -1) {
+          hex.zoc.splice(existing, 1);
+        }
+      }
+    });
+  },
+
+  addUnitHexZOC(unit: Unit, hexLookup: Map<HexCoordsId, Hex>) {
+    const unitCtlg = UNIT_CATALOG_ID_MAP.get(unit.catalogId)!;
+
+    // Do not need to do this if unit doesn't project a ZOC.
+    if (!unitCtlg.stats.zoc) {
+      return;
+    }
+
+    // TODO: Flip adjacent EMPTY hexes that are not in enemy ZOC and are not planets or stations.
+    // TODO: Only if recon spec?
+    // TODO: Is it ok to do this sequentially? I don't think we can?
+
+    // Get all of the neighbors (plus the current hex) and add ZOC influence
+    const ZOCCoords = HexUtils.neighbors(unit.location).concat([unit.location]);
+
+    ZOCCoords.forEach((coords) => {
+      const hex = hexLookup.get(HexUtils.getCoordsID(coords));
+
+      if (hex) {
+        const existing = hex.zoc.find(
+          (z) => String(z.unitId) === String(unit._id)
+        );
+
+        if (!existing) {
+          hex.zoc.push({
+            playerId: unit.playerId,
+            unitId: unit._id,
+          });
+        }
+      }
+    });
   },
 
   isHexImpassable(hex: Hex): boolean {
@@ -98,10 +117,7 @@ export const MapUtils = {
 
     for (const planet of planets) {
       if (planet.playerId) continue; // Must be unowned
-      if (
-        excludePlanetId &&
-        String(planet._id) === String(excludePlanetId)
-      )
+      if (excludePlanetId && String(planet._id) === String(excludePlanetId))
         continue;
 
       const dist = HexUtils.distance(center, planet.location);

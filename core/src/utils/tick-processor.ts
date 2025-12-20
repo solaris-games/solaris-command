@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb";
-import { CONSTANTS, TERRAIN_MP_COSTS, UNIT_CATALOG_ID_MAP } from "../data";
+import { CONSTANTS, UNIT_CATALOG_ID_MAP } from "../data";
 import {
   Game,
   Unit,
@@ -22,19 +22,42 @@ import { MapUtils } from "./map-utils";
 // TODO: Split these into two files, tick-processor.ts and tick-cycle-processor.ts
 // This will make it more manageable to write unit tests for.
 
+export class TickContextHexUpdateTracker {
+  // This keeps track of hexes that require updates.
+  // At the start of the tick we will capture hexes adjacent to every entity in the game
+  // and then after the tick has processed, we'll update this list with any new hexes
+  // that will have been updated by unit movement, combat, stations being destroyed etc.
+  // This is so that we can update only the hexes that need to be changed in the DB instead
+  // of updating every single hex.
+
+  hexesToUpdate: Set<HexCoordsId> = new Set<HexCoordsId>();
+
+  refreshHexesToUpdate(planets: Planet[], stations: Station[], units: Unit[]) {
+    const appendLocationHexes = (coords: HexCoords) => {
+      const neighbors = HexUtils.neighbors(coords).concat([coords]);
+
+      neighbors.forEach((c) => this.hexesToUpdate.add(HexUtils.getCoordsID(c)));
+    };
+
+    // Iterate over all entities and add their current locations to the hex update list.
+    planets.forEach((u) => appendLocationHexes(u.location));
+    stations.forEach((u) => appendLocationHexes(u.location));
+    units.forEach((u) => appendLocationHexes(u.location));
+  }
+}
+
 export interface ProcessTickResult {
   // Note: Unit updates are not present here since units are ALWAYS updated every tick. We do not need to keep track of individual unit updates.
 
   gameStateUpdates: Partial<GameState> | null;
-  hexUpdates: Map<string, Partial<Hex>>; // Partial updates (unitId, playerId)
   planetUpdates: Map<string, Partial<Planet>>; // Capture updates
   combatReports: CombatReport[]; // Logs for the UI
   unitsToRemove: ObjectId[]; // Dead units to delete
   stationsToRemove: ObjectId[]; // Captured stations to delete
 }
 
-class TickContext {
-  currentTick: number;
+export class TickContext {
+  newTick: number;
   game: Game;
   players: Player[];
   hexes: Hex[];
@@ -52,14 +75,13 @@ class TickContext {
 
   // --- OUTPUT CONTAINERS ---
   gameStateUpdates: Partial<GameState> | null = null;
-  hexUpdates = new Map<string, Partial<Hex>>();
   planetUpdates = new Map<string, Partial<Planet>>();
   combatReports: CombatReport[] = [];
   unitsToRemove: ObjectId[] = [];
   stationsToRemove: ObjectId[] = [];
 
   constructor(
-    currentTick: number,
+    newTick: number,
     game: Game,
     players: Player[],
     hexes: Hex[],
@@ -67,7 +89,7 @@ class TickContext {
     planets: Planet[],
     stations: Station[]
   ) {
-    this.currentTick = currentTick;
+    this.newTick = newTick;
     this.game = game;
     this.players = players;
     this.hexes = hexes;
@@ -99,15 +121,6 @@ class TickContext {
     );
   }
 
-  appendHexUpdate(hexId: ObjectId, update: Partial<Hex>) {
-    const existing = this.hexUpdates.get(String(hexId)) || {};
-
-    this.hexUpdates.set(String(hexId), {
-      ...existing,
-      ...update,
-    });
-  }
-
   appendPlanetUpdate(planetId: ObjectId, update: Partial<Planet>) {
     const existing = this.planetUpdates.get(String(planetId)) || {};
 
@@ -127,13 +140,34 @@ export interface ProcessCycleResult {
   winnerPlayerId: ObjectId | null;
 }
 
-class CycleTickContext {
+export class CycleTickContext {
+  game: Game;
+  players: Player[];
+  hexes: Hex[];
+  units: Unit[];
+  planets: Planet[];
+  stations: Station[];
+
   playerUpdates = new Map<string, Partial<Player>>();
   unitsToRemove: ObjectId[] = []; // <--- Track killed units
   gameStateUpdates: Partial<GameState> | null = null;
   winnerPlayerId: ObjectId | null = null;
 
-  constructor() {}
+  constructor(
+    game: Game,
+    players: Player[],
+    hexes: Hex[],
+    units: Unit[],
+    planets: Planet[],
+    stations: Station[]
+  ) {
+    this.game = game;
+    this.players = players;
+    this.hexes = hexes;
+    this.units = units;
+    this.planets = planets;
+    this.stations = stations;
+  }
 }
 
 interface MoveIntent {
@@ -147,7 +181,6 @@ interface MoveIntent {
 export class GameUnitMovementContext {
   moveIntents: MoveIntent[] = [];
   movesByDest = new Map<HexCoordsId, MoveIntent[]>(); // Coord ID, Movement Intent
-  zocMap: Map<HexCoordsId, Set<string>>;
 
   constructor(context: TickContext) {
     // Gather all units that want to move this tick.
@@ -159,8 +192,6 @@ export class GameUnitMovementContext {
         unit.state.mp > 0 &&
         !context.unitsToRemove.some((id) => String(id) === String(unit._id))
       ) {
-        // TODO: We would like to use Hex IDs in the path instead of coords,
-        // this will allow us to refactor the hexLookup to use hex IDs instead of coords.
         const nextHex = unit.movement.path[0];
 
         // Bit of defensive programming here to make sure we aren't going to move units that have invalid movement paths.
@@ -186,17 +217,6 @@ export class GameUnitMovementContext {
         this.movesByDest.set(intent.toCoordId, []);
       this.movesByDest.get(intent.toCoordId)!.push(intent);
     });
-
-    // We calculate ZOC *once* based on the board state at the start of movement.
-    // This ensures simultaneous fairness and O(1) lookups inside the loop.
-    // Note: We filter out units that died in Phase 1 (Combat) so they don't block movement.
-    const aliveUnits = context.units.filter(
-      (u) =>
-        !context.unitsToRemove.some(
-          (deadId) => String(deadId) === String(u._id)
-        )
-    );
-    this.zocMap = MapUtils.calculateZOCMap(aliveUnits);
   }
 }
 
@@ -209,19 +229,9 @@ const handleHexCapture = (context: TickContext, hex: Hex, unit: Unit) => {
   hex.playerId = unit.playerId;
   hex.unitId = unit._id;
 
-  context.appendHexUpdate(hex._id, {
-    playerId: unit.playerId,
-    unitId: unit._id,
-  });
-
   const hexCoordsId = HexUtils.getCoordsID(hex.location);
 
-  // TODO: Flip adjacent EMPTY hexes that are not in enemy ZoC and are not planets or stations.
-  // TODO: Only if recon spec?
-  // TODO: Do this only if the unit projects a ZoC.
-  // Note: It is ok to do this sequentially since all units move together at the same time, ZoC will not change between individual unit movements.
-
-  // 2. Flip Planet Ownership (if one exists here)
+  // Flip Planet Ownership (if one exists here)
   const planet = context.planetLookup.get(hexCoordsId);
   if (planet && String(planet.playerId) !== String(unit.playerId)) {
     planet.playerId = unit.playerId; // Update in-memory object
@@ -231,15 +241,12 @@ const handleHexCapture = (context: TickContext, hex: Hex, unit: Unit) => {
     });
   }
 
-  // 3. Destroy hostile stations
+  // Destroy hostile stations
   const station = context.stationLookup.get(hexCoordsId);
   if (station && String(station.playerId) !== String(unit.playerId)) {
     hex.stationId = null; // Update in-memory object
 
     context.stationsToRemove.push(station._id);
-    context.appendHexUpdate(hex._id, {
-      stationId: null, // Station is removed from the hex
-    });
   }
 };
 
@@ -249,26 +256,7 @@ export const TickProcessor = {
    * Executes Combat -> Moves Units -> Handles Collisions -> Updates Territory.
    * Returns objects representing the CHANGES to be made (does not mutate DB directly).
    */
-  processTick(
-    game: Game,
-    players: Player[],
-    hexes: Hex[],
-    units: Unit[],
-    planets: Planet[],
-    stations: Station[]
-  ): ProcessTickResult {
-    const currentTick = game.state.tick + 1;
-
-    const context = new TickContext(
-      currentTick,
-      game,
-      players,
-      hexes,
-      units,
-      planets,
-      stations
-    );
-
+  processTick(context: TickContext): ProcessTickResult {
     TickProcessor.processTickUnitCombat(context);
     TickProcessor.processTickUnitMovement(context);
     TickProcessor.processTickPlayerSupply(context);
@@ -276,7 +264,6 @@ export const TickProcessor = {
 
     return {
       gameStateUpdates: context.gameStateUpdates,
-      hexUpdates: context.hexUpdates,
       planetUpdates: context.planetUpdates,
       combatReports: context.combatReports,
       unitsToRemove: context.unitsToRemove,
@@ -355,7 +342,7 @@ export const TickProcessor = {
         );
 
         // Log Report
-        battleResult.report.tick = contextTick.currentTick;
+        battleResult.report.tick = contextTick.newTick;
         contextTick.combatReports.push(battleResult.report);
 
         // Defender:
@@ -363,10 +350,6 @@ export const TickProcessor = {
           // Defender Destroyed
           contextTick.unitsToRemove.push(defender._id);
           contextTick.unitLocations.delete(targetHexCoordsId); // Remove from board
-
-          contextTick.appendHexUpdate(battleResult.defenderHex._id, {
-            unitId: null,
-          });
         } else if (
           battleResult.report.defender.retreated &&
           battleResult.retreatHex
@@ -379,14 +362,6 @@ export const TickProcessor = {
             HexUtils.getCoordsID(battleResult.retreatHex.location),
             defender
           );
-
-          // Update the hex
-          contextTick.appendHexUpdate(battleResult.defenderHex._id, {
-            unitId: null,
-          });
-          contextTick.appendHexUpdate(battleResult.retreatHex._id, {
-            unitId: defender._id,
-          });
         }
 
         // Attacker:
@@ -395,9 +370,6 @@ export const TickProcessor = {
           contextTick.unitLocations.delete(
             HexUtils.getCoordsID(battleResult.attackerHex.location)
           ); // Remove from board
-          contextTick.appendHexUpdate(battleResult.attackerHex._id, {
-            unitId: null,
-          });
         } else if (battleResult.attackerWonHex) {
           // Move the attacker
           contextTick.unitLocations.delete(
@@ -407,14 +379,6 @@ export const TickProcessor = {
             HexUtils.getCoordsID(battleResult.defenderHex.location),
             attacker
           );
-
-          // Update the hexes
-          contextTick.appendHexUpdate(battleResult.attackerHex._id, {
-            unitId: null,
-          });
-          contextTick.appendHexUpdate(battleResult.defenderHex._id, {
-            unitId: attacker._id,
-          });
 
           handleHexCapture(contextTick, targetHex, attacker);
         }
@@ -455,18 +419,10 @@ export const TickProcessor = {
         // Calculate Cost based on Target Terrain
         const targetHex = context.hexLookup.get(destCoordId)!;
 
-        let mpCost = TERRAIN_MP_COSTS[targetHex.terrain];
+        const fromHex = context.hexLookup.get(intent.fromCoordId)!;
+        const toHex = context.hexLookup.get(intent.toCoordId)!;
 
-        // Moving into a hex that is in a Zone of Control (ZOC) of an enemy unit DOUBLES the MP cost of that hex.
-        const isZOC = MapUtils.isHexInEnemyZOC(
-          HexUtils.getCoordsID(targetHex.location),
-          unit.playerId,
-          contextMovement.zocMap
-        );
-
-        if (isZOC) {
-          mpCost *= 2;
-        }
+        const mpCost = MapUtils.getHexMPCost(targetHex, unit.playerId);
 
         // If unit cannot afford the move, they stall.
         if (unit.state.mp < mpCost) {
@@ -475,35 +431,16 @@ export const TickProcessor = {
           return; // Exit this specific move intent
         }
 
-        // Apply State Changes
-        unit.hexId = targetHex._id;
-        unit.location = intent.toHexCoord;
-        unit.state.mp = Math.max(0, unit.state.mp - mpCost);
-        unit.movement.path.shift(); // Pop the step
+        UnitManager.moveUnit(unit, fromHex, toHex, mpCost, context.hexLookup);
 
         // Stop if path done or out of gas
         if (unit.movement.path.length === 0 || unit.state.mp === 0) {
           unit.state.status = UnitStatus.IDLE;
         }
 
-        // Update Hexes: Move from old to new
-        const fromHex = context.hexLookup.get(intent.fromCoordId)!;
-        const toHex = context.hexLookup.get(intent.toCoordId)!;
-
-        fromHex.unitId = null;
-        toHex.unitId = unit._id;
-
         // Update Working Set
         context.unitLocations.delete(intent.fromCoordId);
         context.unitLocations.set(intent.toCoordId, unit);
-
-        // Update hexes
-        context.appendHexUpdate(fromHex._id, {
-          unitId: null,
-        });
-        context.appendHexUpdate(toHex._id, {
-          unitId: unit._id,
-        });
 
         // Update Hexes: Capture New
         handleHexCapture(context, targetHex, unit);
@@ -574,26 +511,19 @@ export const TickProcessor = {
    * This function will be called by a Cron Job / Ticker every time a Cycle completes.
    * It modifies the objects in memory. The caller is responsible for saving them to DB afterwards.
    */
-  processCycle(
-    game: Game,
-    players: Player[],
-    units: Unit[],
-    planets: Planet[]
-  ): ProcessCycleResult {
-    const context = new CycleTickContext();
-
+  processCycle(context: CycleTickContext): ProcessCycleResult {
     // Process each Player independently
-    players.forEach((player) => {
+    context.players.forEach((player) => {
       const playerIdStr = String(player._id);
 
       // LOGISTICS PHASE
-      const playerUnits = units.filter(
+      const playerUnits = context.units.filter(
         (u) => String(u.playerId) === playerIdStr
       );
 
       playerUnits.forEach((unit) => {
         // Run Cycle Logic (Refill AP/MP, Recovery, or Penalties)
-        UnitManager.processCycle(unit, game.settings.ticksPerCycle);
+        UnitManager.processCycle(unit, context.game.settings.ticksPerCycle);
 
         // Check for Death (Starvation/Collapse)
         // We merge the update to check the resulting steps
@@ -604,7 +534,7 @@ export const TickProcessor = {
       });
 
       // --- ECONOMY PHASE ---
-      const ownedPlanets = planets.filter(
+      const ownedPlanets = context.planets.filter(
         (p) => String(p.playerId) === playerIdStr
       );
 
@@ -622,12 +552,12 @@ export const TickProcessor = {
       });
 
       // --- VICTORY CHECK ---
-      if (newVP >= game.settings.victoryPointsToWin) {
+      if (newVP >= context.game.settings.victoryPointsToWin) {
         // If multiple players cross the line same tick, highest wins (tie-break logic needed?)
         if (
           !context.winnerPlayerId ||
           newVP >
-            (players.find((p) => p._id === context.winnerPlayerId)
+            (context.players.find((p) => p._id === context.winnerPlayerId)
               ?.victoryPoints || 0)
         ) {
           context.winnerPlayerId = player._id;
@@ -638,7 +568,7 @@ export const TickProcessor = {
     // 2. Game State Update
     // Note: We only increment the Cycle count here. The Ticks are incremented by another process.
     context.gameStateUpdates = {
-      cycle: game.state.cycle + 1,
+      cycle: context.game.state.cycle + 1,
       lastTickDate: new Date(),
       winnerPlayerId: context.winnerPlayerId,
     };

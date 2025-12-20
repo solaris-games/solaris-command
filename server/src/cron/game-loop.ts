@@ -14,11 +14,13 @@ import {
   Hex,
   Planet,
   TickProcessor,
-  HexUtils,
   ProcessCycleResult,
   Station,
   GameEvent,
   User,
+  TickContextHexUpdateTracker,
+  TickContext,
+  CycleTickContext,
 } from "@solaris-command/core";
 import { GameService } from "../services";
 import { executeInTransaction } from "../db/instance";
@@ -111,9 +113,16 @@ async function executeGameTick(client: MongoClient, game: Game) {
     db.collection<Station>("stations").find({ gameId: gameId }).toArray(),
   ]);
 
+  const hexUpdateTracker = new TickContextHexUpdateTracker();
+
+  hexUpdateTracker.refreshHexesToUpdate(planets, stations, units); // Start tracking hexes
+
   // --- B. RUN TICK PROCESSOR (Physics/Combat) ---
   // This calculates moves, battles, and captures based on the loaded state
-  const tickResult = TickProcessor.processTick(
+  const newTick = game.state.tick + 1;
+
+  const tickContext = new TickContext(
+    newTick,
     game,
     players,
     hexes,
@@ -122,9 +131,10 @@ async function executeGameTick(client: MongoClient, game: Game) {
     stations
   );
 
+  const tickResult = TickProcessor.processTick(tickContext);
+
   // --- C. CHECK FOR CYCLE (Economy) ---
   // If this new tick completes a cycle (e.g., tick 24, 48...)
-  const newTick = game.state.tick + 1;
   const isCycleComplete = newTick % game.settings.ticksPerCycle === 0;
 
   let cycleResult: ProcessCycleResult | null = null;
@@ -150,8 +160,21 @@ async function executeGameTick(client: MongoClient, game: Game) {
     );
 
     // Run the Economy/Logistics Logic
-    cycleResult = TickProcessor.processCycle(game, players, units, planets);
+    const cycleContext = new CycleTickContext(
+      game,
+      players,
+      hexes,
+      units,
+      planets,
+      stations
+    );
+
+    cycleResult = TickProcessor.processCycle(cycleContext);
   }
+
+  // Now that all tick processing is done, units have moved, combat has occurred, stations have been destroyed etc,
+  // we can refresh the hexes we need to update.
+  hexUpdateTracker.refreshHexesToUpdate(planets, stations, units);
 
   // --- D. PERSISTENCE (Bulk Writes) ---
   // We collect all operations into arrays and execute them in batches.
@@ -163,22 +186,6 @@ async function executeGameTick(client: MongoClient, game: Game) {
   const playerOps: AnyBulkWriteOperation<Player>[] = [];
   const unitsToDelete: ObjectId[] = [...tickResult.unitsToRemove];
   const stationsToDelete: ObjectId[] = [...tickResult.stationsToRemove];
-
-  // Prepare Hex Updates (From Tick)
-  tickResult.hexUpdates.forEach((update, hexIdStr) => {
-    const coords = HexUtils.parseCoordsID(hexIdStr);
-    hexOps.push({
-      updateOne: {
-        filter: {
-          gameId: gameId,
-          "location.q": coords.q,
-          "location.r": coords.r,
-          "location.s": coords.s,
-        },
-        update: { $set: update },
-      },
-    });
-  });
 
   // Prepare Planet Updates (From Capture)
   tickResult.planetUpdates.forEach((update, planetId) => {
@@ -240,36 +247,20 @@ async function executeGameTick(client: MongoClient, game: Game) {
     });
   });
 
-  // 5. EXECUTE DB OPERATIONS
+  // Get only the hexes that are being tracked by the hex update tracker.
+  const hexesToUpdate = Array.from(hexUpdateTracker.hexesToUpdate).map(
+    (coord) => tickContext.hexLookup.get(coord)!
+  );
 
-  // Save Combat Reports
-  if (tickResult.combatReports.length > 0) {
-    // TODO: Put these into the transaction
-    // Insert one for the attacker and another for the defender.
-    await db.collection<GameEvent>("game_events").insertMany(
-      tickResult.combatReports.map((r) => ({
-        _id: new ObjectId(),
-        gameId: gameId,
-        playerId: r.attackerId,
-        tick: newTick,
-        type: "COMBAT_REPORT",
-        data: r,
-        createdAt: new Date(),
-      }))
-    );
-
-    await db.collection<GameEvent>("game_events").insertMany(
-      tickResult.combatReports.map((r) => ({
-        _id: new ObjectId(),
-        gameId: gameId,
-        playerId: r.defenderId,
-        tick: newTick,
-        type: "COMBAT_REPORT",
-        data: r,
-        createdAt: new Date(),
-      }))
-    );
-  }
+  // Note: Hexes are ALWAYS fully updated.
+  hexesToUpdate.forEach((hex) => {
+    hexOps.push({
+      updateOne: {
+        filter: { _id: hex._id },
+        update: { $set: hex }, // Overwrite with new state
+      },
+    });
+  });
 
   // Update Game State
   // Logic: Base Tick Update -> Merge Tick Result (Elimination) -> Merge Cycle Result (Economy/Cycle count)
@@ -297,10 +288,6 @@ async function executeGameTick(client: MongoClient, game: Game) {
     };
   }
 
-  await db
-    .collection<Game>("games")
-    .updateOne({ _id: gameId }, { $set: { state: nextGameState } });
-
   // IF Game Completed, log it
   if (nextGameState.status === GameStates.COMPLETED) {
     console.log(
@@ -308,7 +295,12 @@ async function executeGameTick(client: MongoClient, game: Game) {
     );
   }
 
+  // 5. EXECUTE DB OPERATIONS
   await executeInTransaction(async (db, session) => {
+    await db
+      .collection<Game>("games")
+      .updateOne({ _id: gameId }, { $set: { state: nextGameState } });
+
     // Execute Bulk Ops
     const promises: Promise<BulkWriteResult | DeleteResult>[] = [];
 
@@ -340,6 +332,34 @@ async function executeGameTick(client: MongoClient, game: Game) {
       );
 
     await Promise.all(promises);
+
+    // Save Combat Reports
+    if (tickResult.combatReports.length > 0) {
+      // Insert one for the attacker and another for the defender.
+      await db.collection<GameEvent>("game_events").insertMany(
+        tickResult.combatReports.map((r) => ({
+          _id: new ObjectId(),
+          gameId: gameId,
+          playerId: r.attackerId,
+          tick: newTick,
+          type: "COMBAT_REPORT",
+          data: r,
+          createdAt: new Date(),
+        }))
+      );
+
+      await db.collection<GameEvent>("game_events").insertMany(
+        tickResult.combatReports.map((r) => ({
+          _id: new ObjectId(),
+          gameId: gameId,
+          playerId: r.defenderId,
+          tick: newTick,
+          type: "COMBAT_REPORT",
+          data: r,
+          createdAt: new Date(),
+        }))
+      );
+    }
   });
 
   console.log(`✅ Tick Complete.`);

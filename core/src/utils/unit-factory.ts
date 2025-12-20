@@ -56,7 +56,7 @@ export class UnitFactory {
         isInSupply: true,
         ticksLastSupply: 0,
         ticksOutOfSupply: 0,
-      },
+      }
     };
 
     return unit;

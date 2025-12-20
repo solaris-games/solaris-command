@@ -1,7 +1,6 @@
 import {
   CombatTables,
   SPECIALIST_STEP_ID_MAP,
-  TERRAIN_MP_COSTS,
 } from "../data";
 import { Unit, UnitStatus, Hex } from "../models";
 import {
@@ -132,19 +131,18 @@ export const CombatEngine = {
 
     if (defenderAlive && attackerAlive) {
       if (resultEntry.defender.retreat) {
-        retreatHex = CombatEngine.findRetreatHex(
-          defender,
-          attacker,
-          hexLookup
-        );
+        retreatHex = CombatEngine.findRetreatHex(defender, attacker, hexLookup);
 
         if (retreatHex) {
-          // Successful Retreat
-          defenderHex.unitId = null;
-          retreatHex.unitId = defender._id;
+          UnitUtils.moveUnit(
+            defender,
+            defenderHex,
+            retreatHex,
+            null,
+            hexLookup
+          );
 
-          defender.hexId = retreatHex._id;
-          defender.location = retreatHex.location;
+          // Successful Retreat
           defender.state.status = UnitStatus.REGROUPING;
 
           defenderRetreated = true;
@@ -171,15 +169,16 @@ export const CombatEngine = {
       (!defenderAlive || defenderRetreated) &&
       operationAllowsAdvance
     ) {
-      if (
-        advanceOnVictory &&
-        attacker.state.mp > TERRAIN_MP_COSTS[defenderHex.terrain]
-      ) {
-        attackerHex.unitId = null;
-        defenderHex.unitId = attacker._id;
+      const mpCost = MapUtils.getHexMPCost(defenderHex, attacker.playerId);
 
-        attacker.hexId = defenderHex._id;
-        attacker.location = defenderHex.location;
+      if (advanceOnVictory && attacker.state.mp > mpCost) {
+        UnitUtils.moveUnit(
+          attacker,
+          attackerHex,
+          defenderHex,
+          mpCost,
+          hexLookup
+        );
 
         attackerWonHex = true;
       }
@@ -261,9 +260,12 @@ export const CombatEngine = {
 
     if (validRetreats.length === 0) return null;
 
-    validRetreats.sort(
-      (a, b) => TERRAIN_MP_COSTS[a.terrain] - TERRAIN_MP_COSTS[b.terrain]
-    );
+    validRetreats.sort((a, b) => {
+      const mpCostA = MapUtils.getHexMPCost(a, unit.playerId);
+      const mpCostB = MapUtils.getHexMPCost(b, unit.playerId);
+
+      return mpCostA - mpCostB;
+    });
 
     return validRetreats[0];
   },

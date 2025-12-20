@@ -132,8 +132,17 @@ router.post(
       const createdUnit = await executeInTransaction(async (db, session) => {
         const unit = await UnitService.createUnit(db, newUnit, session);
 
+        await HexService.addUnitToAdjacentHexZOC(
+          db,
+          req.game._id,
+          hex,
+          unit,
+          session
+        );
+
         await PlayerService.deductPrestigePoints(
           db,
+          req.game._id,
           req.player._id,
           unitCtlg.cost,
           session
@@ -145,7 +154,7 @@ router.post(
       res.json(UnitMapper.toDeployUnitResponse(createdUnit));
     } catch (error: any) {
       console.error("Error deploying unit:", error);
-      
+
       return res.status(500).json({
         errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
@@ -209,12 +218,12 @@ router.post(
         });
       }
 
-      await UnitService.declareUnitMovement(db, req.unit._id, {
+      await UnitService.declareUnitMovement(db, req.game._id, req.unit._id, {
         path: hexPath,
       });
     } catch (error: any) {
       console.error("Error moving unit:", error);
-      
+
       return res.status(500).json({
         errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
@@ -244,10 +253,10 @@ router.post(
     }
 
     try {
-      await UnitService.cancelUnitMovement(db, req.unit._id);
+      await UnitService.cancelUnitMovement(db, req.game._id, req.unit._id);
     } catch (error: any) {
       console.error("Error cancelling unit movement:", error);
-      
+
       return res.status(500).json({
         errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
@@ -328,7 +337,7 @@ router.post(
     }
 
     try {
-      await UnitService.declareUnitAttack(db, req.unit._id, {
+      await UnitService.declareUnitAttack(db, req.game._id, req.unit._id, {
         hexId: hex._id,
         location,
         operation,
@@ -336,7 +345,7 @@ router.post(
       });
     } catch (error: any) {
       console.error("Error declaring attack:", error);
-      
+
       return res.status(500).json({
         errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
@@ -371,10 +380,10 @@ router.post(
         .json({ errorCode: ERROR_CODES.UNIT_HAS_NOT_DECLARED_ATTACK });
 
     try {
-      await UnitService.cancelUnitAttack(db, req.unit._id);
+      await UnitService.cancelUnitAttack(db, req.game._id, req.unit._id);
     } catch (error: any) {
       console.error("Error cancelling attack:", error);
-      
+
       return res.status(500).json({
         errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
@@ -469,11 +478,18 @@ router.post(
 
       await executeInTransaction(async (db, session) => {
         // Apply Upgrade
-        await UnitService.upgradeUnit(db, req.unit._id, newSteps, session);
+        await UnitService.upgradeUnit(
+          db,
+          req.game._id,
+          req.unit._id,
+          newSteps,
+          session
+        );
 
         // Deduct Cost
         await PlayerService.deductPrestigePoints(
           db,
+          req.game._id,
           req.player._id,
           cost,
           session
@@ -481,7 +497,7 @@ router.post(
       });
     } catch (error: any) {
       console.error("Error upgrading unit:", error);
-      
+
       return res.status(500).json({
         errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
@@ -510,20 +526,40 @@ router.post(
     }
 
     try {
-      // If there's more than 1 step then we scrap it, otherwise we delete the entire unit.
-      if (req.unit.steps.length > 1) {
-        // Reduce step
-        const newSteps = UnitManager.scrapSteps(req.unit.steps, 1);
+      await executeInTransaction(async (db, session) => {
+        // If there's more than 1 step then we scrap it, otherwise we delete the entire unit.
+        if (req.unit.steps.length > 1) {
+          // Reduce step
+          const newSteps = UnitManager.scrapSteps(req.unit.steps, 1);
 
-        // Apply
-        await UnitService.scrapUnitStep(db, req.unit._id, newSteps);
-      } else {
-        // Delete unit
-        await UnitService.deleteUnit(db, req.unit._id);
-      }
+          // Apply
+          await UnitService.scrapUnitStep(
+            db,
+            req.game._id,
+            req.unit._id,
+            newSteps
+          );
+        } else {
+          const hex = await HexService.getByGameAndId(
+            db,
+            req.game._id,
+            req.unit.hexId
+          );
+
+          // Delete unit
+          await UnitService.deleteUnit(db, req.game._id, req.unit._id);
+          await HexService.removeUnitFromAdjacentHexZOC(
+            db,
+            req.game._id,
+            hex!,
+            req.unit,
+            session
+          );
+        }
+      });
     } catch (error: any) {
       console.error("Error scrapping unit step:", error);
-      
+
       return res.status(500).json({
         errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
       });

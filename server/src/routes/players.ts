@@ -61,6 +61,7 @@ router.post(
       await executeInTransaction(async (db, session) => {
         await PlayerService.deductPrestigePoints(
           db,
+          req.game._id,
           req.player._id,
           prestige,
           session
@@ -68,6 +69,7 @@ router.post(
 
         await PlayerService.incrementPrestigePoints(
           db,
+          req.game._id,
           new ObjectId(targetPlayerId),
           CONSTANTS.STATION_PRESTIGE_COST,
           session

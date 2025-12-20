@@ -41,6 +41,11 @@ export interface Hex {
   location: HexCoords; // { q, r, s }
   terrain: TerrainTypes;
 
-  // TODO: Add ZoC influence
+  // Which units have ZOC influence on this hex
+  zoc: {
+    playerId: ObjectId;
+    unitId: ObjectId;
+  }[];
+
   // TODO: Add supply
 }

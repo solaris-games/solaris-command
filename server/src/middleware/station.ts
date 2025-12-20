@@ -19,13 +19,14 @@ export const loadPlayerStation = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { stationId } = req.params;
+  const { id, stationId } = req.params;
 
   const db = getDb();
 
   try {
     const station = await StationService.getStationById(
       db,
+      new ObjectId(id),
       new ObjectId(stationId)
     );
 

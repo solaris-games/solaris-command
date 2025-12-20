@@ -270,6 +270,7 @@ export async function up(db: Db, client: MongoClient) {
     // Indexes:
     await db.collection<Unit>("units").createIndex({ gameId: 1 });
     await db.collection<Unit>("units").createIndex({ playerId: 1 });
+    await db.collection<Unit>("units").createIndex({ gameId: 1, playerId: 1 });
 
     // --- 4. PLAYERS COLLECTION ---
     await createCollectionSafe("players", {
@@ -357,8 +358,8 @@ export async function up(db: Db, client: MongoClient) {
     });
 
     await db.collection<Planet>("planets").createIndex({ gameId: 1 });
-
     await db.collection<Planet>("planets").createIndex({ playerId: 1 });
+    await db.collection<Planet>("planets").createIndex({ gameId: 1, playerId: 1 });
 
     // --- 6. STATIONS COLLECTION ---
     await createCollectionSafe("stations", {
@@ -393,8 +394,8 @@ export async function up(db: Db, client: MongoClient) {
     });
 
     await db.collection<Station>("stations").createIndex({ gameId: 1 });
-
     await db.collection<Station>("stations").createIndex({ playerId: 1 });
+    await db.collection<Station>("stations").createIndex({ gameId: 1, playerId: 1 });
 
     // --- 7. GAME EVENTS (Combat Reports) ---
     await createCollectionSafe("game_events", {

@@ -22,8 +22,12 @@ export class PlayerService {
       userId: userId,
     });
   }
-  
-  static async getByGameAndPlayerId(db: Db, gameId: ObjectId, playerId: ObjectId) {
+
+  static async getByGameAndPlayerId(
+    db: Db,
+    gameId: ObjectId,
+    playerId: ObjectId
+  ) {
     return db.collection<Player>("players").findOne({
       gameId: gameId,
       playerId: playerId,
@@ -64,6 +68,7 @@ export class PlayerService {
 
   static async incrementPrestigePoints(
     db: Db,
+    gameId: ObjectId,
     playerId: ObjectId,
     prestige: number,
     session?: ClientSession
@@ -71,7 +76,7 @@ export class PlayerService {
     await db
       .collection<Player>("players")
       .updateOne(
-        { _id: playerId },
+        { gameId, _id: playerId },
         { $inc: { prestigePoints: prestige } },
         { session }
       );
@@ -79,6 +84,7 @@ export class PlayerService {
 
   static async deductPrestigePoints(
     db: Db,
+    gameId: ObjectId,
     playerId: ObjectId,
     prestige: number,
     session?: ClientSession
@@ -86,7 +92,7 @@ export class PlayerService {
     await db
       .collection<Player>("players")
       .updateOne(
-        { _id: playerId },
+        { gameId, _id: playerId },
         { $inc: { prestigePoints: -prestige } },
         { session }
       );
@@ -117,35 +123,45 @@ export class PlayerService {
 
   static async removePlayerAssets(
     db: Db,
+    gameId: ObjectId,
     playerId: ObjectId,
     session?: ClientSession
   ) {
     // Delete units
-    await UnitService.deleteByPlayerId(db, playerId, session);
+    await UnitService.deleteByPlayerId(db, gameId, playerId, session);
+    // Remove player ZOC influence
+    await HexService.removeAllPlayerZOC(db, gameId, playerId, session);
     // Delete stations
-    await StationService.deleteByPlayerId(db, playerId, session);
+    await StationService.deleteByPlayerId(db, gameId, playerId, session);
     // Remove planet ownerships
-    await PlanetService.removeOwnership(db, playerId, session);
+    await PlanetService.removeOwnership(db, gameId, playerId, session);
     // Remove hex ownerships
-    await HexService.removeOwnership(db, playerId, session);
+    await HexService.removeOwnership(db, gameId, playerId, session);
   }
 
-  static async leaveGame(db: Db, playerId: ObjectId, session?: ClientSession) {
+  static async leaveGame(
+    db: Db,
+    gameId: ObjectId,
+    playerId: ObjectId,
+    session?: ClientSession
+  ) {
     const result = await db
       .collection<Player>("players")
-      .deleteOne({ _id: playerId }, { session });
+      .deleteOne({ gameId, _id: playerId }, { session });
 
     return result;
   }
 
   static async concedeGame(
     db: Db,
+    gameId: ObjectId,
     playerId: ObjectId,
     session?: ClientSession
   ) {
     // Update player status to DEFEATED
     const result = await db.collection<Player>("players").updateOne(
       {
+        gameId,
         _id: playerId,
       },
       {
@@ -158,18 +174,19 @@ export class PlayerService {
 
   static async setStatus(
     db: Db,
+    gameId: ObjectId,
     playerId: ObjectId,
     status: PlayerStatus,
     session?: ClientSession
   ) {
     return db
       .collection<Player>("players")
-      .updateOne({ _id: playerId }, { $set: { status } }, { session });
+      .updateOne({ gameId, _id: playerId }, { $set: { status } }, { session });
   }
 
-  static async touchPlayer(db: Db, playerId: ObjectId) {
+  static async touchPlayer(db: Db, gameId: ObjectId, playerId: ObjectId) {
     return db.collection<Player>("players").updateOne(
-      { _id: playerId },
+      { gameId, _id: playerId },
       {
         $set: {
           lastSeenDate: new Date(),

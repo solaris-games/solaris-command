@@ -37,16 +37,22 @@ function createTestUnit(
     gameId: new ObjectId(),
     playerId: new ObjectId(),
     catalogId: catalogId,
+    hexId: new ObjectId(),
     location: { q: 0, r: 0, s: 0 },
     steps: steps,
     state: {
       status: UnitStatus.IDLE,
       ap: 1,
-      mp: 1
+      mp: 1,
     },
     supply: { isInSupply: true, ticksLastSupply: 0, ticksOutOfSupply: 0 },
     movement: { path: [] },
-    combat: { location: null, operation: null, advanceOnVictory: null },
+    combat: {
+      hexId: null,
+      location: null,
+      operation: null,
+      advanceOnVictory: null,
+    },
   } as Unit;
 }
 

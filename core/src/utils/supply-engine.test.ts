@@ -21,22 +21,18 @@ vi.mock("./pathfinding", () => ({
   },
 }));
 
-// We mock MapUtils because ZOC calculation is expensive and tested elsewhere.
-vi.mock("./map-utils", () => ({
-  MapUtils: {
-    calculateZOCMap: vi.fn().mockReturnValue(new Map()),
-  },
-}));
-
 // --- FACTORIES ---
 function createHex(q: number, r: number, s: number): Hex {
   return {
     _id: new ObjectId(),
     gameId: new ObjectId(),
+    planetId: null,
+    stationId: null,
     unitId: null,
     playerId: null,
     location: { q, r, s },
     terrain: TerrainTypes.EMPTY,
+    zoc: []
   };
 }
 
@@ -52,6 +48,7 @@ function createPlanet(
     gameId: new ObjectId(),
     playerId,
     name: "Test Planet",
+    hexId: new ObjectId(),
     location: { q, r, s },
     isCapital,
     supply: {
@@ -71,6 +68,7 @@ function createStation(
     _id: new ObjectId(),
     gameId: new ObjectId(),
     playerId,
+    hexId: new ObjectId(),
     location: { q, r, s },
     supply: {
       isInSupply: false, // Dynamic
@@ -95,6 +93,7 @@ function createUnit(playerId: ObjectId, q: number, r: number, s: number): Unit {
     movement: { path: [] },
     combat: { location: null },
     supply: { isInSupply: true, ticksLastSupply: 0, ticksOutOfSupply: 0 },
+    zoc: []
   } as any; // Casting for brevity
 }
 
@@ -134,7 +133,7 @@ describe("SupplyEngine", () => {
         capital.location,
         CONSTANTS.SUPPLY_RANGE_MP_ROOT,
         expect.any(Map),
-        expect.objectContaining({ playerId })
+        playerId
       );
     });
 
