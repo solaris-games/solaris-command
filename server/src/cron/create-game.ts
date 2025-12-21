@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { MongoClient, ObjectId } from "mongodb";
+import { Types } from "mongoose";
 import {
   CONSTANTS,
   GameStates,
@@ -10,9 +10,10 @@ import {
 } from "@solaris-command/core";
 import { executeInTransaction } from "../db";
 import { GameService, HexService, PlanetService } from "../services";
+import { GameModel } from "../db/schemas/game";
 
 export const CreateGameJob = {
-  start(mongoClient: MongoClient) {
+  start() {
     // Check every minute
     const schedule = process.env.CREATE_GAME_SCHEDULE || "* * * * *";
 
@@ -20,7 +21,7 @@ export const CreateGameJob = {
 
     cron.schedule(schedule, async () => {
       try {
-        await checkAndCreateGame(mongoClient);
+        await checkAndCreateGame();
       } catch (err) {
         console.error("🔥 Error in Create Official Game Job:", err);
       }
@@ -28,11 +29,9 @@ export const CreateGameJob = {
   },
 };
 
-async function checkAndCreateGame(client: MongoClient) {
-  const db = client.db();
-
+async function checkAndCreateGame() {
   // Check for any PENDING games
-  const pendingGame = await db.collection<Game>("games").findOne({
+  const pendingGame = await GameModel.findOne({
     "state.status": GameStates.PENDING,
   });
 
@@ -47,7 +46,7 @@ async function checkAndCreateGame(client: MongoClient) {
 
   const gameName = GAME_NAMES[Math.floor(Math.random() * GAME_NAMES.length)];
 
-  const gameId = new ObjectId();
+  const gameId = new Types.ObjectId();
 
   const newGameData: Game = {
     _id: gameId,
@@ -75,12 +74,12 @@ async function checkAndCreateGame(client: MongoClient) {
     },
   };
 
-  const { hexes, planets } = MapGenerator.generateFromGameMap(gameId, map);
+  const { hexes, planets } = MapGenerator.generateFromGameMap(gameId as unknown as Types.ObjectId, map);
 
-  await executeInTransaction(async (db, session) => {
-    await GameService.createGame(db, newGameData);
-    await HexService.insertHexes(db, hexes);
-    await PlanetService.insertPlanets(db, planets);
+  await executeInTransaction(async (session) => {
+    await GameService.createGame(newGameData, session);
+    await HexService.insertHexes(hexes, session);
+    await PlanetService.insertPlanets(planets, session);
   });
 
   console.log("✅ New game created.");

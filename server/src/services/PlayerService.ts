@@ -1,7 +1,6 @@
-import { ClientSession, Db, ObjectId } from "mongodb";
+import { ClientSession, Types } from "mongoose";
 import {
   CONSTANTS,
-  Game,
   GameStates,
   Player,
   PlayerStatus,
@@ -10,103 +9,84 @@ import { UnitService } from "./UnitService";
 import { StationService } from "./StationService";
 import { PlanetService } from "./PlanetService";
 import { HexService } from "./HexService";
+import { PlayerModel } from "../db/schemas/player";
+import { GameModel } from "../db/schemas/game";
 
 export class PlayerService {
-  static async getByGameId(db: Db, gameId: ObjectId) {
-    return db.collection<Player>("players").find({ gameId }).toArray();
+  static async getByGameId(gameId: Types.ObjectId) {
+    return PlayerModel.find({ gameId });
   }
 
-  static async getByGameAndUserId(db: Db, gameId: ObjectId, userId: ObjectId) {
-    return db.collection<Player>("players").findOne({
+  static async getByGameAndUserId(gameId: Types.ObjectId, userId: Types.ObjectId) {
+    return PlayerModel.findOne({
       gameId: gameId,
       userId: userId,
     });
   }
 
   static async getByGameAndPlayerId(
-    db: Db,
-    gameId: ObjectId,
-    playerId: ObjectId
+    gameId: Types.ObjectId,
+    playerId: Types.ObjectId
   ) {
-    return db.collection<Player>("players").findOne({
+    return PlayerModel.findOne({
       gameId: gameId,
-      playerId: playerId,
+      _id: playerId,
     });
   }
 
-  static async findActivePlayersForUser(db: Db, userId: ObjectId) {
-    const activeGames = await db
-      .collection<Game>("games")
-      .find({ "state.status": GameStates.ACTIVE })
-      .toArray();
+  static async findActivePlayersForUser(userId: Types.ObjectId) {
+    const activeGames = await GameModel.find({ "state.status": GameStates.ACTIVE });
 
-    return db
-      .collection<Player>("players")
-      .find({
-        gameId: { $in: activeGames.map((g) => g._id) },
-        userId,
-        status: PlayerStatus.ACTIVE,
-      })
-      .toArray();
+    return PlayerModel.find({
+      gameId: { $in: activeGames.map((g) => g._id) },
+      userId,
+      status: PlayerStatus.ACTIVE,
+    });
   }
 
-  static async findPendingPlayersForUser(db: Db, userId: ObjectId) {
-    const pendingGames = await db
-      .collection<Game>("games")
-      .find({ "state.status": GameStates.PENDING })
-      .toArray();
+  static async findPendingPlayersForUser(userId: Types.ObjectId) {
+    const pendingGames = await GameModel.find({ "state.status": GameStates.PENDING });
 
-    return db
-      .collection<Player>("players")
-      .find({
-        gameId: { $in: pendingGames.map((g) => g._id) },
-        userId,
-        status: PlayerStatus.ACTIVE,
-      })
-      .toArray();
+    return PlayerModel.find({
+      gameId: { $in: pendingGames.map((g) => g._id) },
+      userId,
+      status: PlayerStatus.ACTIVE,
+    });
   }
 
   static async incrementPrestigePoints(
-    db: Db,
-    gameId: ObjectId,
-    playerId: ObjectId,
+    gameId: Types.ObjectId,
+    playerId: Types.ObjectId,
     prestige: number,
     session?: ClientSession
   ) {
-    await db
-      .collection<Player>("players")
-      .updateOne(
-        { gameId, _id: playerId },
-        { $inc: { prestigePoints: prestige } },
-        { session }
-      );
+    await PlayerModel.updateOne(
+      { gameId, _id: playerId },
+      { $inc: { prestigePoints: prestige } },
+      { session }
+    );
   }
 
   static async deductPrestigePoints(
-    db: Db,
-    gameId: ObjectId,
-    playerId: ObjectId,
+    gameId: Types.ObjectId,
+    playerId: Types.ObjectId,
     prestige: number,
     session?: ClientSession
   ) {
-    await db
-      .collection<Player>("players")
-      .updateOne(
-        { gameId, _id: playerId },
-        { $inc: { prestigePoints: -prestige } },
-        { session }
-      );
+    await PlayerModel.updateOne(
+      { gameId, _id: playerId },
+      { $inc: { prestigePoints: -prestige } },
+      { session }
+    );
   }
 
   static async joinGame(
-    db: Db,
-    gameId: ObjectId,
-    userId: ObjectId,
+    gameId: Types.ObjectId,
+    userId: Types.ObjectId,
     options: { alias?: string; color?: string },
     session?: ClientSession
   ) {
-    const newPlayer: Player = {
-      _id: new ObjectId(),
+    const newPlayer = new PlayerModel({
       gameId,
       userId,
       alias: options.alias || "Unknown",
@@ -115,51 +95,49 @@ export class PlayerService {
       prestigePoints: CONSTANTS.GAME_STARTING_PRESTIGE_POINTS,
       victoryPoints: 0,
       lastSeenDate: new Date(),
-    };
+    });
 
-    await db.collection<Player>("players").insertOne(newPlayer, { session });
+    await newPlayer.save({ session });
     return newPlayer;
   }
 
   static async removePlayerAssets(
-    db: Db,
-    gameId: ObjectId,
-    playerId: ObjectId,
+    gameId: Types.ObjectId,
+    playerId: Types.ObjectId,
     session?: ClientSession
   ) {
     // Delete units
-    await UnitService.deleteByPlayerId(db, gameId, playerId, session);
+    await UnitService.deleteByPlayerId(gameId, playerId, session);
     // Remove player ZOC influence
-    await HexService.removeAllPlayerZOC(db, gameId, playerId, session);
+    await HexService.removeAllPlayerZOC(gameId, playerId, session);
     // Delete stations
-    await StationService.deleteByPlayerId(db, gameId, playerId, session);
+    await StationService.deleteByPlayerId(gameId, playerId, session);
     // Remove planet ownerships
-    await PlanetService.removeOwnership(db, gameId, playerId, session);
+    await PlanetService.removeOwnership(gameId, playerId, session);
     // Remove hex ownerships
-    await HexService.removeOwnership(db, gameId, playerId, session);
+    await HexService.removeOwnership(gameId, playerId, session);
   }
 
   static async leaveGame(
-    db: Db,
-    gameId: ObjectId,
-    playerId: ObjectId,
+    gameId: Types.ObjectId,
+    playerId: Types.ObjectId,
     session?: ClientSession
   ) {
-    const result = await db
-      .collection<Player>("players")
-      .deleteOne({ gameId, _id: playerId }, { session });
+    const result = await PlayerModel.deleteOne(
+      { gameId, _id: playerId },
+      { session }
+    );
 
     return result;
   }
 
   static async concedeGame(
-    db: Db,
-    gameId: ObjectId,
-    playerId: ObjectId,
+    gameId: Types.ObjectId,
+    playerId: Types.ObjectId,
     session?: ClientSession
   ) {
     // Update player status to DEFEATED
-    const result = await db.collection<Player>("players").updateOne(
+    const result = await PlayerModel.updateOne(
       {
         gameId,
         _id: playerId,
@@ -173,19 +151,20 @@ export class PlayerService {
   }
 
   static async setStatus(
-    db: Db,
-    gameId: ObjectId,
-    playerId: ObjectId,
+    gameId: Types.ObjectId,
+    playerId: Types.ObjectId,
     status: PlayerStatus,
     session?: ClientSession
   ) {
-    return db
-      .collection<Player>("players")
-      .updateOne({ gameId, _id: playerId }, { $set: { status } }, { session });
+    return PlayerModel.updateOne(
+      { gameId, _id: playerId },
+      { $set: { status } },
+      { session }
+    );
   }
 
-  static async touchPlayer(db: Db, gameId: ObjectId, playerId: ObjectId) {
-    return db.collection<Player>("players").updateOne(
+  static async touchPlayer(gameId: Types.ObjectId, playerId: Types.ObjectId) {
+    return PlayerModel.updateOne(
       { gameId, _id: playerId },
       {
         $set: {

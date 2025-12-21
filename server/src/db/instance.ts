@@ -1,68 +1,54 @@
-import { MongoClient, Db, ClientSession } from "mongodb";
-import dotenv from "dotenv";
+import mongoose, { Connection, ClientSession } from "mongoose";
+import * as dotenv from "dotenv";
 
 dotenv.config();
 
 const mongoUri = process.env.MONGO_URI || "mongodb://localhost:27017/solaris";
-const dbName = process.env.DB_NAME || "solaris";
 
-let db: Db | null = null;
-let client: MongoClient | null = null;
+let connection: Connection | null = null;
 
-export const connectToDb = async (): Promise<{
-  db: Db;
-  client: MongoClient;
-}> => {
-  if (db && client)
-    return {
-      db,
-      client,
-    };
+export const connectToDb = async (): Promise<Connection> => {
+  if (connection) return connection;
 
   try {
-    client = await MongoClient.connect(mongoUri);
-    db = client.db(dbName);
-    console.log(`✅ Connected to MongoDB: ${dbName}`);
+    const mongooseInstance = await mongoose.connect(mongoUri);
+    connection = mongooseInstance.connection;
+    console.log(`✅ Connected to MongoDB via Mongoose: ${connection.name}`);
 
-    return {
-      db,
-      client,
-    };
+    return connection;
   } catch (err) {
     console.error("❌ Could not connect to MongoDB", err);
     process.exit(1);
   }
 };
 
-export const getDb = (): Db => {
-  if (!db) {
+export const getDb = (): Connection => {
+  if (!connection) {
     throw new Error("Database not initialized. Call connectToDb() first.");
   }
 
-  return db;
+  return connection;
 };
 
 export const closeDb = async () => {
-  if (client) {
-    await client.close();
-    db = null;
-    client = null;
+  if (connection) {
+    await connection.close();
+    connection = null;
   }
 };
 
 export const executeInTransaction = async (
-  callback: (db: Db, session: ClientSession) => Promise<any>
+  callback: (session: ClientSession) => Promise<any>
 ) => {
-  const db = getDb();
-  const session = db.client.startSession();
+  const session = await mongoose.startSession();
 
   try {
     session.startTransaction();
 
-    const result = await callback(db, session);
+    const result = await callback(session);
 
     await session.commitTransaction();
-    return result; // Return the result of the callback
+    return result;
   } catch (e) {
     await session.abortTransaction();
     throw e;

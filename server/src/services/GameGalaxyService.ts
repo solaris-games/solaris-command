@@ -1,4 +1,4 @@
-import { ClientSession, Db, ObjectId } from "mongodb";
+import { ClientSession, Types } from "mongoose";
 import { Game, GameStates, Player, FogOfWar, Hex, Planet, Station, Unit } from "@solaris-command/core";
 import { UnitService } from "./UnitService";
 import { StationService } from "./StationService";
@@ -16,15 +16,21 @@ export interface GameGalaxy {
 }
 
 export class GameGalaxyService {
-  static async getGameGalaxy(db: Db, game: Game, userId: string) {
-    const gameId = game._id;
+  static async getGameGalaxy(game: Game, userId: string) {
+    const gameId = game._id as unknown as Types.ObjectId;
+
+    // TODO: Optimize this to execute in parallel
+    // Mongoose models return Query objects which are thenable.
+    // However, Promise.all needs Promises. .find() returns a Query.
+    // Query.exec() returns a Promise.
+    // Note: await Model.find() also works.
 
     const [players, hexes, allUnits, planets, stations] = await Promise.all([
-      PlayerService.getByGameId(db, gameId),
-      HexService.getByGameId(db, gameId),
-      UnitService.getByGameId(db, gameId),
-      PlanetService.getByGameId(db, gameId),
-      StationService.getByGameId(db, gameId),
+      PlayerService.getByGameId(gameId),
+      HexService.getByGameId(gameId),
+      UnitService.getByGameId(gameId),
+      PlanetService.getByGameId(gameId),
+      StationService.getByGameId(gameId),
     ]);
 
     const currentPlayer = players.find((p) => String(p.userId) === userId);
@@ -40,6 +46,13 @@ export class GameGalaxyService {
 
     if (currentPlayer && game.state.status === GameStates.ACTIVE) {
       // Apply Fog of War for Units
+      // We need to cast Mongoose Documents to POJOs or compatible types if core expects strict interfaces.
+      // Usually Mongoose documents satisfy the interface unless there are specific methods or hidden fields.
+      // FogOfWar expects arrays of objects.
+      // Using .toObject() or just passing them might work depending on 'core' implementation.
+      // For now, assuming direct pass works or we might need to .map(d => d.toObject()) if methods are issue.
+      // Since core is shared, it likely treats them as data.
+
       const visibleHexes = FogOfWar.getVisibleHexes(
         currentPlayer._id,
         allUnits,
