@@ -4,6 +4,7 @@ import {
   GameStates,
   Player,
   PlayerStatus,
+  UnifiedId,
 } from "@solaris-command/core";
 import { UnitService } from "./UnitService";
 import { StationService } from "./StationService";
@@ -13,11 +14,11 @@ import { PlayerModel } from "../db/schemas/player";
 import { GameModel } from "../db/schemas/game";
 
 export class PlayerService {
-  static async getByGameId(gameId: Types.ObjectId) {
+  static async getByGameId(gameId: UnifiedId) {
     return PlayerModel.find({ gameId });
   }
 
-  static async getByGameAndUserId(gameId: Types.ObjectId, userId: Types.ObjectId) {
+  static async getByGameAndUserId(gameId: UnifiedId, userId: UnifiedId) {
     return PlayerModel.findOne({
       gameId: gameId,
       userId: userId,
@@ -25,8 +26,8 @@ export class PlayerService {
   }
 
   static async getByGameAndPlayerId(
-    gameId: Types.ObjectId,
-    playerId: Types.ObjectId
+    gameId: UnifiedId,
+    playerId: UnifiedId
   ) {
     return PlayerModel.findOne({
       gameId: gameId,
@@ -34,7 +35,7 @@ export class PlayerService {
     });
   }
 
-  static async findActivePlayersForUser(userId: Types.ObjectId) {
+  static async findActivePlayersForUser(userId: UnifiedId) {
     const activeGames = await GameModel.find({ "state.status": GameStates.ACTIVE });
 
     return PlayerModel.find({
@@ -44,7 +45,7 @@ export class PlayerService {
     });
   }
 
-  static async findPendingPlayersForUser(userId: Types.ObjectId) {
+  static async findPendingPlayersForUser(userId: UnifiedId) {
     const pendingGames = await GameModel.find({ "state.status": GameStates.PENDING });
 
     return PlayerModel.find({
@@ -55,8 +56,8 @@ export class PlayerService {
   }
 
   static async incrementPrestigePoints(
-    gameId: Types.ObjectId,
-    playerId: Types.ObjectId,
+    gameId: UnifiedId,
+    playerId: UnifiedId,
     prestige: number,
     session?: ClientSession
   ) {
@@ -68,8 +69,8 @@ export class PlayerService {
   }
 
   static async deductPrestigePoints(
-    gameId: Types.ObjectId,
-    playerId: Types.ObjectId,
+    gameId: UnifiedId,
+    playerId: UnifiedId,
     prestige: number,
     session?: ClientSession
   ) {
@@ -81,8 +82,8 @@ export class PlayerService {
   }
 
   static async joinGame(
-    gameId: Types.ObjectId,
-    userId: Types.ObjectId,
+    gameId: UnifiedId,
+    userId: UnifiedId,
     options: { alias?: string; color?: string },
     session?: ClientSession
   ) {
@@ -102,8 +103,8 @@ export class PlayerService {
   }
 
   static async removePlayerAssets(
-    gameId: Types.ObjectId,
-    playerId: Types.ObjectId,
+    gameId: UnifiedId,
+    playerId: UnifiedId,
     session?: ClientSession
   ) {
     // Delete units
@@ -119,8 +120,8 @@ export class PlayerService {
   }
 
   static async leaveGame(
-    gameId: Types.ObjectId,
-    playerId: Types.ObjectId,
+    gameId: UnifiedId,
+    playerId: UnifiedId,
     session?: ClientSession
   ) {
     const result = await PlayerModel.deleteOne(
@@ -132,8 +133,8 @@ export class PlayerService {
   }
 
   static async concedeGame(
-    gameId: Types.ObjectId,
-    playerId: Types.ObjectId,
+    gameId: UnifiedId,
+    playerId: UnifiedId,
     session?: ClientSession
   ) {
     // Update player status to DEFEATED
@@ -151,8 +152,8 @@ export class PlayerService {
   }
 
   static async setStatus(
-    gameId: Types.ObjectId,
-    playerId: Types.ObjectId,
+    gameId: UnifiedId,
+    playerId: UnifiedId,
     status: PlayerStatus,
     session?: ClientSession
   ) {
@@ -163,7 +164,7 @@ export class PlayerService {
     );
   }
 
-  static async touchPlayer(gameId: Types.ObjectId, playerId: Types.ObjectId) {
+  static async touchPlayer(gameId: UnifiedId, playerId: UnifiedId) {
     return PlayerModel.updateOne(
       { gameId, _id: playerId },
       {

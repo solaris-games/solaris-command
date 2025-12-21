@@ -1,13 +1,13 @@
-import { ObjectId } from "mongodb";
+import { UnifiedId } from "../types";
 import { HexCoords } from "../types/geometry";
 import { SupplySource } from "../types/supply";
 
 export interface Planet {
-  _id: ObjectId;
-  gameId: ObjectId;
-  playerId: ObjectId | null;
+  _id: UnifiedId;
+  gameId: UnifiedId;
+  playerId: UnifiedId | null;
 
-  hexId: ObjectId;
+  hexId: UnifiedId;
   location: HexCoords;
 
   name: string;

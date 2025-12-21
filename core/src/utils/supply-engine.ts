@@ -1,11 +1,10 @@
-import { ObjectId } from "mongodb";
 import { Planet, Station, Unit } from "../models";
 import { Hex } from "../models/hex"; // Assuming Hex model exports TerrainTypes
 import { HexUtils } from "./hex-utils";
 import { HexCoords, HexCoordsId } from "../types/geometry";
 import { Pathfinding } from "./pathfinding";
 import { CONSTANTS } from "../data";
-import { SupplyTarget } from "../types";
+import { SupplyTarget, UnifiedId } from "../types";
 
 export const SupplyEngine = {
   /**
@@ -13,7 +12,7 @@ export const SupplyEngine = {
    * Uses Dijkstra/Flood Fill to trace supply lines based on MP costs.
    */
   calculatePlayerSupplyNetwork(
-    playerId: ObjectId,
+    playerId: UnifiedId,
     hexes: Hex[],
     planets: Planet[],
     stations: Station[],

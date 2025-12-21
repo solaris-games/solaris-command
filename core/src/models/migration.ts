@@ -1,7 +1,9 @@
-import { ObjectId } from "mongodb";
+import { UnifiedId } from "../types";
+
+// TODO: Need to implement a migration utility for this that uses Mongoose or raw MongoDB?
 
 export interface MigrationLog {
-  _id: ObjectId;
+  _id: UnifiedId;
   filename: string;
   executedAt: Date;
 }

@@ -1,13 +1,13 @@
-import { ObjectId } from "mongodb";
 import { Hex, Planet } from "../models";
-import { GameMap } from "../types";
+import { GameMap, UnifiedId } from "../types";
 import { PLANET_NAMES } from "../data";
 import { HexUtils } from "./hex-utils";
 
 export const MapGenerator = {
   generateFromGameMap(
-    gameId: ObjectId,
-    map: GameMap
+    gameId: UnifiedId,
+    map: GameMap,
+    idGenerator: () => UnifiedId
   ): {
     hexes: Hex[];
     planets: Planet[];
@@ -21,7 +21,7 @@ export const MapGenerator = {
       }
 
       return {
-        _id: new ObjectId(),
+        _id: idGenerator(),
         gameId,
         playerId: null,
         planetId: null, // We will update this later
@@ -47,7 +47,7 @@ export const MapGenerator = {
         );
       }
 
-      const planetId = new ObjectId();
+      const planetId = idGenerator();
 
       // Update the hex's planet id
       const hex = hexes.find((h) => HexUtils.equals(h.location, p.location))!;

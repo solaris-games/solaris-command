@@ -3,6 +3,7 @@ import {
   Hex,
   HexCoords,
   HexUtils,
+  UnifiedId,
   Unit,
   UNIT_CATALOG_ID_MAP,
 } from "@solaris-command/core";
@@ -10,8 +11,8 @@ import { HexModel } from "../db/schemas/hex";
 
 export class HexService {
   static async removeOwnership(
-    gameId: Types.ObjectId,
-    playerId: Types.ObjectId,
+    gameId: UnifiedId,
+    playerId: UnifiedId,
     session?: ClientSession
   ) {
     return HexModel.updateMany(
@@ -21,18 +22,18 @@ export class HexService {
     );
   }
 
-  static async getByGameId(gameId: Types.ObjectId) {
+  static async getByGameId(gameId: UnifiedId) {
     return HexModel.find({ gameId });
   }
 
   static async getByGameIdAndPlayerId(
-    gameId: Types.ObjectId,
-    playerId: Types.ObjectId
+    gameId: UnifiedId,
+    playerId: UnifiedId
   ) {
     return HexModel.find({ gameId, playerId });
   }
 
-  static async getByGameAndId(gameId: Types.ObjectId, hexId: Types.ObjectId) {
+  static async getByGameAndId(gameId: UnifiedId, hexId: UnifiedId) {
     return HexModel.findOne({
       gameId,
       _id: hexId,
@@ -40,7 +41,7 @@ export class HexService {
   }
 
   static async getByGameAndLocation(
-    gameId: Types.ObjectId,
+    gameId: UnifiedId,
     location: HexCoords
   ) {
     return HexModel.findOne({
@@ -51,7 +52,7 @@ export class HexService {
     });
   }
 
-  static async getByGameAndIds(gameId: Types.ObjectId, hexIds: Types.ObjectId[]) {
+  static async getByGameAndIds(gameId: UnifiedId, hexIds: UnifiedId[]) {
     return HexModel.find({
       gameId,
       _id: { $in: hexIds },
@@ -63,9 +64,9 @@ export class HexService {
   }
 
   static async updateHexUnit(
-    gameId: Types.ObjectId,
-    hexId: Types.ObjectId,
-    unitId: Types.ObjectId | null,
+    gameId: UnifiedId,
+    hexId: UnifiedId,
+    unitId: UnifiedId | null,
     session?: ClientSession
   ) {
     return HexModel.updateOne(
@@ -76,9 +77,9 @@ export class HexService {
   }
 
   static async updateHexStation(
-    gameId: Types.ObjectId,
-    hexId: Types.ObjectId,
-    stationId: Types.ObjectId | null,
+    gameId: UnifiedId,
+    hexId: UnifiedId,
+    stationId: UnifiedId | null,
     session?: ClientSession
   ) {
     return HexModel.updateOne(
@@ -89,9 +90,9 @@ export class HexService {
   }
 
   static async updateHexOwnership(
-    gameId: Types.ObjectId,
-    hexId: Types.ObjectId,
-    playerId: Types.ObjectId | null,
+    gameId: UnifiedId,
+    hexId: UnifiedId,
+    playerId: UnifiedId | null,
     session?: ClientSession
   ) {
     return HexModel.updateOne(
@@ -102,7 +103,7 @@ export class HexService {
   }
 
   static async addUnitToAdjacentHexZOC(
-    gameId: Types.ObjectId,
+    gameId: UnifiedId,
     hex: Hex,
     unit: Unit,
     session?: ClientSession
@@ -138,7 +139,7 @@ export class HexService {
   }
 
   static async removeUnitFromAdjacentHexZOC(
-    gameId: Types.ObjectId,
+    gameId: UnifiedId,
     hex: Hex,
     unit: Unit,
     session?: ClientSession
@@ -170,8 +171,8 @@ export class HexService {
   }
 
   static async removeAllPlayerZOC(
-    gameId: Types.ObjectId,
-    playerId: Types.ObjectId,
+    gameId: UnifiedId,
+    playerId: UnifiedId,
     session?: ClientSession
   ) {
     return HexModel.updateMany(

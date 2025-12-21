@@ -1,15 +1,15 @@
-import { ObjectId } from "mongodb";
 import { Unit } from "../models/unit";
 import { HexUtils } from "./hex-utils";
 import { TERRAIN_MP_COSTS, UNIT_CATALOG_ID_MAP } from "../data";
 import { Hex, Planet, TerrainTypes } from "../models";
 import { HexCoords, HexCoordsId } from "../types/geometry";
+import { UnifiedId } from "../types";
 
 export const MapUtils = {
   /**
    * Calculates the MP cost for the player to move a unit into a hex. Accounts for ZOC influence.
    */
-  getHexMPCost(hex: Hex, playerId: ObjectId | null) {
+  getHexMPCost(hex: Hex, playerId: UnifiedId | null) {
     let mpCost = TERRAIN_MP_COSTS[hex.terrain];
 
     if (playerId && MapUtils.isHexInEnemyZOC(hex, playerId)) {
@@ -22,7 +22,7 @@ export const MapUtils = {
   /**
    * Check if a specific player is affected by ZOC in a target hex
    */
-  isHexInEnemyZOC(hex: Hex, playerId: ObjectId) {
+  isHexInEnemyZOC(hex: Hex, playerId: UnifiedId) {
     return hex.zoc.some((z) => String(z.playerId) !== String(playerId));
   },
 
@@ -92,11 +92,11 @@ export const MapUtils = {
     );
   },
 
-  findPlayerPlanets(planets: Planet[], playerId: ObjectId): Planet[] {
+  findPlayerPlanets(planets: Planet[], playerId: UnifiedId): Planet[] {
     return planets.filter((p) => String(p.playerId) === String(playerId));
   },
 
-  findPlayerCapital(planets: Planet[], playerId: ObjectId): Planet | null {
+  findPlayerCapital(planets: Planet[], playerId: UnifiedId): Planet | null {
     return (
       MapUtils.findPlayerPlanets(planets, playerId).find((p) => p.isCapital) ||
       null
@@ -110,7 +110,7 @@ export const MapUtils = {
   findNearestUnownedPlanet(
     planets: Planet[],
     center: HexCoords,
-    excludePlanetId?: ObjectId
+    excludePlanetId?: UnifiedId
   ): Planet | null {
     let nearest: Planet | null = null;
     let minDistance = Infinity;

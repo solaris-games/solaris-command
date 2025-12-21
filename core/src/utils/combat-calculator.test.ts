@@ -2,8 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { CombatCalculator } from "./combat-calculator";
 import { Unit, UnitStatus, UnitStep } from "../models/unit";
 import { Hex, TerrainTypes } from "../models/hex";
-import { CombatShiftType, CombatOperation } from "../types";
-import { ObjectId } from "mongodb";
+import { CombatShiftType, CombatOperation, MockUnifiedId } from "../types";
 
 const CATALOG_UNIT_FRIGATE_ID = "unit_frigate_01";
 const CATALOG_UNIT_BATTLESHIP_ID = "unit_battleship_01";
@@ -33,11 +32,11 @@ function createTestUnit(
   }
 
   return {
-    _id: new ObjectId(),
-    gameId: new ObjectId(),
-    playerId: new ObjectId(),
+    _id: new MockUnifiedId(),
+    gameId: new MockUnifiedId(),
+    playerId: new MockUnifiedId(),
     catalogId: catalogId,
-    hexId: new ObjectId(),
+    hexId: new MockUnifiedId(),
     location: { q: 0, r: 0, s: 0 },
     steps: steps,
     state: {
@@ -58,13 +57,13 @@ function createTestUnit(
 
 function createHex(terrain: TerrainTypes): Hex {
   return {
-    _id: new ObjectId(),
-    gameId: new ObjectId(),
+    _id: new MockUnifiedId(),
+    gameId: new MockUnifiedId(),
     unitId: null,
     location: { q: 0, r: 0, s: 0 },
     terrain: terrain,
     // supply field omitted for brevity as it's not used in calculator
-  } as Hex;
+  } as unknown as Hex;
 }
 
 describe("CombatCalculator", () => {

@@ -1,9 +1,8 @@
-import { HexCoords, HexCoordsId } from "../types";
+import { HexCoordsId, UnifiedId } from "../types";
 import { HexUtils } from "./hex-utils";
 import { Unit } from "../models/unit";
 import { Planet } from "../models/planet";
 import { Station } from "../models/station";
-import { ObjectId } from "mongodb";
 import {
   CONSTANTS,
   SPECIALIST_STEP_ID_MAP,
@@ -16,7 +15,7 @@ export const FogOfWar = {
    * Based on the location of their Units, Planets, and Stations.
    */
   getVisibleHexes(
-    playerId: ObjectId,
+    playerId: UnifiedId,
     units: Unit[],
     planets: Planet[],
     stations: Station[]
@@ -74,7 +73,7 @@ export const FogOfWar = {
    *  - Enemy units that are on visible hexes
    */
   filterVisibleUnits(
-    playerId: ObjectId,
+    playerId: UnifiedId,
     allUnits: Unit[],
     visibleHexes: Set<HexCoordsId>
   ): Unit[] {

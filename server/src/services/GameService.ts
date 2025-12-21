@@ -1,24 +1,24 @@
 import { ClientSession, Types } from "mongoose";
-import { GameStates } from "@solaris-command/core";
+import { Game, GameStates, UnifiedId } from "@solaris-command/core";
 import { GameModel } from "../db/schemas/game";
 import { PlayerModel } from "../db/schemas/player";
 import { GameEventModel } from "../db/schemas/game-event";
 
 export class GameService {
-  static async getById(gameId: Types.ObjectId) {
+  static async getById(gameId: UnifiedId) {
     return GameModel.findById(gameId);
   }
 
-  static async listGamesByUser(userId: Types.ObjectId) {
+  static async listGamesByUser(userId: UnifiedId) {
     // 1. Find games where user is a player
     const myPlayers = await PlayerModel.find({ userId });
 
-    const myGameIds = myPlayers.map((p) => p.gameId);
+    const myGameIds = myPlayers.map((p) => p.gameId as Types.ObjectId);
 
     // 2. Query Games
     const games = await GameModel.find({
       $or: [
-        { _id: { $in: myGameIds } },
+        { _id: { $in: myGameIds } as any },
         { "state.status": GameStates.PENDING },
       ],
     })
@@ -28,32 +28,30 @@ export class GameService {
     return { games, myGameIds };
   }
 
-  static async createGame(gameData: any, session?: ClientSession) {
+  static async createGame(gameData: Game, session?: ClientSession) {
     const game = new GameModel(gameData);
     await game.save({ session });
     return game;
   }
 
-  static async getGameEvents(gameId: Types.ObjectId) {
-    return GameEventModel.find({ gameId })
-      .sort({ createdAt: -1 })
-      .limit(100);
+  static async getGameEvents(gameId: UnifiedId) {
+    return GameEventModel.find({ gameId }).sort({ createdAt: -1 }).limit(100);
   }
 
-  static async lockGame(gameId: Types.ObjectId) {
+  static async lockGame(gameId: UnifiedId) {
     return GameService.updateGameState(gameId, {
       "state.status": GameStates.LOCKED,
     });
   }
 
-  static async unlockGame(gameId: Types.ObjectId) {
+  static async unlockGame(gameId: UnifiedId) {
     return GameService.updateGameState(gameId, {
       "state.status": GameStates.ACTIVE,
     });
   }
 
   static async updateGameState(
-    gameId: Types.ObjectId,
+    gameId: UnifiedId,
     update: any,
     session?: ClientSession
   ) {
@@ -61,7 +59,7 @@ export class GameService {
   }
 
   static async incrementPlayerCount(
-    gameId: Types.ObjectId,
+    gameId: UnifiedId,
     session?: ClientSession
   ) {
     return GameModel.findOneAndUpdate(

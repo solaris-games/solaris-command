@@ -19,9 +19,9 @@ const SupplySourceSchema = new Schema(
 );
 
 const PlanetSchema = new Schema<Planet>({
-  gameId: { type: Schema.Types.ObjectId, ref: "Game", required: true },
-  playerId: { type: Schema.Types.ObjectId, ref: "Player", default: null },
-  hexId: { type: Schema.Types.ObjectId, ref: "Hex", required: true },
+  gameId: { type: Schema.ObjectId, ref: "Game", required: true },
+  playerId: { type: Schema.ObjectId, ref: "Player", default: null },
+  hexId: { type: Schema.ObjectId, ref: "Hex", required: true },
   location: { type: HexCoordsSchema, required: true },
 
   name: { type: String, required: true },

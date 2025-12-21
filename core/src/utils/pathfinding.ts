@@ -1,6 +1,6 @@
-import { ObjectId } from "mongodb";
 import { TERRAIN_MP_COSTS } from "../data";
 import { Hex } from "../models/hex";
+import { UnifiedId } from "../types";
 import { HexCoords, HexCoordsId } from "../types/geometry";
 import { HexUtils } from "./hex-utils";
 import { MapUtils } from "./map-utils";
@@ -15,7 +15,7 @@ export const Pathfinding = {
     start: HexCoords,
     maxCost: number,
     hexMap: Map<HexCoordsId, Hex>,
-    playerId: ObjectId | null // If from the perspective of a player
+    playerId: UnifiedId | null // If from the perspective of a player
   ): Set<HexCoordsId> {
     const visited = new Map<HexCoordsId, number>(); // HexID -> Cost to reach
     const queue: { coord: HexCoords; cost: number }[] = [];

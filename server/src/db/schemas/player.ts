@@ -2,8 +2,8 @@ import { Schema, model } from "mongoose";
 import { Player, PlayerStatus } from "@solaris-command/core";
 
 const PlayerSchema = new Schema<Player>({
-  gameId: { type: Schema.Types.ObjectId, ref: "Game", required: true },
-  userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  gameId: { type: Schema.ObjectId, ref: "Game", required: true },
+  userId: { type: Schema.ObjectId, ref: "User", required: true },
   alias: { type: String, required: true },
   color: { type: String, required: true },
   status: {

@@ -1,26 +1,28 @@
 import { ClientSession, Types } from "mongoose";
 import {
+  UnifiedId,
   Unit,
   UnitCombat,
   UnitMovement,
   UnitStatus,
+  UnitStep,
 } from "@solaris-command/core";
 import { UnitModel } from "../db/schemas/unit";
 
 export class UnitService {
   static async deleteByPlayerId(
-    gameId: Types.ObjectId,
-    playerId: Types.ObjectId,
+    gameId: UnifiedId,
+    playerId: UnifiedId,
     session?: ClientSession
   ) {
     return UnitModel.deleteMany({ gameId, playerId }, { session });
   }
 
-  static async getByGameId(gameId: Types.ObjectId) {
+  static async getByGameId(gameId: UnifiedId) {
     return UnitModel.find({ gameId });
   }
 
-  static async getUnitById(gameId: Types.ObjectId, unitId: Types.ObjectId) {
+  static async getUnitById(gameId: UnifiedId, unitId: UnifiedId) {
     return UnitModel.findOne({ gameId, _id: unitId });
   }
 
@@ -32,16 +34,16 @@ export class UnitService {
   }
 
   static async updateUnit(
-    gameId: Types.ObjectId,
-    unitId: Types.ObjectId,
+    gameId: UnifiedId,
+    unitId: UnifiedId,
     update: any
   ) {
     return UnitModel.updateOne({ gameId, _id: unitId }, update);
   }
 
   static async declareUnitMovement(
-    gameId: Types.ObjectId,
-    unitId: Types.ObjectId,
+    gameId: UnifiedId,
+    unitId: UnifiedId,
     movement: UnitMovement
   ) {
     const update: any = {
@@ -56,7 +58,7 @@ export class UnitService {
     return UnitModel.updateOne({ gameId, _id: unitId }, update);
   }
 
-  static async cancelUnitMovement(gameId: Types.ObjectId, unitId: Types.ObjectId) {
+  static async cancelUnitMovement(gameId: UnifiedId, unitId: UnifiedId) {
     return UnitModel.updateOne(
       { gameId, _id: unitId },
       {
@@ -71,8 +73,8 @@ export class UnitService {
   }
 
   static async declareUnitAttack(
-    gameId: Types.ObjectId,
-    unitId: Types.ObjectId,
+    gameId: UnifiedId,
+    unitId: UnifiedId,
     combat: UnitCombat
   ) {
     return UnitModel.updateOne(
@@ -91,7 +93,7 @@ export class UnitService {
     );
   }
 
-  static async cancelUnitAttack(gameId: Types.ObjectId, unitId: Types.ObjectId) {
+  static async cancelUnitAttack(gameId: UnifiedId, unitId: UnifiedId) {
     return UnitModel.updateOne(
       { gameId, _id: unitId },
       {
@@ -109,9 +111,9 @@ export class UnitService {
   }
 
   static async upgradeUnit(
-    gameId: Types.ObjectId,
-    unitId: Types.ObjectId,
-    newSteps: any[],
+    gameId: UnifiedId,
+    unitId: UnifiedId,
+    newSteps: UnitStep[],
     session?: ClientSession
   ) {
     // Update Unit
@@ -127,9 +129,9 @@ export class UnitService {
   }
 
   static async scrapUnitStep(
-    gameId: Types.ObjectId,
-    unitId: Types.ObjectId,
-    newSteps: any[]
+    gameId: UnifiedId,
+    unitId: UnifiedId,
+    newSteps: UnitStep[]
   ) {
     return UnitModel.updateOne(
       { gameId, _id: unitId },
@@ -141,7 +143,7 @@ export class UnitService {
     );
   }
 
-  static async deleteUnit(gameId: Types.ObjectId, unitId: Types.ObjectId) {
+  static async deleteUnit(gameId: UnifiedId, unitId: UnifiedId) {
     return UnitModel.deleteOne({ gameId, _id: unitId });
   }
 }

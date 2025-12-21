@@ -1,5 +1,5 @@
 import { ClientSession, Types } from "mongoose";
-import { Game, GameStates, Player, FogOfWar, Hex, Planet, Station, Unit } from "@solaris-command/core";
+import { Game, GameStates, Player, FogOfWar, Hex, Planet, Station, Unit, UnifiedId } from "@solaris-command/core";
 import { UnitService } from "./UnitService";
 import { StationService } from "./StationService";
 import { PlanetService } from "./PlanetService";
@@ -17,7 +17,7 @@ export interface GameGalaxy {
 
 export class GameGalaxyService {
   static async getGameGalaxy(game: Game, userId: string) {
-    const gameId = game._id as unknown as Types.ObjectId;
+    const gameId = game._id;
 
     // TODO: Optimize this to execute in parallel
     // Mongoose models return Query objects which are thenable.

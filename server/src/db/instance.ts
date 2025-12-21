@@ -1,5 +1,15 @@
 import mongoose, { Connection, ClientSession } from "mongoose";
 import * as dotenv from "dotenv";
+import {
+  GameEventModel,
+  GameModel,
+  HexModel,
+  PlanetModel,
+  PlayerModel,
+  StationModel,
+  UnitModel,
+  UserModel,
+} from "./schemas";
 
 dotenv.config();
 
@@ -14,6 +24,17 @@ export const connectToDb = async (): Promise<Connection> => {
     const mongooseInstance = await mongoose.connect(mongoUri);
     connection = mongooseInstance.connection;
     console.log(`✅ Connected to MongoDB via Mongoose: ${connection.name}`);
+
+    await GameModel.syncIndexes();
+    await HexModel.syncIndexes();
+    await UnitModel.syncIndexes();
+    await PlayerModel.syncIndexes();
+    await PlanetModel.syncIndexes();
+    await StationModel.syncIndexes();
+    await GameEventModel.syncIndexes();
+    await UserModel.syncIndexes();
+
+    console.log("✅ Indexes synchronized.");
 
     return connection;
   } catch (err) {

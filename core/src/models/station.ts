@@ -1,13 +1,13 @@
-import { ObjectId } from "mongodb";
+import { UnifiedId } from "../types";
 import { HexCoords } from "../types/geometry";
 import { SupplySource } from "../types/supply";
 
 export interface Station {
-  _id: ObjectId;
-  gameId: ObjectId;
-  playerId: ObjectId;
+  _id: UnifiedId;
+  gameId: UnifiedId;
+  playerId: UnifiedId;
 
-  hexId: ObjectId;
+  hexId: UnifiedId;
   location: HexCoords;
   
   supply: SupplySource;

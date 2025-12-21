@@ -1,11 +1,17 @@
-import { ClientSession, Types } from "mongoose";
+import { ClientSession } from "mongoose";
 import { PlayerService } from "./PlayerService";
-import { PlayerStatus } from "@solaris-command/core";
+import { PlayerStatus, UnifiedId, User } from "@solaris-command/core";
 import { UserModel } from "../db/schemas/user";
 import { PlayerModel } from "../db/schemas/player";
 
 export class UserService {
-  static async getUserById(userId: Types.ObjectId) {
+  static async createUser(user: User, session?: ClientSession) {
+    const newUser = new UserModel(user);
+    await newUser.save({ session });
+    return newUser;
+  }
+
+  static async getUserById(userId: UnifiedId) {
     return UserModel.findById(userId);
   }
 
@@ -13,7 +19,7 @@ export class UserService {
     return UserModel.findOne({ email });
   }
 
-  static async touchUser(userId: Types.ObjectId) {
+  static async touchUser(userId: UnifiedId) {
     // Update last seen
     return UserModel.updateOne(
       { _id: userId },
@@ -25,7 +31,7 @@ export class UserService {
     );
   }
 
-  static async deleteUser(userId: Types.ObjectId, session?: ClientSession) {
+  static async deleteUser(userId: UnifiedId, session?: ClientSession) {
     // 1. Delete the user
     const result = await UserModel.deleteOne({ _id: userId }, { session });
 
@@ -56,8 +62,8 @@ export class UserService {
       // Iterate over each player and remove their game assets.
       for (const player of pendingPlayers) {
         await PlayerService.removePlayerAssets(
-          player.gameId as unknown as Types.ObjectId,
-          player._id as unknown as Types.ObjectId,
+          player.gameId as unknown as UnifiedId,
+          player._id as unknown as UnifiedId,
           session
         );
       }

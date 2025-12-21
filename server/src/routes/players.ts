@@ -1,5 +1,4 @@
 import express from "express";
-import { ObjectId } from "mongodb";
 import { authenticateToken } from "../middleware/auth";
 import {
   ERROR_CODES,
@@ -14,6 +13,7 @@ import {
 } from "../middleware";
 import { PlayerService } from "../services";
 import { executeInTransaction, getDb } from "../db";
+import { Types } from "mongoose";
 
 const router = express.Router({ mergeParams: true });
 
@@ -31,8 +31,6 @@ router.post(
       prestige,
     }: { targetPlayerId: string; prestige: number } = req.body;
 
-    const db = getDb();
-
     try {
       if (req.player.prestigePoints < prestige) {
         return res
@@ -47,9 +45,8 @@ router.post(
       }
 
       const targetPlayer = await PlayerService.getByGameAndPlayerId(
-        db,
         req.game._id,
-        new ObjectId(targetPlayerId)
+        new Types.ObjectId(targetPlayerId)
       );
 
       if (!targetPlayer) {
@@ -58,9 +55,8 @@ router.post(
           .json({ errorCode: ERROR_CODES.PLAYER_NOT_FOUND });
       }
 
-      await executeInTransaction(async (db, session) => {
+      await executeInTransaction(async (session) => {
         await PlayerService.deductPrestigePoints(
-          db,
           req.game._id,
           req.player._id,
           prestige,
@@ -68,9 +64,8 @@ router.post(
         );
 
         await PlayerService.incrementPrestigePoints(
-          db,
           req.game._id,
-          new ObjectId(targetPlayerId),
+          new Types.ObjectId(targetPlayerId),
           CONSTANTS.STATION_PRESTIGE_COST,
           session
         );

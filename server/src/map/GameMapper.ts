@@ -5,12 +5,13 @@ import {
   Player,
   GameListItemResponseSchema,
   GameEvent,
+  UnifiedId,
 } from "@solaris-command/core";
 
 export class GameMapper {
   static toGameListResponse(
     games: Game[],
-    myGameIds: any[]
+    myGameIds: UnifiedId[]
   ): GameListItemResponseSchema[] {
     return games.map((g) => ({
       _id: String(g._id),

@@ -2,8 +2,8 @@ import { Schema, model } from "mongoose";
 import { GameEvent } from "@solaris-command/core";
 
 const GameEventSchema = new Schema<GameEvent>({
-  gameId: { type: Schema.Types.ObjectId, ref: "Game", required: true },
-  playerId: { type: Schema.Types.ObjectId, ref: "Player", default: null },
+  gameId: { type: Schema.ObjectId, ref: "Game", required: true },
+  playerId: { type: Schema.ObjectId, ref: "Player", default: null },
   tick: { type: Number, required: true },
   type: { type: String, required: true },
   data: { type: Schema.Types.Mixed, required: true },

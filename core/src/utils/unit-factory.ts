@@ -1,15 +1,16 @@
-import { ObjectId } from "mongodb";
 import { Unit, UnitStatus, UnitStep } from "../models/unit";
 import { HexCoords } from "../types/geometry";
 import { UNIT_CATALOG_ID_MAP } from "../data/units";
+import { UnifiedId } from "../types";
 
 export class UnitFactory {
   static createUnit(
     catalogId: string,
-    playerId: ObjectId,
-    gameId: ObjectId,
-    hexId: ObjectId,
-    location: HexCoords
+    playerId: UnifiedId,
+    gameId: UnifiedId,
+    hexId: UnifiedId,
+    location: HexCoords,
+    idGenerator: () => UnifiedId
   ): Unit {
     const catalogItem = UNIT_CATALOG_ID_MAP.get(catalogId);
 
@@ -27,7 +28,7 @@ export class UnitFactory {
     }
 
     const unit: Unit = {
-      _id: new ObjectId(),
+      _id: idGenerator(),
       gameId: gameId,
       playerId: playerId,
       catalogId: catalogId,

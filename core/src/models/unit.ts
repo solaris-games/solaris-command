@@ -1,5 +1,4 @@
-import { ObjectId } from "mongodb";
-import { CombatOperation, HexCoords, SupplyTarget } from "../types";
+import { CombatOperation, HexCoords, SupplyTarget, UnifiedId } from "../types";
 
 export enum UnitStatus {
   IDLE = "IDLE",
@@ -24,19 +23,19 @@ export interface UnitMovement {
 }
 
 export interface UnitCombat {
-  hexId: ObjectId | null;
+  hexId: UnifiedId | null;
   location: HexCoords | null; // If Preparing, where are we attacking?
   operation: CombatOperation | null;
   advanceOnVictory: boolean | null;
 }
 
 export interface Unit {
-  _id: ObjectId;
-  gameId: ObjectId;
-  playerId: ObjectId;
+  _id: UnifiedId;
+  gameId: UnifiedId;
+  playerId: UnifiedId;
   catalogId: string;
 
-  hexId: ObjectId;
+  hexId: UnifiedId;
   location: HexCoords;
 
   steps: UnitStep[];

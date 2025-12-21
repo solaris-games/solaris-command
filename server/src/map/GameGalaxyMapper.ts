@@ -2,18 +2,18 @@ import {
   GameGalaxyResponseSchema,
   GameStates,
   HexCoords,
+  UnifiedId,
   UnitManager,
 } from "@solaris-command/core";
 import { GameGalaxy } from "../services/GameGalaxyService";
-import { ObjectId } from "mongodb";
 
 export class GameGalaxyMapper {
   static toGameGalaxyResponse(
     galaxy: GameGalaxy,
-    userPlayerId: ObjectId | null // Will mask data based on the perspective of this player.
+    userPlayerId: UnifiedId | null // Will mask data based on the perspective of this player.
   ): GameGalaxyResponseSchema {
     // Mask a field if the player id does not match.
-    const tryMaskField = (playerId: ObjectId, value: any) => {
+    const tryMaskField = (playerId: UnifiedId, value: any) => {
       // Do not mask for completed games.
       if (galaxy.game.state.status === GameStates.COMPLETED) {
         return value;
@@ -34,7 +34,7 @@ export class GameGalaxyMapper {
 
     // Masks movement paths so that a player can only
     // see the next upcoming movement of enemy units.
-    const tryMaskMovementPath = (playerId: ObjectId, path: HexCoords[]): HexCoords[] => {
+    const tryMaskMovementPath = (playerId: UnifiedId, path: HexCoords[]): HexCoords[] => {
       // Do not mask for completed games.
       if (galaxy.game.state.status === GameStates.COMPLETED) {
         return path;
@@ -140,7 +140,7 @@ export class GameGalaxyMapper {
         },
         combat: {
           // Note: Masking combat location is not needed since combat triggers at the end of the tick.
-          hexId: u.combat.hexId,
+          hexId: u.combat.hexId ? String(u.combat.hexId) : null,
           location: u.combat.location,
           operation: tryMaskField(u.playerId, u.combat.operation),
           advanceOnVictory: tryMaskField(u.playerId, u.combat.advanceOnVictory)

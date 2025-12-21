@@ -1,7 +1,6 @@
 import express from "express";
-import { ObjectId } from "mongodb";
 import { authenticateToken } from "../middleware/auth";
-import { executeInTransaction, getDb } from "../db/instance";
+import { executeInTransaction } from "../db/instance";
 import {
   loadGame,
   requireActiveGame,
@@ -26,18 +25,16 @@ import {
   UnitService,
 } from "../services";
 import { GameMapper, GameGalaxyMapper } from "../map";
+import { Types } from "mongoose";
 
 const router = express.Router();
 
 // GET /api/v1/games
 // List open games and my games
 router.get("/", authenticateToken, async (req, res) => {
-  const db = getDb();
-
   try {
     const { games, myGameIds } = await GameService.listGamesByUser(
-      db,
-      new ObjectId(req.user.id)
+      new Types.ObjectId(req.user.id)
     );
 
     res.json(GameMapper.toGameListResponse(games, myGameIds));
@@ -59,13 +56,12 @@ router.post(
   requirePendingGame,
   async (req, res) => {
     try {
-      const result = await executeInTransaction(async (db, session) => {
+      const result = await executeInTransaction(async (session) => {
         const gameId = req.game._id;
-        const userId = new ObjectId(req.user.id);
+        const userId = new Types.ObjectId(req.user.id);
 
         // Check if already joined (Atomic check within transaction not strictly necessary if index unique, but good for logic)
         const existingPlayer = await PlayerService.getByGameAndUserId(
-          db,
           gameId,
           userId
         );
@@ -76,7 +72,6 @@ router.post(
 
         // Create Player
         const newPlayer = await PlayerService.joinGame(
-          db,
           gameId,
           userId,
           {
@@ -87,7 +82,7 @@ router.post(
         );
 
         // Assign Capital
-        const planets = await PlanetService.getByGameId(db, gameId);
+        const planets = await PlanetService.getByGameId(gameId);
         const capital = MapUtils.findUnownedCapital(planets);
 
         if (!capital) {
@@ -95,7 +90,6 @@ router.post(
         }
 
         await PlanetService.assignPlanetToPlayer(
-          db,
           req.game._id,
           capital._id,
           newPlayer._id,
@@ -114,7 +108,6 @@ router.post(
         }
 
         await PlanetService.assignPlanetToPlayer(
-          db,
           req.game._id,
           secondPlanet._id,
           newPlayer._id,
@@ -122,7 +115,7 @@ router.post(
         );
 
         // Assign Starting Fleet
-        const hexes = await HexService.getByGameId(db, gameId);
+        const hexes = await HexService.getByGameId(gameId);
         const fleetIds = CONSTANTS.STARTING_FLEET_IDS;
 
         const spawnHexes = MapUtils.findNearestFreeHexes(
@@ -148,14 +141,14 @@ router.post(
             newPlayer._id,
             gameId,
             hex._id,
-            hex.location
+            hex.location,
+            () => new Types.ObjectId() // ID Generator
           );
 
-          const createdUnit = await UnitService.createUnit(db, unit, session);
+          const createdUnit = await UnitService.createUnit(unit, session);
 
           // Update Hex
           await HexService.updateHexUnit(
-            db,
             req.game._id,
             hex._id,
             createdUnit._id,
@@ -163,7 +156,6 @@ router.post(
           );
 
           await HexService.addUnitToAdjacentHexZOC(
-            db,
             req.game._id,
             hex,
             unit,
@@ -190,7 +182,6 @@ router.post(
           if (hex.playerId && String(hex.playerId) !== String(newPlayer._id)) {
             // Contested! Set to null
             await HexService.updateHexOwnership(
-              db,
               req.game._id,
               hex._id,
               null,
@@ -199,7 +190,6 @@ router.post(
           } else {
             // Claim it
             await HexService.updateHexOwnership(
-              db,
               req.game._id,
               hex._id,
               newPlayer._id,
@@ -209,7 +199,7 @@ router.post(
         }
 
         // Increment (Blind update)
-        await GameService.incrementPlayerCount(db, gameId, session);
+        await GameService.incrementPlayerCount(gameId, session);
 
         // Check Game Start (Using req.game count + 1 for current player)
         // Note: req.game.state.playerCount is old value. We add 1.
@@ -220,7 +210,6 @@ router.post(
           );
 
           await GameService.updateGameState(
-            db,
             gameId,
             {
               "state.status": GameStates.ACTIVE,
@@ -277,15 +266,13 @@ router.post(
   loadPlayer,
   async (req, res) => {
     try {
-      await executeInTransaction(async (db, session) => {
+      await executeInTransaction(async (session) => {
         await PlayerService.leaveGame(
-          db,
           req.game._id,
           req.player._id,
           session
         );
         await PlayerService.removePlayerAssets(
-          db,
           req.game._id,
           req.player._id,
           session
@@ -311,10 +298,8 @@ router.post(
   requireActiveGame,
   loadPlayer,
   async (req, res) => {
-    const db = getDb();
-
     try {
-      await PlayerService.concedeGame(db, req.game._id, req.player._id);
+      await PlayerService.concedeGame(req.game._id, req.player._id);
     } catch (error) {
       console.error("Error conceding game:", error);
 
@@ -334,11 +319,8 @@ router.get(
   authenticateToken,
   loadGame,
   async (req, res) => {
-    const db = getDb();
-
     try {
       const { galaxy, currentPlayer } = await GameGalaxyService.getGameGalaxy(
-        db,
         req.game,
         req.user.id
       );
@@ -369,13 +351,11 @@ router.get(
   loadGame,
   loadPlayer,
   async (req, res) => {
-    const db = getDb();
     try {
       // Check if player is in game
       const player = await PlayerService.getByGameAndUserId(
-        db,
         req.game._id,
-        new ObjectId(req.user.id)
+        new Types.ObjectId(req.user.id)
       );
 
       if (!player) {
@@ -384,7 +364,7 @@ router.get(
           .json({ errorCode: ERROR_CODES.USER_NOT_IN_GAME });
       }
 
-      const events = await GameService.getGameEvents(db, req.game._id);
+      const events = await GameService.getGameEvents(req.game._id);
 
       res.json(GameMapper.toGameEventsResponse(events));
     } catch (error) {

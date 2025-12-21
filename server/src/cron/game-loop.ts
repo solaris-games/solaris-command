@@ -1,13 +1,5 @@
 import cron from "node-cron";
 import {
-  MongoClient,
-  ObjectId,
-  AnyBulkWriteOperation,
-  BulkWriteResult,
-  DeleteResult,
-} from "mongodb";
-import { Types } from "mongoose";
-import {
   Game,
   GameStates,
   Unit,
@@ -17,8 +9,6 @@ import {
   TickProcessor,
   ProcessCycleResult,
   Station,
-  GameEvent,
-  User,
   TickContext,
   CycleTickContext,
 } from "@solaris-command/core";
@@ -101,7 +91,7 @@ async function processActiveGames() {
  * Execute logic for a single game instance
  */
 async function executeGameTick(game: Game) {
-  const gameId = game._id as unknown as Types.ObjectId;
+  const gameId = game._id;
 
   // Start by locking the game to prevent players from changing the game state
   // during tick processing. We don't know how long ticks will take to
@@ -186,14 +176,13 @@ async function executeGameTick(game: Game) {
   // We execute updates in a transaction.
 
   await executeInTransaction(async (session) => {
-
     const savePromises: Promise<any>[] = [];
 
     // 1. Save Modified Entities
     // Mongoose tracks changes. calling .save() only writes if modified.
 
     // Planets
-    planets.forEach(p => savePromises.push(p.save({ session })));
+    planets.forEach((p) => savePromises.push(p.save({ session })));
 
     // Units (Only live ones)
     // Note: units array was filtered above for Cycle processing if cycle happened.
@@ -202,37 +191,41 @@ async function executeGameTick(game: Game) {
     // We should NOT save those.
     // Filter again to be safe.
     const liveUnits = units.filter(
-        (u) => !tickResult.unitsToRemove.some((id) => String(id) === String(u._id))
+      (u) =>
+        !tickResult.unitsToRemove.some((id) => String(id) === String(u._id))
     );
     // Also filter out units starved in cycle
     const cycleDeadUnits = cycleResult ? cycleResult.unitsToDelete : [];
     const finalLiveUnits = liveUnits.filter(
-        (u) => !cycleDeadUnits.some((id) => String(id) === String(u._id))
+      (u) => !cycleDeadUnits.some((id) => String(id) === String(u._id))
     );
 
-    finalLiveUnits.forEach(u => savePromises.push(u.save({ session })));
+    finalLiveUnits.forEach((u) => savePromises.push(u.save({ session })));
 
     // Hexes
-    hexes.forEach(h => savePromises.push(h.save({ session })));
+    hexes.forEach((h) => savePromises.push(h.save({ session })));
 
     // Players (Points updates)
-    players.forEach(p => savePromises.push(p.save({ session })));
-
+    players.forEach((p) => savePromises.push(p.save({ session })));
 
     // 2. Deletions
     const unitsToDelete = [...tickResult.unitsToRemove];
     const stationsToDelete = [...tickResult.stationsToRemove];
 
     if (cycleResult) {
-        cycleResult.unitsToDelete.forEach(id => unitsToDelete.push(id));
+      cycleResult.unitsToDelete.forEach((id) => unitsToDelete.push(id));
     }
 
     if (unitsToDelete.length > 0) {
-        savePromises.push(UnitModel.deleteMany({ _id: { $in: unitsToDelete } }, { session }));
+      savePromises.push(
+        UnitModel.deleteMany({ _id: { $in: unitsToDelete } }, { session })
+      );
     }
 
     if (stationsToDelete.length > 0) {
-        savePromises.push(StationModel.deleteMany({ _id: { $in: stationsToDelete } }, { session }));
+      savePromises.push(
+        StationModel.deleteMany({ _id: { $in: stationsToDelete } }, { session })
+      );
     }
 
     // 3. Game State Update
@@ -243,7 +236,7 @@ async function executeGameTick(game: Game) {
 
     // Unlock Game
     if (game.state.status === GameStates.LOCKED) {
-        game.state.status = GameStates.ACTIVE;
+      game.state.status = GameStates.ACTIVE;
     }
 
     // Note: `game` variable refers to the document.
@@ -252,47 +245,46 @@ async function executeGameTick(game: Game) {
     const gameDoc = game as any; // Document
     savePromises.push(gameDoc.save({ session }));
 
-
     // 4. Combat Reports
     if (tickResult.combatReports.length > 0) {
-        const events = [];
+      const events: any[] = [];
 
-        tickResult.combatReports.forEach(r => {
-            events.push({
-                gameId: gameId,
-                playerId: r.attackerId,
-                tick: newTick,
-                type: "COMBAT_REPORT",
-                data: r,
-                // createdAt handled by schema timestamp or default
-            });
-             events.push({
-                gameId: gameId,
-                playerId: r.defenderId,
-                tick: newTick,
-                type: "COMBAT_REPORT",
-                data: r,
-            });
+      tickResult.combatReports.forEach((r) => {
+        events.push({
+          gameId: gameId,
+          playerId: r.attackerId,
+          tick: newTick,
+          type: "COMBAT_REPORT",
+          data: r,
+          // createdAt handled by schema timestamp or default
         });
+        events.push({
+          gameId: gameId,
+          playerId: r.defenderId,
+          tick: newTick,
+          type: "COMBAT_REPORT",
+          data: r,
+        });
+      });
 
-        savePromises.push(GameEventModel.insertMany(events, { session }));
+      savePromises.push(GameEventModel.insertMany(events, { session }));
     }
 
     // 5. User Achievements (Victory)
     if (cycleResult && cycleResult.winnerPlayerId) {
-         const winnerPlayer = players.find(
-            (p) => String(p._id) === String(cycleResult.winnerPlayerId)
-          );
+      const winnerPlayer = players.find(
+        (p) => String(p._id) === String(cycleResult.winnerPlayerId)
+      );
 
-          if (winnerPlayer) {
-              savePromises.push(
-                  UserModel.updateOne(
-                      { _id: winnerPlayer.userId },
-                      { $inc: { "achievements.victories": 1 } },
-                      { session }
-                  )
-              );
-          }
+      if (winnerPlayer) {
+        savePromises.push(
+          UserModel.updateOne(
+            { _id: winnerPlayer.userId },
+            { $inc: { "achievements.victories": 1 } },
+            { session }
+          )
+        );
+      }
     }
 
     await Promise.all(savePromises);

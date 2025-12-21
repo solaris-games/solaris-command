@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { getDb } from "../db/instance";
-import { ObjectId } from "mongodb";
-import { ERROR_CODES, Game, GameStates, Player } from "@solaris-command/core";
+import { ERROR_CODES, Game, GameStates } from "@solaris-command/core";
 import { GameService } from "../services";
+import { Types } from "mongoose";
 
 // Extend Express to include game
 declare global {
@@ -23,10 +22,8 @@ export const loadGame = async (
   if (!gameId)
     return res.status(400).json({ errorCode: ERROR_CODES.GAME_ID_REQUIRED });
 
-  const db = getDb();
-
   try {
-    const game = await GameService.getById(db, new ObjectId(gameId));
+    const game = await GameService.getById(new Types.ObjectId(gameId));
 
     if (!game)
       return res.status(404).json({ errorCode: ERROR_CODES.GAME_NOT_FOUND });

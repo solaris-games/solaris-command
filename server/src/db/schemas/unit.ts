@@ -41,7 +41,7 @@ const UnitMovementSchema = new Schema(
 
 const UnitCombatSchema = new Schema(
   {
-    hexId: { type: Schema.Types.ObjectId, default: null },
+    hexId: { type: Schema.ObjectId, default: null },
     location: { type: HexCoordsSchema, default: null },
     operation: { type: String, default: null },
     advanceOnVictory: { type: Boolean, default: null },
@@ -59,11 +59,11 @@ const SupplyTargetSchema = new Schema(
 );
 
 const UnitSchema = new Schema<Unit>({
-  gameId: { type: Schema.Types.ObjectId, ref: "Game", required: true },
-  playerId: { type: Schema.Types.ObjectId, ref: "Player", required: true },
+  gameId: { type: Schema.ObjectId, ref: "Game", required: true },
+  playerId: { type: Schema.ObjectId, ref: "Player", required: true },
   catalogId: { type: String, required: true },
 
-  hexId: { type: Schema.Types.ObjectId, ref: "Hex", required: true },
+  hexId: { type: Schema.ObjectId, ref: "Hex", required: true },
   location: { type: HexCoordsSchema, required: true },
 
   steps: { type: [UnitStepSchema], required: true },

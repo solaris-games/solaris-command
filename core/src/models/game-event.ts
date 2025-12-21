@@ -1,9 +1,9 @@
-import { ObjectId } from "mongodb";
+import { UnifiedId } from "../types";
 
 export interface GameEvent {
-  _id: ObjectId;
-  gameId: ObjectId;
-  playerId: ObjectId | null;
+  _id: UnifiedId;
+  gameId: UnifiedId;
+  playerId: UnifiedId | null;
 
   tick: number;
   type: string;

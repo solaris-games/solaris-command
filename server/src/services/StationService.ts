@@ -1,25 +1,25 @@
 import { ClientSession, Types } from "mongoose";
-import { Station } from "@solaris-command/core";
+import { Station, UnifiedId } from "@solaris-command/core";
 import { StationModel } from "../db/schemas/station";
 
 export class StationService {
   static async deleteByPlayerId(
-    gameId: Types.ObjectId,
-    playerId: Types.ObjectId,
+    gameId: UnifiedId,
+    playerId: UnifiedId,
     session?: ClientSession
   ) {
     return StationModel.deleteMany({ gameId, playerId }, { session });
   }
 
-  static async getByGameId(gameId: Types.ObjectId) {
+  static async getByGameId(gameId: UnifiedId) {
     return StationModel.find({ gameId });
   }
 
-  static async getByPlayerId(gameId: Types.ObjectId, playerId: Types.ObjectId) {
+  static async getByPlayerId(gameId: UnifiedId, playerId: UnifiedId) {
     return StationModel.find({ gameId, playerId });
   }
 
-  static async getStationById(gameId: Types.ObjectId, stationId: Types.ObjectId) {
+  static async getStationById(gameId: UnifiedId, stationId: UnifiedId) {
     return StationModel.findOne({ gameId, _id: stationId });
   }
 
@@ -32,7 +32,7 @@ export class StationService {
     return newStation;
   }
 
-  static async deleteStation(gameId: Types.ObjectId, stationId: Types.ObjectId) {
+  static async deleteStation(gameId: UnifiedId, stationId: UnifiedId) {
     await StationModel.deleteOne({ gameId, _id: stationId });
   }
 }

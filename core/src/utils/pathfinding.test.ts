@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { Pathfinding } from "./pathfinding";
 import { Hex, TerrainTypes } from "../models/hex";
 import { HexCoords, HexCoordsId } from "../types/geometry";
-import { ObjectId } from "mongodb";
 import { HexUtils } from "./hex-utils";
+import { MockUnifiedId } from "../types";
 
 // --- HELPER: Create a map of hexes ---
 function createMap(
@@ -12,7 +12,7 @@ function createMap(
   terrainOverride: Map<HexCoordsId, TerrainTypes> = new Map()
 ): Map<HexCoordsId, Hex> {
   const map = new Map<HexCoordsId, Hex>();
-  const gameId = new ObjectId();
+  const gameId = new MockUnifiedId();
 
   for (let q = -width; q <= width; q++) {
     for (let r = -height; r <= height; r++) {
@@ -21,7 +21,7 @@ function createMap(
       const id = HexUtils.getCoordsID(coords);
 
       map.set(id, {
-        _id: new ObjectId(),
+        _id: new MockUnifiedId(),
         planetId: null,
         stationId: null,
         gameId: gameId,
@@ -79,12 +79,12 @@ describe("Pathfinding", () => {
       const map = createMap(3, 3);
       const ZOCHexId = "1,0,-1"; // Base Cost 1
 
-      const playerId = new ObjectId()
-      const enemyPlayerId = new ObjectId()
+      const playerId = new MockUnifiedId()
+      const enemyPlayerId = new MockUnifiedId()
 
       map.get(ZOCHexId)!.zoc.push({
         playerId: enemyPlayerId,
-        unitId: new ObjectId()
+        unitId: new MockUnifiedId()
       })
 
       // With ZOC, cost becomes 2.

@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb";
+import { UnifiedId } from "../types";
 
 export enum GameStates {
   PENDING = "PENDING",
@@ -17,7 +17,7 @@ export interface GameState {
   startDate: Date | null;
   endDate: Date | null;
   lastTickDate: Date | null;
-  winnerPlayerId: ObjectId | null;
+  winnerPlayerId: UnifiedId | null;
 }
 
 export interface GameSettings {
@@ -30,7 +30,7 @@ export interface GameSettings {
 }
 
 export interface Game {
-  _id: ObjectId;
+  _id: UnifiedId;
   mapId: string; // Name of the map used to generate the game's galaxy.
 
   name: string;

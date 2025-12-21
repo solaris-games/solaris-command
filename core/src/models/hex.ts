@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb";
+import { UnifiedId } from "../types";
 import { HexCoords } from "../types/geometry";
 
 export enum TerrainTypes {
@@ -31,20 +31,20 @@ export enum TerrainTypes {
 }
 
 export interface Hex {
-  _id: ObjectId;
-  gameId: ObjectId;
-  playerId: ObjectId | null;
-  planetId: ObjectId | null;
-  stationId: ObjectId | null;
-  unitId: ObjectId | null; // One unit per hex.
+  _id: UnifiedId;
+  gameId: UnifiedId;
+  playerId: UnifiedId | null;
+  planetId: UnifiedId | null;
+  stationId: UnifiedId | null;
+  unitId: UnifiedId | null; // One unit per hex.
 
   location: HexCoords; // { q, r, s }
   terrain: TerrainTypes;
 
   // Which units have ZOC influence on this hex
   zoc: {
-    playerId: ObjectId;
-    unitId: ObjectId;
+    playerId: UnifiedId;
+    unitId: UnifiedId;
   }[];
 
   // TODO: Add supply

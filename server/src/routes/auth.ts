@@ -1,11 +1,10 @@
 import express from "express";
 import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
-import { getDb } from "../db/instance";
 import { ERROR_CODES, User } from "@solaris-command/core";
-import { ObjectId } from "mongodb";
 import { UserService } from "../services/UserService";
 import { AuthMapper } from "../map/AuthMapper";
+import { Types } from "mongoose";
 
 const router = express.Router();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -36,19 +35,18 @@ router.post("/google", async (req, res) => {
     }
 
     const { email, sub: googleId, name } = payload;
-    const db = getDb();
 
     // 2. Find or Create User
     // Note: User interface in core/src/models/user.ts defines structure
     // We might need to adjust the schema or just use a basic one for now.
     // The core definition has _id, username, email, lastSeenDate, achievements
 
-    let user = await UserService.getUserByEmail(db, email);
+    let user = await UserService.getUserByEmail(email);
 
     if (!user) {
       // Create new user
       const newUser: User = {
-        _id: new ObjectId(),
+        _id: new Types.ObjectId(),
         googleId, // Store googleId for reference, though email is unique key usually
         email,
         username: name || email.split("@")[0], // TODO: Username in request?
@@ -60,13 +58,10 @@ router.post("/google", async (req, res) => {
         },
       };
 
-      const result = await db.collection<User>("users").insertOne(newUser);
-      // user = { ...newUser, _id: result.insertedId } as User; // Casting
-      // Re-fetch to be safe
-      user = await UserService.getUserById(db, result.insertedId);
+      user = await UserService.createUser(newUser)
     } else {
       // Update last seen
-      await UserService.touchUser(db, user._id);
+      await UserService.touchUser(user._id);
     }
 
     if (!user) {

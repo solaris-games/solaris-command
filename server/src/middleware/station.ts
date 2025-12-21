@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { ObjectId } from "mongodb";
 import { ERROR_CODES, Station } from "@solaris-command/core";
 import { StationService } from "../services/StationService";
-import { getDb } from "../db";
+import { Types } from "mongoose";
 
 // Extend Express to include game
 declare global {
@@ -21,13 +20,10 @@ export const loadPlayerStation = async (
 ) => {
   const { id, stationId } = req.params;
 
-  const db = getDb();
-
   try {
     const station = await StationService.getStationById(
-      db,
-      new ObjectId(id),
-      new ObjectId(stationId)
+      new Types.ObjectId(id),
+      new Types.ObjectId(stationId)
     );
 
     if (!station || String(station.playerId) !== String(req.player._id))
@@ -53,10 +49,8 @@ export const loadStations = async (
 ) => {
   const { gameId } = req.params;
 
-  const db = getDb();
-
   try {
-    const stations = await StationService.getByGameId(db, new ObjectId(gameId));
+    const stations = await StationService.getByGameId(new Types.ObjectId(gameId));
 
     req.stations = stations;
   } catch (error) {

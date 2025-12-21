@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { getDb } from "../db/instance";
-import { ObjectId } from "mongodb";
 import { ERROR_CODES, Player } from "@solaris-command/core";
 import { PlayerService } from "../services";
+import { Types } from "mongoose";
 
 // Extend Express to include game
 declare global {
@@ -21,13 +20,10 @@ export const loadPlayer = async (
   const userId = req.user.id;
   const gameId = req.params.id;
 
-  const db = getDb();
-
   try {
     const player = await PlayerService.getByGameAndUserId(
-      db,
-      new ObjectId(gameId),
-      new ObjectId(userId)
+      new Types.ObjectId(gameId),
+      new Types.ObjectId(userId)
     );
 
     if (!player)
@@ -52,11 +48,9 @@ export const touchPlayer = async (
 ) => {
   const gameId = req.params.id;
 
-  // Update the last seen date of the player
-  const db = getDb();
-
   try {
-    await PlayerService.touchPlayer(db, new ObjectId(gameId), req.player._id);
+  // Update the last seen date of the player
+    await PlayerService.touchPlayer(new Types.ObjectId(gameId), req.player._id);
   } catch (error) {
     console.error("Middleware Error:", error);
 

@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { ObjectId } from "mongodb";
 import { ERROR_CODES, Hex } from "@solaris-command/core";
 import { HexService } from "../services/HexService";
-import { getDb } from "../db";
+import { Types } from "mongoose";
 
 // Extend Express to include game
 declare global {
@@ -23,10 +22,8 @@ export const loadHexes = async (
   if (!gameId)
     return res.status(400).json({ errorCode: ERROR_CODES.GAME_ID_REQUIRED });
 
-  const db = getDb();
-
   try {
-    const hexes = await HexService.getByGameId(db, new ObjectId(gameId));
+    const hexes = await HexService.getByGameId(new Types.ObjectId(gameId));
 
     req.hexes = hexes;
   } catch (error) {
@@ -50,10 +47,8 @@ export const loadPlayerHexes = async (
   if (!gameId)
     return res.status(400).json({ errorCode: ERROR_CODES.GAME_ID_REQUIRED });
 
-  const db = getDb();
-
   try {
-    const hexes = await HexService.getByGameId(db, new ObjectId(gameId));
+    const hexes = await HexService.getByGameId(new Types.ObjectId(gameId));
 
     req.hexes = hexes;
   } catch (error) {

@@ -1,5 +1,4 @@
 import express from "express";
-import { ObjectId } from "mongodb";
 import { authenticateToken } from "../middleware/auth";
 import {
   BuildStationRequestSchema,
@@ -16,8 +15,9 @@ import {
 } from "../middleware";
 import { StationService, PlayerService, HexService } from "../services";
 import { loadPlayerStation, loadStations } from "../middleware/station";
-import { executeInTransaction, getDb } from "../db";
+import { executeInTransaction } from "../db";
 import { StationMapper } from "../map";
+import { Types } from "mongoose";
 
 const router = express.Router({ mergeParams: true });
 
@@ -33,15 +33,12 @@ router.post(
   async (req, res) => {
     const { hexId }: { hexId: string } = req.body;
 
-    const db = getDb();
-
     try {
       // TODO: Validate that the new station will be in supply?
 
       const hex = await HexService.getByGameAndId(
-        db,
         req.game._id,
-        new ObjectId(hexId)
+        new Types.ObjectId(hexId)
       );
 
       if (!hex) {
@@ -73,7 +70,7 @@ router.post(
       }
 
       const newStation: Station = {
-        _id: new ObjectId(),
+        _id: new Types.ObjectId(),
         gameId: req.game._id,
         hexId: hex._id,
         playerId: req.player._id,
@@ -84,15 +81,13 @@ router.post(
         },
       };
 
-      const createdStation = await executeInTransaction(async (db, session) => {
+      const createdStation = await executeInTransaction(async (session) => {
         const station = await StationService.createStation(
-          db,
           newStation,
           session
         );
 
         await HexService.updateHexStation(
-          db,
           req.game._id,
           hex._id,
           newStation._id,
@@ -100,7 +95,6 @@ router.post(
         );
 
         await PlayerService.deductPrestigePoints(
-          db,
           req.game._id,
           req.player._id,
           CONSTANTS.STATION_PRESTIGE_COST,
@@ -138,10 +132,9 @@ router.delete(
   loadPlayerStation,
   async (req, res) => {
     try {
-      await executeInTransaction(async (db, session) => {
-        await StationService.deleteStation(db, req.game._id, req.station._id);
+      await executeInTransaction(async (session) => {
+        await StationService.deleteStation(req.game._id, req.station._id);
         await HexService.updateHexStation(
-          db,
           req.game._id,
           req.station.hexId,
           null

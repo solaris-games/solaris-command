@@ -1,19 +1,18 @@
 import { describe, it, expect } from "vitest";
 import { FogOfWar } from "./fog-of-war";
-import { HexUtils } from "./hex-utils";
-import { ObjectId } from "mongodb";
 import { Unit } from "../models/unit";
 import { Planet } from "../models/planet";
 import { Station } from "../models/station";
+import { MockUnifiedId } from "../types";
 
 describe("FogOfWar", () => {
-  const player1Id = new ObjectId();
-  const player2Id = new ObjectId();
+  const player1Id = new MockUnifiedId();
+  const player2Id = new MockUnifiedId();
 
-  const mockUnit = (idStr: string, pid: ObjectId, q: number, r: number): Unit =>
+  const mockUnit = (idStr: string, pid: MockUnifiedId, q: number, r: number): Unit =>
     ({
       // Create a valid 24-char hex string from the input
-      _id: new ObjectId(idStr.padEnd(24, "0")),
+      _id: new MockUnifiedId(idStr.padEnd(24, "0")),
       catalogId: "unit_corvette_01", // Hex range of 3
       playerId: pid,
       location: { q, r, s: -q - r },

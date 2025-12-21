@@ -6,7 +6,7 @@ import {
   Game,
   GAME_NAMES,
   MapGenerator,
-  GAME_MAPS
+  GAME_MAPS,
 } from "@solaris-command/core";
 import { executeInTransaction } from "../db";
 import { GameService, HexService, PlanetService } from "../services";
@@ -42,7 +42,7 @@ async function checkAndCreateGame() {
 
   console.log("Creating new Offical Game...");
 
-  const map = GAME_MAPS[0] // TODO: Pick a random map from an 'official' pool.
+  const map = GAME_MAPS[0]; // TODO: Pick a random map from an 'official' pool.
 
   const gameName = GAME_NAMES[Math.floor(Math.random() * GAME_NAMES.length)];
 
@@ -74,7 +74,11 @@ async function checkAndCreateGame() {
     },
   };
 
-  const { hexes, planets } = MapGenerator.generateFromGameMap(gameId as unknown as Types.ObjectId, map);
+  const { hexes, planets } = MapGenerator.generateFromGameMap(
+    gameId,
+    map,
+    () => new Types.ObjectId() // ID generator
+  );
 
   await executeInTransaction(async (session) => {
     await GameService.createGame(newGameData, session);

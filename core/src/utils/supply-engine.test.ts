@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ObjectId } from "mongodb";
 import { SupplyEngine } from "./supply-engine";
 import { Pathfinding } from "./pathfinding";
 import {
@@ -11,6 +10,7 @@ import {
   TerrainTypes,
 } from "../models";
 import { CONSTANTS } from "../data";
+import { MockUnifiedId } from "../types";
 
 // --- MOCKS ---
 // We mock Pathfinding because calculating the exact flood fill is tested in pathfinding.test.ts.
@@ -24,8 +24,8 @@ vi.mock("./pathfinding", () => ({
 // --- FACTORIES ---
 function createHex(q: number, r: number, s: number): Hex {
   return {
-    _id: new ObjectId(),
-    gameId: new ObjectId(),
+    _id: new MockUnifiedId(),
+    gameId: new MockUnifiedId(),
     planetId: null,
     stationId: null,
     unitId: null,
@@ -37,18 +37,18 @@ function createHex(q: number, r: number, s: number): Hex {
 }
 
 function createPlanet(
-  playerId: ObjectId,
+  playerId: MockUnifiedId,
   q: number,
   r: number,
   s: number,
   isCapital: boolean
 ): Planet {
   return {
-    _id: new ObjectId(),
-    gameId: new ObjectId(),
+    _id: new MockUnifiedId(),
+    gameId: new MockUnifiedId(),
     playerId,
     name: "Test Planet",
-    hexId: new ObjectId(),
+    hexId: new MockUnifiedId(),
     location: { q, r, s },
     isCapital,
     supply: {
@@ -59,16 +59,16 @@ function createPlanet(
 }
 
 function createStation(
-  playerId: ObjectId,
+  playerId: MockUnifiedId,
   q: number,
   r: number,
   s: number
 ): Station {
   return {
-    _id: new ObjectId(),
-    gameId: new ObjectId(),
+    _id: new MockUnifiedId(),
+    gameId: new MockUnifiedId(),
     playerId,
-    hexId: new ObjectId(),
+    hexId: new MockUnifiedId(),
     location: { q, r, s },
     supply: {
       isInSupply: false, // Dynamic
@@ -77,10 +77,10 @@ function createStation(
   };
 }
 
-function createUnit(playerId: ObjectId, q: number, r: number, s: number): Unit {
+function createUnit(playerId: MockUnifiedId, q: number, r: number, s: number): Unit {
   return {
-    _id: new ObjectId(),
-    gameId: new ObjectId(),
+    _id: new MockUnifiedId(),
+    gameId: new MockUnifiedId(),
     playerId,
     catalogId: "unit_frigate_01",
     location: { q, r, s },
@@ -98,7 +98,7 @@ function createUnit(playerId: ObjectId, q: number, r: number, s: number): Unit {
 }
 
 describe("SupplyEngine", () => {
-  const playerId = new ObjectId();
+  const playerId = new MockUnifiedId();
   let hexes: Hex[] = []
 
   beforeEach(() => {

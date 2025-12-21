@@ -1,8 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
-import { ObjectId } from "mongodb";
 import { MapUtils } from "./map-utils";
-import { Unit, UnitStatus } from "../models/unit";
 import { Hex } from "../models";
+import { MockUnifiedId } from "../types";
 
 // We need to mock the catalog to control ZOC
 vi.mock("../data", () => ({
@@ -26,35 +25,9 @@ vi.mock("../data", () => ({
   ]),
 }));
 
-// --- FACTORY ---
-function createTestUnit(
-  playerId: ObjectId,
-  catalogId: string,
-  q: number = 0,
-  r: number = 0,
-  s: number = 0
-): Unit {
-  return {
-    _id: new ObjectId(),
-    gameId: new ObjectId(),
-    playerId: new ObjectId(playerId),
-    catalogId: catalogId,
-    location: { q, r, s },
-    steps: [{ isSuppressed: false, specialistId: null }], // Not used in ZOC calc
-    state: {
-      status: UnitStatus.IDLE,
-      ap: 1,
-      mp: 1,
-    },
-    supply: { isInSupply: true, ticksLastSupply: 0, ticksOutOfSupply: 0 },
-    movement: { path: [] },
-    combat: { location: null },
-  } as unknown as Unit;
-}
-
 describe("MapUtils", () => {
-  const player1Id = new ObjectId();
-  const player2Id = new ObjectId();
+  const player1Id = new MockUnifiedId();
+  const player2Id = new MockUnifiedId();
 
   describe("isHexInEnemyZOC", () => {
     it("should return false if no ZOC in hex", () => {
@@ -70,10 +43,10 @@ describe("MapUtils", () => {
         zoc: [
           {
             playerId: player1Id,
-            unitId: new ObjectId(),
+            unitId: new MockUnifiedId(),
           },
         ],
-      } as Hex;
+      } as unknown as Hex;
 
       expect(MapUtils.isHexInEnemyZOC(hex, player1Id)).toBe(false);
     });
@@ -83,10 +56,10 @@ describe("MapUtils", () => {
         zoc: [
           {
             playerId: player2Id,
-            unitId: new ObjectId(),
+            unitId: new MockUnifiedId(),
           },
         ],
-      } as Hex;
+      } as unknown as Hex;
 
       expect(MapUtils.isHexInEnemyZOC(hex, player1Id)).toBe(true);
     });
@@ -96,14 +69,14 @@ describe("MapUtils", () => {
         zoc: [
           {
             playerId: player1Id,
-            unitId: new ObjectId(),
+            unitId: new MockUnifiedId(),
           },
           {
             playerId: player2Id,
-            unitId: new ObjectId(),
+            unitId: new MockUnifiedId(),
           },
         ],
-      } as Hex;
+      } as unknown as Hex;
 
       expect(MapUtils.isHexInEnemyZOC(hex, player1Id)).toBe(true);
     });

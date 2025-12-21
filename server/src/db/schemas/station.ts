@@ -19,9 +19,9 @@ const SupplySourceSchema = new Schema(
 );
 
 const StationSchema = new Schema<Station>({
-  gameId: { type: Schema.Types.ObjectId, ref: "Game", required: true },
-  playerId: { type: Schema.Types.ObjectId, ref: "Player", required: true },
-  hexId: { type: Schema.Types.ObjectId, ref: "Hex", required: true },
+  gameId: { type: Schema.ObjectId, ref: "Game", required: true },
+  playerId: { type: Schema.ObjectId, ref: "Player", required: true },
+  hexId: { type: Schema.ObjectId, ref: "Hex", required: true },
   location: { type: HexCoordsSchema, required: true },
   supply: { type: SupplySourceSchema, required: true },
 });

@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { ObjectId } from "mongodb";
 import { ERROR_CODES, Unit, UnitStatus } from "@solaris-command/core";
 import { UnitService } from "../services/UnitService";
-import { getDb } from "../db";
+import { Types } from "mongoose";
 
 // Extend Express to include game
 declare global {
@@ -24,10 +23,8 @@ export const loadUnits = async (
   if (!gameId)
     return res.status(400).json({ errorCode: ERROR_CODES.GAME_ID_REQUIRED });
 
-  const db = getDb();
-
   try {
-    const units = await UnitService.getByGameId(db, new ObjectId(gameId));
+    const units = await UnitService.getByGameId(new Types.ObjectId(gameId));
 
     req.units = units;
   } catch (error) {
@@ -50,12 +47,9 @@ export const loadPlayerUnit = async (
   const { unitId } = req.params;
 
   try {
-    const db = getDb();
-
     const unit = await UnitService.getUnitById(
-      db,
-      new ObjectId(gameId),
-      new ObjectId(unitId)
+      new Types.ObjectId(gameId),
+      new Types.ObjectId(unitId)
     );
 
     if (!unit || String(unit.playerId) !== String(req.player._id))

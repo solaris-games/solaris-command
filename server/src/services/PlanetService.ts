@@ -1,11 +1,11 @@
 import { ClientSession, Types } from "mongoose";
-import { Planet } from "@solaris-command/core";
+import { Planet, UnifiedId } from "@solaris-command/core";
 import { PlanetModel } from "../db/schemas/planet";
 
 export class PlanetService {
   static async removeOwnership(
-    gameId: Types.ObjectId,
-    playerId: Types.ObjectId,
+    gameId: UnifiedId,
+    playerId: UnifiedId,
     session?: ClientSession
   ) {
     return PlanetModel.updateMany(
@@ -15,7 +15,7 @@ export class PlanetService {
     );
   }
 
-  static async getByGameId(gameId: Types.ObjectId) {
+  static async getByGameId(gameId: UnifiedId) {
     return PlanetModel.find({ gameId });
   }
 
@@ -24,9 +24,9 @@ export class PlanetService {
   }
 
   static async assignPlanetToPlayer(
-    gameId: Types.ObjectId,
-    planetId: Types.ObjectId,
-    playerId: Types.ObjectId,
+    gameId: UnifiedId,
+    planetId: UnifiedId,
+    playerId: UnifiedId,
     session?: ClientSession
   ) {
     return PlanetModel.updateOne(

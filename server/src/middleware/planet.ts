@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { ObjectId } from "mongodb";
 import { ERROR_CODES, Planet } from "@solaris-command/core";
 import { PlanetService } from "../services/PlanetService";
-import { getDb } from "../db";
+import { Types } from "mongoose";
 
 // Extend Express to include game
 declare global {
@@ -23,10 +22,8 @@ export const loadPlanets = async (
   if (!gameId)
     return res.status(400).json({ errorCode: ERROR_CODES.GAME_ID_REQUIRED });
 
-  const db = getDb();
-
   try {
-    const planets = await PlanetService.getByGameId(db, new ObjectId(gameId));
+    const planets = await PlanetService.getByGameId(new Types.ObjectId(gameId));
 
     req.planets = planets;
   } catch (error) {

@@ -1,17 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { CombatEngine } from "./combat-engine";
-import { Unit, UnitStatus, Hex, TerrainTypes, UnitStep } from "../models";
+import { Unit, UnitStatus, Hex, TerrainTypes } from "../models";
 import {
   CombatOperation,
   CombatResultType,
   CombatForcedResult,
   SpecialistStepTypes,
   HexCoordsId,
+  MockUnifiedId,
+  UnifiedId,
 } from "../types";
 import { CombatCalculator } from "./combat-calculator";
 import { CombatTables, SPECIALIST_STEP_MAP } from "../data";
 import { UnitManager as UnitUtils } from "./unit-manager";
-import { ObjectId } from "mongodb";
 import { HexUtils } from "./hex-utils";
 
 // --- MOCKS ---
@@ -24,12 +25,12 @@ function createHex(
   q: number,
   r: number,
   s: number,
-  unitId: ObjectId | null,
+  unitId: MockUnifiedId | UnifiedId | null,
   terrain: TerrainTypes = TerrainTypes.EMPTY
 ): Hex {
   return {
-    _id: new ObjectId(),
-    gameId: new ObjectId(),
+    _id: new MockUnifiedId(),
+    gameId: new MockUnifiedId(),
     playerId: null,
     unitId,
     planetId: null,
@@ -50,11 +51,11 @@ function createUnit(
   mp: number = 1
 ): Unit {
   return {
-    _id: new ObjectId(id),
-    gameId: new ObjectId(),
-    playerId: new ObjectId(playerId),
+    _id: new MockUnifiedId(id),
+    gameId: new MockUnifiedId(),
+    playerId: new MockUnifiedId(playerId),
     catalogId: "unit_frigate_01",
-    hexId: new ObjectId(),
+    hexId: new MockUnifiedId(),
     location: { q, r, s },
     steps: [
       { isSuppressed: false, specialistId: null },
@@ -75,8 +76,8 @@ function createUnit(
 }
 
 describe("CombatEngine", () => {
-  const attackerId = new ObjectId().toString();
-  const defenderId = new ObjectId().toString();
+  const attackerId = new MockUnifiedId().toString();
+  const defenderId = new MockUnifiedId().toString();
   let attacker: Unit;
   let defender: Unit;
   let hexLookup: Map<HexCoordsId, Hex>;
@@ -88,7 +89,7 @@ describe("CombatEngine", () => {
     // Setup basic scenario: Attacker at 0,0,0 vs Defender at 1,0,-1
     attacker = createUnit(
       attackerId,
-      new ObjectId().toString(),
+      new MockUnifiedId().toString(),
       0,
       0,
       0,
@@ -96,7 +97,7 @@ describe("CombatEngine", () => {
     );
     defender = createUnit(
       defenderId,
-      new ObjectId().toString(),
+      new MockUnifiedId().toString(),
       1,
       0,
       -1,

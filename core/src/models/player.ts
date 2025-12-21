@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb";
+import { UnifiedId } from "../types";
 
 export enum PlayerStatus {
   ACTIVE = 'ACTIVE',
@@ -6,9 +6,9 @@ export enum PlayerStatus {
 };
 
 export interface Player {
-  _id: ObjectId;
-  gameId: ObjectId;
-  userId: ObjectId;
+  _id: UnifiedId;
+  gameId: UnifiedId;
+  userId: UnifiedId;
 
   alias: string;
   color: string; // Hex code e.g., "#FF0000"

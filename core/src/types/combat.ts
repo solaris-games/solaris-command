@@ -1,5 +1,5 @@
-import { ObjectId } from "mongodb";
 import { HexCoords } from "./geometry";
+import { UnifiedId } from "./unified-id";
 
 export enum CombatResultType {
   MISS = "MISS",
@@ -48,10 +48,10 @@ export interface CombatForcedResult {
 
 export interface CombatReport {
   tick: number;
-  attackerId: ObjectId;
-  defenderId: ObjectId;
+  attackerId: UnifiedId;
+  defenderId: UnifiedId;
 
-  hexId: ObjectId;
+  hexId: UnifiedId;
   location: HexCoords;
 
   // The "Dice Roll" outcome

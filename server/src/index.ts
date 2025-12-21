@@ -23,11 +23,11 @@ app.use(express.json());
 async function startServer() {
   try {
     // 1. Connect to MongoDB
-    const { client } = await connectToDb();
+    await connectToDb();
 
     // 2. Start cron jobs
-    GameLoop.start(client);
-    CreateGameJob.start(client);
+    GameLoop.start();
+    CreateGameJob.start();
 
     // 3. Start Express
     app.listen(port, () => {

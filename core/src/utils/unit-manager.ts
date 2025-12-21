@@ -1,4 +1,3 @@
-import { ObjectId } from "mongodb";
 import {
   CONSTANTS,
   ERROR_CODES,
@@ -164,7 +163,7 @@ export const UnitManager = {
    * Rules: Adjacent to any player owned planet, Empty Hex, No Unit.
    */
   getValidSpawnLocations(
-    playerId: ObjectId,
+    playerId: any,
     planets: Planet[],
     hexes: Hex[],
     allUnits: Unit[]

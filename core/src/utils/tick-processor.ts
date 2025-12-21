@@ -1,4 +1,3 @@
-import { ObjectId } from "mongodb";
 import { CONSTANTS, UNIT_CATALOG_ID_MAP } from "../data";
 import {
   Game,
@@ -9,10 +8,9 @@ import {
   Station,
   Player,
   GameStates,
-  PlayerStatus,
-  GameState,
+  PlayerStatus
 } from "../models";
-import { CombatReport, HexCoords, HexCoordsId } from "../types";
+import { CombatReport, HexCoords, HexCoordsId, UnifiedId } from "../types";
 import { CombatEngine } from "./combat-engine";
 import { HexUtils } from "./hex-utils";
 import { UnitManager } from "./unit-manager";
@@ -24,8 +22,8 @@ import { MapUtils } from "./map-utils";
 
 export interface ProcessTickResult {
   combatReports: CombatReport[]; // Logs for the UI
-  unitsToRemove: ObjectId[]; // Dead units to delete
-  stationsToRemove: ObjectId[]; // Captured stations to delete
+  unitsToRemove: UnifiedId[]; // Dead units to delete
+  stationsToRemove: UnifiedId[]; // Captured stations to delete
 }
 
 export class TickContext {
@@ -47,8 +45,8 @@ export class TickContext {
 
   // --- OUTPUT CONTAINERS ---
   combatReports: CombatReport[] = [];
-  unitsToRemove: ObjectId[] = [];
-  stationsToRemove: ObjectId[] = [];
+  unitsToRemove: UnifiedId[] = [];
+  stationsToRemove: UnifiedId[] = [];
 
   constructor(
     newTick: number,
@@ -93,8 +91,8 @@ export class TickContext {
 }
 
 export interface ProcessCycleResult {
-  unitsToDelete: ObjectId[]; // Track starved units
-  winnerPlayerId: ObjectId | null;
+  unitsToDelete: UnifiedId[]; // Track starved units
+  winnerPlayerId: UnifiedId | null;
 }
 
 export class CycleTickContext {
@@ -105,8 +103,8 @@ export class CycleTickContext {
   planets: Planet[];
   stations: Station[];
 
-  unitsToRemove: ObjectId[] = []; // <--- Track killed units
-  winnerPlayerId: ObjectId | null = null;
+  unitsToRemove: UnifiedId[] = []; // <--- Track killed units
+  winnerPlayerId: UnifiedId | null = null;
 
   constructor(
     game: Game,

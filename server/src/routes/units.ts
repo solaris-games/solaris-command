@@ -1,5 +1,4 @@
 import express from "express";
-import { ObjectId } from "mongodb";
 import { authenticateToken } from "../middleware/auth";
 import {
   Unit,
@@ -31,8 +30,9 @@ import {
   validateRequest,
 } from "../middleware";
 import { UnitService, PlayerService, HexService } from "../services";
-import { executeInTransaction, getDb } from "../db";
+import { executeInTransaction } from "../db";
 import { UnitMapper } from "../map";
+import { Types } from "mongoose";
 
 const router = express.Router({ mergeParams: true });
 
@@ -101,7 +101,7 @@ router.post(
       );
 
       const newUnit: Unit = {
-        _id: new ObjectId(),
+        _id: new Types.ObjectId(),
         gameId: req.game._id,
         playerId: req.player._id,
         catalogId: catalogId,
@@ -129,11 +129,10 @@ router.post(
         },
       };
 
-      const createdUnit = await executeInTransaction(async (db, session) => {
-        const unit = await UnitService.createUnit(db, newUnit, session);
+      const createdUnit = await executeInTransaction(async (session) => {
+        const unit = await UnitService.createUnit(newUnit, session);
 
         await HexService.addUnitToAdjacentHexZOC(
-          db,
           req.game._id,
           hex,
           unit,
@@ -141,7 +140,6 @@ router.post(
         );
 
         await PlayerService.deductPrestigePoints(
-          db,
           req.game._id,
           req.player._id,
           unitCtlg.cost,
@@ -184,16 +182,14 @@ router.post(
         .json({ errorCode: ERROR_CODES.UNIT_MOVEMENT_PATH_TOO_LONG });
     }
 
-    const db = getDb();
-
     // Unit must be idle to declare movement
     if (req.unit.state.status !== UnitStatus.IDLE) {
       return res.status(400).json({ errorCode: ERROR_CODES.UNIT_IS_NOT_IDLE });
     }
 
     // Load only the hexes that the request body contains, this is better than loading ALL hexes in the game.
-    const hexIds = hexIdPath.map((id) => new ObjectId(id));
-    req.hexes = await HexService.getByGameAndIds(db, req.game._id, hexIds);
+    const hexIds = hexIdPath.map((id) => new Types.ObjectId(id));
+    req.hexes = await HexService.getByGameAndIds(req.game._id, hexIds);
 
     // Convert hex list to map for easier lookup in pathfinding
     const hexMap = new Map<HexCoordsId, any>();
@@ -218,7 +214,7 @@ router.post(
         });
       }
 
-      await UnitService.declareUnitMovement(db, req.game._id, req.unit._id, {
+      await UnitService.declareUnitMovement(req.game._id, req.unit._id, {
         path: hexPath,
       });
     } catch (error: any) {
@@ -243,8 +239,6 @@ router.post(
   loadPlayerUnit,
   requireNonRegoupingUnit,
   async (req, res) => {
-    const db = getDb();
-
     // Unit must be moving to cancel movement
     if (req.unit.state.status !== UnitStatus.MOVING) {
       return res
@@ -253,7 +247,7 @@ router.post(
     }
 
     try {
-      await UnitService.cancelUnitMovement(db, req.game._id, req.unit._id);
+      await UnitService.cancelUnitMovement(req.game._id, req.unit._id);
     } catch (error: any) {
       console.error("Error cancelling unit movement:", error);
 
@@ -287,8 +281,6 @@ router.post(
       advanceOnVictory: boolean;
     } = req.body;
 
-    const db = getDb();
-
     // Unit must be idle to declare an attack
     if (req.unit.state.status !== UnitStatus.IDLE) {
       return res.status(400).json({ errorCode: ERROR_CODES.UNIT_IS_NOT_IDLE });
@@ -301,11 +293,7 @@ router.post(
         .json({ errorCode: ERROR_CODES.UNIT_INSUFFICIENT_AP });
 
     // Hex must be valid
-    const hex = await HexService.getByGameAndLocation(
-      db,
-      req.game._id,
-      location
-    );
+    const hex = await HexService.getByGameAndLocation(req.game._id, location);
 
     if (!hex) {
       return res.status(400).json({ errorCode: ERROR_CODES.HEX_ID_INVALID });
@@ -337,7 +325,7 @@ router.post(
     }
 
     try {
-      await UnitService.declareUnitAttack(db, req.game._id, req.unit._id, {
+      await UnitService.declareUnitAttack(req.game._id, req.unit._id, {
         hexId: hex._id,
         location,
         operation,
@@ -365,8 +353,6 @@ router.post(
   loadPlayerUnit,
   requireNonRegoupingUnit,
   async (req, res) => {
-    const db = getDb();
-
     // Unit must be preparing an attack to cancel
     if (req.unit.state.status !== UnitStatus.PREPARING) {
       return res
@@ -380,7 +366,7 @@ router.post(
         .json({ errorCode: ERROR_CODES.UNIT_HAS_NOT_DECLARED_ATTACK });
 
     try {
-      await UnitService.cancelUnitAttack(db, req.game._id, req.unit._id);
+      await UnitService.cancelUnitAttack(req.game._id, req.unit._id);
     } catch (error: any) {
       console.error("Error cancelling attack:", error);
 
@@ -476,10 +462,9 @@ router.post(
           .json({ errorCode: ERROR_CODES.UNIT_INVALID_UPGRADE_TYPE });
       }
 
-      await executeInTransaction(async (db, session) => {
+      await executeInTransaction(async (session) => {
         // Apply Upgrade
         await UnitService.upgradeUnit(
-          db,
           req.game._id,
           req.unit._id,
           newSteps,
@@ -488,7 +473,6 @@ router.post(
 
         // Deduct Cost
         await PlayerService.deductPrestigePoints(
-          db,
           req.game._id,
           req.player._id,
           cost,
@@ -516,8 +500,6 @@ router.post(
   loadPlayer,
   loadPlayerUnit,
   async (req, res) => {
-    const db = getDb();
-
     // Unit must be in supply to scrap
     if (!req.unit.supply.isInSupply) {
       return res
@@ -526,30 +508,23 @@ router.post(
     }
 
     try {
-      await executeInTransaction(async (db, session) => {
+      await executeInTransaction(async (session) => {
         // If there's more than 1 step then we scrap it, otherwise we delete the entire unit.
         if (req.unit.steps.length > 1) {
           // Reduce step
           const newSteps = UnitManager.scrapSteps(req.unit.steps, 1);
 
           // Apply
-          await UnitService.scrapUnitStep(
-            db,
-            req.game._id,
-            req.unit._id,
-            newSteps
-          );
+          await UnitService.scrapUnitStep(req.game._id, req.unit._id, newSteps);
         } else {
           const hex = await HexService.getByGameAndId(
-            db,
             req.game._id,
             req.unit.hexId
           );
 
           // Delete unit
-          await UnitService.deleteUnit(db, req.game._id, req.unit._id);
+          await UnitService.deleteUnit(req.game._id, req.unit._id);
           await HexService.removeUnitFromAdjacentHexZOC(
-            db,
             req.game._id,
             hex!,
             req.unit,

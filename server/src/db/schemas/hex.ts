@@ -11,11 +11,11 @@ const HexCoordsSchema = new Schema(
 );
 
 const HexSchema = new Schema<Hex>({
-  gameId: { type: Schema.Types.ObjectId, ref: "Game", required: true },
-  playerId: { type: Schema.Types.ObjectId, ref: "Player", default: null },
-  planetId: { type: Schema.Types.ObjectId, ref: "Planet", default: null },
-  stationId: { type: Schema.Types.ObjectId, ref: "Station", default: null },
-  unitId: { type: Schema.Types.ObjectId, ref: "Unit", default: null },
+  gameId: { type: Schema.ObjectId, ref: "Game", required: true },
+  playerId: { type: Schema.ObjectId, ref: "Player", default: null },
+  planetId: { type: Schema.ObjectId, ref: "Planet", default: null },
+  stationId: { type: Schema.ObjectId, ref: "Station", default: null },
+  unitId: { type: Schema.ObjectId, ref: "Unit", default: null },
 
   location: { type: HexCoordsSchema, required: true },
   terrain: {
@@ -27,8 +27,8 @@ const HexSchema = new Schema<Hex>({
 
   zoc: [
     {
-      playerId: { type: Schema.Types.ObjectId, required: true },
-      unitId: { type: Schema.Types.ObjectId, required: true },
+      playerId: { type: Schema.ObjectId, required: true },
+      unitId: { type: Schema.ObjectId, required: true },
       _id: false
     },
   ],
