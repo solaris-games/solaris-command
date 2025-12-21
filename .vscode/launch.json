@@ -2,6 +2,15 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Server",
+      "cwd": "${workspaceFolder}/server",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run-script", "dev"],
+      "envFile": ".env"
+    },
+    {
       "name": "Attach",
       "type": "node",
       "request": "attach",
@@ -14,6 +23,7 @@
           "${workspaceFolder}/node_modules/**",
           "${workspaceFolder}/core/node_modules/**",
           "${workspaceFolder}/client/node_modules/**",
+          "${workspaceFolder}/client-map-generator/node_modules/**",
           "${workspaceFolder}/server/node_modules/**"
       ],
     },

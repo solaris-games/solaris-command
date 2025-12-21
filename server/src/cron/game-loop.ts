@@ -85,6 +85,11 @@ async function processActiveGames() {
 
         game.state.lastTickDate = new Date(nextTickTime); // Set the tick time here to prevent clock drift
 
+        // Start by locking the game to prevent players from changing the game state
+        // during tick processing. We don't know how long ticks will take to
+        // process so better to be safe and lock the game now.
+        await GameService.lockGame(game._id);
+
         // Cast Mongoose Document to Game interface if needed, or pass as is if compatible
         await executeGameTick(game as Game);
       }
@@ -102,11 +107,6 @@ async function processActiveGames() {
  */
 async function executeGameTick(game: Game) {
   const gameId = game._id;
-
-  // Start by locking the game to prevent players from changing the game state
-  // during tick processing. We don't know how long ticks will take to
-  // process so better to be safe and lock the game now.
-  await GameService.lockGame(gameId);
 
   // --- A. LOAD STATE (Scatter-Gather) ---
   // We need to load data from multiple collections to build the game state

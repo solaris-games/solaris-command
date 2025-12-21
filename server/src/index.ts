@@ -23,6 +23,19 @@ app.use(express.json());
 async function startServer() {
   try {
     // 1. Connect to MongoDB
+
+    /*
+    Note: The server uses transactions and MongoDB must be setup with a Replication Set configured.
+    Edit the `mongod.conf` file and append this to it:
+
+    replication:
+      replSetName: "rs0"
+
+    Then, restart the Mongod service and inside `mongosh`, run:
+
+    rs.initiate()
+    */
+
     await connectToDb();
 
     // 2. Start cron jobs
