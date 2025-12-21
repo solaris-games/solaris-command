@@ -258,11 +258,6 @@ describe("UnitManager", () => {
       location: { q: 0, r: 0, s: 1 },
     } as unknown as Hex;
 
-    const hexLookup = new Map<HexCoordsId, Hex>([
-      [HexUtils.getCoordsID(fromHex.location!), fromHex],
-      [HexUtils.getCoordsID(toHex.location!), toHex],
-    ]);
-
     const unit = createTestUnit({
       state: {
         status: UnitStatus.MOVING,
@@ -274,7 +269,7 @@ describe("UnitManager", () => {
       },
     });
 
-    UnitManager.moveUnit(unit, fromHex, toHex, mpCost, hexLookup);
+    UnitManager.moveUnit(unit, fromHex, toHex, mpCost);
 
     expect(fromHex.unitId).toBeNull();
 

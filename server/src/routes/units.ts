@@ -204,7 +204,8 @@ router.post(
         req.unit.location,
         hexPath,
         req.unit.state.mp,
-        hexMap
+        hexMap,
+        req.player._id
       );
 
       if (!validationResult.valid) {

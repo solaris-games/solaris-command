@@ -5,7 +5,7 @@ import {
   COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE,
   CONSTANTS,
 } from "../data";
-import { Unit, Hex, TerrainTypes } from "../models";
+import { Unit, Hex } from "../models";
 import {
   CombatShift,
   CombatShiftType,

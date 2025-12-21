@@ -125,8 +125,7 @@ export const UnitManager = {
     unit: Unit,
     source: Hex,
     destination: Hex,
-    mpCost: number | null, // null if not applicable
-    hexLookup: Map<HexCoordsId, Hex>
+    mpCost: number | null // null if not applicable
   ) {
     if (mpCost != null && unit.state.mp < mpCost) {
       throw new Error(ERROR_CODES.UNIT_INSUFFICIENT_MP);
@@ -135,9 +134,6 @@ export const UnitManager = {
     if (mpCost != null && unit.movement.path.length === 0) {
       throw new Error(ERROR_CODES.UNIT_IS_NOT_MOVING);
     }
-
-    // Before the unit moves, clear ZOC from nearby hexes
-    MapUtils.removeUnitHexZOC(unit, hexLookup);
 
     // Move the unit
     unit.hexId = destination._id;
@@ -153,9 +149,6 @@ export const UnitManager = {
     source.unitId = null;
     destination.unitId = unit._id;
     destination.playerId = unit.playerId; // Capture the destination hex
-
-    // Unit has moved, update ZOC of nearby hexes
-    MapUtils.addUnitHexZOC(unit, hexLookup);
   },
 
   /**
@@ -229,18 +222,11 @@ export const UnitManager = {
       return step;
     });
 
+    // Note: We do not intend to kill steps that have been suppressed more than once
+    // because this would make suppression too powerful. Players would simply suppress units
+    // with artillery instead of engaging in combat.
+
     return newSteps;
-
-    // TODO: Kill steps if they are suppressed more than once.
-    // Requires a lot of rework of combat engine (predictions, combat result etc)
-
-    // // If there are still steps remaining, then kill the rest
-    // // Double suppression is a kill
-    // if (suppressedCount < count) {
-    //   return UnitManager.killSteps(newSteps, count - suppressedCount)
-    // }
-
-    // return newSteps
   },
 
   /**

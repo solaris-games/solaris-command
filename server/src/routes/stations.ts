@@ -51,6 +51,12 @@ router.post(
           .json({ errorCode: ERROR_CODES.PLAYER_DOES_NOT_OWN_HEX });
       }
 
+      if (hex.planetId != null) {
+        return res
+          .status(400)
+          .json({ errorCode: ERROR_CODES.HEX_OCCUPIED_BY_PLANET });
+      }
+
       // Make sure hex isn't already occupied by another station.
       const hexCoordsId = HexUtils.getCoordsID(hex.location);
       const existingStation = req.stations.find(
@@ -82,10 +88,7 @@ router.post(
       };
 
       const createdStation = await executeInTransaction(async (session) => {
-        const station = await StationService.createStation(
-          newStation,
-          session
-        );
+        const station = await StationService.createStation(newStation, session);
 
         await HexService.updateHexStation(
           req.game._id,

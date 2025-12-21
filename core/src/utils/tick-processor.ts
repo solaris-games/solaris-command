@@ -1,4 +1,4 @@
-import { CONSTANTS, UNIT_CATALOG_ID_MAP } from "../data";
+import { CONSTANTS, ERROR_CODES, UNIT_CATALOG_ID_MAP } from "../data";
 import {
   Game,
   Unit,
@@ -8,9 +8,15 @@ import {
   Station,
   Player,
   GameStates,
-  PlayerStatus
+  PlayerStatus,
 } from "../models";
-import { CombatReport, HexCoords, HexCoordsId, UnifiedId } from "../types";
+import {
+  CombatOperation,
+  CombatReport,
+  HexCoords,
+  HexCoordsId,
+  UnifiedId,
+} from "../types";
 import { CombatEngine } from "./combat-engine";
 import { HexUtils } from "./hex-utils";
 import { UnitManager } from "./unit-manager";
@@ -27,7 +33,6 @@ export interface ProcessTickResult {
 }
 
 export class TickContext {
-  newTick: number;
   game: Game;
   players: Player[];
   hexes: Hex[];
@@ -38,10 +43,10 @@ export class TickContext {
   // --- WORKING SETS (In-Memory State) ---
   // We track unit locations in a Map for O(1) lookup during collision/combat checks.
   // This map is updated continuously as the Tick progresses (e.g., after a Blitz move).
-  hexLookup = new Map<HexCoordsId, Hex>();
-  unitLocations = new Map<HexCoordsId, Unit>();
-  planetLookup = new Map<HexCoordsId, Planet>();
-  stationLookup = new Map<HexCoordsId, Station>();
+  hexLookup: Map<HexCoordsId, Hex>;
+  unitLocations: Map<HexCoordsId, Unit>;
+  planetLookup: Map<HexCoordsId, Planet>;
+  stationLookup: Map<HexCoordsId, Station>;
 
   // --- OUTPUT CONTAINERS ---
   combatReports: CombatReport[] = [];
@@ -49,7 +54,6 @@ export class TickContext {
   stationsToRemove: UnifiedId[] = [];
 
   constructor(
-    newTick: number,
     game: Game,
     players: Player[],
     hexes: Hex[],
@@ -57,7 +61,6 @@ export class TickContext {
     planets: Planet[],
     stations: Station[]
   ) {
-    this.newTick = newTick;
     this.game = game;
     this.players = players;
     this.hexes = hexes;
@@ -123,6 +126,23 @@ export class CycleTickContext {
   }
 }
 
+export class PostTickContext {
+  hexes: Hex[];
+  units: Unit[];
+
+  hexLookup: Map<HexCoordsId, Hex>;
+
+  constructor(hexes: Hex[], units: Unit[]) {
+    this.hexes = hexes;
+    this.units = units;
+
+    this.hexLookup = new Map<string, Hex>();
+    hexes.forEach((h) =>
+      this.hexLookup.set(HexUtils.getCoordsID(h.location), h)
+    );
+  }
+}
+
 interface MoveIntent {
   unit: Unit;
   fromHexCoord: HexCoords;
@@ -139,26 +159,18 @@ export class GameUnitMovementContext {
     // Gather all units that want to move this tick.
     context.units.forEach((unit) => {
       // Unit must be MOVING, have a path, have MP, and NOT be dead from combat above
+      // Note: We validate all unit movements before the tick processes, so we do not need to check additional properties, only that the unit is moving.
       if (
         unit.state.status === UnitStatus.MOVING &&
-        unit.movement.path.length > 0 &&
-        unit.state.mp > 0 &&
         !context.unitsToRemove.some((id) => String(id) === String(unit._id))
       ) {
         const nextHex = unit.movement.path[0];
 
-        // Bit of defensive programming here to make sure we aren't going to move units that have invalid movement paths.
-        if (!HexUtils.isNeighbor(unit.location, nextHex)) {
-          throw new Error(
-            `Unit next movement hex is not adjacent to the unit's current location.`
-          );
-        }
-
         this.moveIntents.push({
           unit,
           fromCoordId: HexUtils.getCoordsID(unit.location),
-          toCoordId: HexUtils.getCoordsID(nextHex),
           fromHexCoord: unit.location,
+          toCoordId: HexUtils.getCoordsID(nextHex),
           toHexCoord: nextHex,
         });
       }
@@ -168,6 +180,7 @@ export class GameUnitMovementContext {
     this.moveIntents.forEach((intent) => {
       if (!this.movesByDest.has(intent.toCoordId))
         this.movesByDest.set(intent.toCoordId, []);
+
       this.movesByDest.get(intent.toCoordId)!.push(intent);
     });
   }
@@ -187,13 +200,13 @@ const handleHexCapture = (context: TickContext, hex: Hex, unit: Unit) => {
   // Flip Planet Ownership (if one exists here)
   const planet = context.planetLookup.get(hexCoordsId);
   if (planet && String(planet.playerId) !== String(unit.playerId)) {
-    planet.playerId = unit.playerId; // Update in-memory object
+    planet.playerId = unit.playerId;
   }
 
   // Destroy hostile stations
   const station = context.stationLookup.get(hexCoordsId);
   if (station && String(station.playerId) !== String(unit.playerId)) {
-    hex.stationId = null; // Update in-memory object
+    hex.stationId = null;
 
     context.stationsToRemove.push(station._id);
   }
@@ -289,7 +302,7 @@ export const TickProcessor = {
         );
 
         // Log Report
-        battleResult.report.tick = contextTick.newTick;
+        battleResult.report.tick = contextTick.game.state.tick;
         contextTick.combatReports.push(battleResult.report);
 
         // Defender:
@@ -378,7 +391,7 @@ export const TickProcessor = {
           return; // Exit this specific move intent
         }
 
-        UnitManager.moveUnit(unit, fromHex, toHex, mpCost, context.hexLookup);
+        UnitManager.moveUnit(unit, fromHex, toHex, mpCost);
 
         // Stop if path done or out of gas
         if (unit.movement.path.length === 0 || unit.state.mp === 0) {
@@ -406,8 +419,7 @@ export const TickProcessor = {
         player._id,
         context.hexes,
         context.planets,
-        context.stations,
-        context.units
+        context.stations
       );
 
       const playerUnits = context.units.filter(
@@ -444,6 +456,26 @@ export const TickProcessor = {
       context.game.state.winnerPlayerId = winner._id;
       context.game.state.endDate = new Date();
     }
+  },
+
+  processPostTick(context: PostTickContext) {
+    // ----- UNIT ZOC -----
+    // Process unit ZOC. Since unit movement and combat happens at the same time
+    // we have to process ZOC all at once at the end of the tick.
+    // TODO: This can probably be much more efficient but for now let's just keep it simple.
+
+    // Clear all existing ZOC from hexes.
+    for (const hex of context.hexes) {
+      if (hex.zoc.length > 0) {
+        hex.zoc = [];
+      }
+    }
+
+    // Add ZOC infuence for all units
+    for (const unit of context.units) {
+      MapUtils.addUnitHexZOC(unit, context.hexLookup);
+    }
+    // ----------
   },
 
   /**
@@ -546,5 +578,95 @@ export const TickProcessor = {
           : CONSTANTS.PLANET_VP_INCOME),
       0
     );
+  },
+
+  validateGameState(contextTick: TickContext) {
+    // ----- UNIT COMBAT VALIDATION -----
+    // Validate that units preparing to fight are in a valid state and follow the game rules.
+    const attackers = contextTick.units.filter(
+      (u) => u.state.status === UnitStatus.PREPARING
+    );
+
+    for (const unit of attackers) {
+      // Must have enough AP
+      if (unit.state.ap === 0) {
+        throw new Error(ERROR_CODES.UNIT_INSUFFICIENT_AP);
+      }
+
+      // Combat config must be correct
+      if (unit.combat.hexId == null || unit.combat.location == null) {
+        throw new Error(ERROR_CODES.UNIT_INVALID_COMBAT_STATE);
+      }
+
+      // Hex must exist
+      const hex = contextTick.hexLookup.get(
+        HexUtils.getCoordsID(unit.combat.location)
+      );
+
+      if (!hex) {
+        throw new Error(ERROR_CODES.HEX_NOT_FOUND);
+      }
+
+      // Hex ID must match location
+      if (String(hex._id) !== String(unit.combat.hexId)) {
+        throw new Error(ERROR_CODES.HEX_ID_INVALID);
+      }
+
+      // Hex must be a neighbor of the attacker's hex
+      if (!HexUtils.isNeighbor(unit.location, unit.combat.location)) {
+        throw new Error(ERROR_CODES.HEX_IS_NOT_ADJACENT);
+      }
+
+      // Hex must contain a unit
+      if (!hex.unitId) {
+        throw new Error(ERROR_CODES.HEX_IS_NOT_OCCUPIED_BY_UNIT);
+      }
+
+      // Suppressive fire must have an active specialist step
+      if (unit.combat.operation === CombatOperation.SUPPRESSIVE_FIRE) {
+        const hasArtillery = UnitManager.unitHasActiveSpecialistStep(unit);
+
+        if (!hasArtillery) {
+          throw new Error(
+            ERROR_CODES.UNIT_MUST_HAVE_ACTIVE_ARTILLERY_SPECIALIST
+          );
+        }
+      }
+    }
+
+    // ----- UNIT MOVEMENT VALIDATION -----
+    // Validate the units preparing to move are in a valid state and follow the game rules.
+    const movers = contextTick.units.filter(
+      (u) => u.state.status === UnitStatus.MOVING
+    );
+
+    for (const unit of movers) {
+      if (unit.state.mp === 0) {
+        throw new Error(ERROR_CODES.UNIT_INSUFFICIENT_MP);
+      }
+
+      if (unit.movement.path.length === 0) {
+        throw new Error(ERROR_CODES.MOVEMENT_PATH_INVALID);
+      }
+
+      const location = unit.movement.path[0];
+
+      const hex = contextTick.hexLookup.get(HexUtils.getCoordsID(location));
+
+      if (!hex) {
+        throw new Error(ERROR_CODES.HEX_NOT_FOUND);
+      }
+
+      // Hex must be a neighbor of the unit's hex
+      if (!HexUtils.isNeighbor(unit.location, location)) {
+        throw new Error(ERROR_CODES.HEX_IS_NOT_ADJACENT);
+      }
+
+      if (MapUtils.isHexImpassable(hex)) {
+        throw new Error(ERROR_CODES.MOVEMENT_PATH_IMPASSABLE);
+      }
+
+      // Note: We do not validate MP cost of hex because that logic is handled in the movement processor (stall unit)
+    }
   },
 };

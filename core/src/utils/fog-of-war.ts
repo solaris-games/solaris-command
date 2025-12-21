@@ -8,6 +8,7 @@ import {
   SPECIALIST_STEP_ID_MAP,
   UNIT_CATALOG_ID_MAP,
 } from "../data";
+import { Hex } from "../models";
 
 export const FogOfWar = {
   /**
@@ -67,6 +68,33 @@ export const FogOfWar = {
   },
 
   /**
+   * Masks hexes based on visibility.
+   */
+  maskHexes(
+    playerId: UnifiedId,
+    allHexes: Hex[],
+    visibleHexes: Set<HexCoordsId>
+  ): Hex[] {
+    const pidStr = String(playerId);
+
+    return allHexes.map(hex => {
+      // If the user owns the hex then do not mask
+      if (hex.playerId && String(hex.playerId) === pidStr) return hex
+
+      // If the hex is visible then do not mask
+      if (visibleHexes.has(HexUtils.getCoordsID(hex.location))) return hex
+
+      // Otherwise, the hex is out of visible range and we should mask it.
+      // Note: We only need to mask the unit on the hex (if there is one) and the hexes ZOC.
+      return {
+        ...hex,
+        unitId: null,
+        zoc: []
+      }
+    })
+  },
+
+  /**
    * Filters units based on visibility.
    * Returns:
    *  - All units owned by the player
@@ -78,8 +106,10 @@ export const FogOfWar = {
     visibleHexes: Set<HexCoordsId>
   ): Unit[] {
     const pidStr = String(playerId);
+
     return allUnits.filter((u) => {
       if (String(u.playerId) === pidStr) return true; // Own unit
+
       return visibleHexes.has(HexUtils.getCoordsID(u.location)); // Enemy unit on visible hex
     });
   },

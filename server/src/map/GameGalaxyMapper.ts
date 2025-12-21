@@ -49,7 +49,7 @@ export class GameGalaxyMapper {
         return path;
       }
 
-      // Return the first one only (mask)
+      // Return the first one only (masked)
       return [path[0]];
     };
 

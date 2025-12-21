@@ -293,8 +293,7 @@ describe("CombatEngine", () => {
         defender,
         result.defenderHex,
         result.retreatHex,
-        null,
-        expect.anything()
+        null
       );
 
       expect(defender.state.status).toBe(UnitStatus.REGROUPING);
@@ -384,7 +383,6 @@ describe("CombatEngine", () => {
         attacker,
         result.attackerHex,
         result.defenderHex,
-        expect.anything(),
         expect.anything()
       );
     });

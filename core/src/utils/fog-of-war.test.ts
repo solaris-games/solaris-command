@@ -9,14 +9,19 @@ describe("FogOfWar", () => {
   const player1Id = new MockUnifiedId();
   const player2Id = new MockUnifiedId();
 
-  const mockUnit = (idStr: string, pid: MockUnifiedId, q: number, r: number): Unit =>
+  const mockUnit = (
+    idStr: string,
+    pid: MockUnifiedId,
+    q: number,
+    r: number
+  ): Unit =>
     ({
       // Create a valid 24-char hex string from the input
       _id: new MockUnifiedId(idStr.padEnd(24, "0")),
       catalogId: "unit_corvette_01", // Hex range of 3
       playerId: pid,
       location: { q, r, s: -q - r },
-      steps: [{ isSuppressed: false, specialistId: null }]
+      steps: [{ isSuppressed: false, specialistId: null }],
       // ... minimal other props
     } as any);
 
@@ -61,8 +66,14 @@ describe("FogOfWar", () => {
     );
 
     expect(filtered.length).toBe(2);
-    expect(filtered.find((u) => u._id.toString() === p1Unit._id.toString())).toBeDefined();
-    expect(filtered.find((u) => u._id.toString() === p2UnitVisible._id.toString())).toBeDefined();
-    expect(filtered.find((u) => u._id.toString() === p2UnitHidden._id.toString())).toBeUndefined();
+    expect(
+      filtered.find((u) => u._id.toString() === p1Unit._id.toString())
+    ).toBeDefined();
+    expect(
+      filtered.find((u) => u._id.toString() === p2UnitVisible._id.toString())
+    ).toBeDefined();
+    expect(
+      filtered.find((u) => u._id.toString() === p2UnitHidden._id.toString())
+    ).toBeUndefined();
   });
 });

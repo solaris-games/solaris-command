@@ -15,8 +15,7 @@ export const SupplyEngine = {
     playerId: UnifiedId,
     hexes: Hex[],
     planets: Planet[],
-    stations: Station[],
-    units: Unit[]
+    stations: Station[]
   ): Set<HexCoordsId> {
     const suppliedHexIds = new Set<HexCoordsId>();
 

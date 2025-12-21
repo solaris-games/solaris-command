@@ -1,9 +1,10 @@
 import { Unit } from "../models/unit";
 import { HexUtils } from "./hex-utils";
-import { TERRAIN_MP_COSTS, UNIT_CATALOG_ID_MAP } from "../data";
+import { CONSTANTS, TERRAIN_MP_COSTS, UNIT_CATALOG_ID_MAP } from "../data";
 import { Hex, Planet, TerrainTypes } from "../models";
 import { HexCoords, HexCoordsId } from "../types/geometry";
 import { UnifiedId } from "../types";
+import { UnitManager } from "./unit-manager";
 
 export const MapUtils = {
   /**
@@ -13,7 +14,7 @@ export const MapUtils = {
     let mpCost = TERRAIN_MP_COSTS[hex.terrain];
 
     if (playerId && MapUtils.isHexInEnemyZOC(hex, playerId)) {
-      mpCost *= 2;
+      mpCost *= CONSTANTS.TERRAIN_MP_COST_ZOC_MULTIPLIER;
     }
 
     return mpCost;
@@ -57,6 +58,13 @@ export const MapUtils = {
 
     // Do not need to do this if unit doesn't project a ZOC.
     if (!unitCtlg.stats.zoc) {
+      return;
+    }
+
+    // Units with no active steps to not project a ZOC.
+    const hasActiveSteps = UnitManager.getActiveSteps(unit).length > 0;
+
+    if (!hasActiveSteps) {
       return;
     }
 

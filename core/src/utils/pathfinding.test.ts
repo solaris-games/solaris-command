@@ -109,6 +109,7 @@ describe("Pathfinding", () => {
   });
 
   describe("validatePath", () => {
+    const playerId = null
     const start: HexCoords = { q: 0, r: 0, s: 0 };
     // Neighbors: (1,0,-1), (1,-1,0), (0,-1,1), (-1,0,1), (-1,1,0), (0,1,-1)
 
@@ -117,7 +118,7 @@ describe("Pathfinding", () => {
       const path: HexCoords[] = [{ q: 1, r: 0, s: -1 }]; // 1 hex away
       const currentMp = 1;
 
-      const result = Pathfinding.validatePath(start, path, currentMp, map);
+      const result = Pathfinding.validatePath(start, path, currentMp, map, playerId);
       expect(result.valid).toBe(true);
     });
 
@@ -130,7 +131,7 @@ describe("Pathfinding", () => {
       ];
       const currentMp = 2;
 
-      const result = Pathfinding.validatePath(start, path, currentMp, map);
+      const result = Pathfinding.validatePath(start, path, currentMp, map, playerId);
       expect(result.valid).toBe(true);
     });
 
@@ -140,7 +141,7 @@ describe("Pathfinding", () => {
       const path: HexCoords[] = [{ q: 2, r: 0, s: -2 }];
       const currentMp = 10;
 
-      const result = Pathfinding.validatePath(start, path, currentMp, map);
+      const result = Pathfinding.validatePath(start, path, currentMp, map, playerId);
       expect(result.valid).toBe(false);
       expect(result.error).toBe("MOVEMENT_PATH_INVALID");
     });
@@ -156,7 +157,7 @@ describe("Pathfinding", () => {
       const tinyMap = createMap(0, 0);
       const path2: HexCoords[] = [{ q: 1, r: 0, s: -1 }];
 
-      const result = Pathfinding.validatePath(start, path2, currentMp, tinyMap);
+      const result = Pathfinding.validatePath(start, path2, currentMp, tinyMap, playerId);
       expect(result.valid).toBe(false);
       expect(result.error).toBe("MOVEMENT_PATH_INVALID");
     });
@@ -170,7 +171,7 @@ describe("Pathfinding", () => {
       // Total Cost 2. MP 1.
       const currentMp = 1;
 
-      const result = Pathfinding.validatePath(start, path, currentMp, map);
+      const result = Pathfinding.validatePath(start, path, currentMp, map, playerId);
       expect(result.valid).toBe(false);
       expect(result.error).toBe("MOVEMENT_PATH_TOO_EXPENSIVE");
     });
@@ -183,10 +184,10 @@ describe("Pathfinding", () => {
       const path: HexCoords[] = [{ q: 1, r: 0, s: -1 }];
 
       // Cost 2. MP 1 -> Fail
-      expect(Pathfinding.validatePath(start, path, 1, map).valid).toBe(false);
+      expect(Pathfinding.validatePath(start, path, 1, map, playerId).valid).toBe(false);
 
       // Cost 2. MP 2 -> Pass
-      expect(Pathfinding.validatePath(start, path, 2, map).valid).toBe(true);
+      expect(Pathfinding.validatePath(start, path, 2, map, playerId).valid).toBe(true);
     });
 
     it("should fail if path includes impassable terrain", () => {
@@ -197,7 +198,7 @@ describe("Pathfinding", () => {
       const path: HexCoords[] = [{ q: 1, r: 0, s: -1 }];
       const currentMp = 9999; // Even with infinite MP
 
-      const result = Pathfinding.validatePath(start, path, currentMp, map);
+      const result = Pathfinding.validatePath(start, path, currentMp, map, playerId);
       expect(result.valid).toBe(false);
       expect(result.error).toBe("MOVEMENT_PATH_IMPASSABLE");
     });

@@ -120,7 +120,6 @@ describe("SupplyEngine", () => {
         playerId,
         hexes,
         [capital],
-        [],
         []
       );
 
@@ -145,7 +144,6 @@ describe("SupplyEngine", () => {
         playerId,
         hexes,
         [planet],
-        [],
         []
       );
 
@@ -170,8 +168,7 @@ describe("SupplyEngine", () => {
         playerId,
         hexes,
         [capital],
-        [station],
-        []
+        [station]
       );
 
       expect(result.has("0,0,0")).toBe(true);
@@ -195,8 +192,7 @@ describe("SupplyEngine", () => {
         playerId,
         hexes,
         [capital],
-        [station],
-        []
+        [station]
       );
 
       expect(result.has("0,0,0")).toBe(true);

@@ -138,8 +138,7 @@ export const CombatEngine = {
             defender,
             defenderHex,
             retreatHex,
-            null,
-            hexLookup
+            null
           );
 
           // Successful Retreat
@@ -176,8 +175,7 @@ export const CombatEngine = {
           attacker,
           attackerHex,
           defenderHex,
-          mpCost,
-          hexLookup
+          mpCost
         );
 
         attackerWonHex = true;

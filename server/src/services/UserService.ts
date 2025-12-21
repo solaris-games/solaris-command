@@ -51,7 +51,9 @@ export class UserService {
     }
 
     // 3. Handle Pending Games -> Delete Player & Assets
-    const pendingPlayers = await PlayerService.findPendingPlayersForUser(userId);
+    const pendingPlayers = await PlayerService.findPendingPlayersForUser(
+      userId
+    );
 
     if (pendingPlayers.length) {
       const playerIds = pendingPlayers.map((p) => p._id);
@@ -62,8 +64,8 @@ export class UserService {
       // Iterate over each player and remove their game assets.
       for (const player of pendingPlayers) {
         await PlayerService.removePlayerAssets(
-          player.gameId as unknown as UnifiedId,
-          player._id as unknown as UnifiedId,
+          player.gameId,
+          player._id as UnifiedId,
           session
         );
       }

@@ -1,4 +1,4 @@
-import { TERRAIN_MP_COSTS } from "../data";
+import { ERROR_CODES, TERRAIN_MP_COSTS } from "../data";
 import { Hex } from "../models/hex";
 import { UnifiedId } from "../types";
 import { HexCoords, HexCoordsId } from "../types/geometry";
@@ -67,7 +67,8 @@ export const Pathfinding = {
     start: HexCoords,
     path: HexCoords[],
     currentMp: number,
-    hexMap: Map<HexCoordsId, Hex>
+    hexMap: Map<HexCoordsId, Hex>,
+    playerId: UnifiedId | null
   ): { valid: boolean; error?: string } {
     let current = start;
     let totalCost = 0;
@@ -77,7 +78,7 @@ export const Pathfinding = {
       if (!HexUtils.isNeighbor(current, step)) {
         return {
           valid: false,
-          error: "MOVEMENT_PATH_INVALID", // Non-adjacent step
+          error: ERROR_CODES.MOVEMENT_PATH_INVALID, // Non-adjacent step
         };
       }
 
@@ -88,7 +89,7 @@ export const Pathfinding = {
       if (!hexData) {
         return {
           valid: false,
-          error: "MOVEMENT_PATH_INVALID", // Hex does not exist in map
+          error: ERROR_CODES.MOVEMENT_PATH_INVALID, // Hex does not exist in map
         };
       }
 
@@ -96,18 +97,18 @@ export const Pathfinding = {
       if (MapUtils.isHexImpassable(hexData)) {
         return {
           valid: false,
-          error: "MOVEMENT_PATH_IMPASSABLE",
+          error: ERROR_CODES.MOVEMENT_PATH_IMPASSABLE,
         };
       }
 
       // 4. Calculate Cost
-      const moveCost = TERRAIN_MP_COSTS[hexData.terrain] || 1;
+      const moveCost = MapUtils.getHexMPCost(hexData, playerId);
 
       // Impassable terrain has high cost defined in data, but double check logic
       if (moveCost >= 999) {
         return {
           valid: false,
-          error: "MOVEMENT_PATH_IMPASSABLE",
+          error: ERROR_CODES.MOVEMENT_PATH_IMPASSABLE,
         };
       }
 
@@ -117,7 +118,7 @@ export const Pathfinding = {
       if (totalCost > currentMp) {
         return {
           valid: false,
-          error: "MOVEMENT_PATH_TOO_EXPENSIVE",
+          error: ERROR_CODES.MOVEMENT_PATH_TOO_EXPENSIVE,
         };
       }
 

@@ -1,5 +1,15 @@
 import { ClientSession, Types } from "mongoose";
-import { Game, GameStates, Player, FogOfWar, Hex, Planet, Station, Unit, UnifiedId } from "@solaris-command/core";
+import {
+  Game,
+  GameStates,
+  Player,
+  FogOfWar,
+  Hex,
+  Planet,
+  Station,
+  Unit,
+  UnifiedId,
+} from "@solaris-command/core";
 import { UnitService } from "./UnitService";
 import { StationService } from "./StationService";
 import { PlanetService } from "./PlanetService";
@@ -7,12 +17,12 @@ import { HexService } from "./HexService";
 import { PlayerService } from "./PlayerService";
 
 export interface GameGalaxy {
-  game: Game,
-  players: Player[],
-  hexes: Hex[],
-  planets: Planet[],
-  stations: Station[],
-  units: Unit[]
+  game: Game;
+  players: Player[];
+  hexes: Hex[];
+  planets: Planet[];
+  stations: Station[];
+  units: Unit[];
 }
 
 export class GameGalaxyService {
@@ -38,10 +48,10 @@ export class GameGalaxyService {
     let galaxy: any = {
       game: game,
       players,
-      hexes,
+      hexes: [], // Will be masked
       planets,
       stations,
-      units: [],
+      units: [], // Will be filtered
     };
 
     if (currentPlayer && game.state.status === GameStates.ACTIVE) {
@@ -59,6 +69,8 @@ export class GameGalaxyService {
         planets,
         stations
       );
+
+      galaxy.hexes = FogOfWar.maskHexes(currentPlayer._id, hexes, visibleHexes);
 
       galaxy.units = FogOfWar.filterVisibleUnits(
         currentPlayer._id,
