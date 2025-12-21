@@ -1,91 +1,73 @@
-import { ClientSession, Db, ObjectId } from "mongodb";
-import { Game, GameStates, Player, FogOfWar, GameEvent } from "@solaris-command/core";
-import { UnitService } from "./UnitService";
-import { StationService } from "./StationService";
-import { PlanetService } from "./PlanetService";
-import { HexService } from "./HexService";
-import { PlayerService } from "./PlayerService";
+import { ClientSession, Types } from "mongoose";
+import { GameStates } from "@solaris-command/core";
+import { GameModel } from "../db/schemas/game";
+import { PlayerModel } from "../db/schemas/player";
+import { GameEventModel } from "../db/schemas/game-event";
 
 export class GameService {
-  static async getById(db: Db, gameId: ObjectId) {
-    return db
-      .collection<Game>("games")
-      .findOne({ _id: new ObjectId(gameId) });
+  static async getById(gameId: Types.ObjectId) {
+    return GameModel.findById(gameId);
   }
 
-  static async listGamesByUser(db: Db, userId: ObjectId) {
+  static async listGamesByUser(userId: Types.ObjectId) {
     // 1. Find games where user is a player
-    const myPlayers = await db
-      .collection<Player>("players")
-      .find({ userId })
-      .toArray();
+    const myPlayers = await PlayerModel.find({ userId });
 
     const myGameIds = myPlayers.map((p) => p.gameId);
 
     // 2. Query Games
-    const games = await db
-      .collection<Game>("games")
-      .find({
-        $or: [
-          { _id: { $in: myGameIds } },
-          { "state.status": GameStates.PENDING },
-        ],
-      })
+    const games = await GameModel.find({
+      $or: [
+        { _id: { $in: myGameIds } },
+        { "state.status": GameStates.PENDING },
+      ],
+    })
       .sort({ "state.startDate": -1 })
-      .limit(50)
-      .toArray();
+      .limit(50);
 
     return { games, myGameIds };
   }
 
-  static async createGame(db: Db, gameData: any) {
-    const result = await db.collection<Game>("games").insertOne(gameData);
-    return { id: result.insertedId, ...gameData };
+  static async createGame(gameData: any, session?: ClientSession) {
+    const game = new GameModel(gameData);
+    await game.save({ session });
+    return game;
   }
 
-  static async getGameEvents(db: Db, gameId: ObjectId) {
-    return db
-      .collection<GameEvent>("game_events")
-      .find({ gameId })
+  static async getGameEvents(gameId: Types.ObjectId) {
+    return GameEventModel.find({ gameId })
       .sort({ createdAt: -1 })
-      .limit(100)
-      .toArray();
+      .limit(100);
   }
 
-  static async lockGame(db: Db, gameId: ObjectId) {
-    return GameService.updateGameState(db, gameId, {
-      "state.status": GameStates.ACTIVE,
+  static async lockGame(gameId: Types.ObjectId) {
+    return GameService.updateGameState(gameId, {
+      "state.status": GameStates.LOCKED,
     });
   }
 
-  static async unlockGame(db: Db, gameId: ObjectId) {
-    return GameService.updateGameState(db, gameId, {
+  static async unlockGame(gameId: Types.ObjectId) {
+    return GameService.updateGameState(gameId, {
       "state.status": GameStates.ACTIVE,
     });
   }
 
   static async updateGameState(
-    db: Db,
-    gameId: ObjectId,
+    gameId: Types.ObjectId,
     update: any,
     session?: ClientSession
   ) {
-    return db
-      .collection<Game>("games")
-      .updateOne({ _id: gameId }, { $set: update }, { session });
+    return GameModel.updateOne({ _id: gameId }, { $set: update }, { session });
   }
 
   static async incrementPlayerCount(
-    db: Db,
-    gameId: ObjectId,
+    gameId: Types.ObjectId,
     session?: ClientSession
   ) {
-    return db
-      .collection<Game>("games")
-      .findOneAndUpdate(
-        { _id: gameId },
-        { $inc: { "state.playerCount": 1 } },
-        { session, returnDocument: "after" }
-      );
+    return GameModel.findOneAndUpdate(
+      { _id: gameId },
+      { $inc: { "state.playerCount": 1 } },
+      { session, new: true } // new: true returns the modified document
+    );
   }
 }

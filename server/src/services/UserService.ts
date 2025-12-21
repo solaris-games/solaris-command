@@ -1,20 +1,21 @@
-import { ClientSession, Db, ObjectId } from "mongodb";
-import { Player, User } from "@solaris-command/core";
+import { ClientSession, Types } from "mongoose";
 import { PlayerService } from "./PlayerService";
 import { PlayerStatus } from "@solaris-command/core";
+import { UserModel } from "../db/schemas/user";
+import { PlayerModel } from "../db/schemas/player";
 
 export class UserService {
-  static async getUserById(db: Db, userId: ObjectId) {
-    return db.collection<User>("users").findOne({ _id: userId });
+  static async getUserById(userId: Types.ObjectId) {
+    return UserModel.findById(userId);
   }
 
-  static async getUserByEmail(db: Db, email: string) {
-    return db.collection<User>("users").findOne({ email });
+  static async getUserByEmail(email: string) {
+    return UserModel.findOne({ email });
   }
 
-  static async touchUser(db: Db, userId: ObjectId) {
+  static async touchUser(userId: Types.ObjectId) {
     // Update last seen
-    return db.collection<User>("users").updateOne(
+    return UserModel.updateOne(
       { _id: userId },
       {
         $set: {
@@ -24,59 +25,39 @@ export class UserService {
     );
   }
 
-  static async deleteUser(db: Db, userId: ObjectId, session?: ClientSession) {
+  static async deleteUser(userId: Types.ObjectId, session?: ClientSession) {
     // 1. Delete the user
-    const result = await db
-      .collection<User>("users")
-      .deleteOne({ _id: userId }, { session });
+    const result = await UserModel.deleteOne({ _id: userId }, { session });
 
     if (result.deletedCount === 0) {
       return result; // Or throw error, but existing logic returned 404
     }
 
     // 2. Handle Active Games -> Set as DEFEATED
-    const activePlayers = await PlayerService.findActivePlayersForUser(
-      db,
-      userId
-    );
+    const activePlayers = await PlayerService.findActivePlayersForUser(userId);
     if (activePlayers.length) {
-      // We can do this in bulk or loop. Existing logic did bulk updateMany.
-      // But we abstracted setStatus in PlayerService.
-      // To mimic the exact efficiency of existing code, we might want a bulk method,
-      // but loop with session is fine for now unless scale is huge.
-      // Actually, existing code did:
-      // updateMany({ _id: { $in: activePlayers.map((p) => p._id) } }, { $set: { status: PlayerStatus.DEFEATED } }, { session });
-
       const playerIds = activePlayers.map((p) => p._id);
-      await db
-        .collection<Player>("players")
-        .updateMany(
-          { _id: { $in: playerIds } },
-          { $set: { status: PlayerStatus.DEFEATED } },
-          { session }
-        );
+      await PlayerModel.updateMany(
+        { _id: { $in: playerIds } },
+        { $set: { status: PlayerStatus.DEFEATED } },
+        { session }
+      );
     }
 
     // 3. Handle Pending Games -> Delete Player & Assets
-    const pendingPlayers = await PlayerService.findPendingPlayersForUser(
-      db,
-      userId
-    );
+    const pendingPlayers = await PlayerService.findPendingPlayersForUser(userId);
 
     if (pendingPlayers.length) {
       const playerIds = pendingPlayers.map((p) => p._id);
 
       // Bulk delete players
-      await db
-        .collection<Player>("players")
-        .deleteMany({ _id: { $in: playerIds } }, { session });
+      await PlayerModel.deleteMany({ _id: { $in: playerIds } }, { session });
 
       // Iterate over each player and remove their game assets.
       for (const player of pendingPlayers) {
         await PlayerService.removePlayerAssets(
-          db,
-          player.gameId,
-          player._id,
+          player.gameId as unknown as Types.ObjectId,
+          player._id as unknown as Types.ObjectId,
           session
         );
       }

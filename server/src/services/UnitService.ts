@@ -1,54 +1,47 @@
-import { ClientSession, Db, ObjectId } from "mongodb";
+import { ClientSession, Types } from "mongoose";
 import {
   Unit,
   UnitCombat,
   UnitMovement,
   UnitStatus,
 } from "@solaris-command/core";
+import { UnitModel } from "../db/schemas/unit";
 
 export class UnitService {
   static async deleteByPlayerId(
-    db: Db,
-    gameId: ObjectId,
-    playerId: ObjectId,
+    gameId: Types.ObjectId,
+    playerId: Types.ObjectId,
     session?: ClientSession
   ) {
-    return db
-      .collection<Unit>("units")
-      .deleteMany({ gameId, playerId }, { session });
+    return UnitModel.deleteMany({ gameId, playerId }, { session });
   }
 
-  static async getByGameId(db: Db, gameId: ObjectId) {
-    return db.collection<Unit>("units").find({ gameId }).toArray();
+  static async getByGameId(gameId: Types.ObjectId) {
+    return UnitModel.find({ gameId });
   }
 
-  static async getUnitById(db: Db, gameId: ObjectId, unitId: ObjectId) {
-    return db.collection<Unit>("units").findOne({ gameId, _id: unitId });
+  static async getUnitById(gameId: Types.ObjectId, unitId: Types.ObjectId) {
+    return UnitModel.findOne({ gameId, _id: unitId });
   }
 
-  static async createUnit(db: Db, unit: Unit, session?: ClientSession) {
+  static async createUnit(unit: Unit, session?: ClientSession) {
     // Insert unit with session for transaction support
-    const result = await db
-      .collection<Unit>("units")
-      .insertOne(unit, { session });
-    return { ...unit, _id: result.insertedId };
+    const newUnit = new UnitModel(unit);
+    await newUnit.save({ session });
+    return newUnit;
   }
 
   static async updateUnit(
-    db: Db,
-    gameId: ObjectId,
-    unitId: ObjectId,
+    gameId: Types.ObjectId,
+    unitId: Types.ObjectId,
     update: any
   ) {
-    return db
-      .collection<Unit>("units")
-      .updateOne({ gameId, _id: unitId }, update);
+    return UnitModel.updateOne({ gameId, _id: unitId }, update);
   }
 
   static async declareUnitMovement(
-    db: Db,
-    gameId: ObjectId,
-    unitId: ObjectId,
+    gameId: Types.ObjectId,
+    unitId: Types.ObjectId,
     movement: UnitMovement
   ) {
     const update: any = {
@@ -60,13 +53,11 @@ export class UnitService {
       },
     };
 
-    return db
-      .collection<Unit>("units")
-      .updateOne({ gameId, _id: unitId }, update);
+    return UnitModel.updateOne({ gameId, _id: unitId }, update);
   }
 
-  static async cancelUnitMovement(db: Db, gameId: ObjectId, unitId: ObjectId) {
-    return db.collection<Unit>("units").updateOne(
+  static async cancelUnitMovement(gameId: Types.ObjectId, unitId: Types.ObjectId) {
+    return UnitModel.updateOne(
       { gameId, _id: unitId },
       {
         $set: {
@@ -80,12 +71,11 @@ export class UnitService {
   }
 
   static async declareUnitAttack(
-    db: Db,
-    gameId: ObjectId,
-    unitId: ObjectId,
+    gameId: Types.ObjectId,
+    unitId: Types.ObjectId,
     combat: UnitCombat
   ) {
-    return db.collection<Unit>("units").updateOne(
+    return UnitModel.updateOne(
       { gameId, _id: unitId },
       {
         $set: {
@@ -101,8 +91,8 @@ export class UnitService {
     );
   }
 
-  static async cancelUnitAttack(db: Db, gameId: ObjectId, unitId: ObjectId) {
-    return db.collection<Unit>("units").updateOne(
+  static async cancelUnitAttack(gameId: Types.ObjectId, unitId: Types.ObjectId) {
+    return UnitModel.updateOne(
       { gameId, _id: unitId },
       {
         $set: {
@@ -119,14 +109,13 @@ export class UnitService {
   }
 
   static async upgradeUnit(
-    db: Db,
-    gameId: ObjectId,
-    unitId: ObjectId,
+    gameId: Types.ObjectId,
+    unitId: Types.ObjectId,
     newSteps: any[],
     session?: ClientSession
   ) {
     // Update Unit
-    await db.collection<Unit>("units").updateOne(
+    await UnitModel.updateOne(
       { gameId, _id: unitId },
       {
         $set: {
@@ -138,12 +127,11 @@ export class UnitService {
   }
 
   static async scrapUnitStep(
-    db: Db,
-    gameId: ObjectId,
-    unitId: ObjectId,
+    gameId: Types.ObjectId,
+    unitId: Types.ObjectId,
     newSteps: any[]
   ) {
-    return db.collection<Unit>("units").updateOne(
+    return UnitModel.updateOne(
       { gameId, _id: unitId },
       {
         $set: {
@@ -153,7 +141,7 @@ export class UnitService {
     );
   }
 
-  static async deleteUnit(db: Db, gameId: ObjectId, unitId: ObjectId) {
-    return db.collection<Unit>("units").deleteOne({ gameId, _id: unitId });
+  static async deleteUnit(gameId: Types.ObjectId, unitId: Types.ObjectId) {
+    return UnitModel.deleteOne({ gameId, _id: unitId });
   }
 }

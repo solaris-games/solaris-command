@@ -6,6 +6,7 @@ import {
   BulkWriteResult,
   DeleteResult,
 } from "mongodb";
+import { Types } from "mongoose";
 import {
   Game,
   GameStates,
@@ -18,18 +19,28 @@ import {
   Station,
   GameEvent,
   User,
-  TickContextHexUpdateTracker,
   TickContext,
   CycleTickContext,
 } from "@solaris-command/core";
 import { GameService } from "../services";
 import { executeInTransaction } from "../db/instance";
+import { GameModel } from "../db/schemas/game";
+import { HexModel } from "../db/schemas/hex";
+import { UnitModel } from "../db/schemas/unit";
+import { PlayerModel } from "../db/schemas/player";
+import { PlanetModel } from "../db/schemas/planet";
+import { StationModel } from "../db/schemas/station";
+import { GameEventModel } from "../db/schemas/game-event";
+import { UserModel } from "../db/schemas/user";
+import { connectToDb } from "../db/instance";
 
 // Concurrency Flag: Prevent loop overlapping if processing takes > tick duration
 let isProcessing = false;
 
 export const GameLoop = {
-  start(mongoClient: MongoClient) {
+  async start() {
+    await connectToDb();
+
     // Default: Run every 10 seconds to check for ticks
     const schedule = process.env.GAME_LOOP_SCHEDULE || "*/10 * * * * *";
 
@@ -43,7 +54,7 @@ export const GameLoop = {
 
       isProcessing = true;
       try {
-        await processActiveGames(mongoClient);
+        await processActiveGames();
       } catch (err) {
         console.error("🔥 Critical Error in Game Loop:", err);
       } finally {
@@ -56,16 +67,11 @@ export const GameLoop = {
 /**
  * Main Processor: Iterates through all running games
  */
-async function processActiveGames(client: MongoClient) {
-  const db = client.db();
-
+async function processActiveGames() {
   // 1. Find games that are ACTIVE
-  const activeGames = await db
-    .collection<Game>("games")
-    .find({
-      "state.status": GameStates.ACTIVE,
-    })
-    .toArray();
+  const activeGames = await GameModel.find({
+    "state.status": GameStates.ACTIVE,
+  });
 
   for (const game of activeGames) {
     try {
@@ -81,7 +87,8 @@ async function processActiveGames(client: MongoClient) {
         console.log(
           `⚡ Processing Tick ${game.state.tick + 1} for Game ${game._id}`
         );
-        await executeGameTick(client, game);
+        // Cast Mongoose Document to Game interface if needed, or pass as is if compatible
+        await executeGameTick(game as unknown as Game);
       }
     } catch (err) {
       console.error(`Failed to process game ${game._id}:`, err);
@@ -93,42 +100,45 @@ async function processActiveGames(client: MongoClient) {
 /**
  * Execute logic for a single game instance
  */
-async function executeGameTick(client: MongoClient, game: Game) {
-  const db = client.db();
-  const gameId = game._id;
+async function executeGameTick(game: Game) {
+  const gameId = game._id as unknown as Types.ObjectId;
 
   // Start by locking the game to prevent players from changing the game state
   // during tick processing. We don't know how long ticks will take to
   // process so better to be safe and lock the game now.
-  await GameService.lockGame(db, gameId);
+  await GameService.lockGame(gameId);
 
   // --- A. LOAD STATE (Scatter-Gather) ---
   // We need to load data from multiple collections to build the game state
+  // Mongoose models return Query objects. We await them to get Documents.
 
   let [hexes, units, players, planets, stations] = await Promise.all([
-    db.collection<Hex>("hexes").find({ gameId: gameId }).toArray(),
-    db.collection<Unit>("units").find({ gameId: gameId }).toArray(),
-    db.collection<Player>("players").find({ gameId: gameId }).toArray(),
-    db.collection<Planet>("planets").find({ gameId: gameId }).toArray(),
-    db.collection<Station>("stations").find({ gameId: gameId }).toArray(),
+    HexModel.find({ gameId }),
+    UnitModel.find({ gameId }),
+    PlayerModel.find({ gameId }),
+    PlanetModel.find({ gameId }),
+    StationModel.find({ gameId }),
   ]);
 
-  const hexUpdateTracker = new TickContextHexUpdateTracker();
-
-  hexUpdateTracker.refreshHexesToUpdate(planets, stations, units); // Start tracking hexes
+  // Cast Documents to Core types for TickProcessor
+  // Mongoose documents technically satisfy the interfaces unless there are hidden fields or methods conflict.
+  // The TickProcessor expects arrays of these types.
 
   // --- B. RUN TICK PROCESSOR (Physics/Combat) ---
   // This calculates moves, battles, and captures based on the loaded state
-  const newTick = game.state.tick + 1;
+
+  // Update tick directly on the object as requested.
+  game.state.tick++;
+  const newTick = game.state.tick;
 
   const tickContext = new TickContext(
     newTick,
     game,
-    players,
-    hexes,
-    units,
-    planets,
-    stations
+    players as unknown as Player[],
+    hexes as unknown as Hex[],
+    units as unknown as Unit[],
+    planets as unknown as Planet[],
+    stations as unknown as Station[]
   );
 
   const tickResult = TickProcessor.processTick(tickContext);
@@ -162,205 +172,138 @@ async function executeGameTick(client: MongoClient, game: Game) {
     // Run the Economy/Logistics Logic
     const cycleContext = new CycleTickContext(
       game,
-      players,
-      hexes,
-      units,
-      planets,
-      stations
+      players as unknown as Player[],
+      hexes as unknown as Hex[],
+      units as unknown as Unit[],
+      planets as unknown as Planet[],
+      stations as unknown as Station[]
     );
 
     cycleResult = TickProcessor.processCycle(cycleContext);
   }
 
-  // Now that all tick processing is done, units have moved, combat has occurred, stations have been destroyed etc,
-  // we can refresh the hexes we need to update.
-  hexUpdateTracker.refreshHexesToUpdate(planets, stations, units);
-
   // --- D. PERSISTENCE (Bulk Writes) ---
-  // We collect all operations into arrays and execute them in batches.
+  // We execute updates in a transaction.
 
-  const userOps: AnyBulkWriteOperation<User>[] = [];
-  const unitOps: AnyBulkWriteOperation<Unit>[] = [];
-  const hexOps: AnyBulkWriteOperation<Hex>[] = [];
-  const planetOps: AnyBulkWriteOperation<Planet>[] = [];
-  const playerOps: AnyBulkWriteOperation<Player>[] = [];
-  const unitsToDelete: ObjectId[] = [...tickResult.unitsToRemove];
-  const stationsToDelete: ObjectId[] = [...tickResult.stationsToRemove];
+  await executeInTransaction(async (session) => {
 
-  // Prepare Planet Updates (From Capture)
-  tickResult.planetUpdates.forEach((update, planetId) => {
-    planetOps.push({
-      updateOne: {
-        filter: { _id: new ObjectId(planetId) },
-        update: { $set: update },
-      },
-    });
-  });
+    const savePromises: Promise<any>[] = [];
 
-  // Prepare Cycle Updates (If applicable)
-  if (cycleResult) {
-    // If there is a winner, increment the user's victories achievement.
-    if (cycleResult.winnerPlayerId) {
-      const winnerPlayer = players.find(
-        (p) => String(p._id) === String(cycleResult.winnerPlayerId)
-      )!;
+    // 1. Save Modified Entities
+    // Mongoose tracks changes. calling .save() only writes if modified.
 
-      userOps.push({
-        updateOne: {
-          filter: { _id: winnerPlayer.userId },
-          update: { $inc: { "achievements.victories": 1 } },
-        },
-      });
+    // Planets
+    planets.forEach(p => savePromises.push(p.save({ session })));
 
-      // TODO: Calculate rank increments for all players.
-      // TODO: AFK players should get negative rank equal to the number of players in the game.
+    // Units (Only live ones)
+    // Note: units array was filtered above for Cycle processing if cycle happened.
+    // If not cycle, we should still filter out dead ones before saving?
+    // tickResult.unitsToRemove contains IDs of units to be deleted.
+    // We should NOT save those.
+    // Filter again to be safe.
+    const liveUnits = units.filter(
+        (u) => !tickResult.unitsToRemove.some((id) => String(id) === String(u._id))
+    );
+    // Also filter out units starved in cycle
+    const cycleDeadUnits = cycleResult ? cycleResult.unitsToDelete : [];
+    const finalLiveUnits = liveUnits.filter(
+        (u) => !cycleDeadUnits.some((id) => String(id) === String(u._id))
+    );
+
+    finalLiveUnits.forEach(u => savePromises.push(u.save({ session })));
+
+    // Hexes
+    hexes.forEach(h => savePromises.push(h.save({ session })));
+
+    // Players (Points updates)
+    players.forEach(p => savePromises.push(p.save({ session })));
+
+
+    // 2. Deletions
+    const unitsToDelete = [...tickResult.unitsToRemove];
+    const stationsToDelete = [...tickResult.stationsToRemove];
+
+    if (cycleResult) {
+        cycleResult.unitsToDelete.forEach(id => unitsToDelete.push(id));
     }
 
-    // Player Updates (Prestige/VP)
-    cycleResult.playerUpdates.forEach((update, id) => {
-      playerOps.push({
-        updateOne: {
-          filter: { _id: new ObjectId(id) },
-          update: { $set: update },
-        },
-      });
-    });
+    if (unitsToDelete.length > 0) {
+        savePromises.push(UnitModel.deleteMany({ _id: { $in: unitsToDelete } }, { session }));
+    }
 
-    // Dead Units from Starvation
-    cycleResult.unitsToDelete.forEach((id) => unitsToDelete.push(id));
-  }
+    if (stationsToDelete.length > 0) {
+        savePromises.push(StationModel.deleteMany({ _id: { $in: stationsToDelete } }, { session }));
+    }
 
-  // Prepare Unit Updates
-  // Remove dead entities from arrays so they aren't processed in DB update operations.
-  units = units.filter(
-    (u) => !tickResult.unitsToRemove.some((id) => String(id) === String(u._id))
-  );
+    // 3. Game State Update
 
-  // Note: Units are ALWAYS fully updated. We process unit movement, combat and supply every tick
-  // so we might as well update everything.
-  units.forEach((unit) => {
-    unitOps.push({
-      updateOne: {
-        filter: { _id: unit._id },
-        update: { $set: unit }, // Overwrite with new state
-      },
-    });
+    // Update Tick (redundant assignment since we modified object, but explicit for clarity)
+    game.state.tick = newTick;
+    game.state.lastTickDate = new Date();
+
+    // Unlock Game
+    if (game.state.status === GameStates.LOCKED) {
+        game.state.status = GameStates.ACTIVE;
+    }
+
+    // Note: `game` variable refers to the document.
+    // `TickProcessor` methods mutated it.
+
+    const gameDoc = game as any; // Document
+    savePromises.push(gameDoc.save({ session }));
+
+
+    // 4. Combat Reports
+    if (tickResult.combatReports.length > 0) {
+        const events = [];
+
+        tickResult.combatReports.forEach(r => {
+            events.push({
+                gameId: gameId,
+                playerId: r.attackerId,
+                tick: newTick,
+                type: "COMBAT_REPORT",
+                data: r,
+                // createdAt handled by schema timestamp or default
+            });
+             events.push({
+                gameId: gameId,
+                playerId: r.defenderId,
+                tick: newTick,
+                type: "COMBAT_REPORT",
+                data: r,
+            });
+        });
+
+        savePromises.push(GameEventModel.insertMany(events, { session }));
+    }
+
+    // 5. User Achievements (Victory)
+    if (cycleResult && cycleResult.winnerPlayerId) {
+         const winnerPlayer = players.find(
+            (p) => String(p._id) === String(cycleResult.winnerPlayerId)
+          );
+
+          if (winnerPlayer) {
+              savePromises.push(
+                  UserModel.updateOne(
+                      { _id: winnerPlayer.userId },
+                      { $inc: { "achievements.victories": 1 } },
+                      { session }
+                  )
+              );
+          }
+    }
+
+    await Promise.all(savePromises);
   });
 
-  // Get only the hexes that are being tracked by the hex update tracker.
-  const hexesToUpdate = Array.from(hexUpdateTracker.hexesToUpdate).map(
-    (coord) => tickContext.hexLookup.get(coord)!
-  );
-
-  // Note: Hexes are ALWAYS fully updated.
-  hexesToUpdate.forEach((hex) => {
-    hexOps.push({
-      updateOne: {
-        filter: { _id: hex._id },
-        update: { $set: hex }, // Overwrite with new state
-      },
-    });
-  });
-
-  // Update Game State
-  // Logic: Base Tick Update -> Merge Tick Result (Elimination) -> Merge Cycle Result (Economy/Cycle count)
-  let nextGameState: any = {
-    ...game.state,
-    status: GameStates.ACTIVE, // Unlocks the game
-    tick: newTick,
-    lastTickDate: new Date(),
-  };
-
-  // 1. Merge Tick updates (e.g. Elimination Victory)
-  if (tickResult.gameStateUpdates && tickResult.gameStateUpdates) {
-    nextGameState = {
-      ...nextGameState,
-      ...tickResult.gameStateUpdates,
-    };
-  }
-
-  // 2. Merge Cycle updates (e.g. Cycle++ or VP Victory)
-  // Cycle updates generally take precedence as they happen "after" the tick logic
-  if (cycleResult && cycleResult.gameStateUpdates) {
-    nextGameState = {
-      ...nextGameState,
-      ...cycleResult.gameStateUpdates,
-    };
-  }
-
-  // IF Game Completed, log it
-  if (nextGameState.status === GameStates.COMPLETED) {
+  const finalGameState = game.state;
+  if (finalGameState.status === GameStates.COMPLETED) {
     console.log(
-      `🏆 Game ${gameId} Completed! Winner: ${nextGameState.winnerPlayerId}`
+      `🏆 Game ${gameId} Completed! Winner: ${finalGameState.winnerPlayerId}`
     );
   }
-
-  // 5. EXECUTE DB OPERATIONS
-  await executeInTransaction(async (db, session) => {
-    await db
-      .collection<Game>("games")
-      .updateOne({ _id: gameId }, { $set: { state: nextGameState } });
-
-    // Execute Bulk Ops
-    const promises: Promise<BulkWriteResult | DeleteResult>[] = [];
-
-    if (userOps.length > 0)
-      promises.push(db.collection<User>("users").bulkWrite(userOps));
-
-    if (unitOps.length > 0)
-      promises.push(db.collection<Unit>("units").bulkWrite(unitOps));
-
-    if (hexOps.length > 0)
-      promises.push(db.collection<Hex>("hexes").bulkWrite(hexOps));
-
-    if (planetOps.length > 0)
-      promises.push(db.collection<Planet>("planets").bulkWrite(planetOps));
-
-    if (playerOps.length > 0)
-      promises.push(db.collection<Player>("players").bulkWrite(playerOps));
-
-    if (unitsToDelete.length > 0)
-      promises.push(
-        db.collection<Unit>("units").deleteMany({ _id: { $in: unitsToDelete } })
-      );
-
-    if (stationsToDelete.length > 0)
-      promises.push(
-        db
-          .collection<Station>("stations")
-          .deleteMany({ _id: { $in: stationsToDelete } })
-      );
-
-    await Promise.all(promises);
-
-    // Save Combat Reports
-    if (tickResult.combatReports.length > 0) {
-      // Insert one for the attacker and another for the defender.
-      await db.collection<GameEvent>("game_events").insertMany(
-        tickResult.combatReports.map((r) => ({
-          _id: new ObjectId(),
-          gameId: gameId,
-          playerId: r.attackerId,
-          tick: newTick,
-          type: "COMBAT_REPORT",
-          data: r,
-          createdAt: new Date(),
-        }))
-      );
-
-      await db.collection<GameEvent>("game_events").insertMany(
-        tickResult.combatReports.map((r) => ({
-          _id: new ObjectId(),
-          gameId: gameId,
-          playerId: r.defenderId,
-          tick: newTick,
-          type: "COMBAT_REPORT",
-          data: r,
-          createdAt: new Date(),
-        }))
-      );
-    }
-  });
 
   console.log(`✅ Tick Complete.`);
 }

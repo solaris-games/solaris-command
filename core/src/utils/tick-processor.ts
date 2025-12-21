@@ -22,35 +22,7 @@ import { MapUtils } from "./map-utils";
 // TODO: Split these into two files, tick-processor.ts and tick-cycle-processor.ts
 // This will make it more manageable to write unit tests for.
 
-export class TickContextHexUpdateTracker {
-  // This keeps track of hexes that require updates.
-  // At the start of the tick we will capture hexes adjacent to every entity in the game
-  // and then after the tick has processed, we'll update this list with any new hexes
-  // that will have been updated by unit movement, combat, stations being destroyed etc.
-  // This is so that we can update only the hexes that need to be changed in the DB instead
-  // of updating every single hex.
-
-  hexesToUpdate: Set<HexCoordsId> = new Set<HexCoordsId>();
-
-  refreshHexesToUpdate(planets: Planet[], stations: Station[], units: Unit[]) {
-    const appendLocationHexes = (coords: HexCoords) => {
-      const neighbors = HexUtils.neighbors(coords).concat([coords]);
-
-      neighbors.forEach((c) => this.hexesToUpdate.add(HexUtils.getCoordsID(c)));
-    };
-
-    // Iterate over all entities and add their current locations to the hex update list.
-    planets.forEach((u) => appendLocationHexes(u.location));
-    stations.forEach((u) => appendLocationHexes(u.location));
-    units.forEach((u) => appendLocationHexes(u.location));
-  }
-}
-
 export interface ProcessTickResult {
-  // Note: Unit updates are not present here since units are ALWAYS updated every tick. We do not need to keep track of individual unit updates.
-
-  gameStateUpdates: Partial<GameState> | null;
-  planetUpdates: Map<string, Partial<Planet>>; // Capture updates
   combatReports: CombatReport[]; // Logs for the UI
   unitsToRemove: ObjectId[]; // Dead units to delete
   stationsToRemove: ObjectId[]; // Captured stations to delete
@@ -74,8 +46,6 @@ export class TickContext {
   stationLookup = new Map<HexCoordsId, Station>();
 
   // --- OUTPUT CONTAINERS ---
-  gameStateUpdates: Partial<GameState> | null = null;
-  planetUpdates = new Map<string, Partial<Planet>>();
   combatReports: CombatReport[] = [];
   unitsToRemove: ObjectId[] = [];
   stationsToRemove: ObjectId[] = [];
@@ -120,22 +90,9 @@ export class TickContext {
       this.stationLookup.set(HexUtils.getCoordsID(s.location), s)
     );
   }
-
-  appendPlanetUpdate(planetId: ObjectId, update: Partial<Planet>) {
-    const existing = this.planetUpdates.get(String(planetId)) || {};
-
-    this.planetUpdates.set(String(planetId), {
-      ...existing,
-      ...update,
-    });
-  }
 }
 
 export interface ProcessCycleResult {
-  // Note: Unit updates are not present here since units are ALWAYS updated every tick. We do not need to keep track of individual unit updates.
-
-  gameStateUpdates: Partial<GameState>;
-  playerUpdates: Map<string, Partial<Player>>;
   unitsToDelete: ObjectId[]; // Track starved units
   winnerPlayerId: ObjectId | null;
 }
@@ -148,9 +105,7 @@ export class CycleTickContext {
   planets: Planet[];
   stations: Station[];
 
-  playerUpdates = new Map<string, Partial<Player>>();
   unitsToRemove: ObjectId[] = []; // <--- Track killed units
-  gameStateUpdates: Partial<GameState> | null = null;
   winnerPlayerId: ObjectId | null = null;
 
   constructor(
@@ -235,10 +190,6 @@ const handleHexCapture = (context: TickContext, hex: Hex, unit: Unit) => {
   const planet = context.planetLookup.get(hexCoordsId);
   if (planet && String(planet.playerId) !== String(unit.playerId)) {
     planet.playerId = unit.playerId; // Update in-memory object
-
-    context.appendPlanetUpdate(planet._id, {
-      playerId: unit.playerId,
-    });
   }
 
   // Destroy hostile stations
@@ -263,8 +214,6 @@ export const TickProcessor = {
     TickProcessor.processTickWinnerCheck(context);
 
     return {
-      gameStateUpdates: context.gameStateUpdates,
-      planetUpdates: context.planetUpdates,
       combatReports: context.combatReports,
       unitsToRemove: context.unitsToRemove,
       stationsToRemove: context.stationsToRemove,
@@ -496,13 +445,6 @@ export const TickProcessor = {
       context.game.state.status = GameStates.COMPLETED;
       context.game.state.winnerPlayerId = winner._id;
       context.game.state.endDate = new Date();
-
-      // DB update:
-      context.gameStateUpdates = {
-        status: context.game.state.status,
-        winnerPlayerId: context.game.state.winnerPlayerId,
-        endDate: context.game.state.endDate,
-      };
     }
   },
 
@@ -546,10 +488,8 @@ export const TickProcessor = {
       const vpIncome = TickProcessor.calculateVPIncome(ownedPlanets);
       const newVP = player.victoryPoints + vpIncome;
 
-      context.playerUpdates.set(playerIdStr, {
-        prestigePoints: newPrestige,
-        victoryPoints: newVP,
-      });
+      player.prestigePoints = newPrestige;
+      player.victoryPoints = newVP;
 
       // --- VICTORY CHECK ---
       if (newVP >= context.game.settings.victoryPointsToWin) {
@@ -567,20 +507,16 @@ export const TickProcessor = {
 
     // 2. Game State Update
     // Note: We only increment the Cycle count here. The Ticks are incremented by another process.
-    context.gameStateUpdates = {
-      cycle: context.game.state.cycle + 1,
-      lastTickDate: new Date(),
-      winnerPlayerId: context.winnerPlayerId,
-    };
+    context.game.state.cycle += 1;
+    context.game.state.lastTickDate = new Date();
+    context.game.state.winnerPlayerId = context.winnerPlayerId;
 
     if (context.winnerPlayerId) {
-      context.gameStateUpdates.status = GameStates.COMPLETED;
-      context.gameStateUpdates.endDate = new Date();
+      context.game.state.status = GameStates.COMPLETED;
+      context.game.state.endDate = new Date();
     }
 
     return {
-      gameStateUpdates: context.gameStateUpdates,
-      playerUpdates: context.playerUpdates,
       unitsToDelete: context.unitsToRemove,
       winnerPlayerId: context.winnerPlayerId,
     };
