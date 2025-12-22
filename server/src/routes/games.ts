@@ -6,7 +6,7 @@ import {
   requireActiveGame,
   requirePendingGame,
 } from "../middleware/game";
-import { loadPlayer, touchPlayer, validateRequest } from "../middleware";
+import { loadPlayer, validateRequest } from "../middleware";
 import {
   ERROR_CODES,
   MapUtils,
@@ -311,34 +311,31 @@ router.post(
 
 // GET /api/v1/games/:id
 // Get full game state (with FoW filtering)
-router.get(
-  "/:id",
-  authenticateToken,
-  loadGame,
-  async (req, res) => {
-    try {
-      const { galaxy, currentPlayer } = await GameGalaxyService.getGameGalaxy(
-        req.game,
-        req.user._id
-      );
+router.get("/:id", authenticateToken, loadGame, async (req, res) => {
+  try {
+    const { galaxy, currentPlayer } = await GameGalaxyService.getGameGalaxy(
+      req.game,
+      req.user._id
+    );
 
-      if (currentPlayer) {
-        req.player = currentPlayer; // Feed this into middleware
-      }
+    if (currentPlayer) {
+      req.player = currentPlayer; // Feed this into middleware
 
-      const currentPlayerId = currentPlayer?._id || null;
-
-      res.json(GameGalaxyMapper.toGameGalaxyResponse(galaxy, currentPlayerId));
-    } catch (error) {
-      console.error("Error fetching game:", error);
-
-      return res.status(500).json({
-        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
-      });
+      // Now touch the player to ensure the last seen date is updated.
+      await PlayerService.touchPlayer(req.game._id, req.player._id);
     }
-  },
-  touchPlayer
-);
+
+    const currentPlayerId = currentPlayer?._id || null;
+
+    res.json(GameGalaxyMapper.toGameGalaxyResponse(galaxy, currentPlayerId));
+  } catch (error) {
+    console.error("Error fetching game:", error);
+
+    return res.status(500).json({
+      errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
+    });
+  }
+});
 
 // GET /api/v1/games/:id/events
 // Get game events (as a player)
