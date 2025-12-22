@@ -1,0 +1,27 @@
+import { Station } from "../models/station";
+import { HexCoords } from "../types/geometry";
+import { UnifiedId } from "../types";
+
+export class StationFactory {
+  static createStation(
+    gameId: UnifiedId,
+    playerId: UnifiedId,
+    hexId: UnifiedId,
+    location: HexCoords,
+    idGenerator: () => UnifiedId
+  ): Station {
+    const station: Station = {
+      _id: idGenerator(),
+      gameId: gameId,
+      playerId: playerId,
+      hexId: hexId,
+      location: location,
+      supply: {
+        isInSupply: true,
+        isRoot: false,
+      },
+    };
+
+    return station;
+  }
+}
