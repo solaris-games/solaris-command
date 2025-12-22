@@ -14,8 +14,7 @@ import { GameModel } from "../db/schemas/game";
 
 export const CreateGameJob = {
   start() {
-    // Check every minute
-    const schedule = process.env.CREATE_GAME_SCHEDULE || "* * * * *";
+    const schedule = process.env.CREATE_GAME_SCHEDULE || "*/10 * * * * *"; // Every 10 seconds
 
     console.log(`⏰ Create Official Game Job scheduled: [${schedule}]`);
 
@@ -63,7 +62,7 @@ async function checkAndCreateGame() {
     },
     state: {
       status: GameStates.PENDING,
-      playerCount: map.playerCount,
+      playerCount: 0,
       tick: 0,
       cycle: 0,
       createdDate: new Date(),

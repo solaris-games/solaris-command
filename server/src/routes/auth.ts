@@ -1,10 +1,9 @@
 import express from "express";
 import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
-import { ERROR_CODES, User, MockUnifiedId } from "@solaris-command/core";
+import { ERROR_CODES, MockUnifiedId } from "@solaris-command/core";
 import { UserService } from "../services/UserService";
 import { AuthMapper } from "../map/AuthMapper";
-import { Types } from "mongoose";
 
 const router = express.Router();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);

@@ -10,26 +10,11 @@ import {
 import { HexModel } from "../db/schemas/hex";
 
 export class HexService {
-  static async removeOwnership(
-    gameId: UnifiedId,
-    playerId: UnifiedId,
-    session?: ClientSession
-  ) {
-    return HexModel.updateMany(
-      { gameId, playerId },
-      { $set: { playerId: null } },
-      { session }
-    );
-  }
-
   static async getByGameId(gameId: UnifiedId) {
     return HexModel.find({ gameId });
   }
 
-  static async getByGameIdAndPlayerId(
-    gameId: UnifiedId,
-    playerId: UnifiedId
-  ) {
+  static async getByGameIdAndPlayerId(gameId: UnifiedId, playerId: UnifiedId) {
     return HexModel.find({ gameId, playerId });
   }
 
@@ -40,10 +25,7 @@ export class HexService {
     });
   }
 
-  static async getByGameAndLocation(
-    gameId: UnifiedId,
-    location: HexCoords
-  ) {
+  static async getByGameAndLocation(gameId: UnifiedId, location: HexCoords) {
     return HexModel.findOne({
       gameId,
       "location.q": location.q,
@@ -120,10 +102,10 @@ export class HexService {
 
     // Find and update all hexes
     // Using $or for better performance than multiple round trips
-    const hexConditions = coords.map(c => ({
+    const hexConditions = coords.map((c) => ({
       "location.q": c.q,
       "location.r": c.r,
-      "location.s": c.s
+      "location.s": c.s,
     }));
 
     // We update all hexes matching the coordinates in the game
@@ -154,16 +136,16 @@ export class HexService {
     // Get all locations that we need to update.
     const coords = HexUtils.neighbors(hex.location).concat([hex.location]);
 
-    const hexConditions = coords.map(c => ({
+    const hexConditions = coords.map((c) => ({
       "location.q": c.q,
       "location.r": c.r,
-      "location.s": c.s
+      "location.s": c.s,
     }));
 
     return HexModel.updateMany(
       {
         gameId,
-        $or: hexConditions
+        $or: hexConditions,
       },
       { $pull: { zoc: { unitId: unit._id } } },
       { session }
@@ -178,6 +160,42 @@ export class HexService {
     return HexModel.updateMany(
       { gameId },
       { $pull: { zoc: { playerId: playerId } } },
+      { session }
+    );
+  }
+
+  static async removePlayerOwnership(
+    gameId: UnifiedId,
+    playerId: UnifiedId,
+    session?: ClientSession
+  ) {
+    return HexModel.updateMany(
+      { gameId, playerId },
+      { $set: { playerId: null } },
+      { session }
+    );
+  }
+
+  static async removePlayerUnits(
+    gameId: UnifiedId,
+    playerId: UnifiedId,
+    session?: ClientSession
+  ) {
+    return HexModel.updateMany(
+      { gameId, playerId },
+      { $set: { unitId: null } },
+      { session }
+    );
+  }
+
+  static async removePlayerStations(
+    gameId: UnifiedId,
+    playerId: UnifiedId,
+    session?: ClientSession
+  ) {
+    return HexModel.updateMany(
+      { gameId, playerId },
+      { $set: { stationId: null } },
       { session }
     );
   }

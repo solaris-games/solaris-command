@@ -8,7 +8,18 @@
       "cwd": "${workspaceFolder}/server",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run-script", "dev"],
-      "envFile": ".env"
+      "envFile": ".env",
+      "skipFiles": [
+          // Node.js internal core modules
+          "<node_internals>/**",
+  
+          // Ignore all dependencies (optional)
+          "${workspaceFolder}/node_modules/**",
+          "${workspaceFolder}/core/node_modules/**",
+          "${workspaceFolder}/client/node_modules/**",
+          "${workspaceFolder}/client-map-generator/node_modules/**",
+          "${workspaceFolder}/server/node_modules/**"
+      ],
     },
     {
       "name": "Attach",

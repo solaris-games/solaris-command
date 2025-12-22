@@ -3,7 +3,7 @@ import { Planet, UnifiedId } from "@solaris-command/core";
 import { PlanetModel } from "../db/schemas/planet";
 
 export class PlanetService {
-  static async removeOwnership(
+  static async removePlayerOwnership(
     gameId: UnifiedId,
     playerId: UnifiedId,
     session?: ClientSession

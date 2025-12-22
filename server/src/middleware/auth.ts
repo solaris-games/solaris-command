@@ -1,16 +1,14 @@
-import { ERROR_CODES } from "@solaris-command/core";
+import { ERROR_CODES, User } from "@solaris-command/core";
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { UserService } from "../services";
+import { Types } from "mongoose";
 
 // Extend Express Request to include user info
 declare global {
   namespace Express {
     interface Request {
-      user: {
-        id: string;
-        email: string;
-        username: string;
-      };
+      user: User;
     }
   }
 }
@@ -29,7 +27,7 @@ export const authenticateToken = (
     return res.sendStatus(401);
   }
 
-  jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
+  jwt.verify(token, JWT_SECRET, async (err: any, user: any) => {
     if (err) {
       console.error("JWT Verification Error:", err);
       return res.sendStatus(403);
@@ -38,7 +36,13 @@ export const authenticateToken = (
     if (!user)
       return res.status(401).json({ errorCode: ERROR_CODES.USER_UNAUTHORIZED });
 
-    req.user = user;
+    // Double check the user exists in the DB.
+    const dbUser = await UserService.getUserById(new Types.ObjectId(user.id));
+
+    if (dbUser == null)
+      return res.status(401).json({ errorCode: ERROR_CODES.USER_UNAUTHORIZED });
+
+    req.user = dbUser;
 
     next();
   });

@@ -3,6 +3,7 @@ import { PlayerService } from "./PlayerService";
 import { PlayerStatus, UnifiedId, User } from "@solaris-command/core";
 import { UserModel } from "../db/schemas/user";
 import { PlayerModel } from "../db/schemas/player";
+import { GameService } from "./GameService";
 
 export class UserService {
   static async createUser(user: User, session?: ClientSession) {
@@ -98,6 +99,8 @@ export class UserService {
           player._id as UnifiedId,
           session
         );
+
+        await GameService.deductPlayerCount(player.gameId, session);
       }
     }
 

@@ -17,13 +17,13 @@ export const loadPlayer = async (
   res: Response,
   next: NextFunction
 ) => {
-  const userId = req.user.id;
+  const userId = req.user._id;
   const gameId = req.params.id;
 
   try {
     const player = await PlayerService.getByGameAndUserId(
       new Types.ObjectId(gameId),
-      new Types.ObjectId(userId)
+      userId
     );
 
     if (!player)

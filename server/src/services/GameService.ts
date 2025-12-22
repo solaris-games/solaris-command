@@ -58,13 +58,24 @@ export class GameService {
     return GameModel.updateOne({ _id: gameId }, { $set: update }, { session });
   }
 
-  static async incrementPlayerCount(
+  static async addPlayerCount(
     gameId: UnifiedId,
     session?: ClientSession
   ) {
     return GameModel.findOneAndUpdate(
       { _id: gameId },
       { $inc: { "state.playerCount": 1 } },
+      { session, new: true } // new: true returns the modified document
+    );
+  }
+
+  static async deductPlayerCount(
+    gameId: UnifiedId,
+    session?: ClientSession
+  ) {
+    return GameModel.findOneAndUpdate(
+      { _id: gameId },
+      { $inc: { "state.playerCount": -1 } },
       { session, new: true } // new: true returns the modified document
     );
   }

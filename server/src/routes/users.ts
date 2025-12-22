@@ -4,14 +4,13 @@ import { executeInTransaction } from "../db/instance";
 import { UserService } from "../services/UserService";
 import { UserMapper } from "../map/UserMapper";
 import { ERROR_CODES } from "@solaris-command/core";
-import { Types } from "mongoose";
 
 const router = express.Router();
 
 // GET /api/v1/users/me
 router.get("/me", authenticateToken, async (req, res) => {
   try {
-    const user = await UserService.getUserById(new Types.ObjectId(req.user.id));
+    const user = await UserService.getUserById(req.user._id);
 
     if (!user) {
       return res.status(404).json({ errorCode: ERROR_CODES.USER_NOT_FOUND });
@@ -32,7 +31,7 @@ router.delete("/me", authenticateToken, async (req, res) => {
   try {
     await executeInTransaction(async (session) => {
       const result = await UserService.deleteUser(
-        new Types.ObjectId(req.user.id),
+        req.user._id,
         session
       );
 

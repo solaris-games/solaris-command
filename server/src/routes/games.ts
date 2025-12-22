@@ -34,7 +34,7 @@ const router = express.Router();
 router.get("/", authenticateToken, async (req, res) => {
   try {
     const { games, myGameIds } = await GameService.listGamesByUser(
-      new Types.ObjectId(req.user.id)
+      req.user._id
     );
 
     res.json(GameMapper.toGameListResponse(games, myGameIds));
@@ -58,7 +58,7 @@ router.post(
     try {
       const result = await executeInTransaction(async (session) => {
         const gameId = req.game._id;
-        const userId = new Types.ObjectId(req.user.id);
+        const userId = req.user._id;
 
         // Check if already joined (Atomic check within transaction not strictly necessary if index unique, but good for logic)
         const existingPlayer = await PlayerService.getByGameAndUserId(
@@ -199,7 +199,7 @@ router.post(
         }
 
         // Increment (Blind update)
-        await GameService.incrementPlayerCount(gameId, session);
+        await GameService.addPlayerCount(gameId, session);
 
         // Check Game Start (Using req.game count + 1 for current player)
         // Note: req.game.state.playerCount is old value. We add 1.
@@ -267,16 +267,13 @@ router.post(
   async (req, res) => {
     try {
       await executeInTransaction(async (session) => {
-        await PlayerService.leaveGame(
-          req.game._id,
-          req.player._id,
-          session
-        );
+        await PlayerService.leaveGame(req.game._id, req.player._id, session);
         await PlayerService.removePlayerAssets(
           req.game._id,
           req.player._id,
           session
         );
+        await GameService.deductPlayerCount(req.game._id, session);
       });
     } catch (error) {
       console.error("Error leaving game:", error);
@@ -322,7 +319,7 @@ router.get(
     try {
       const { galaxy, currentPlayer } = await GameGalaxyService.getGameGalaxy(
         req.game,
-        req.user.id
+        req.user._id
       );
 
       if (currentPlayer) {
@@ -355,7 +352,7 @@ router.get(
       // Check if player is in game
       const player = await PlayerService.getByGameAndUserId(
         req.game._id,
-        new Types.ObjectId(req.user.id)
+        req.user._id
       );
 
       if (!player) {

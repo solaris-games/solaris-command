@@ -51,7 +51,10 @@ export const FogOfWar = {
     // 2. Planets
     planets.forEach((p) => {
       if (p.playerId && String(p.playerId) === pidStr) {
-        const hexes = HexUtils.getHexCoordsInRange(p.location, CONSTANTS.PLANET_VISION_RANGE);
+        const hexes = HexUtils.getHexCoordsInRange(
+          p.location,
+          CONSTANTS.PLANET_VISION_RANGE
+        );
         hexes.forEach((h) => visibleHexes.add(HexUtils.getCoordsID(h)));
       }
     });
@@ -59,12 +62,30 @@ export const FogOfWar = {
     // 3. Stations
     stations.forEach((s) => {
       if (s.playerId && String(s.playerId) === pidStr) {
-        const hexes = HexUtils.getHexCoordsInRange(s.location, CONSTANTS.STATION_VISION_RANGE);
+        const hexes = HexUtils.getHexCoordsInRange(
+          s.location,
+          CONSTANTS.STATION_VISION_RANGE
+        );
         hexes.forEach((h) => visibleHexes.add(HexUtils.getCoordsID(h)));
       }
     });
 
     return visibleHexes;
+  },
+
+  maskHex(hex: Hex): Hex {
+    // Note: We only need to mask the unit on the hex (if there is one) and the hexes ZOC.
+    return {
+      _id: hex._id,
+      gameId: hex.gameId,
+      playerId: hex.playerId,
+      planetId: hex.planetId,
+      stationId: hex.stationId,
+      unitId: null,
+      location: hex.location,
+      terrain: hex.terrain,
+      zoc: [],
+    };
   },
 
   /**
@@ -77,21 +98,25 @@ export const FogOfWar = {
   ): Hex[] {
     const pidStr = String(playerId);
 
-    return allHexes.map(hex => {
+    return allHexes.map((hex) => {
       // If the user owns the hex then do not mask
-      if (hex.playerId && String(hex.playerId) === pidStr) return hex
+      if (hex.playerId && String(hex.playerId) === pidStr) return hex;
 
       // If the hex is visible then do not mask
-      if (visibleHexes.has(HexUtils.getCoordsID(hex.location))) return hex
+      if (visibleHexes.has(HexUtils.getCoordsID(hex.location))) return hex;
 
       // Otherwise, the hex is out of visible range and we should mask it.
-      // Note: We only need to mask the unit on the hex (if there is one) and the hexes ZOC.
-      return {
-        ...hex,
-        unitId: null,
-        zoc: []
-      }
-    })
+      return FogOfWar.maskHex(hex);
+    });
+  },
+
+  /**
+   * Masks hexes based on visibility.
+   */
+  maskAllHexes(allHexes: Hex[]): Hex[] {
+    return allHexes.map((hex) => {
+      return FogOfWar.maskHex(hex);
+    });
   },
 
   /**

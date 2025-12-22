@@ -109,14 +109,18 @@ export class PlayerService {
   ) {
     // Delete units
     await UnitService.deleteByPlayerId(gameId, playerId, session);
+    // Remove unit references on hexes
+    await HexService.removePlayerUnits(gameId, playerId, session);
     // Remove player ZOC influence
     await HexService.removeAllPlayerZOC(gameId, playerId, session);
     // Delete stations
     await StationService.deleteByPlayerId(gameId, playerId, session);
+    // Remove station references on hexes
+    await HexService.removePlayerStations(gameId, playerId, session);
     // Remove planet ownerships
-    await PlanetService.removeOwnership(gameId, playerId, session);
+    await PlanetService.removePlayerOwnership(gameId, playerId, session);
     // Remove hex ownerships
-    await HexService.removeOwnership(gameId, playerId, session);
+    await HexService.removePlayerOwnership(gameId, playerId, session);
   }
 
   static async leaveGame(

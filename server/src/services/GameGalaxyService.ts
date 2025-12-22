@@ -26,7 +26,7 @@ export interface GameGalaxy {
 }
 
 export class GameGalaxyService {
-  static async getGameGalaxy(game: Game, userId: string) {
+  static async getGameGalaxy(game: Game, userId: UnifiedId) {
     const gameId = game._id;
 
     // TODO: Optimize this to execute in parallel
@@ -43,7 +43,7 @@ export class GameGalaxyService {
       StationService.getByGameId(gameId),
     ]);
 
-    const currentPlayer = players.find((p) => String(p.userId) === userId);
+    const currentPlayer = players.find((p) => String(p.userId) === String(userId));
 
     let galaxy: any = {
       game: game,
@@ -54,7 +54,14 @@ export class GameGalaxyService {
       units: [], // Will be filtered
     };
 
-    if (currentPlayer && game.state.status === GameStates.ACTIVE) {
+    if (game.state.status === GameStates.COMPLETED) {
+      // Reveal all
+      galaxy.units = allUnits;
+
+      return { galaxy, currentPlayer };
+    }
+
+    if (currentPlayer) {
       // Apply Fog of War for Units
       // We need to cast Mongoose Documents to POJOs or compatible types if core expects strict interfaces.
       // Usually Mongoose documents satisfy the interface unless there are specific methods or hidden fields.
@@ -77,19 +84,10 @@ export class GameGalaxyService {
         allUnits,
         visibleHexes
       );
-    } else if (game.state.status === GameStates.COMPLETED) {
-      // Reveal all
-      galaxy.units = allUnits;
     } else {
-      // Spectator or Pending
-      if (game.state.status === GameStates.PENDING && currentPlayer) {
-        galaxy.units = allUnits.filter(
-          (u) => String(u.playerId) === String(currentPlayer._id)
-        );
-      } else {
-        // Spectator: See map (hexes, planets, stations) but NO units
-        galaxy.units = [];
-      }
+      // Spectator: See map (hexes, planets, stations) but NO units
+      galaxy.hexes = FogOfWar.maskAllHexes(hexes);
+      galaxy.units = [];
     }
 
     return { galaxy, currentPlayer };
