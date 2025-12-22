@@ -1,4 +1,4 @@
-import { ClientSession } from "mongoose";
+import { ClientSession, Types } from "mongoose";
 import { PlayerService } from "./PlayerService";
 import { PlayerStatus, UnifiedId, User } from "@solaris-command/core";
 import { UserModel } from "../db/schemas/user";
@@ -9,6 +9,36 @@ export class UserService {
     const newUser = new UserModel(user);
     await newUser.save({ session });
     return newUser;
+  }
+
+  static async findOrCreateUser(
+    email: string,
+    googleId: string,
+    username: string,
+    session?: ClientSession
+  ): Promise<User> {
+    let user = await this.getUserByEmail(email);
+
+    if (user) {
+      await this.touchUser(user._id);
+      return user;
+    }
+
+    const newUser: User = {
+      _id: new Types.ObjectId(),
+      googleId,
+      email,
+      username,
+      lastSeenDate: new Date(),
+      achievements: {
+        victories: 0,
+        rank: 0,
+        renown: 0,
+      },
+    };
+
+    const createdUser = await this.createUser(newUser, session);
+    return createdUser;
   }
 
   static async getUserById(userId: UnifiedId) {
