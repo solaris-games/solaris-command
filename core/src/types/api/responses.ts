@@ -86,6 +86,10 @@ export interface GameGalaxyResponseSchema {
     playerId: string | null;
     location: HexCoords;
     terrain: TerrainTypes;
+    zoc: {
+      playerId: string | null;
+      unitId: string | null;
+    }[];
   }[];
   planets: {
     _id: string;

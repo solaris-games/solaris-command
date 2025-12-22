@@ -85,7 +85,7 @@ export class GameGalaxyMapper {
         prestigePoints: tryMaskField(p._id, p.prestigePoints),
         victoryPoints: p.victoryPoints,
         lastSeenDate: p.lastSeenDate.toISOString(),
-        isUserPlayer: String(userPlayerId) === String(p.userId)
+        isUserPlayer: String(userPlayerId) === String(p._id)
       })),
       hexes: galaxy.hexes.map((h) => ({
         _id: String(h._id),
@@ -94,7 +94,11 @@ export class GameGalaxyMapper {
         stationId: h.stationId?.toString() || null,
         unitId: h.unitId?.toString() || null,
         location: h.location,
-        terrain: h.terrain
+        terrain: h.terrain,
+        zoc: h.zoc.map(z => ({
+          playerId: z.playerId.toString(),
+          unitId: z.unitId.toString()
+        }))
       })),
       planets: galaxy.planets.map((p) => ({
         _id: String(p._id),

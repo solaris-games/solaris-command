@@ -26,8 +26,8 @@ import {
   loadPlayerHexes,
   loadPlayerUnit,
   loadUnits,
-  requireActiveGame,
   requireNonRegoupingUnit,
+  requireOpenGame,
   validateRequest,
 } from "../middleware";
 import { UnitService, PlayerService, HexService } from "../services";
@@ -43,7 +43,7 @@ router.post(
   authenticateToken,
   validateRequest(DeployUnitRequestSchema),
   loadGame,
-  requireActiveGame,
+  requireOpenGame,
   loadPlayer,
   loadPlayerHexes,
   loadPlanets,
@@ -136,7 +136,7 @@ router.post(
         return unit;
       });
 
-      res.json(UnitMapper.toDeployUnitResponse(createdUnit));
+      res.status(201).json(UnitMapper.toDeployUnitResponse(createdUnit));
     } catch (error: any) {
       console.error("Error deploying unit:", error);
 
@@ -144,8 +144,6 @@ router.post(
         errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
     }
-
-    return res.status(201).json({});
   }
 );
 
@@ -155,7 +153,7 @@ router.post(
   authenticateToken,
   validateRequest(MoveUnitRequestSchema),
   loadGame,
-  requireActiveGame,
+  requireOpenGame,
   loadPlayer,
   loadPlayerUnit,
   requireNonRegoupingUnit,
@@ -163,7 +161,7 @@ router.post(
     const { hexIdPath }: { hexIdPath: string[] } = req.body; // (Hex IDs)
 
     // Validate that the movement path isn't longer than an entire cycle.
-    if (req.path.length > CONSTANTS.GAME_DEFAULT_TICKS_PER_CYCLE) {
+    if (hexIdPath.length > CONSTANTS.GAME_DEFAULT_TICKS_PER_CYCLE) {
       return res
         .status(400)
         .json({ errorCode: ERROR_CODES.UNIT_MOVEMENT_PATH_TOO_LONG });
@@ -222,7 +220,7 @@ router.post(
   "/:unitId/cancel-move",
   authenticateToken,
   loadGame,
-  requireActiveGame,
+  requireOpenGame,
   loadPlayer,
   loadPlayerUnit,
   requireNonRegoupingUnit,
@@ -254,7 +252,7 @@ router.post(
   authenticateToken,
   validateRequest(AttackUnitRequestSchema),
   loadGame,
-  requireActiveGame,
+  requireOpenGame,
   loadPlayer,
   loadPlayerUnit,
   requireNonRegoupingUnit,
@@ -350,7 +348,7 @@ router.post(
   "/:unitId/cancel-attack",
   authenticateToken,
   loadGame,
-  requireActiveGame,
+  requireOpenGame,
   loadPlayer,
   loadPlayerUnit,
   requireNonRegoupingUnit,
@@ -387,7 +385,7 @@ router.post(
   authenticateToken,
   validateRequest(UpgradeUnitRequestSchema),
   loadGame,
-  requireActiveGame,
+  requireOpenGame,
   loadPlayer,
   loadPlayerUnit,
   async (req, res) => {
@@ -498,7 +496,7 @@ router.post(
   "/:unitId/scrap",
   authenticateToken,
   loadGame,
-  requireActiveGame,
+  requireOpenGame,
   loadPlayer,
   loadPlayerUnit,
   async (req, res) => {

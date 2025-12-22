@@ -115,29 +115,6 @@ export const MapUtils = {
     return planets.find((p) => p.isCapital && p.playerId === null) || null;
   },
 
-  findNearestUnownedPlanet(
-    planets: Planet[],
-    center: HexCoords,
-    excludePlanetId?: UnifiedId
-  ): Planet | null {
-    let nearest: Planet | null = null;
-    let minDistance = Infinity;
-
-    for (const planet of planets) {
-      if (planet.playerId) continue; // Must be unowned
-      if (excludePlanetId && String(planet._id) === String(excludePlanetId))
-        continue;
-
-      const dist = HexUtils.distance(center, planet.location);
-      if (dist < minDistance) {
-        minDistance = dist;
-        nearest = planet;
-      }
-    }
-
-    return nearest;
-  },
-
   findNearestFreeHexes(hexes: Hex[], center: HexCoords, count: number): Hex[] {
     const results: Hex[] = [];
     const hexMap = new Map<HexCoordsId, Hex>();
@@ -154,7 +131,7 @@ export const MapUtils = {
       // Fisher-Yates shuffle
       for (let i = candidates.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+        [candidates[i], candidates[j]] = [candidates[j]!, candidates[i]!];
       }
 
       for (const coord of candidates) {

@@ -11,7 +11,7 @@ import {
 import {
   loadGame,
   loadPlayer,
-  requireActiveGame,
+  requireOpenGame,
   validateRequest,
 } from "../middleware";
 import { StationService, PlayerService, HexService } from "../services";
@@ -28,7 +28,7 @@ router.post(
   authenticateToken,
   validateRequest(BuildStationRequestSchema),
   loadGame,
-  requireActiveGame,
+  requireOpenGame,
   loadPlayer,
   loadStations,
   async (req, res) => {
@@ -104,7 +104,7 @@ router.post(
         return station;
       });
 
-      res.json(
+      res.status(201).json(
         StationMapper.toBuildStationResponse(
           createdStation,
           CONSTANTS.STATION_PRESTIGE_COST
@@ -117,8 +117,6 @@ router.post(
         errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
     }
-
-    return res.status(201).json({});
   }
 );
 
@@ -127,7 +125,7 @@ router.delete(
   "/:stationId",
   authenticateToken,
   loadGame,
-  requireActiveGame,
+  requireOpenGame,
   loadPlayer,
   loadPlayerStation,
   async (req, res) => {

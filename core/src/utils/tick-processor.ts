@@ -164,7 +164,7 @@ export class GameUnitMovementContext {
         unit.state.status === UnitStatus.MOVING &&
         !context.unitsToRemove.some((id) => String(id) === String(unit._id))
       ) {
-        const nextHex = unit.movement.path[0];
+        const nextHex = unit.movement.path[0]!;
 
         this.moveIntents.push({
           unit,
@@ -373,7 +373,7 @@ export const TickProcessor = {
         // Note: Occupier is unaffected (Interloper Rule)
       } else {
         // --- MOVEMENT SUCCESS ---
-        const intent = intents[0];
+        const intent = intents[0]!;
         const unit = intent.unit;
 
         // Calculate Cost based on Target Terrain
@@ -449,7 +449,7 @@ export const TickProcessor = {
     // Last Man Standing Check
     // Only applies if the game started with > 1 player
     if (activePlayers.length === 1) {
-      const winner = activePlayers[0];
+      const winner = activePlayers[0]!;
 
       // Update in-memory object
       context.game.state.status = GameStates.COMPLETED;
@@ -662,7 +662,7 @@ export const TickProcessor = {
         throw new Error(ERROR_CODES.MOVEMENT_PATH_INVALID);
       }
 
-      const location = unit.movement.path[0];
+      const location = unit.movement.path[0]!;
 
       const hex = contextTick.hexLookup.get(HexUtils.getCoordsID(location));
 

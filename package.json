@@ -5,13 +5,15 @@
     "core",
     "server",
     "client",
-    "client-map-generator"
+    "client-map-generator",
+    "client-prototype"
   ],
   "scripts": {
     "test:core": "npm test --workspace=core",
     "dev:server": "npm run dev --workspace=server",
     "dev:client": "npm run dev --workspace=client",
-    "dev:map-gen": "npm run dev --workspace=client-map-generator"
+    "dev:map-gen": "npm run dev --workspace=client-map-generator",
+    "dev:proto": "npm run dev --workspace=client-prototype"
   },
   "devDependencies": {
     "vitest": "^4.0.14"

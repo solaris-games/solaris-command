@@ -53,7 +53,7 @@ export const HexUtils = {
    */
   direction(directionIndex: number): HexCoords {
     const index = Math.abs(directionIndex % 6); // Handle negative wrapping
-    return HEX_DIRECTIONS[index];
+    return HEX_DIRECTIONS[index]!;
   },
 
   /**
@@ -142,6 +142,6 @@ export const HexUtils = {
    */
   parseCoordsID(id: string): HexCoords {
     const [q, r, s] = id.split(",").map(Number);
-    return { q, r, s };
+    return { q: q!, r: r!, s: s! };
   },
 };
