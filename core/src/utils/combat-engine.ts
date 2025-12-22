@@ -265,6 +265,6 @@ export const CombatEngine = {
       return mpCostA - mpCostB;
     });
 
-    return validRetreats[0];
+    return validRetreats[0] ?? null;
   },
 };

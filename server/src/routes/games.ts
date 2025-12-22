@@ -96,24 +96,6 @@ router.post(
           session
         );
 
-        // Assign Nearest Unoccupied Planet
-        const secondPlanet = MapUtils.findNearestUnownedPlanet(
-          planets,
-          capital.location,
-          capital._id
-        );
-
-        if (!secondPlanet) {
-          throw new Error(ERROR_CODES.GAME_NO_SECOND_PLANET_AVAILABLE);
-        }
-
-        await PlanetService.assignPlanetToPlayer(
-          req.game._id,
-          secondPlanet._id,
-          newPlayer._id,
-          session
-        );
-
         // Assign Starting Fleet
         const hexes = await HexService.getByGameId(gameId);
         const fleetIds = CONSTANTS.STARTING_FLEET_IDS;
@@ -164,11 +146,10 @@ router.post(
         }
 
         // Assign Territory (Hex Flipping)
-        // Flip hexes within range 3 of capital
-        const territoryCoords = HexUtils.getHexCoordsInRange(
+        // Flip neighbor hexes of capital
+        const territoryCoords = HexUtils.neighbors(capital.location).concat([
           capital.location,
-          3
-        );
+        ]);
         const territoryIds = new Set(
           territoryCoords.map((c) => HexUtils.getCoordsID(c))
         );
@@ -179,23 +160,12 @@ router.post(
         );
 
         for (const hex of territoryHexes) {
-          if (hex.playerId && String(hex.playerId) !== String(newPlayer._id)) {
-            // Contested! Set to null
-            await HexService.updateHexOwnership(
-              req.game._id,
-              hex._id,
-              null,
-              session
-            );
-          } else {
-            // Claim it
-            await HexService.updateHexOwnership(
-              req.game._id,
-              hex._id,
-              newPlayer._id,
-              session
-            );
-          }
+          await HexService.updateHexOwnership(
+            req.game._id,
+            hex._id,
+            newPlayer._id,
+            session
+          );
         }
 
         // Increment (Blind update)
