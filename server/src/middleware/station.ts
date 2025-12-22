@@ -47,10 +47,10 @@ export const loadStations = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { gameId } = req.params;
+  const { id } = req.params;
 
   try {
-    const stations = await StationService.getByGameId(new Types.ObjectId(gameId));
+    const stations = await StationService.getByGameId(new Types.ObjectId(id));
 
     req.stations = stations;
   } catch (error) {

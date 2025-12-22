@@ -6,6 +6,7 @@ import {
   ERROR_CODES,
   HexUtils,
   Station,
+  StationFactory,
 } from "@solaris-command/core";
 import {
   loadGame,
@@ -75,17 +76,13 @@ router.post(
           .json({ errorCode: ERROR_CODES.PLAYER_INSUFFICIENT_PRESTIGE });
       }
 
-      const newStation: Station = {
-        _id: new Types.ObjectId(),
-        gameId: req.game._id,
-        hexId: hex._id,
-        playerId: req.player._id,
-        location: hex.location,
-        supply: {
-          isInSupply: true,
-          isRoot: false,
-        },
-      };
+      const newStation = StationFactory.createStation(
+        req.game._id,
+        req.player._id,
+        hex._id,
+        hex.location,
+        () => new Types.ObjectId() as any
+      );
 
       const createdStation = await executeInTransaction(async (session) => {
         const station = await StationService.createStation(newStation, session);
