@@ -17,6 +17,7 @@ import {
   HexCoords,
   HexCoordsId,
   ERROR_CODES,
+  UnitFactory,
 } from "@solaris-command/core";
 import {
   loadGame,
@@ -100,34 +101,20 @@ router.post(
         unitCtlg.stats.defaultSteps
       );
 
-      const newUnit: Unit = {
-        _id: new Types.ObjectId(),
-        gameId: req.game._id,
-        playerId: req.player._id,
-        catalogId: catalogId,
-        hexId: hex._id,
-        location: hex.location,
-        steps: initialSteps,
-        state: {
-          status: UnitStatus.IDLE,
-          ap: 0,
-          mp: Math.floor(unitCtlg.stats.maxMP / 2), // Units start with half MP
-        },
-        movement: {
-          path: [],
-        },
-        combat: {
-          hexId: null,
-          location: null,
-          operation: null,
-          advanceOnVictory: null,
-        },
-        supply: {
-          isInSupply: true,
-          ticksLastSupply: 0,
-          ticksOutOfSupply: 0,
-        },
-      };
+      const newUnit = UnitFactory.createUnit(
+        catalogId,
+        req.player._id,
+        req.game._id,
+        hex._id,
+        hex.location,
+        () => new Types.ObjectId() as any
+      );
+
+      // Manual override for deploy stats
+      // Units start with half MP
+      newUnit.state.mp = Math.floor(unitCtlg.stats.maxMP / 2);
+      newUnit.state.ap = 0;
+      newUnit.steps = initialSteps;
 
       const createdUnit = await executeInTransaction(async (session) => {
         const unit = await UnitService.createUnit(newUnit, session);
@@ -312,6 +299,20 @@ router.post(
       return res
         .status(400)
         .json({ errorCode: ERROR_CODES.HEX_IS_NOT_OCCUPIED_BY_UNIT });
+    }
+
+    const targetUnit = await UnitService.getUnitById(req.game._id, hex.unitId);
+
+    if (!targetUnit) {
+      return res
+        .status(400)
+        .json({ errorCode: ERROR_CODES.UNIT_NOT_FOUND });
+    }
+
+    if (String(targetUnit.playerId) === String(req.player._id)) {
+      return res
+        .status(400)
+        .json({ errorCode: ERROR_CODES.CANNOT_ATTACK_OWN_UNIT });
     }
 
     // If suppressive fire, then must have an artillery spec.
@@ -516,7 +517,12 @@ router.post(
           const newSteps = UnitManager.scrapSteps(req.unit.steps, 1);
 
           // Apply
-          await UnitService.scrapUnitStep(req.game._id, req.unit._id, newSteps);
+          await UnitService.scrapUnitStep(
+            req.game._id,
+            req.unit._id,
+            newSteps,
+            session
+          );
         } else {
           const hex = await HexService.getByGameAndId(
             req.game._id,
@@ -524,7 +530,7 @@ router.post(
           );
 
           // Delete unit
-          await UnitService.deleteUnit(req.game._id, req.unit._id);
+          await UnitService.deleteUnit(req.game._id, req.unit._id, session);
           await HexService.removeUnitFromAdjacentHexZOC(
             req.game._id,
             hex!,

@@ -131,7 +131,8 @@ export class UnitService {
   static async scrapUnitStep(
     gameId: UnifiedId,
     unitId: UnifiedId,
-    newSteps: UnitStep[]
+    newSteps: UnitStep[],
+    session?: ClientSession
   ) {
     return UnitModel.updateOne(
       { gameId, _id: unitId },
@@ -139,11 +140,16 @@ export class UnitService {
         $set: {
           steps: newSteps,
         },
-      }
+      },
+      { session }
     );
   }
 
-  static async deleteUnit(gameId: UnifiedId, unitId: UnifiedId) {
-    return UnitModel.deleteOne({ gameId, _id: unitId });
+  static async deleteUnit(
+    gameId: UnifiedId,
+    unitId: UnifiedId,
+    session?: ClientSession
+  ) {
+    return UnitModel.deleteOne({ gameId, _id: unitId }, { session });
   }
 }

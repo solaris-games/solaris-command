@@ -622,6 +622,19 @@ export const TickProcessor = {
         throw new Error(ERROR_CODES.HEX_IS_NOT_OCCUPIED_BY_UNIT);
       }
 
+      const targetUnit = contextTick.unitLocations.get(
+        HexUtils.getCoordsID(unit.combat.location)
+      );
+
+      // Should not happen if hex.unitId is set but double check
+      if (!targetUnit) {
+        throw new Error(ERROR_CODES.UNIT_NOT_FOUND);
+      }
+
+      if (String(targetUnit.playerId) === String(unit.playerId)) {
+        throw new Error(ERROR_CODES.CANNOT_ATTACK_OWN_UNIT);
+      }
+
       // Suppressive fire must have an active specialist step
       if (unit.combat.operation === CombatOperation.SUPPRESSIVE_FIRE) {
         const hasArtillery = UnitManager.unitHasActiveSpecialistStep(unit);
