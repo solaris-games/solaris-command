@@ -312,7 +312,7 @@ router.post(
     if (String(targetUnit.playerId) === String(req.player._id)) {
       return res
         .status(400)
-        .json({ errorCode: ERROR_CODES.CANNOT_ATTACK_OWN_UNIT });
+        .json({ errorCode: ERROR_CODES.UNIT_CANNOT_ATTACK_OWN_UNIT });
     }
 
     // If suppressive fire, then must have an artillery spec.

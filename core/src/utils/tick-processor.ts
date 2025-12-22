@@ -632,7 +632,7 @@ export const TickProcessor = {
       }
 
       if (String(targetUnit.playerId) === String(unit.playerId)) {
-        throw new Error(ERROR_CODES.CANNOT_ATTACK_OWN_UNIT);
+        throw new Error(ERROR_CODES.UNIT_CANNOT_ATTACK_OWN_UNIT);
       }
 
       // Suppressive fire must have an active specialist step
