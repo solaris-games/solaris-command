@@ -58,21 +58,13 @@ export const closeDb = async () => {
   }
 };
 
-export const executeInTransaction = async (
-  callback: (session: ClientSession) => Promise<any>
-) => {
+export const executeInTransaction = async <T>(
+  callback: (session: ClientSession) => Promise<T>
+): Promise<T> => {
   const session = await mongoose.startSession();
 
   try {
-    session.startTransaction();
-
-    const result = await callback(session);
-
-    await session.commitTransaction();
-    return result;
-  } catch (e) {
-    await session.abortTransaction();
-    throw e;
+    return await session.withTransaction(callback);
   } finally {
     await session.endSession();
   }
