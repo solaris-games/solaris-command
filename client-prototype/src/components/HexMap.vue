@@ -45,7 +45,16 @@
       <v-circle
         v-for="source in supplySources"
         :key="source.id"
-        :config="getSupplyCircleConfig(source)"
+        :config="getHexCircleConfig(source)"
+      />
+    </v-group>
+
+    <!-- ZOC Overlay -->
+    <v-group v-if="galaxyStore.showZOC">
+      <v-circle
+        v-for="source in zocSources"
+        :key="source.id"
+        :config="getHexCircleConfig(source)"
       />
     </v-group>
   </v-layer>
@@ -99,7 +108,29 @@ const supplySources = computed(() => {
   return sources;
 });
 
-function getSupplyCircleConfig(source: {
+const zocSources = computed(() => {
+  const sources: {
+    id: string;
+    x: number;
+    y: number;
+    range: number;
+  }[] = [];
+
+  if (galaxyStore.currentPlayerId == null) {
+    return sources;
+  }
+
+  for (const hex of galaxyStore.hexes) {
+    if (hex.zoc.length) {
+    const { x, y } = hexToPixel(hex.location.q, hex.location.r, HEX_SIZE);
+    sources.push({ id: `h-${hex._id}`, x, y, range: 0.3 });
+    }
+  }
+
+  return sources;
+});
+
+function getHexCircleConfig(source: {
   x: number;
   y: number;
   range: number;

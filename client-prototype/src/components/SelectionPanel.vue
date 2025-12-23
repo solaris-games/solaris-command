@@ -5,6 +5,9 @@
     <button class="supply-btn" @click="galaxyStore.toggleSupply()" :class="{ active: galaxyStore.showSupply }">
         Toggle Supply Network
     </button>
+    <button class="supply-btn" @click="galaxyStore.toggleZOC()" :class="{ active: galaxyStore.showZOC }">
+        Toggle ZOC
+    </button>
     <hr />
 
     <div v-if="!galaxyStore.selected">Nothing selected.</div>
@@ -30,13 +33,17 @@
 
       <div v-if="galaxyStore.selected.type === 'UNIT'">
         <h3>Unit</h3>
-        <p>Type ID: {{ galaxyStore.selected.data.catalogId }}</p>
-        <p>Steps: {{ galaxyStore.selected.data.steps.filter((s: any) => !s.isSuppressed).length }} Active</p>
         <p>Owner: {{ galaxyStore.selected.data.playerId === galaxyStore.currentPlayerId ? 'You' : 'Enemy' }}</p>
 
         <div class="actions" v-if="galaxyStore.selected.data.playerId === galaxyStore.currentPlayerId">
-           <button @click="galaxyStore.startMoveMode()" :class="{ active: galaxyStore.isMoveMode }">Move</button>
-           <button @click="galaxyStore.startAttackMode()" :class="{ active: galaxyStore.isAttackMode }">Attack</button>
+           <button @click="galaxyStore.toggleMoveMode()" :class="{ active: galaxyStore.isMoveMode }">Move</button>
+           <button @click="galaxyStore.cancelMovement(galaxyStore.selected.data)">Cancel Move</button>
+           <br/>
+           <button @click="galaxyStore.toggleAttackMove()" :class="{ active: galaxyStore.isAttackMode }">Attack</button>
+           <button @click="galaxyStore.cancelAttack(galaxyStore.selected.data)">Cancel Attack</button>
+           <br/>
+           <button @click="galaxyStore.upgradeUnitStep(galaxyStore.selected.data)">Buy Step</button>
+           <button @click="galaxyStore.scrapUnitStep(galaxyStore.selected.data)">Scrap Step</button>
         </div>
       </div>
 
@@ -50,6 +57,9 @@
         <h3>Planet</h3>
         <p>Owner: {{ galaxyStore.selected.data.playerId === galaxyStore.currentPlayerId ? 'You' : (galaxyStore.selected.data.playerId ? 'Enemy' : 'Unowned') }}</p>
       </div>
+
+        <h3>JSON</h3>
+        <pre style="text-align:left;">{{ galaxyStore.selected.data }}</pre>
     </div>
 
     <div v-if="galaxyStore.isMoveMode" class="mode-indicator">
@@ -91,7 +101,6 @@ function handleDeploy() {
 }
 .actions {
   margin-top: 1rem;
-  display: flex;
   gap: 0.5rem;
 }
 button {

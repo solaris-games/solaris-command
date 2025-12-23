@@ -6,6 +6,7 @@ import {
   UnifiedId,
   Unit,
   UNIT_CATALOG_ID_MAP,
+  UnitManager,
 } from "@solaris-command/core";
 import { HexModel } from "../db/schemas/hex";
 
@@ -94,6 +95,13 @@ export class HexService {
 
     // This only applies if the unit has a ZOC.
     if (!unitCtlg.stats.zoc) {
+      return;
+    }
+
+    // Units with no active steps to not project a ZOC.
+    const hasActiveSteps = UnitManager.getActiveSteps(unit).length > 0;
+
+    if (!hasActiveSteps) {
       return;
     }
 

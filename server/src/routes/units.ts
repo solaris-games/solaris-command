@@ -119,12 +119,9 @@ router.post(
       const createdUnit = await executeInTransaction(async (session) => {
         const unit = await UnitService.createUnit(newUnit, session);
 
-        await HexService.addUnitToAdjacentHexZOC(
-          req.game._id,
-          hex,
-          unit,
-          session
-        );
+        await HexService.updateHexUnit(req.game._id, hex._id, unit._id, session);
+
+        // Note: All units spawn with all steps suppressed, therefore this unit will not exert a ZOC
 
         await PlayerService.deductPrestigePoints(
           req.game._id,
@@ -302,9 +299,7 @@ router.post(
     const targetUnit = await UnitService.getUnitById(req.game._id, hex.unitId);
 
     if (!targetUnit) {
-      return res
-        .status(400)
-        .json({ errorCode: ERROR_CODES.UNIT_NOT_FOUND });
+      return res.status(400).json({ errorCode: ERROR_CODES.UNIT_NOT_FOUND });
     }
 
     if (String(targetUnit.playerId) === String(req.player._id)) {
@@ -529,6 +524,8 @@ router.post(
 
           // Delete unit
           await UnitService.deleteUnit(req.game._id, req.unit._id, session);
+          await HexService.updateHexUnit(req.game._id, hex!._id, null);
+
           await HexService.removeUnitFromAdjacentHexZOC(
             req.game._id,
             hex!,

@@ -25,6 +25,7 @@ export const useGalaxyStore = defineStore("galaxy", {
     isMoveMode: false,
     isAttackMode: false,
     showSupply: false, // Toggle state
+    showZOC: false // Toggle state
   }),
   getters: {
     hexes: (state): APIHex[] => state.galaxy?.hexes || [],
@@ -100,19 +101,22 @@ export const useGalaxyStore = defineStore("galaxy", {
       this.isAttackMode = false;
       this.movePath = [];
     },
-    startMoveMode() {
+    toggleMoveMode() {
       if (this.selected?.type !== "UNIT") return;
-      this.isMoveMode = true;
+      this.isMoveMode = !this.isMoveMode;
       this.isAttackMode = false;
       this.movePath = [];
     },
-    startAttackMode() {
+    toggleAttackMove() {
       if (this.selected?.type !== "UNIT") return;
-      this.isAttackMode = true;
+      this.isAttackMode = !this.isAttackMode;
       this.isMoveMode = false;
     },
     toggleSupply() {
       this.showSupply = !this.showSupply;
+    },
+    toggleZOC() {
+      this.showZOC = !this.showZOC;
     },
     async handleMoveSelection(targetHex: APIHex) {
       if (!this.selected || this.selected.type !== "UNIT") return;
@@ -131,6 +135,17 @@ export const useGalaxyStore = defineStore("galaxy", {
         alert("Move failed: " + (err.response?.data?.errorCode || err.message));
       }
     },
+    async cancelMovement(unit:APIUnit) {
+      try {
+        await axios.post(`/api/v1/games/${this.galaxy?.game._id}/units/${unit._id}/cancel-move`, {});
+        await this.fetchGalaxy(this.galaxy!.game._id);
+        this.selected = null;
+      } catch (err: any) {
+        alert(
+          "Cancel move failed: " + (err.response?.data?.errorCode || err.message)
+        );
+      }
+    },
     async handleAttackSelection(targetUnit: APIUnit) {
       if (!this.selected || this.selected.type !== "UNIT") return;
       const attackerId = this.selected.id;
@@ -147,6 +162,17 @@ export const useGalaxyStore = defineStore("galaxy", {
       } catch (err: any) {
         alert(
           "Attack failed: " + (err.response?.data?.errorCode || err.message)
+        );
+      }
+    },
+    async cancelAttack(unit:APIUnit) {
+      try {
+        await axios.post(`/api/v1/games/${this.galaxy?.game._id}/units/${unit._id}/cancel-attack`, {});
+        await this.fetchGalaxy(this.galaxy!.game._id);
+        this.selected = null;
+      } catch (err: any) {
+        alert(
+          "Cancel attack failed: " + (err.response?.data?.errorCode || err.message)
         );
       }
     },
@@ -196,6 +222,31 @@ export const useGalaxyStore = defineStore("galaxy", {
       } catch (err: any) {
         alert(
           "Deploy failed: " + (err.response?.data?.errorCode || err.message)
+        );
+      }
+    },
+    async upgradeUnitStep(unit:APIUnit) {
+      try {
+        await axios.post(`/api/v1/games/${this.galaxy?.game._id}/units/${unit._id}/upgrade`, {
+          type: 'STEP',
+          specialistId: null
+        });
+        await this.fetchGalaxy(this.galaxy!.game._id);
+        this.selected = null;
+      } catch (err: any) {
+        alert(
+          "Upgrade unit step failed: " + (err.response?.data?.errorCode || err.message)
+        );
+      }
+    },
+    async scrapUnitStep(unit:APIUnit) {
+      try {
+        await axios.post(`/api/v1/games/${this.galaxy?.game._id}/units/${unit._id}/scrap`, {});
+        await this.fetchGalaxy(this.galaxy!.game._id);
+        this.selected = null;
+      } catch (err: any) {
+        alert(
+          "Scrap unit step failed: " + (err.response?.data?.errorCode || err.message)
         );
       }
     },
