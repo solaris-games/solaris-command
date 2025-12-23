@@ -98,7 +98,7 @@ async function processActiveGames() {
       // Continue to next game, don't crash the loop
     } finally {
       if (game.state.status !== GameStates.COMPLETED) {
-        await GameService.unlockGame(game._id)
+        await GameService.unlockGame(game._id);
       }
     }
   }
@@ -212,18 +212,27 @@ async function executeGameTick(game: Game) {
   await executeInTransaction(async (session) => {
     // ----- Save Modified Entities -----
     // Mongoose tracks changes. calling .save() only writes if modified.
+    // Update models sequentially, transactions do not support parallel operations.
 
     // Planets
-    planets.forEach((p) => p.save({ session }));
+    for (const planet of planets) {
+      await planet.save({ session });
+    }
 
     // Units
-    finalLiveUnits.forEach((u) => u.save({ session }));
+    for (const unit of finalLiveUnits) {
+      await unit.save({ session });
+    }
 
     // Hexes
-    hexes.forEach((h) => h.save({ session }));
+    for (const hex of hexes) {
+      await hex.save({ session });
+    }
 
     // Players (Points updates)
-    players.forEach((p) => p.save({ session }));
+    for (const player of players) {
+      await player.save({ session });
+    }
 
     // ----- Deletions -----
     const unitsToDelete = [...tickResult.unitsToRemove];
@@ -237,11 +246,14 @@ async function executeGameTick(game: Game) {
     // MongoServerError: Transaction with { txnNumber: 6 } has been committed.
     // MongoServerError: Given transaction number 9 does not match any in-progress transactions. The active transaction number is 8
     if (unitsToDelete.length > 0) {
-      await UnitModel.deleteMany({ _id: { $in: unitsToDelete } }, { session }).session(session);
+      await UnitModel.deleteMany({ _id: { $in: unitsToDelete } }, { session });
     }
 
     if (stationsToDelete.length > 0) {
-      await StationModel.deleteMany({ _id: { $in: stationsToDelete } }, { session }).session(session);
+      await StationModel.deleteMany(
+        { _id: { $in: stationsToDelete } },
+        { session }
+      );
     }
 
     // ----- Game State Update -----
@@ -256,31 +268,31 @@ async function executeGameTick(game: Game) {
 
     const gameDoc = game as any; // Document
 
-    gameDoc.save({ session });
+    await gameDoc.save({ session });
 
     // ----- Combat Reports -----
     if (tickResult.combatReports.length > 0) {
-      tickResult.combatReports.forEach(async (r) => {
+      for (const report of tickResult.combatReports) {
         const attackerReport = new GameEventModel({
           gameId: gameId,
-          playerId: r.attackerId, // One for the attacker
+          playerId: report.attackerId, // One for the attacker
           tick: game.state.tick,
           type: "COMBAT_REPORT", // TODO: Need a type for this
-          data: r,
+          data: report,
         });
 
-        await attackerReport.save()
+        await attackerReport.save();
 
         const defenderReport = new GameEventModel({
           gameId: gameId,
-          playerId: r.defenderId, // Another event for the defender
+          playerId: report.defenderId, // Another event for the defender
           tick: game.state.tick,
           type: "COMBAT_REPORT",
-          data: r,
+          data: report,
         });
 
-        await defenderReport.save()
-      });
+        await defenderReport.save();
+      }
     }
 
     // ----- User Achievements (Victory) -----
