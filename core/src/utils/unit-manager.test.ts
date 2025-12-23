@@ -52,20 +52,6 @@ describe("UnitManager", () => {
       expect(unit.state.mp).toBe(CATALOG_UNIT.stats.maxMP);
     });
 
-    it("should reset REGROPING status to IDLE", () => {
-      const unit = createTestUnit({
-        state: {
-          status: UnitStatus.REGROUPING,
-          ap: 0,
-          mp: 0,
-        },
-      });
-
-      UnitManager.processCycle(unit, TICKS_PER_CYCLE);
-
-      expect(unit.state.status).toBe(UnitStatus.IDLE);
-    });
-
     it("should recover suppressed steps (up to Recovery Rate)", () => {
       // Setup: 3 Suppressed steps
       const steps = [

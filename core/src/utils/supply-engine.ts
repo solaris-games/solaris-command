@@ -100,7 +100,11 @@ export const SupplyEngine = {
   /**
    * Updates a supply target's (e.g Unit) status based on the network.
    */
-  processSupplyTarget(supply: SupplyTarget, location: HexCoords, suppliedHexIds: Set<HexCoordsId>): SupplyTarget {
+  processTickSupplyTarget(
+    supply: SupplyTarget,
+    location: HexCoords,
+    suppliedHexIds: Set<HexCoordsId>
+  ): SupplyTarget {
     const currentHexId = HexUtils.getCoordsID(location);
     const isSupplied = suppliedHexIds.has(currentHexId);
 
@@ -108,8 +112,8 @@ export const SupplyEngine = {
     let newTicksOutOfSupply = supply.ticksOutOfSupply;
 
     if (isSupplied) {
-      // In Supply: Reset counters
-      newTicksLastSupply = 0;
+      // In Supply: Reset counter
+      // Note: Ticks since last supply counter is handled in cycle tick processor
       newTicksOutOfSupply = 0;
     } else {
       // Out of Supply: Increment counters
@@ -123,5 +127,4 @@ export const SupplyEngine = {
       ticksOutOfSupply: newTicksOutOfSupply,
     };
   },
-
 };

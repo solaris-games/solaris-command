@@ -201,14 +201,14 @@ describe("SupplyEngine", () => {
     });
   });
 
-  describe("processSupplyTarget", () => {
+  describe("processTickSupplyTarget", () => {
     it("should reset counters if unit is in supply", () => {
       const unit = createUnit(playerId, 0, 0, 0);
       unit.supply.ticksOutOfSupply = 5;
 
       const network = new Set(["0,0,0"]);
 
-      const supply = SupplyEngine.processSupplyTarget(unit.supply, unit.location, network);
+      const supply = SupplyEngine.processTickSupplyTarget(unit.supply, unit.location, network);
 
       expect(supply.isInSupply).toBe(true);
       expect(supply.ticksOutOfSupply).toBe(0);
@@ -220,7 +220,7 @@ describe("SupplyEngine", () => {
 
       const network = new Set(["0,0,0"]);
 
-      const supply = SupplyEngine.processSupplyTarget(unit.supply, unit.location, network);
+      const supply = SupplyEngine.processTickSupplyTarget(unit.supply, unit.location, network);
 
       expect(supply.isInSupply).toBe(false);
       expect(supply.ticksOutOfSupply).toBe(6);

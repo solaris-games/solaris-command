@@ -22,8 +22,15 @@ export const UnitManager = {
   processCycle(unit: Unit, ticksPerCycle: number): void {
     const unitCtlg = UNIT_CATALOG_ID_MAP.get(unit.catalogId)!;
 
-    const cyclesOOS = Math.floor(unit.supply.ticksOutOfSupply / ticksPerCycle);
     const isInSupply = unit.supply.isInSupply;
+
+    if (isInSupply) {
+      // The unit is now going to be supplied.
+      unit.supply.ticksLastSupply = 0;
+    }
+
+    // Calculate the number of cycles since the unit was last supplied.
+    const cyclesOOS = Math.floor(unit.supply.ticksLastSupply / ticksPerCycle);
 
     // 1. Initialize Logic Variables
     // Calculate Base Max Stats + Specialist Bonuses
@@ -106,18 +113,6 @@ export const UnitManager = {
           CONSTANTS.UNIT_STEP_OOS_KILL_RATE
         );
       }
-    }
-
-    // 3. Status Check (Did it die?)
-    if (unit.steps.length === 0) {
-      unit.steps = [];
-    }
-
-    // 4. Reset Action States
-    // Note: This only applies to units that are regrouping.
-    // Other statuses e.g PREPARING or MOVING are handled by combat and movement logic separately.
-    if (unit.state.status === UnitStatus.REGROUPING) {
-      unit.state.status = UnitStatus.IDLE;
     }
   },
 

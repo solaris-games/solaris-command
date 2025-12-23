@@ -19,7 +19,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxSteps: 3,
       initiative: 0,
       zoc: false, // Cannot block movement
-      los: 5
+      los: 3
     },
   },
   {
@@ -39,7 +39,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxSteps: 4,
       initiative: 0,
       zoc: false, // Too small to block effectively
-      los: 5
+      los: 3
     },
   },
 
@@ -61,7 +61,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxSteps: 4,
       initiative: 1,
       zoc: true,
-      los: 4
+      los: 2
     },
   },
   {
@@ -81,7 +81,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxSteps: 5,
       initiative: 1,
       zoc: true,
-      los: 4
+      los: 2
     },
   },
 
@@ -103,7 +103,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxSteps: 5,
       initiative: 2,
       zoc: true,
-      los: 3
+      los: 2
     },
   },
   {
@@ -123,7 +123,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxSteps: 6,
       initiative: 2,
       zoc: true,
-      los: 3
+      los: 2
     },
   },
 
@@ -145,7 +145,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxSteps: 6,
       initiative: 3, // Acts late
       zoc: true,
-      los: 2
+      los: 1
     },
   },
   {
@@ -165,7 +165,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxSteps: 7, // Huge HP pool
       initiative: 3,
       zoc: true, // Zone of control
-      los: 2 // Line of sight (hex range)
+      los: 1 // Line of sight (hex range)
     },
   },
 ];

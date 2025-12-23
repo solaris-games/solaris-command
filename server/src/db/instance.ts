@@ -58,6 +58,9 @@ export const closeDb = async () => {
   }
 };
 
+/**
+ * Uses MongoDB transactions to safely save changes to the database.
+ */
 export const executeInTransaction = async <T>(
   callback: (session: ClientSession) => Promise<T>
 ): Promise<T> => {
@@ -69,3 +72,23 @@ export const executeInTransaction = async <T>(
     await session.endSession();
   }
 };
+
+// export const executeInTransaction = async (
+//   callback: (session: ClientSession) => Promise<any>
+// ) => {
+//   const session = await mongoose.startSession();
+
+//   try {
+//     session.startTransaction();
+
+//     const result = await callback(session);
+
+//     await session.commitTransaction();
+//     return result;
+//   } catch (e) {
+//     await session.abortTransaction();
+//     throw e;
+//   } finally {
+//     await session.endSession();
+//   }
+// }

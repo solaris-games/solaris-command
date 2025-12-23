@@ -38,8 +38,7 @@ describe("FogOfWar", () => {
       stations
     );
 
-    // Range 5 (Corvette) from 0,0,0 should be 91 hexes
-    expect(visibleHexes.size).toBe(91);
+    expect(visibleHexes.size).toBe(37);
     expect(visibleHexes.has("0,0,0")).toBe(true);
     expect(visibleHexes.has("1,-1,0")).toBe(true);
   });

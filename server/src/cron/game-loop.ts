@@ -27,7 +27,6 @@ import {
   UserModel,
 } from "../db/schemas";
 import { connectToDb } from "../db/instance";
-import { Types } from "mongoose";
 
 // Concurrency Flag: Prevent loop overlapping if processing takes > tick duration
 let isProcessing = false;
@@ -84,6 +83,7 @@ async function processActiveGames() {
         );
 
         game.state.lastTickDate = new Date(nextTickTime); // Set the tick time here to prevent clock drift
+        game.state.status = GameStates.LOCKED;
 
         // Start by locking the game to prevent players from changing the game state
         // during tick processing. We don't know how long ticks will take to
@@ -97,7 +97,9 @@ async function processActiveGames() {
       console.error(`Failed to process game ${game._id}:`, err);
       // Continue to next game, don't crash the loop
     } finally {
-      await GameService.unlockGame(game._id);
+      if (game.state.status !== GameStates.COMPLETED) {
+        await GameService.unlockGame(game._id)
+      }
     }
   }
 }
@@ -208,22 +210,20 @@ async function executeGameTick(game: Game) {
   // We execute updates in a transaction.
 
   await executeInTransaction(async (session) => {
-    const savePromises: Promise<any>[] = [];
-
     // ----- Save Modified Entities -----
     // Mongoose tracks changes. calling .save() only writes if modified.
 
     // Planets
-    planets.forEach((p) => savePromises.push(p.save({ session })));
+    planets.forEach((p) => p.save({ session }));
 
     // Units
-    finalLiveUnits.forEach((u) => savePromises.push(u.save({ session })));
+    finalLiveUnits.forEach((u) => u.save({ session }));
 
     // Hexes
-    hexes.forEach((h) => savePromises.push(h.save({ session })));
+    hexes.forEach((h) => h.save({ session }));
 
     // Players (Points updates)
-    players.forEach((p) => savePromises.push(p.save({ session })));
+    players.forEach((p) => p.save({ session }));
 
     // ----- Deletions -----
     const unitsToDelete = [...tickResult.unitsToRemove];
@@ -233,16 +233,15 @@ async function executeGameTick(game: Game) {
       cycleResult.unitsToDelete.forEach((id) => unitsToDelete.push(id));
     }
 
+    // TODO: I think these queries are messing up the transactions:
+    // MongoServerError: Transaction with { txnNumber: 6 } has been committed.
+    // MongoServerError: Given transaction number 9 does not match any in-progress transactions. The active transaction number is 8
     if (unitsToDelete.length > 0) {
-      savePromises.push(
-        UnitModel.deleteMany({ _id: { $in: unitsToDelete } }, { session })
-      );
+      await UnitModel.deleteMany({ _id: { $in: unitsToDelete } }, { session }).session(session);
     }
 
     if (stationsToDelete.length > 0) {
-      savePromises.push(
-        StationModel.deleteMany({ _id: { $in: stationsToDelete } }, { session })
-      );
+      await StationModel.deleteMany({ _id: { $in: stationsToDelete } }, { session }).session(session);
     }
 
     // ----- Game State Update -----
@@ -250,34 +249,38 @@ async function executeGameTick(game: Game) {
     // Note: `game` variable refers to the document.
     // `TickProcessor` methods mutated it.
 
+    // Unlock the game.
+    if (game.state.status !== GameStates.COMPLETED) {
+      game.state.status = GameStates.ACTIVE;
+    }
+
     const gameDoc = game as any; // Document
-    savePromises.push(gameDoc.save({ session }));
+
+    gameDoc.save({ session });
 
     // ----- Combat Reports -----
     if (tickResult.combatReports.length > 0) {
-      const events: GameEvent[] = [];
-
-      tickResult.combatReports.forEach((r) => {
-        events.push({
-          _id: new Types.ObjectId(),
+      tickResult.combatReports.forEach(async (r) => {
+        const attackerReport = new GameEventModel({
           gameId: gameId,
           playerId: r.attackerId, // One for the attacker
           tick: game.state.tick,
           type: "COMBAT_REPORT", // TODO: Need a type for this
           data: r,
-          // createdAt handled by schema timestamp or default
         });
-        events.push({
-          _id: new Types.ObjectId(),
+
+        await attackerReport.save()
+
+        const defenderReport = new GameEventModel({
           gameId: gameId,
           playerId: r.defenderId, // Another event for the defender
           tick: game.state.tick,
           type: "COMBAT_REPORT",
           data: r,
         });
-      });
 
-      savePromises.push(GameEventModel.insertMany(events, { session }));
+        await defenderReport.save()
+      });
     }
 
     // ----- User Achievements (Victory) -----
@@ -287,17 +290,13 @@ async function executeGameTick(game: Game) {
       );
 
       if (winnerPlayer) {
-        savePromises.push(
-          UserModel.updateOne(
-            { _id: winnerPlayer.userId },
-            { $inc: { "achievements.victories": 1 } },
-            { session }
-          )
-        );
+        await UserModel.updateOne(
+          { _id: winnerPlayer.userId },
+          { $inc: { "achievements.victories": 1 } },
+          { session }
+        ).session(session);
       }
     }
-
-    await Promise.all(savePromises);
   });
 
   if (game.state.status === GameStates.COMPLETED) {

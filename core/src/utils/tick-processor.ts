@@ -219,6 +219,7 @@ export const TickProcessor = {
    * Returns objects representing the CHANGES to be made (does not mutate DB directly).
    */
   processTick(context: TickContext): ProcessTickResult {
+    TickProcessor.processTickUnitStatus(context);
     TickProcessor.processTickUnitCombat(context);
     TickProcessor.processTickUnitMovement(context);
     TickProcessor.processTickPlayerSupply(context);
@@ -229,6 +230,16 @@ export const TickProcessor = {
       unitsToRemove: context.unitsToRemove,
       stationsToRemove: context.stationsToRemove,
     };
+  },
+
+  processTickUnitStatus(contextTick: TickContext) {
+    // Reset Action States
+    // If units were regrouping from the previous tick, then set them to idle now.
+    for (const unit of contextTick.units) {
+      if (unit.state.status === UnitStatus.REGROUPING) {
+        unit.state.status = UnitStatus.IDLE;
+      }
+    }
   },
 
   processTickUnitCombat(contextTick: TickContext) {
@@ -300,6 +311,14 @@ export const TickProcessor = {
           attacker.combat.operation!,
           attacker.combat.advanceOnVictory!
         );
+
+        // Clear the attacker's combat order.
+        attacker.combat = {
+          hexId: null,
+          location: null,
+          advanceOnVictory: null,
+          operation: null,
+        };
 
         // Log Report
         battleResult.report.tick = contextTick.game.state.tick;
@@ -428,7 +447,7 @@ export const TickProcessor = {
 
       playerUnits.forEach((unit) => {
         // Update the unit's supply status
-        unit.supply = SupplyEngine.processSupplyTarget(
+        unit.supply = SupplyEngine.processTickSupplyTarget(
           unit.supply,
           unit.location,
           supplyNetwork
@@ -502,6 +521,10 @@ export const TickProcessor = {
         if (unit.steps.length === 0) {
           // Unit died this cycle
           context.unitsToRemove.push(unit._id);
+          
+          // Remove unit from hex
+          const hex = context.hexes.find(h => String(h._id) === String(unit.hexId))!
+          hex.unitId = null;
         }
       });
 

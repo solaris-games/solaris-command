@@ -44,10 +44,14 @@ export class GameService {
     });
   }
 
-  static async unlockGame(gameId: UnifiedId) {
-    return GameService.updateGameState(gameId, {
-      "state.status": GameStates.ACTIVE,
-    });
+  static async unlockGame(gameId: UnifiedId, session?: ClientSession) {
+    return GameService.updateGameState(
+      gameId,
+      {
+        "state.status": GameStates.ACTIVE,
+      },
+      session
+    );
   }
 
   static async updateGameState(
@@ -58,10 +62,7 @@ export class GameService {
     return GameModel.updateOne({ _id: gameId }, { $set: update }, { session });
   }
 
-  static async addPlayerCount(
-    gameId: UnifiedId,
-    session?: ClientSession
-  ) {
+  static async addPlayerCount(gameId: UnifiedId, session?: ClientSession) {
     return GameModel.findOneAndUpdate(
       { _id: gameId },
       { $inc: { "state.playerCount": 1 } },
@@ -69,10 +70,7 @@ export class GameService {
     );
   }
 
-  static async deductPlayerCount(
-    gameId: UnifiedId,
-    session?: ClientSession
-  ) {
+  static async deductPlayerCount(gameId: UnifiedId, session?: ClientSession) {
     return GameModel.findOneAndUpdate(
       { _id: gameId },
       { $inc: { "state.playerCount": -1 } },
