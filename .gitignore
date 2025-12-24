@@ -4,6 +4,9 @@ dist
 build
 map-gen.log
 
+# TypeScript incremental build info
+*.tsbuildinfo
+
 # global env files
 .env
 
