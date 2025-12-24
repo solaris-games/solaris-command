@@ -113,13 +113,13 @@ export const SupplyEngine = {
 
     if (isSupplied) {
       // In Supply: Reset counter
-      // Note: Ticks since last supply counter is handled in cycle tick processor
       newTicksOutOfSupply = 0;
     } else {
-      // Out of Supply: Increment counters
-      newTicksLastSupply += 1;
+      // Out of Supply: Increment counter
       newTicksOutOfSupply += 1;
     }
+
+    newTicksLastSupply += 1; // This always increases. It is reset in the cycle tick processor.
 
     return {
       isInSupply: isSupplied,

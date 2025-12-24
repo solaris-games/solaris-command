@@ -91,9 +91,9 @@ const supplySources = computed(() => {
 
   const supplyNetwork = SupplyEngine.calculatePlayerSupplyNetwork(
     galaxyStore.currentPlayerId,
-    galaxyStore.hexes as any,
-    galaxyStore.planets as any,
-    galaxyStore.stations as any
+    galaxyStore.hexes,
+    galaxyStore.planets,
+    galaxyStore.stations
   );
 
   for (const id of supplyNetwork) {

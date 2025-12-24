@@ -2,10 +2,11 @@ import { defineStore } from "pinia";
 import axios from "axios";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
 import type { HexCoords } from "@solaris-command/core/src/types/geometry";
+import { UnifiedId } from "@solaris-command/core";
 
 interface SelectedItem {
   type: "HEX" | "UNIT" | "STATION" | "PLANET";
-  id?: string;
+  id?: UnifiedId;
   data: any;
 }
 
@@ -40,13 +41,13 @@ export const useGalaxyStore = defineStore("galaxy", {
       state.galaxy?.hexes.find((h) => h.location.q === q && h.location.r === r),
   },
   actions: {
-    async fetchGalaxy(gameId: string) {
+    async fetchGalaxy(gameId: UnifiedId) {
       this.loading = true;
       try {
         const response = await axios.get(`/api/v1/games/${gameId}`);
         this.galaxy = response.data;
         this.currentPlayerId =
-          response.data.players.find((p: any) => p.isUserPlayer)?._id ?? null;
+          response.data.players.find((p: any) => p.userId != null)?._id ?? null;
       } catch (err: any) {
         this.error = err.message || "Failed to fetch galaxy";
       } finally {

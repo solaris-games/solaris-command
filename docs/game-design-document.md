@@ -1,6 +1,6 @@
 # Game Design Document - Solaris: Command
 
-**Version:** 0.3 (Draft)
+**Version:** 0.4 (Draft)
 **Status:** In Development
 **Scope:** Core Gameplay Loops & Mechanics
 
@@ -24,10 +24,10 @@ Units are the primary method of projecting power.
     * **Suppressed Steps:** Damaged/disorganized ships. They do not contribute to combat and must be recovered via Supply.
     * **Specialist Steps:** Rare, high-value steps (e.g., Artillery, Carriers) that provide unique bonuses to the unit stack.
 * **Unit Classes:**
-    * **Frigates:** High MP, low cost.
-    * **Destroyers:** The backbone of the fleet. Balanced stats.
-    * **Battleships:** Heavy armor, high firepower, low MP.
-    * Any many more...
+    * **Screening Ships:** Corvettes and Frigates - High MP, low cost.
+    * **Escort & Raiding:** Destroyers and Light Cruisers - The backbone of the fleet. Balanced stats.
+    * **Capital Ships:** Heavy Cruisers and Battlecruisers - Heavy armor, high firepower, low MP.
+    * **Super Capitals:** Battleships and Dreadnaughts - The ultimate projection of power.
 
 ### B. Structures
 Fixed assets that define territory and logistics.
@@ -35,14 +35,13 @@ Fixed assets that define territory and logistics.
     * *Capital Planets:* These serve as **Root Supply Sources**. They function indefinitely and cannot be besieged out of supply (though they can be captured).
     * Capturing an enemy *Capital Planet* is devastating, it could very well knock the opposing player out of the game.
 * **Stations:** Deployable logistics hubs. They extend supply range from Planets to deep space.
-    * *Pool Limit:* The number of deployable stations is capped by the number of Planets controlled.
     * When deployed, a station provides supply at the beginning of the following cycle.
 
 ### C. Terrain
 The hex grid imposes strategic constraints via terrain types.
-* **Empty Space:** Standard movement (1 MP) and combat.
-* **Asteroid/Debris Fields:** High movement cost (2 MP). Provides **Defense Shifts** in combat (beneficial for smaller ships).
-* **Nebulas/Gas Clouds/Industrial Zones:** Very high movement cost (3 MP). Dangerous for supply lines (units may struggle to trace supply through them).
+* **Empty Space:** Standard movement and combat.
+* **Asteroid/Debris Fields/Industrial Zones:** High movement cost. Provides **Defense Shifts** in combat (entrenchment and fortifications).
+* **Nebulas/Gas Clouds:** High movement cost. Provides **Attack Shifts** in combat (stealth).
 * **Gravity Wells/Radiation Storms:** Impassable.
 
 ---
@@ -78,13 +77,9 @@ Combat is deterministic, relying on preparation, positioning and coordination.
 
 ### The Combat Sequence
 1.  **Declaration:** Attacker targets an adjacent enemy and spends **1 AP**.
-    * *Setting:* The Player toggles **"Advance on Victory"** (Default: ON).
+    * *Setting:* The Player toggles **"Advance on Victory"**.
 2.  **Preparation (The Timer):** The attacking unit enters `PREPARING` state.
-    * *Minimum Reaction Window:* Attacks must be declared at least **15 minutes** before the next Tick.
-3.  **The Defender's Choice:** The defender receives a notification.
-    * *Option A - Stand Ground:* Combat occurs when the timer ends.
-    * *Option B - Retreat:* The defender moves to an adjacent safe hex (Cost: 1 AP).
-4.  **Resolution:** Combat resolves instantly (Hits, Suppression, Armor Saves).
+4.  **Resolution:** Combat resolves at the end of the tick (Hits, Suppression, Armor Saves).
 5.  **Advance on Victory (Blitz):**
     * If the Defender is destroyed or retreats, AND the Attacker has `Advance on Victory` enabled, AND the Attacker has enough MP to move:
     * The Attacker **instantly moves** into the captured hex as part of the combat resolution.
@@ -96,7 +91,7 @@ The player can choose the method of attack, these are as follows:
 * **Standard Attack:** The normal attack type, both units engage in combat.
 * **Feint Attack:** Simulates a limited attack. **Suppresses 1 step from both sides**, useful for weaker units attacking stronger targets.
 * **Suppressive Fire:** Simulates using artillery without actually moving into the attack. **Suppresses 2 steps** from the opposing unit.
-    * This attack is available only if the unit has an **Artillery** specialist step. This attacking specialist step will be suppressed in the attack.
+    * This attack is available only if the unit has an **Artillery** specialist step..
 
 ### Collision Override (The "Interloper" Rule)
 Because Combat resolves before standard Movement, a "Crash" can occur if a third party tries to enter a hex being fought over.
@@ -116,10 +111,11 @@ Combat results are modified by "Shifts" (moving the result column up or down).
 If multiple units are scheduled to attack the same hex on the same Tick, they resolve as a rapid sequence of discrete 1v1 battles.
 
 **1. Sequence Order (Initiative)**
-Attacks trigger based on **Unit Class Initiative** (Fastest to Slowest). Tiebreaker: **Remaining MP**.
-1.  **Frigates** (First)
-2.  **Destroyers**
-3.  **Battleships** (Last)
+Attacks trigger based on **Unit Class Initiative** (Fastest to Slowest). Tiebreaker: **Remaining MP**. For example:
+1. **Corvettes, Frigates** (First)
+2. **Destroyers, Light Cruisers**
+3. **Heavy Cruisers, Battlecruisers**
+4. **Battleships, Dreadnaughts** (Last)
 
 **2. The Chain Effect**
 Damage is applied immediately. If the first attacker suppresses the target, the second attacker hits a suppressed target.
@@ -160,13 +156,13 @@ There is no complex resource management (metal/crystal). The currency is **Prest
 
 ### Earning & Spending
 * **Income:** Prestige is calculated at the end of every Cycle based on the number of **Planets** controlled.
-* **Cap:** A player is capped on the *number* of units they can control, scaling with their Planet count.
+* **Units:** A player can deploy new units and upgrade existing units (steps and specialist steps) by spending **Prestige**.
 
 ### Deployment & Reconstitution
 * **New Deployment:** Players spend Prestige to deploy new units.
     * *Rule:* New units spawn adjacent to any player owned planet. **They spawn with All Steps Suppressed.** They require supply cycles to become combat-ready.
 * **Reinforcement:** Prestige can purchase **Specialist Steps** or replace lost standard steps. These also spawn/attach in a Suppressed state.
-* **Scrapping:** Players can decommission units or individual steps to free up Unit Cap slots or recoup a small amount of Prestige.
+* **Scrapping:** Players can decommission units or individual steps.
 
 ## 7. Win Conditions
 To win the game, players must earn Victory Points (VPs) which are earned by controlling planets. VPs are awarded at the end of each cycle and the

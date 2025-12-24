@@ -6,6 +6,7 @@ import { TerrainTypes } from "../../models/hex";
 import { HexCoords } from "../geometry";
 import { SupplySource, SupplyTarget } from "../supply";
 import { CombatOperation } from "../combat";
+import { UnifiedId } from "../unified-id";
 
 // Users
 export interface UserDetailsResponseSchema {
@@ -46,7 +47,7 @@ export interface GameListItemResponseSchema {
 // Derived from server/src/services/GalaxyService.ts
 export interface GameGalaxyResponseSchema {
   game: {
-    _id: string;
+    _id: UnifiedId;
     mapId: string;
     name: string;
     description: string;
@@ -69,49 +70,52 @@ export interface GameGalaxyResponseSchema {
     };
   };
   players: {
-    _id: string;
+    _id: UnifiedId;
+    gameId: UnifiedId;
     alias: string;
     color: string;
     status: PlayerStatus;
     prestigePoints: number | null;
     victoryPoints: number | null;
     lastSeenDate: string;
-    isUserPlayer: boolean;
   }[];
   hexes: {
-    _id: string;
-    planetId: string | null;
-    stationId: string | null;
-    unitId: string | null;
-    playerId: string | null;
+    _id: UnifiedId;
+    gameId: UnifiedId;
+    planetId: UnifiedId | null;
+    stationId: UnifiedId | null;
+    unitId: UnifiedId | null;
+    playerId: UnifiedId | null;
     location: HexCoords;
     terrain: TerrainTypes;
     zoc: {
-      playerId: string | null;
-      unitId: string | null;
+      playerId: string;
+      unitId: string;
     }[];
   }[];
   planets: {
-    _id: string;
-    playerId: string | null;
-    hexId: string;
+    _id: UnifiedId;
+    gameId: UnifiedId;
+    playerId: UnifiedId | null;
+    hexId: UnifiedId;
     location: HexCoords;
     name: string;
     isCapital: boolean;
     supply: SupplySource;
   }[];
   stations: {
-    _id: string;
-    playerId: string;
-    hexId: string;
+    _id: UnifiedId;
+    gameId: UnifiedId;
+    playerId: UnifiedId;
+    hexId: UnifiedId;
     location: HexCoords;
     supply: SupplySource;
   }[];
   units: {
-    _id: string;
-    playerId: string;
+    _id: UnifiedId;
+    playerId: UnifiedId;
     catalogId: string;
-    hexId: string;
+    hexId: UnifiedId;
     location: HexCoords;
     steps: {
       isSuppressed: boolean;
@@ -128,7 +132,7 @@ export interface GameGalaxyResponseSchema {
       path: HexCoords[];
     };
     combat: {
-      hexId: string | null,
+      hexId: UnifiedId | null,
       location: HexCoords | null;
       operation: CombatOperation | null;
       advanceOnVictory: boolean | null;

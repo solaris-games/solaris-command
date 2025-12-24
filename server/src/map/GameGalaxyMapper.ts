@@ -79,16 +79,18 @@ export class GameGalaxyMapper {
       },
       players: galaxy.players.map((p) => ({
         _id: String(p._id),
+        gameId: String(p.gameId),
+        userId: String(userPlayerId) === String(p._id) ? String(p.userId) : null,
         alias: p.alias,
         color: p.color,
         status: p.status,
         prestigePoints: tryMaskField(p._id, p.prestigePoints),
         victoryPoints: p.victoryPoints,
-        lastSeenDate: p.lastSeenDate.toISOString(),
-        isUserPlayer: String(userPlayerId) === String(p._id)
+        lastSeenDate: p.lastSeenDate.toISOString()
       })),
       hexes: galaxy.hexes.map((h) => ({
         _id: String(h._id),
+        gameId: String(h.gameId),
         playerId: h.playerId?.toString() || null,
         planetId: h.planetId?.toString() || null,
         stationId: h.stationId?.toString() || null,
@@ -102,18 +104,20 @@ export class GameGalaxyMapper {
       })),
       planets: galaxy.planets.map((p) => ({
         _id: String(p._id),
+        gameId: String(p.gameId),
         playerId: p.playerId?.toString() || null,
-        name: p.name,
         hexId: String(p.hexId),
         location: p.location,
+        name: p.name,
+        isCapital: p.isCapital,
         supply: {
           isInSupply: p.supply.isInSupply,
           isRoot: p.supply.isRoot,
         },
-        isCapital: p.isCapital,
       })),
       stations: galaxy.stations.map((s) => ({
         _id: String(s._id),
+        gameId: String(s.gameId),
         playerId: String(s.playerId),
         hexId: String(s.hexId),
         location: s.location,
@@ -124,6 +128,7 @@ export class GameGalaxyMapper {
       })),
       units: galaxy.units.map((u) => ({
         _id: String(u._id),
+        gameId: String(u.gameId),
         playerId: String(u.playerId),
         catalogId: u.catalogId,
         hexId: String(u.hexId),

@@ -110,6 +110,23 @@ export class UnitService {
     );
   }
 
+  static async cancelUnitAttackByHex(gameId: UnifiedId, hexId: UnifiedId) {
+    return UnitModel.updateOne(
+      { gameId, 'combat.hexId': hexId },
+      {
+        $set: {
+          "state.status": UnitStatus.IDLE,
+          combat: {
+            hexId: null,
+            location: null,
+            operation: null,
+            advanceOnVictory: null,
+          },
+        },
+      }
+    );
+  }
+
   static async upgradeUnit(
     gameId: UnifiedId,
     unitId: UnifiedId,

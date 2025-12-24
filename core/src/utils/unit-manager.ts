@@ -62,23 +62,8 @@ export const UnitManager = {
     // --- CALCULATE BONUSES (Post-Recovery) ---
     // Now that we have the potentially recovered steps, we calculate MP/AP bonuses.
     // We only count active (non-suppressed) specialists.
-    let mpMultiplier = 1;
-    let apAdd = 0;
-
-    unit.steps.forEach((step) => {
-      if (!step.isSuppressed && step.specialistId) {
-        const spec = SPECIALIST_STEP_ID_MAP.get(step.specialistId);
-        if (spec && spec.bonuses) {
-          if (spec.bonuses.mpMultiplier) {
-            // Multiplicative stacking
-            mpMultiplier *= spec.bonuses.mpMultiplier;
-          }
-          if (spec.bonuses.apAdd) {
-            apAdd += spec.bonuses.apAdd;
-          }
-        }
-      }
-    });
+    let mpMultiplier = UnitManager.getUnitMPMultiplier(unit);
+    let apAdd = UnitManager.getUnitAPAddition(unit);
 
     calculatedMaxMP = Math.floor(calculatedMaxMP * mpMultiplier);
     calculatedMaxAP = calculatedMaxAP + apAdd;
@@ -137,7 +122,11 @@ export const UnitManager = {
     // Update unit state
     if (mpCost != null) {
       unit.state.mp = Math.max(0, unit.state.mp - mpCost); // Reduce MP
-      unit.movement.path.shift(); // Pop the step
+
+      // Note: Units may move by advancing in combat, in this scenario there will not be a movement path.
+      if (unit.movement.path.length) {
+        unit.movement.path.shift(); // Pop the step
+      }
     }
 
     // Update hexes
@@ -288,5 +277,42 @@ export const UnitManager = {
     });
 
     return hasArtillery;
+  },
+
+  getUnitMPMultiplier(unit: Unit) {
+    let mpMultiplier = 1;
+
+    const steps = UnitManager.getActiveSteps(unit).filter(
+      (s) => s.specialistId != null
+    );
+
+    for (const step of steps) {
+      const spec = SPECIALIST_STEP_ID_MAP.get(step.specialistId!);
+
+      if (spec && spec.bonuses && spec.bonuses.mpMultiplier != null) {
+        // Multiplicative stacking
+        mpMultiplier *= spec.bonuses.mpMultiplier;
+      }
+    }
+
+    return mpMultiplier;
+  },
+
+  getUnitAPAddition(unit: Unit) {
+    let apAdd = 0;
+
+    const steps = UnitManager.getActiveSteps(unit).filter(
+      (s) => s.specialistId != null
+    );
+
+    for (const step of steps) {
+      const spec = SPECIALIST_STEP_ID_MAP.get(step.specialistId!);
+
+      if (spec && spec.bonuses && spec.bonuses.apAdd != null) {
+        apAdd += spec.bonuses.apAdd;
+      }
+    }
+
+    return apAdd;
   },
 };

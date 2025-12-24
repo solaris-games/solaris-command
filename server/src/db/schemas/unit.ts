@@ -77,5 +77,6 @@ const UnitSchema = new Schema<Unit>({
 UnitSchema.index({ gameId: 1 });
 UnitSchema.index({ playerId: 1 });
 UnitSchema.index({ gameId: 1, playerId: 1 });
+UnitSchema.index({ gameId: 1, "combat.hexId": 1 });
 
 export const UnitModel = model<Unit>("Unit", UnitSchema);

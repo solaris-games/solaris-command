@@ -70,7 +70,7 @@ export const requireOpenGame = async (
   next: NextFunction
 ) => {
   if (req.game.state.status !== GameStates.PENDING && req.game.state.status !== GameStates.ACTIVE && req.game.state.status !== GameStates.STARTING) {
-    return res.status(400).json({ errorCode: ERROR_CODES.GAME_IS_NOT_OPEN });
+    return res.status(400).json({ errorCode: ERROR_CODES.GAME_IS_NOT_IN_PLAY });
   }
 
   next();

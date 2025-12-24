@@ -65,22 +65,30 @@ async function processActiveGames() {
   // 1. Find games that are ACTIVE
   const activeGames = await GameModel.find({
     "state.status": GameStates.ACTIVE,
+  }).select({
+    _id: 1,
+    "state.startDate": 1,
+    "state.tick": 1,
+    "settings.tickDurationMS": 1,
   });
 
-  for (const game of activeGames) {
+  for (const gameId of activeGames) {
     try {
       // 2. Time Check: Is it time for a tick?
       // Logic: Start Date + (Tick Count * Tick Duration)
       // This prevents clock drift compared to just adding to 'lastTickDate'
       const nextTickTime =
-        new Date(game.state.startDate!).getTime() +
-        (game.state.tick + 1) * game.settings.tickDurationMS;
+        new Date(gameId.state.startDate!).getTime() +
+        (gameId.state.tick + 1) * gameId.settings.tickDurationMS;
       const now = Date.now();
 
       if (now >= nextTickTime) {
         console.log(
-          `⚡ Processing Tick ${game.state.tick + 1} for Game ${game._id}`
+          `⚡ Processing Tick ${gameId.state.tick + 1} for Game ${gameId._id}`
         );
+
+        // Load the game right at the start of the tick so there is minimal delay.
+        const game = (await GameService.getById(gameId._id))!;
 
         game.state.lastTickDate = new Date(nextTickTime); // Set the tick time here to prevent clock drift
         game.state.status = GameStates.LOCKED;
@@ -92,13 +100,18 @@ async function processActiveGames() {
 
         // Cast Mongoose Document to Game interface if needed, or pass as is if compatible
         await executeGameTick(game as Game);
+
+        const tickEnd = Date.now();
+        const totalTime = (tickEnd - now) / 1000;
+
+        console.log(`✅ Tick Complete - ${totalTime}s`);
       }
     } catch (err) {
-      console.error(`Failed to process game ${game._id}:`, err);
+      console.error(`Failed to process game ${gameId._id}:`, err);
       // Continue to next game, don't crash the loop
     } finally {
-      if (game.state.status !== GameStates.COMPLETED) {
-        await GameService.unlockGame(game._id);
+      if (gameId.state.status !== GameStates.COMPLETED) {
+        await GameService.unlockGame(gameId._id);
       }
     }
   }
@@ -316,6 +329,4 @@ async function executeGameTick(game: Game) {
       `🏆 Game ${gameId} Completed! Winner: ${game.state.winnerPlayerId}`
     );
   }
-
-  console.log(`✅ Tick Complete.`);
 }

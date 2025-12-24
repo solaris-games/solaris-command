@@ -532,6 +532,13 @@ router.post(
             req.unit,
             session
           );
+
+          // Any units that are attempting to attack this hex should be cancelled.
+          await UnitService.cancelUnitAttackByHex(req.game._id, hex!._id)
+
+          // TODO: If a unit is attempting to attack the hex and
+          // it has `advanceOnVictory` enabled, we should convert that
+          // order into a movement if the unit has enough MP?
         }
       });
     } catch (error: any) {

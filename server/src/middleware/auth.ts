@@ -42,6 +42,8 @@ export const authenticateToken = (
     if (dbUser == null)
       return res.status(401).json({ errorCode: ERROR_CODES.USER_UNAUTHORIZED });
 
+    await UserService.touchUser(dbUser._id);
+    
     req.user = dbUser;
 
     next();

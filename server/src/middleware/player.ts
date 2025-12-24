@@ -29,28 +29,9 @@ export const loadPlayer = async (
     if (!player)
       return res.status(404).json({ errorCode: ERROR_CODES.PLAYER_NOT_FOUND });
 
+    await PlayerService.touchPlayer(new Types.ObjectId(gameId), player._id);
+
     req.player = player;
-  } catch (error) {
-    console.error("Middleware Error:", error);
-
-    return res.status(500).json({
-      errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
-    });
-  }
-
-  next();
-};
-
-export const touchPlayer = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const gameId = req.params.id;
-
-  try {
-  // Update the last seen date of the player
-    await PlayerService.touchPlayer(new Types.ObjectId(gameId), req.player._id);
   } catch (error) {
     console.error("Middleware Error:", error);
 
