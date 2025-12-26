@@ -31,9 +31,6 @@ export const UnitManager = {
       unit.supply.ticksLastSupply = 0;
     }
 
-    // Calculate the number of cycles since the unit was last supplied.
-    const cyclesOOS = Math.floor(unit.supply.ticksLastSupply / ticksPerCycle);
-
     // 1. Initialize Logic Variables
     // Calculate Base Max Stats + Specialist Bonuses
     let calculatedMaxAP = unitCtlg.stats.maxAP;
@@ -74,6 +71,23 @@ export const UnitManager = {
     unit.state.mp = calculatedMaxMP;
 
     if (!isInSupply) {
+      // Calculate the number of cycles since the unit was last supplied.
+      let cyclesOOS = Math.floor(unit.supply.ticksLastSupply / ticksPerCycle);
+
+      // If the unit has an active logistics specialist, then this "out of supply" value is deducted by 1.
+      // This effectively allows the unit to be out of supply for 1 cycle longer than normal units.
+      const hasActiveLogisticsStep =
+        UnitManager.getActiveSpecialistSteps(unit)
+          .filter((s) => {
+            const spec = SPECIALIST_STEP_ID_MAP.get(s.specialistId!)!;
+
+            return spec.type === SpecialistStepTypes.LOGISTICS; // Active spec step is a logistics type
+          }).length > 0;
+
+      if (hasActiveLogisticsStep) {
+        cyclesOOS = Math.max(0, cyclesOOS - 1);
+      }
+
       // --- OOS PENALTY LOGIC ---
       // Based on GDD Tier List
 
@@ -184,6 +198,10 @@ export const UnitManager = {
 
   getActiveSteps(unit: Unit) {
     return unit.steps.filter((s) => !s.isSuppressed);
+  },
+
+  getActiveSpecialistSteps(unit: Unit) {
+    return unit.steps.filter((s) => !s.isSuppressed && s.specialistId != null);
   },
 
   getSuppressedSteps(unit: Unit) {

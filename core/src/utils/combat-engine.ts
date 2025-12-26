@@ -125,31 +125,39 @@ export const CombatEngine = {
     let defenderRetreated = false;
     let defenderShattered = false;
 
-    // 7. Handle Retreat / Shatter Logic
+    // Handle unit deaths
+    // If either unit died, remove the unit reference from the hex.
+    if (!attackerAlive) {
+      attackerHex.unitId = null;
+    }
+
+    if (!defenderAlive) {
+      defenderHex.unitId = null;
+    }
+
+    // Handle Retreat / Shatter Logic
     let retreatHex: Hex | null = null;
 
-    if (defenderAlive && attackerAlive) {
-      if (resultEntry.defender.retreat) {
-        retreatHex = CombatEngine.findRetreatHex(defender, attacker, hexLookup);
+    if (defenderAlive && attackerAlive && resultEntry.defender.retreat) {
+      retreatHex = CombatEngine.findRetreatHex(defender, attacker, hexLookup);
 
-        if (retreatHex) {
-          UnitUtils.moveUnit(defender, defenderHex, retreatHex, null);
+      if (retreatHex) {
+        UnitUtils.moveUnit(defender, defenderHex, retreatHex, null);
 
-          // Successful Retreat
-          defender.state.status = UnitStatus.REGROUPING;
+        // Successful Retreat
+        defender.state.status = UnitStatus.REGROUPING;
 
-          defenderRetreated = true;
-          outcome = CombatResultType.RETREAT;
-        } else {
-          // Cornered -> Shattered!
-          defender.steps = UnitUtils.suppressSteps(defender.steps, 999);
-          defenderShattered = true;
-          outcome = CombatResultType.SHATTERED;
-        }
+        defenderRetreated = true;
+        outcome = CombatResultType.RETREAT;
+      } else {
+        // Cornered -> Shattered!
+        defender.steps = UnitUtils.suppressSteps(defender.steps, 999);
+        defenderShattered = true;
+        outcome = CombatResultType.SHATTERED;
       }
     }
 
-    // 8. Handle Advance on Victory (Blitz)
+    // Handle Advance on Victory (Blitz)
     // Rule Check: Can only advance if the operation *allows* it.
     // E.g., Suppressive Fire should never advance even if the enemy dies.
     // Standard and Feint (if enemy retreats) allow it.
@@ -185,7 +193,7 @@ export const CombatEngine = {
       firstArtSpec.isSuppressed = true;
     }
 
-    // 9. Set Cooldowns
+    // Set Cooldowns
     if (attackerAlive) attacker.state.status = UnitStatus.REGROUPING;
 
     if (defenderAlive && !defenderRetreated)

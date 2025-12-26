@@ -9,6 +9,7 @@ import {
   TickProcessor,
   Station,
   TickContext,
+  UnitManager,
 } from "@solaris-command/core";
 import { GameService } from "../services";
 import { executeInTransaction } from "../db/instance";
@@ -159,9 +160,8 @@ async function executeGameTick(game: Game) {
   const tickResult = TickProcessor.processTick(tickContext);
 
   // Get live units so that we can save only those ones (the others will be deleted)
-  const liveUnits = units.filter(
-    (u) => !tickResult.unitsToRemove.some((id) => String(id) === String(u._id))
-  );
+  const liveUnits = units.filter((u) => UnitManager.unitIsAlive(u));
+  const deadUnits = units.filter((u) => !UnitManager.unitIsAlive(u));
 
   // --- D. PERSISTENCE (Bulk Writes) ---
   // We execute updates in a transaction.
@@ -192,9 +192,9 @@ async function executeGameTick(game: Game) {
     }
 
     // ----- Deletions -----
-    if (tickResult.unitsToRemove.length > 0) {
+    if (deadUnits.length > 0) {
       await UnitModel.deleteMany(
-        { _id: { $in: tickResult.unitsToRemove } },
+        { _id: { $in: deadUnits.map((u) => u._id) } },
         { session }
       );
     }

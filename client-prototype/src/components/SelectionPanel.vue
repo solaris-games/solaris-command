@@ -43,6 +43,7 @@
            <button @click="galaxyStore.cancelAttack(galaxyStore.selected.data)">Cancel Attack</button>
            <br/>
            <button @click="galaxyStore.upgradeUnitStep(galaxyStore.selected.data)">Buy Step</button>
+           <button @click="galaxyStore.upgradeUnitStepScout(galaxyStore.selected.data)">Buy Scout Step</button>
            <button @click="galaxyStore.scrapUnitStep(galaxyStore.selected.data)">Scrap Step</button>
         </div>
       </div>

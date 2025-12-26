@@ -1,7 +1,13 @@
-import { CONSTANTS, ERROR_CODES, UNIT_CATALOG_ID_MAP } from "../data";
+import {
+  CONSTANTS,
+  ERROR_CODES,
+  SPECIALIST_STEP_CATALOG,
+  SPECIALIST_STEP_ID_MAP,
+  SPECIALIST_STEP_MAP,
+  UNIT_CATALOG_ID_MAP,
+} from "../data";
 import {
   CombatOperation,
-  CombatReport,
   HexCoords,
   HexCoordsId,
   UnifiedId,
@@ -17,6 +23,7 @@ import {
   GameEvent,
   GameEventTypes,
   TerrainTypes,
+  SpecialistStepTypes,
 } from "../types";
 import { CombatEngine } from "./combat-engine";
 import { HexUtils } from "./hex-utils";
@@ -29,7 +36,6 @@ import { MapUtils } from "./map-utils";
 
 export interface ProcessTickResult {
   gameEvents: GameEvent[]; // Events from tick processing (e.g combat reports)
-  unitsToRemove: UnifiedId[]; // Dead units to delete
   stationsToRemove: UnifiedId[]; // Captured stations to delete
   winnerPlayerId: UnifiedId | null;
 }
@@ -52,7 +58,6 @@ export class TickContext {
 
   // --- OUTPUT CONTAINERS ---
   gameEvents: GameEvent[] = [];
-  unitsToRemove: UnifiedId[] = [];
   stationsToRemove: UnifiedId[] = [];
   winnerPlayerId: UnifiedId | null = null;
 
@@ -120,7 +125,7 @@ export class GameUnitMovementContext {
       // Note: We validate all unit movements before the tick processes, so we do not need to check additional properties, only that the unit is moving.
       if (
         unit.state.status === UnitStatus.MOVING &&
-        !context.unitsToRemove.some((id) => String(id) === String(unit._id))
+        UnitManager.unitIsAlive(unit)
       ) {
         const nextHex = unit.movement.path[0]!;
 
@@ -198,11 +203,11 @@ export const TickProcessor = {
     }
 
     TickProcessor.processHexZOC(context);
+    TickProcessor.processUnitScoutsHexCapture(context);
     TickProcessor.processTickWinnerCheck(context);
 
     return {
       gameEvents: context.gameEvents,
-      unitsToRemove: context.unitsToRemove,
       stationsToRemove: context.stationsToRemove,
       winnerPlayerId: context.winnerPlayerId,
     };
@@ -321,7 +326,7 @@ export const TickProcessor = {
         // Defender:
         if (!UnitManager.unitIsAlive(defender)) {
           // Defender Destroyed
-          context.unitsToRemove.push(defender._id);
+          // Note: Hex unit reference is handled in battle resolution
           context.unitLocations.delete(targetHexCoordsId); // Remove from board
         } else if (
           battleResult.report.defender.retreated &&
@@ -339,7 +344,8 @@ export const TickProcessor = {
 
         // Attacker:
         if (!UnitManager.unitIsAlive(attacker)) {
-          context.unitsToRemove.push(attacker._id);
+          // Attacker destroyed
+          // Note: Hex unit reference is handled in battle resolution
           context.unitLocations.delete(
             HexUtils.getCoordsID(battleResult.attackerHex.location)
           ); // Remove from board
@@ -476,9 +482,7 @@ export const TickProcessor = {
   processTickPlayerSupply(context: TickContext) {
     // Make sure we are working with only the alive entities,
     // they may have been destroyed by combat earlier.
-    const liveUnits = context.units.filter(
-      (u) => !context.unitsToRemove.some((id) => String(id) === String(u._id))
-    );
+    const liveUnits = context.units.filter((u) => UnitManager.unitIsAlive(u));
 
     const liveStations = context.stations.filter(
       (s) =>
@@ -617,14 +621,67 @@ export const TickProcessor = {
     }
 
     // Add ZOC infuence for all ALIVE units
-    const liveUnits = context.units.filter(
-      (u) => !context.unitsToRemove.some((id) => String(id) === String(u._id))
-    );
+    const liveUnits = context.units.filter((u) => UnitManager.unitIsAlive(u));
 
     for (const unit of liveUnits) {
       MapUtils.addUnitHexZOC(unit, context.hexLookup);
     }
     // ----------
+  },
+
+  processUnitScoutsHexCapture(context: TickContext) {
+    // ----- SCOUTS ADJECENT HEX CAPTURES ----
+    // Units with the Scouts specialist capture adjacent empty hexes providing that
+    // a. The hex is empty.
+    // b. The hex is not a planet or station.
+    // c. The hex is solely influenced by the unit's player.
+    const scoutUnits = context.units
+      .filter(
+        // Filter only alive units
+        (u) => UnitManager.unitIsAlive(u)
+      )
+      .filter((u) => {
+        // Unit must have active scout specialist to do this.
+        const hasActiveScoutStep =
+          UnitManager.getActiveSpecialistSteps(u).filter((s) => {
+            const spec = SPECIALIST_STEP_ID_MAP.get(s.specialistId!)!;
+
+            return spec.type === SpecialistStepTypes.SCOUTS; // Active spec step is a scouts type
+          }).length > 0;
+
+        return MapUtils.unitHasZOCInfluence(u) && hasActiveScoutStep;
+      });
+
+    for (const unit of scoutUnits) {
+      const zocHexes = MapUtils.getUnitHexZOC(unit, context.hexLookup);
+
+      for (const hex of zocHexes) {
+        // Scouts cannot capture planets or stations and cannot capture if the hex
+        // is already occupied by another unit.
+        if (
+          hex.unitId != null ||
+          hex.planetId != null ||
+          hex.stationId != null
+        ) {
+          continue;
+        }
+
+        // No need to do this if the player already owns the hex.
+        if (hex.playerId && String(hex.playerId) === String(unit.playerId)) {
+          continue;
+        }
+
+        // If the hex is being influenced by this player only, then the player will gain control of the hex.
+        const zocPlayers = [...new Set(hex.zoc.map((z) => String(z.playerId)))];
+
+        if (
+          zocPlayers.length === 1 && // Only one player influencing the hex
+          String(zocPlayers[0]) === String(unit.playerId) // And that player is the unit owner (not strictly necessary but is safer to check)
+        ) {
+          hex.playerId = unit.playerId;
+        }
+      }
+    }
   },
 
   /**
@@ -636,9 +693,7 @@ export const TickProcessor = {
     context.game.state.cycle += 1;
 
     // Get only alive entities from arrays so that dead ones aren't processed in the cycle
-    const liveUnits = context.units.filter(
-      (u) => !context.unitsToRemove.some((id) => String(id) === String(u._id))
-    );
+    const liveUnits = context.units.filter((u) => UnitManager.unitIsAlive(u));
 
     // Process each Player independently
     context.players.forEach((player) => {
@@ -657,11 +712,9 @@ export const TickProcessor = {
         // We merge the update to check the resulting steps
         if (!UnitManager.unitIsAlive(unit)) {
           // Unit died this cycle
-          context.unitsToRemove.push(unit._id);
-
           // Remove unit from hex
-          const hex = context.hexes.find(
-            (h) => String(h._id) === String(unit.hexId)
+          const hex = context.hexLookup.get(
+            HexUtils.getCoordsID(unit.location)
           )!;
           hex.unitId = null;
         }

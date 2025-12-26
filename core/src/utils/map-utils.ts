@@ -34,6 +34,23 @@ export const MapUtils = {
     return hex.zoc.some((z) => String(z.playerId) !== String(playerId));
   },
 
+  unitHasZOCInfluence(unit: Unit) {
+    const unitCtlg = UNIT_CATALOG_ID_MAP.get(unit.catalogId)!;
+
+    if (!unitCtlg.stats.zoc) {
+      return false;
+    }
+
+    // Units with no active steps to not project a ZOC.
+    const hasActiveSteps = UnitManager.getActiveSteps(unit).length > 0;
+
+    if (!hasActiveSteps) {
+      return false;
+    }
+
+    return true;
+  },
+
   removeUnitHexZOC(unit: Unit, hexLookup: Map<HexCoordsId, Hex>) {
     const unitCtlg = UNIT_CATALOG_ID_MAP.get(unit.catalogId)!;
 
@@ -61,45 +78,44 @@ export const MapUtils = {
     });
   },
 
-  addUnitHexZOC(unit: Unit, hexLookup: Map<HexCoordsId, Hex>) {
-    const unitCtlg = UNIT_CATALOG_ID_MAP.get(unit.catalogId)!;
-
-    // Do not need to do this if unit doesn't project a ZOC.
-    if (!unitCtlg.stats.zoc) {
-      return;
+  getUnitHexZOC(unit: Unit, hexLookup: Map<HexCoordsId, Hex>): Hex[] {
+    if (!MapUtils.unitHasZOCInfluence(unit)) {
+      return [];
     }
 
-    // Units with no active steps to not project a ZOC.
-    const hasActiveSteps = UnitManager.getActiveSteps(unit).length > 0;
+    const hexes: Hex[] = [];
 
-    if (!hasActiveSteps) {
-      return;
-    }
-
-    // TODO: Flip adjacent EMPTY hexes that are not in enemy ZOC and are not planets or stations.
-    // TODO: Only if recon spec?
-    // TODO: Is it ok to do this sequentially? I don't think we can?
-
-    // Get all of the neighbors (plus the current hex) and add ZOC influence
+    // Get all of the neighbors (plus the current hex) to get ZOC influence
     const ZOCCoords = HexUtils.neighbors(unit.location).concat([unit.location]);
 
     ZOCCoords.forEach((coords) => {
       const hex = hexLookup.get(HexUtils.getCoordsID(coords));
 
-      // No need to store ZOC on impassible hexes.
+      // Note: Impassable hexes are not influenced by ZOC
       if (hex && !MapUtils.isHexImpassable(hex)) {
-        const existing = hex.zoc.find(
-          (z) => String(z.unitId) === String(unit._id)
-        );
-
-        if (!existing) {
-          hex.zoc.push({
-            playerId: unit.playerId,
-            unitId: unit._id,
-          });
-        }
+        hexes.push(hex);
       }
     });
+
+    return hexes;
+  },
+
+  addUnitHexZOC(unit: Unit, hexLookup: Map<HexCoordsId, Hex>) {
+    const hexes = MapUtils.getUnitHexZOC(unit, hexLookup);
+
+    for (const hex of hexes) {
+      // Make sure we don't duplicate
+      const existing = hex.zoc.find(
+        (z) => String(z.unitId) === String(unit._id)
+      );
+
+      if (!existing) {
+        hex.zoc.push({
+          playerId: unit.playerId,
+          unitId: unit._id,
+        });
+      }
+    }
   },
 
   isHexImpassable(hex: Hex): boolean {

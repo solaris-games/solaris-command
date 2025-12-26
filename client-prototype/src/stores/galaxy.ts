@@ -254,6 +254,24 @@ export const useGalaxyStore = defineStore("galaxy", {
         );
       }
     },
+    async upgradeUnitStepScout(unit: APIUnit) {
+      try {
+        await axios.post(
+          `/api/v1/games/${this.galaxy?.game._id}/units/${unit._id}/upgrade`,
+          {
+            type: "SPECIALIST",
+            specialistId: 'spec_scouts_01',
+          }
+        );
+        await this.fetchGalaxy(this.galaxy!.game._id);
+        this.selected = null;
+      } catch (err: any) {
+        alert(
+          "Upgrade unit step failed: " +
+            (err.response?.data?.errorCode || err.message)
+        );
+      }
+    },
     async scrapUnitStep(unit: APIUnit) {
       try {
         await axios.post(

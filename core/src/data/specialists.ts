@@ -5,8 +5,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     id: "spec_artillery_01",
     type: SpecialistStepTypes.ARTILLERY,
     name: "Artillery",
-    description:
-      "Long-range kinetic bombardment.",
+    description: "Long-range kinetic bombardment.",
     cost: 150,
     stats: {
       attack: 2,
@@ -59,6 +58,26 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
       mpMultiplier: 1,
       apAdd: 0,
       visionAdd: 1,
+    },
+  },
+  {
+    id: "spec_scouts_01",
+    type: SpecialistStepTypes.SCOUTS,
+    name: "Scouts",
+    description:
+      "Captures adjacent empty hexes in the unit's zone of control under certain conditions.",
+    cost: 200,
+    stats: {
+      attack: 0,
+      defense: 0,
+      armor: 0,
+      artillery: 0,
+      siege: 0,
+    },
+    bonuses: {
+      mpMultiplier: 1,
+      apAdd: 0,
+      visionAdd: 0,
     },
   },
   {
@@ -174,6 +193,26 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     bonuses: {
       mpMultiplier: 1,
       apAdd: 1,
+      visionAdd: 0,
+    },
+  },
+  {
+    id: "spec_logistics_01",
+    type: SpecialistStepTypes.LOGISTICS,
+    name: "Logistics",
+    description:
+      "Enhanced logistics capacity. Allows the unit to be out of supply for 1 cycle longer.",
+    cost: 150,
+    stats: {
+      attack: 0,
+      defense: 0,
+      armor: 0,
+      artillery: 0,
+      siege: 0,
+    },
+    bonuses: {
+      mpMultiplier: 1,
+      apAdd: 0,
       visionAdd: 0,
     },
   },
