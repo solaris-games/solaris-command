@@ -14,6 +14,8 @@ import {
   Player,
   GameStates,
   PlayerStatus,
+  GameEvent,
+  GameEventTypes,
 } from "../types";
 import { CombatEngine } from "./combat-engine";
 import { HexUtils } from "./hex-utils";
@@ -25,9 +27,10 @@ import { MapUtils } from "./map-utils";
 // This will make it more manageable to write unit tests for.
 
 export interface ProcessTickResult {
-  combatReports: CombatReport[]; // Logs for the UI
+  gameEvents: GameEvent[]; // Events from tick processing (e.g combat reports)
   unitsToRemove: UnifiedId[]; // Dead units to delete
   stationsToRemove: UnifiedId[]; // Captured stations to delete
+  winnerPlayerId: UnifiedId | null;
 }
 
 export class TickContext {
@@ -47,9 +50,12 @@ export class TickContext {
   stationLookup: Map<HexCoordsId, Station>;
 
   // --- OUTPUT CONTAINERS ---
-  combatReports: CombatReport[] = [];
+  gameEvents: GameEvent[] = [];
   unitsToRemove: UnifiedId[] = [];
   stationsToRemove: UnifiedId[] = [];
+  winnerPlayerId: UnifiedId | null = null;
+
+  idGenerator: () => UnifiedId;
 
   constructor(
     game: Game,
@@ -57,7 +63,8 @@ export class TickContext {
     hexes: Hex[],
     units: Unit[],
     planets: Planet[],
-    stations: Station[]
+    stations: Station[],
+    idGenerator: () => UnifiedId
   ) {
     this.game = game;
     this.players = players;
@@ -66,77 +73,29 @@ export class TickContext {
     this.planets = planets;
     this.stations = stations;
 
+    this.idGenerator = idGenerator;
+
     // We track unit locations in a Map for O(1) lookup during collision/combat checks.
     // This map is updated continuously as the Tick progresses (e.g., after a Blitz move).
-    this.hexLookup = new Map<string, Hex>();
+    this.hexLookup = new Map<HexCoordsId, Hex>();
     hexes.forEach((h) =>
       this.hexLookup.set(HexUtils.getCoordsID(h.location), h)
     );
 
-    this.unitLocations = new Map<string, Unit>();
+    this.unitLocations = new Map<HexCoordsId, Unit>();
     units.forEach((u) =>
       this.unitLocations.set(HexUtils.getCoordsID(u.location), u)
     );
 
     // Lookup map for Planets to check for capture logic efficiently
-    this.planetLookup = new Map<string, Planet>();
+    this.planetLookup = new Map<HexCoordsId, Planet>();
     planets.forEach((p) =>
       this.planetLookup.set(HexUtils.getCoordsID(p.location), p)
     );
 
-    this.stationLookup = new Map<string, Station>();
+    this.stationLookup = new Map<HexCoordsId, Station>();
     stations.forEach((s) =>
       this.stationLookup.set(HexUtils.getCoordsID(s.location), s)
-    );
-  }
-}
-
-export interface ProcessCycleResult {
-  unitsToDelete: UnifiedId[]; // Track starved units
-  winnerPlayerId: UnifiedId | null;
-}
-
-export class CycleTickContext {
-  game: Game;
-  players: Player[];
-  hexes: Hex[];
-  units: Unit[];
-  planets: Planet[];
-  stations: Station[];
-
-  unitsToRemove: UnifiedId[] = []; // <--- Track killed units
-  winnerPlayerId: UnifiedId | null = null;
-
-  constructor(
-    game: Game,
-    players: Player[],
-    hexes: Hex[],
-    units: Unit[],
-    planets: Planet[],
-    stations: Station[]
-  ) {
-    this.game = game;
-    this.players = players;
-    this.hexes = hexes;
-    this.units = units;
-    this.planets = planets;
-    this.stations = stations;
-  }
-}
-
-export class PostTickContext {
-  hexes: Hex[];
-  units: Unit[];
-
-  hexLookup: Map<HexCoordsId, Hex>;
-
-  constructor(hexes: Hex[], units: Unit[]) {
-    this.hexes = hexes;
-    this.units = units;
-
-    this.hexLookup = new Map<string, Hex>();
-    hexes.forEach((h) =>
-      this.hexLookup.set(HexUtils.getCoordsID(h.location), h)
     );
   }
 }
@@ -222,32 +181,35 @@ export const TickProcessor = {
     TickProcessor.processTickUnitMovement(context);
     TickProcessor.processTickPlayerSupply(context);
     TickProcessor.processTickWinnerCheck(context);
+    TickProcessor.tryProcessCycleTick(context);
+    TickProcessor.processHexZOC(context);
 
     return {
-      combatReports: context.combatReports,
+      gameEvents: context.gameEvents,
       unitsToRemove: context.unitsToRemove,
       stationsToRemove: context.stationsToRemove,
+      winnerPlayerId: context.winnerPlayerId,
     };
   },
 
-  processTickUnitStatus(contextTick: TickContext) {
+  processTickUnitStatus(context: TickContext) {
     // Reset Action States
     // If units were regrouping from the previous tick, then set them to idle now.
-    for (const unit of contextTick.units) {
+    for (const unit of context.units) {
       if (unit.state.status === UnitStatus.REGROUPING) {
         unit.state.status = UnitStatus.IDLE;
       }
     }
   },
 
-  processTickUnitCombat(contextTick: TickContext) {
+  processTickUnitCombat(context: TickContext) {
     // =================================================================================
     // COMBAT RESOLUTION
     // Combat happens BEFORE movement. This allows "Blitz" moves to seize ground.
     // =================================================================================
 
     // 1. Identify Units Declaring Attack
-    const attackers = contextTick.units.filter(
+    const attackers = context.units.filter(
       (u) => u.state.status === UnitStatus.PREPARING
     );
 
@@ -282,11 +244,11 @@ export const TickProcessor = {
       // Execute Sequential 1v1s
       for (const attacker of hexAttackers) {
         // Lookup Target Hex
-        const targetHex = contextTick.hexLookup.get(targetHexCoordsId);
+        const targetHex = context.hexLookup.get(targetHexCoordsId);
         if (!targetHex) continue;
 
         // Lookup Defender (Is there a unit at the location RIGHT NOW?)
-        const defender = contextTick.unitLocations.get(targetHexCoordsId);
+        const defender = context.unitLocations.get(targetHexCoordsId);
 
         // Whiff Check: Did the defender die or retreat in a previous sequence step?
         // Also check Friendly Fire (Attacker vs Attacker race condition)
@@ -305,7 +267,7 @@ export const TickProcessor = {
         const battleResult = CombatEngine.resolveBattle(
           attacker,
           defender,
-          contextTick.hexLookup,
+          context.hexLookup,
           attacker.combat.operation!,
           attacker.combat.advanceOnVictory!
         );
@@ -319,23 +281,41 @@ export const TickProcessor = {
         };
 
         // Log Report
-        battleResult.report.tick = contextTick.game.state.tick;
-        contextTick.combatReports.push(battleResult.report);
+        battleResult.report.tick = context.game.state.tick;
+
+        // One for the attacker and another for the defender.
+        context.gameEvents.push({
+          _id: context.idGenerator(),
+          gameId: context.game._id,
+          playerId: battleResult.report.attackerId,
+          tick: context.game.state.tick,
+          type: GameEventTypes.COMBAT_REPORT,
+          data: battleResult.report,
+        });
+
+        context.gameEvents.push({
+          _id: context.idGenerator(),
+          gameId: context.game._id,
+          playerId: battleResult.report.defenderId,
+          tick: context.game.state.tick,
+          type: GameEventTypes.COMBAT_REPORT,
+          data: battleResult.report,
+        });
 
         // Defender:
         if (defender.steps.length === 0) {
           // Defender Destroyed
-          contextTick.unitsToRemove.push(defender._id);
-          contextTick.unitLocations.delete(targetHexCoordsId); // Remove from board
+          context.unitsToRemove.push(defender._id);
+          context.unitLocations.delete(targetHexCoordsId); // Remove from board
         } else if (
           battleResult.report.defender.retreated &&
           battleResult.retreatHex
         ) {
           // Move the defender
-          contextTick.unitLocations.delete(
+          context.unitLocations.delete(
             HexUtils.getCoordsID(battleResult.defenderHex.location)
           );
-          contextTick.unitLocations.set(
+          context.unitLocations.set(
             HexUtils.getCoordsID(battleResult.retreatHex.location),
             defender
           );
@@ -343,21 +323,21 @@ export const TickProcessor = {
 
         // Attacker:
         if (attacker.steps.length === 0) {
-          contextTick.unitsToRemove.push(attacker._id);
-          contextTick.unitLocations.delete(
+          context.unitsToRemove.push(attacker._id);
+          context.unitLocations.delete(
             HexUtils.getCoordsID(battleResult.attackerHex.location)
           ); // Remove from board
         } else if (battleResult.attackerWonHex) {
           // Move the attacker
-          contextTick.unitLocations.delete(
+          context.unitLocations.delete(
             HexUtils.getCoordsID(battleResult.attackerHex.location)
           );
-          contextTick.unitLocations.set(
+          context.unitLocations.set(
             HexUtils.getCoordsID(battleResult.defenderHex.location),
             attacker
           );
 
-          handleHexCapture(contextTick, targetHex, attacker);
+          handleHexCapture(context, targetHex, attacker);
         }
       }
     });
@@ -429,6 +409,17 @@ export const TickProcessor = {
   },
 
   processTickPlayerSupply(context: TickContext) {
+    // Make sure we are working with only the alive entities, 
+    // they may have been destroyed by combat earlier.
+    const liveUnits = context.units.filter(
+      (u) => !context.unitsToRemove.some((id) => String(id) === String(u._id))
+    );
+
+    const liveStations = context.stations.filter(
+      (s) =>
+        !context.stationsToRemove.some((id) => String(id) === String(s._id))
+    );
+
     // Process each Player independently
     context.players.forEach((player) => {
       const playerIdStr = String(player._id);
@@ -439,10 +430,10 @@ export const TickProcessor = {
         player._id,
         context.hexes,
         context.planets,
-        context.stations
+        liveStations
       );
 
-      const playerUnits = context.units.filter(
+      const playerUnits = liveUnits.filter(
         (u) => String(u.playerId) === playerIdStr
       );
 
@@ -478,9 +469,10 @@ export const TickProcessor = {
     }
   },
 
-  processPostTick(context: PostTickContext) {
+  processHexZOC(context: TickContext) {
     // ----- UNIT ZOC -----
     // Process unit ZOC. Since unit movement and combat happens at the same time
+    // and also cycle ticks can kill starved units
     // we have to process ZOC all at once at the end of the tick.
     // TODO: This can probably be much more efficient but for now let's just keep it simple.
 
@@ -491,25 +483,50 @@ export const TickProcessor = {
       }
     }
 
-    // Add ZOC infuence for all units
-    for (const unit of context.units) {
+    // Add ZOC infuence for all ALIVE units
+    const liveUnits = context.units.filter(
+      (u) => !context.unitsToRemove.some((id) => String(id) === String(u._id))
+    );
+
+    for (const unit of liveUnits) {
       MapUtils.addUnitHexZOC(unit, context.hexLookup);
     }
     // ----------
   },
 
+  tryProcessCycleTick(context: TickContext) {
+    // --- CHECK FOR CYCLE (Economy) ---
+    // If this new tick completes a cycle (e.g., tick 24, 48...)
+    const isCycleComplete =
+      context.game.state.tick % context.game.settings.ticksPerCycle === 0;
+
+    if (isCycleComplete) {
+      console.log(
+        `💰 Processing Cycle ${context.game.state.cycle + 1} for Game ${
+          context.game._id
+        }`
+      );
+
+      // Run the Economy/Logistics Logic
+      TickProcessor.processCycle(context);
+    }
+  },
+
   /**
-   * THE MASTER LOOP
-   * This function will be called by a Cron Job / Ticker every time a Cycle completes.
-   * It modifies the objects in memory. The caller is responsible for saving them to DB afterwards.
+   * Process the cycle tick
    */
-  processCycle(context: CycleTickContext): ProcessCycleResult {
+  processCycle(context: TickContext) {
+    // Get only alive entities from arrays so that dead ones aren't processed in the cycle
+    const liveUnits = context.units.filter(
+      (u) => !context.unitsToRemove.some((id) => String(id) === String(u._id))
+    );
+
     // Process each Player independently
     context.players.forEach((player) => {
       const playerIdStr = String(player._id);
 
       // LOGISTICS PHASE
-      const playerUnits = context.units.filter(
+      const playerUnits = liveUnits.filter(
         (u) => String(u.playerId) === playerIdStr
       );
 
@@ -571,11 +588,6 @@ export const TickProcessor = {
       context.game.state.status = GameStates.COMPLETED;
       context.game.state.endDate = new Date();
     }
-
-    return {
-      unitsToDelete: context.unitsToRemove,
-      winnerPlayerId: context.winnerPlayerId,
-    };
   },
 
   /**
@@ -606,10 +618,10 @@ export const TickProcessor = {
     );
   },
 
-  validateGameState(contextTick: TickContext) {
+  validatePreTickState(context: TickContext) {
     // ----- UNIT COMBAT VALIDATION -----
     // Validate that units preparing to fight are in a valid state and follow the game rules.
-    const attackers = contextTick.units.filter(
+    const attackers = context.units.filter(
       (u) => u.state.status === UnitStatus.PREPARING
     );
 
@@ -625,7 +637,7 @@ export const TickProcessor = {
       }
 
       // Hex must exist
-      const hex = contextTick.hexLookup.get(
+      const hex = context.hexLookup.get(
         HexUtils.getCoordsID(unit.combat.location)
       );
 
@@ -648,7 +660,7 @@ export const TickProcessor = {
         throw new Error(ERROR_CODES.HEX_IS_NOT_OCCUPIED_BY_UNIT);
       }
 
-      const targetUnit = contextTick.unitLocations.get(
+      const targetUnit = context.unitLocations.get(
         HexUtils.getCoordsID(unit.combat.location)
       );
 
@@ -675,7 +687,7 @@ export const TickProcessor = {
 
     // ----- UNIT MOVEMENT VALIDATION -----
     // Validate the units preparing to move are in a valid state and follow the game rules.
-    const movers = contextTick.units.filter(
+    const movers = context.units.filter(
       (u) => u.state.status === UnitStatus.MOVING
     );
 
@@ -690,7 +702,7 @@ export const TickProcessor = {
 
       const location = unit.movement.path[0]!;
 
-      const hex = contextTick.hexLookup.get(HexUtils.getCoordsID(location));
+      const hex = context.hexLookup.get(HexUtils.getCoordsID(location));
 
       if (!hex) {
         throw new Error(ERROR_CODES.HEX_NOT_FOUND);

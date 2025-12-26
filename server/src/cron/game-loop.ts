@@ -7,11 +7,8 @@ import {
   Hex,
   Planet,
   TickProcessor,
-  ProcessCycleResult,
   Station,
   TickContext,
-  CycleTickContext,
-  PostTickContext,
 } from "@solaris-command/core";
 import { GameService } from "../services";
 import { executeInTransaction } from "../db/instance";
@@ -26,6 +23,7 @@ import {
   UserModel,
 } from "../db/schemas";
 import { connectToDb } from "../db/instance";
+import { Types } from "mongoose";
 
 // Concurrency Flag: Prevent loop overlapping if processing takes > tick duration
 let isProcessing = false;
@@ -150,73 +148,20 @@ async function executeGameTick(game: Game) {
     hexes as Hex[],
     units as Unit[],
     planets as Planet[],
-    stations as Station[]
+    stations as Station[],
+    () => new Types.ObjectId()
   );
 
   // Firstly, validate that the game is in a valid state. We should be vigilant and make sure we
   // aren't going to process a game in a broken state, we'd rather NOT tick than process invalid game state.
-  TickProcessor.validateGameState(tickContext);
+  TickProcessor.validatePreTickState(tickContext);
 
   const tickResult = TickProcessor.processTick(tickContext);
 
-  // --- C. CHECK FOR CYCLE (Economy) ---
-  // If this new tick completes a cycle (e.g., tick 24, 48...)
-  const isCycleComplete = game.state.tick % game.settings.ticksPerCycle === 0;
-
-  let cycleResult: ProcessCycleResult | null = null;
-
-  if (isCycleComplete) {
-    console.log(
-      `💰 Processing Cycle ${game.state.cycle + 1} for Game ${gameId}`
-    );
-
-    // IMPORTANT: Apply the Tick updates to our memory objects BEFORE running Cycle logic
-    // so supply calculations use the new positions/ownerships and delete units/stations that are
-    // no longer present in the game.
-
-    // Remove dead entities from arrays so they aren't processed in cycle
-    units = units.filter(
-      (u) =>
-        !tickResult.unitsToRemove.some((id) => String(id) === String(u._id))
-    );
-
-    stations = stations.filter(
-      (s) =>
-        !tickResult.stationsToRemove.some((id) => String(id) === String(s._id))
-    );
-
-    // Run the Economy/Logistics Logic
-    const cycleContext = new CycleTickContext(
-      game,
-      players as Player[],
-      hexes as Hex[],
-      units as Unit[],
-      planets as Planet[],
-      stations as Station[]
-    );
-
-    cycleResult = TickProcessor.processCycle(cycleContext);
-  }
-
-  // Units (Only live ones)
-  // Note: units array was filtered above for Cycle processing if cycle happened.
-  // If not cycle, we should still filter out dead ones before saving?
-  // tickResult.unitsToRemove contains IDs of units to be deleted.
-  // We should NOT save those.
-  // Filter again to be safe.
+  // Get live units so that we can save only those ones (the others will be deleted)
   const liveUnits = units.filter(
     (u) => !tickResult.unitsToRemove.some((id) => String(id) === String(u._id))
   );
-  // Also filter out units starved in cycle
-  const cycleDeadUnits = cycleResult ? cycleResult.unitsToDelete : [];
-  const finalLiveUnits = liveUnits.filter(
-    (u) => !cycleDeadUnits.some((id) => String(id) === String(u._id))
-  );
-
-  // Process post tick actions, e.g reset ZOC influence
-  const postTickContext = new PostTickContext(hexes, finalLiveUnits);
-
-  TickProcessor.processPostTick(postTickContext);
 
   // --- D. PERSISTENCE (Bulk Writes) ---
   // We execute updates in a transaction.
@@ -232,7 +177,7 @@ async function executeGameTick(game: Game) {
     }
 
     // Units
-    for (const unit of finalLiveUnits) {
+    for (const unit of liveUnits) {
       await unit.save({ session });
     }
 
@@ -247,23 +192,16 @@ async function executeGameTick(game: Game) {
     }
 
     // ----- Deletions -----
-    const unitsToDelete = [...tickResult.unitsToRemove];
-    const stationsToDelete = [...tickResult.stationsToRemove];
-
-    if (cycleResult) {
-      cycleResult.unitsToDelete.forEach((id) => unitsToDelete.push(id));
+    if (tickResult.unitsToRemove.length > 0) {
+      await UnitModel.deleteMany(
+        { _id: { $in: tickResult.unitsToRemove } },
+        { session }
+      );
     }
 
-    // TODO: I think these queries are messing up the transactions:
-    // MongoServerError: Transaction with { txnNumber: 6 } has been committed.
-    // MongoServerError: Given transaction number 9 does not match any in-progress transactions. The active transaction number is 8
-    if (unitsToDelete.length > 0) {
-      await UnitModel.deleteMany({ _id: { $in: unitsToDelete } }, { session });
-    }
-
-    if (stationsToDelete.length > 0) {
+    if (tickResult.stationsToRemove.length > 0) {
       await StationModel.deleteMany(
-        { _id: { $in: stationsToDelete } },
+        { _id: { $in: tickResult.stationsToRemove } },
         { session }
       );
     }
@@ -282,35 +220,19 @@ async function executeGameTick(game: Game) {
 
     await gameDoc.save({ session });
 
-    // ----- Combat Reports -----
-    if (tickResult.combatReports.length > 0) {
-      for (const report of tickResult.combatReports) {
-        const attackerReport = new GameEventModel({
-          gameId: gameId,
-          playerId: report.attackerId, // One for the attacker
-          tick: game.state.tick,
-          type: "COMBAT_REPORT", // TODO: Need a type for this
-          data: report,
-        });
+    // ----- Game Events -----
+    if (tickResult.gameEvents.length > 0) {
+      for (const gameEvent of tickResult.gameEvents) {
+        const model = new GameEventModel(gameEvent);
 
-        await attackerReport.save();
-
-        const defenderReport = new GameEventModel({
-          gameId: gameId,
-          playerId: report.defenderId, // Another event for the defender
-          tick: game.state.tick,
-          type: "COMBAT_REPORT",
-          data: report,
-        });
-
-        await defenderReport.save();
+        await model.save();
       }
     }
 
     // ----- User Achievements (Victory) -----
-    if (cycleResult && cycleResult.winnerPlayerId) {
+    if (tickResult.winnerPlayerId) {
       const winnerPlayer = players.find(
-        (p) => String(p._id) === String(cycleResult.winnerPlayerId)
+        (p) => String(p._id) === String(tickResult.winnerPlayerId)
       );
 
       if (winnerPlayer) {
