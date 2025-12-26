@@ -1,4 +1,4 @@
-import { TerrainTypes } from "../models";
+import { TerrainTypes } from "../types";
 import { HexCoords } from "./geometry";
 
 export interface GameMap {

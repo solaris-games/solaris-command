@@ -1,4 +1,4 @@
-import { UnifiedId } from "../types";
+import { UnifiedId } from ".";
 
 export enum GameStates {
   PENDING = "PENDING",

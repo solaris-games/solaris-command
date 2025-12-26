@@ -1,8 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { UnitFactory } from "./unit-factory";
-import { UnitStatus } from "../models/unit";
 import { UNIT_CATALOG_ID_MAP } from "../data/units";
-import { MockUnifiedId } from "../types";
+import { MockUnifiedId, UnitStatus } from "../types";
 
 describe("UnitFactory", () => {
   it("should create a unit with correct structure", () => {

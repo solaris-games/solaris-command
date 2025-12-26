@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { CombatEngine } from "./combat-engine";
-import { Unit, UnitStatus, Hex, TerrainTypes } from "../models";
 import {
   CombatOperation,
   CombatResultType,
@@ -9,6 +8,10 @@ import {
   HexCoordsId,
   MockUnifiedId,
   UnifiedId,
+  Unit,
+  UnitStatus,
+  Hex,
+  TerrainTypes,
 } from "../types";
 import { CombatCalculator } from "./combat-calculator";
 import { CombatTables, SPECIALIST_STEP_MAP } from "../data";
@@ -130,8 +133,8 @@ describe("CombatEngine", () => {
     it("should use forcedResult from calculator if present (e.g. Feint)", () => {
       // Mock Calculator to return a forced result
       const forcedResult: CombatForcedResult = {
-        attacker: { steps: 0, suppressed: 1 },
-        defender: { steps: 0, suppressed: 1, retreat: false, shattered: false },
+        attacker: { losses: 0, suppressed: 1 },
+        defender: { losses: 0, suppressed: 1, retreat: false },
         resultType: CombatResultType.SUPPRESS,
       };
 
@@ -189,8 +192,8 @@ describe("CombatEngine", () => {
 
       // Mock Table Result
       const tableResult: CombatForcedResult = {
-        attacker: { steps: 0, suppressed: 0 },
-        defender: { steps: 1, suppressed: 1, retreat: false, shattered: false },
+        attacker: { losses: 0, suppressed: 0 },
+        defender: { losses: 1, suppressed: 1, retreat: false },
         resultType: CombatResultType.SUPPRESS,
       };
       vi.mocked(CombatTables.getResult).mockReturnValue(tableResult);
@@ -224,8 +227,8 @@ describe("CombatEngine", () => {
 
       // Mock Table Result
       const tableResult: CombatForcedResult = {
-        attacker: { steps: 1, suppressed: 2 },
-        defender: { steps: 3, suppressed: 4, retreat: false, shattered: false },
+        attacker: { losses: 1, suppressed: 2 },
+        defender: { losses: 3, suppressed: 4, retreat: false },
         resultType: CombatResultType.SUPPRESS,
       };
       vi.mocked(CombatTables.getResult).mockReturnValue(tableResult);
@@ -257,8 +260,8 @@ describe("CombatEngine", () => {
     it("should handle Retreat logic", () => {
       // Mock Result: Retreat
       const retreatResult: CombatForcedResult = {
-        attacker: { steps: 0, suppressed: 0 },
-        defender: { steps: 0, suppressed: 1, retreat: true, shattered: false },
+        attacker: { losses: 0, suppressed: 0 },
+        defender: { losses: 0, suppressed: 1, retreat: true },
         resultType: CombatResultType.RETREAT,
       };
 
@@ -310,8 +313,8 @@ describe("CombatEngine", () => {
     it("should Shatter defender if they cannot retreat", () => {
       // Mock Result: Retreat required
       const retreatResult: CombatForcedResult = {
-        attacker: { steps: 0, suppressed: 0 },
-        defender: { steps: 0, suppressed: 0, retreat: true, shattered: false },
+        attacker: { losses: 0, suppressed: 0 },
+        defender: { losses: 0, suppressed: 0, retreat: true },
         resultType: CombatResultType.RETREAT,
       };
 
@@ -349,8 +352,8 @@ describe("CombatEngine", () => {
     it("should Advance on Victory if enabled and defender moved", () => {
       // Mock Result: Retreat
       const retreatResult: CombatForcedResult = {
-        attacker: { steps: 0, suppressed: 0 },
-        defender: { steps: 0, suppressed: 0, retreat: true, shattered: false },
+        attacker: { losses: 0, suppressed: 0 },
+        defender: { losses: 0, suppressed: 0, retreat: true },
         resultType: CombatResultType.RETREAT,
       };
       vi.mocked(CombatCalculator.calculate).mockReturnValue({
@@ -390,8 +393,8 @@ describe("CombatEngine", () => {
     it("should NOT Advance on Victory if enabled and defender moved and the attacker does not have enough MP", () => {
       // Mock Result: Retreat
       const retreatResult: CombatForcedResult = {
-        attacker: { steps: 0, suppressed: 0 },
-        defender: { steps: 0, suppressed: 0, retreat: true, shattered: false },
+        attacker: { losses: 0, suppressed: 0 },
+        defender: { losses: 0, suppressed: 0, retreat: true },
         resultType: CombatResultType.RETREAT,
       };
       vi.mocked(CombatCalculator.calculate).mockReturnValue({
@@ -452,8 +455,8 @@ describe("CombatEngine", () => {
       // Suppressive Fire usually forces a result, but even if it killed them
       // the attacker shouldn't move.
       const killResult: CombatForcedResult = {
-        attacker: { steps: 0, suppressed: 0 },
-        defender: { steps: 5, suppressed: 0, retreat: false, shattered: false },
+        attacker: { losses: 0, suppressed: 0 },
+        defender: { losses: 5, suppressed: 0, retreat: false },
         resultType: CombatResultType.SHATTERED,
       };
 
@@ -494,8 +497,8 @@ describe("CombatEngine", () => {
       // Suppressive Fire usually forces a result, but even if it killed them
       // the attacker shouldn't move.
       const killResult: CombatForcedResult = {
-        attacker: { steps: 0, suppressed: 0 },
-        defender: { steps: 5, suppressed: 0, retreat: false, shattered: false },
+        attacker: { losses: 0, suppressed: 0 },
+        defender: { losses: 5, suppressed: 0, retreat: false },
         resultType: CombatResultType.SHATTERED,
       };
 

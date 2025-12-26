@@ -1,7 +1,5 @@
-import { Unit, UnitStatus, UnitStep } from "../models/unit";
-import { HexCoords } from "../types/geometry";
 import { UNIT_CATALOG_ID_MAP } from "../data/units";
-import { UnifiedId } from "../types";
+import { UnifiedId, HexCoords, Unit, UnitStatus, UnitStep } from "../types";
 
 export class UnitFactory {
   static createUnit(
@@ -57,7 +55,7 @@ export class UnitFactory {
         isInSupply: true,
         ticksLastSupply: 0,
         ticksOutOfSupply: 0,
-      }
+      },
     };
 
     return unit;

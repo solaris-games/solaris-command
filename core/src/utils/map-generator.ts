@@ -1,5 +1,4 @@
-import { Hex, Planet } from "../models";
-import { GameMap, UnifiedId } from "../types";
+import { GameMap, UnifiedId, Hex, Planet } from "../types";
 import { PLANET_NAMES } from "../data";
 import { HexUtils } from "./hex-utils";
 
@@ -29,7 +28,7 @@ export const MapGenerator = {
         unitId: null,
         location: h.location!,
         terrain: h.terrain!,
-        zoc: []
+        zoc: [],
       };
     });
 

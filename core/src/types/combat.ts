@@ -31,7 +31,7 @@ export interface CombatShift {
 }
 
 export interface CombatLosses {
-  steps: number;
+  losses: number;
   suppressed: number;
 }
 
@@ -39,10 +39,9 @@ export interface CombatForcedResult {
   resultType: CombatResultType;
   attacker: CombatLosses;
   defender: {
-    steps: number;
+    losses: number;
     suppressed: number;
     retreat: boolean;
-    shattered: boolean;
   };
 }
 

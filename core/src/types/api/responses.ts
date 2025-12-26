@@ -1,12 +1,12 @@
-import { GameStates } from "../../models/game";
-import { Unit, UnitStatus } from "../../models/unit";
-import { Station } from "../../models/station";
-import { Player, PlayerStatus } from "../../models/player";
-import { TerrainTypes } from "../../models/hex";
+import { GameStates } from "../game";
+import { TerrainTypes } from "../hex";
 import { HexCoords } from "../geometry";
 import { SupplySource, SupplyTarget } from "../supply";
 import { CombatOperation } from "../combat";
 import { UnifiedId } from "../unified-id";
+import { Player, PlayerStatus } from "../player";
+import { Unit, UnitStatus } from "../unit";
+import { Station } from "../station";
 
 // Users
 export interface UserDetailsResponseSchema {
@@ -72,6 +72,7 @@ export interface GameGalaxyResponseSchema {
   players: {
     _id: UnifiedId;
     gameId: UnifiedId;
+    userId: UnifiedId | null;
     alias: string;
     color: string;
     status: PlayerStatus;

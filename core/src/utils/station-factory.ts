@@ -1,6 +1,4 @@
-import { Station } from "../models/station";
-import { HexCoords } from "../types/geometry";
-import { UnifiedId } from "../types";
+import { UnifiedId, HexCoords, Station } from "../types";
 
 export class StationFactory {
   static createStation(

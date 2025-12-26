@@ -1,9 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { FogOfWar } from "./fog-of-war";
-import { Unit } from "../models/unit";
-import { Planet } from "../models/planet";
-import { Station } from "../models/station";
-import { MockUnifiedId } from "../types";
+import { MockUnifiedId, Unit, Planet, Station } from "../types";
 
 describe("FogOfWar", () => {
   const player1Id = new MockUnifiedId();

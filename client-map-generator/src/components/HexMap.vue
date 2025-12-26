@@ -42,7 +42,7 @@
 import { ref, reactive, onMounted, onUnmounted, watch } from 'vue';
 import { mapStore, EditorHex } from '../stores/mapStore';
 // import { TerrainTypes } from '@solaris-command/core';
-import { TerrainTypes } from '@solaris-command/core/src/models/hex';
+import { TerrainTypes } from '@solaris-command/core/src/types/hex';
 import { hexToPixel } from '../utils/hexUtils';
 
 const HEX_SIZE = 40;

@@ -1,5 +1,4 @@
-import { TerrainTypes } from "../../models";
-import { GameMap } from "../../types";
+import { GameMap, TerrainTypes } from "../../types";
 
 export const GAME_MAP_TEST_1V1: GameMap = {
   id: "test_1v1",

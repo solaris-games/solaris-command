@@ -1,16 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { SupplyEngine } from "./supply-engine";
 import { Pathfinding } from "./pathfinding";
+import { CONSTANTS } from "../data";
 import {
+  MockUnifiedId,
   Planet,
   Station,
   Unit,
   UnitStatus,
   Hex,
   TerrainTypes,
-} from "../models";
-import { CONSTANTS } from "../data";
-import { MockUnifiedId } from "../types";
+} from "../types";
 
 // --- MOCKS ---
 // We mock Pathfinding because calculating the exact flood fill is tested in pathfinding.test.ts.
@@ -32,7 +32,7 @@ function createHex(q: number, r: number, s: number): Hex {
     playerId: null,
     location: { q, r, s },
     terrain: TerrainTypes.EMPTY,
-    zoc: []
+    zoc: [],
   };
 }
 
@@ -77,7 +77,12 @@ function createStation(
   };
 }
 
-function createUnit(playerId: MockUnifiedId, q: number, r: number, s: number): Unit {
+function createUnit(
+  playerId: MockUnifiedId,
+  q: number,
+  r: number,
+  s: number
+): Unit {
   return {
     _id: new MockUnifiedId(),
     gameId: new MockUnifiedId(),
@@ -93,17 +98,17 @@ function createUnit(playerId: MockUnifiedId, q: number, r: number, s: number): U
     movement: { path: [] },
     combat: { location: null },
     supply: { isInSupply: true, ticksLastSupply: 0, ticksOutOfSupply: 0 },
-    zoc: []
+    zoc: [],
   } as any; // Casting for brevity
 }
 
 describe("SupplyEngine", () => {
   const playerId = new MockUnifiedId();
-  let hexes: Hex[] = []
+  let hexes: Hex[] = [];
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     hexes = [createHex(0, 0, 0), createHex(1, 0, -1), createHex(2, 0, -2)]; // Minimal map
   });
 
@@ -208,7 +213,11 @@ describe("SupplyEngine", () => {
 
       const network = new Set(["0,0,0"]);
 
-      const supply = SupplyEngine.processTickSupplyTarget(unit.supply, unit.location, network);
+      const supply = SupplyEngine.processTickSupplyTarget(
+        unit.supply,
+        unit.location,
+        network
+      );
 
       expect(supply.isInSupply).toBe(true);
       expect(supply.ticksOutOfSupply).toBe(0);
@@ -220,7 +229,11 @@ describe("SupplyEngine", () => {
 
       const network = new Set(["0,0,0"]);
 
-      const supply = SupplyEngine.processTickSupplyTarget(unit.supply, unit.location, network);
+      const supply = SupplyEngine.processTickSupplyTarget(
+        unit.supply,
+        unit.location,
+        network
+      );
 
       expect(supply.isInSupply).toBe(false);
       expect(supply.ticksOutOfSupply).toBe(6);

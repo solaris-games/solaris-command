@@ -1,6 +1,6 @@
-import { UnifiedId } from "../types";
-import { HexCoords } from "../types/geometry";
-import { SupplySource } from "../types/supply";
+import { UnifiedId } from ".";
+import { HexCoords } from "./geometry";
+import { SupplySource } from "./supply";
 
 export interface Planet {
   _id: UnifiedId;

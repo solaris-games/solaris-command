@@ -76,7 +76,7 @@
 <script setup lang="ts">
 import { mapStore, generateMap } from '../stores/mapStore';
 // import { TerrainTypes } from '@solaris-command/core';
-import { TerrainTypes } from '@solaris-command/core/src/models/hex';
+import { TerrainTypes } from '@solaris-command/core/src/types/hex';
 
 // Exclude EMPTY from the palette if we want, or keep it as an eraser.
 // "Empty" is effectively the eraser.

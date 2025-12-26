@@ -1,8 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
-import { Hex, Unit, UnitStatus } from "../models";
 import { UnitManager } from "./unit-manager";
 import { UNIT_CATALOG_ID_MAP } from "../data";
-import {  HexCoordsId, MockUnifiedId } from "../types";
+import { HexCoordsId, MockUnifiedId, Hex, Unit, UnitStatus } from "../types";
 import { HexUtils } from "./hex-utils";
 
 // --- FACTORY HELPER ---

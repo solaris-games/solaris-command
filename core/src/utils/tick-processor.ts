@@ -1,5 +1,10 @@
 import { CONSTANTS, ERROR_CODES, UNIT_CATALOG_ID_MAP } from "../data";
 import {
+  CombatOperation,
+  CombatReport,
+  HexCoords,
+  HexCoordsId,
+  UnifiedId,
   Game,
   Unit,
   UnitStatus,
@@ -9,13 +14,6 @@ import {
   Player,
   GameStates,
   PlayerStatus,
-} from "../models";
-import {
-  CombatOperation,
-  CombatReport,
-  HexCoords,
-  HexCoordsId,
-  UnifiedId,
 } from "../types";
 import { CombatEngine } from "./combat-engine";
 import { HexUtils } from "./hex-utils";
@@ -521,9 +519,11 @@ export const TickProcessor = {
         if (unit.steps.length === 0) {
           // Unit died this cycle
           context.unitsToRemove.push(unit._id);
-          
+
           // Remove unit from hex
-          const hex = context.hexes.find(h => String(h._id) === String(unit.hexId))!
+          const hex = context.hexes.find(
+            (h) => String(h._id) === String(unit.hexId)
+          )!;
           hex.unitId = null;
         }
       });

@@ -1,8 +1,15 @@
 import { describe, it, expect, vi } from "vitest";
 import { CombatCalculator } from "./combat-calculator";
-import { Unit, UnitStatus, UnitStep } from "../models/unit";
-import { Hex, TerrainTypes } from "../models/hex";
-import { CombatShiftType, CombatOperation, MockUnifiedId } from "../types";
+import {
+  Unit,
+  UnitStatus,
+  UnitStep,
+  Hex,
+  TerrainTypes,
+  CombatShiftType,
+  CombatOperation,
+  MockUnifiedId,
+} from "../types";
 
 const CATALOG_UNIT_FRIGATE_ID = "unit_frigate_01";
 const CATALOG_UNIT_BATTLESHIP_ID = "unit_battleship_01";
@@ -157,7 +164,7 @@ describe("CombatCalculator", () => {
       expect(result.forcedResult).not.toBeNull();
       expect(result.forcedResult?.attacker.suppressed).toBe(1);
       expect(result.forcedResult?.defender.suppressed).toBe(1);
-      expect(result.forcedResult?.attacker.steps).toBe(0);
+      expect(result.forcedResult?.attacker.losses).toBe(0);
     });
 
     it("should return forced result for SUPPRESSIVE_FIRE with Artillery", () => {

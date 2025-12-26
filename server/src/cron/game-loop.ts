@@ -12,7 +12,6 @@ import {
   TickContext,
   CycleTickContext,
   PostTickContext,
-  GameEvent,
 } from "@solaris-command/core";
 import { GameService } from "../services";
 import { executeInTransaction } from "../db/instance";

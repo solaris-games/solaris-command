@@ -1,14 +1,13 @@
-import {
-  CombatTables,
-  SPECIALIST_STEP_ID_MAP,
-} from "../data";
-import { Unit, UnitStatus, Hex } from "../models";
+import { CombatTables, SPECIALIST_STEP_ID_MAP } from "../data";
 import {
   CombatOperation,
   CombatReport,
   CombatResultType,
   HexCoordsId,
   SpecialistStepTypes,
+  Unit,
+  UnitStatus,
+  Hex,
 } from "../types";
 import { CombatCalculator } from "./combat-calculator";
 import { HexUtils } from "./hex-utils";
@@ -101,7 +100,7 @@ export const CombatEngine = {
     // Note: We kill steps first, then suppress the remaining steps.
     attacker.steps = UnitUtils.killSteps(
       attacker.steps,
-      resultEntry.attacker.steps
+      resultEntry.attacker.losses
     );
     attacker.steps = UnitUtils.suppressSteps(
       attacker.steps,
@@ -111,7 +110,7 @@ export const CombatEngine = {
     // 5. Apply Damage (Defender)
     defender.steps = UnitUtils.killSteps(
       defender.steps,
-      resultEntry.defender.steps
+      resultEntry.defender.losses
     );
     defender.steps = UnitUtils.suppressSteps(
       defender.steps,
@@ -134,12 +133,7 @@ export const CombatEngine = {
         retreatHex = CombatEngine.findRetreatHex(defender, attacker, hexLookup);
 
         if (retreatHex) {
-          UnitUtils.moveUnit(
-            defender,
-            defenderHex,
-            retreatHex,
-            null
-          );
+          UnitUtils.moveUnit(defender, defenderHex, retreatHex, null);
 
           // Successful Retreat
           defender.state.status = UnitStatus.REGROUPING;
@@ -171,12 +165,7 @@ export const CombatEngine = {
       const mpCost = MapUtils.getHexMPCost(defenderHex, attacker.playerId);
 
       if (advanceOnVictory && attacker.state.mp > mpCost) {
-        UnitUtils.moveUnit(
-          attacker,
-          attackerHex,
-          defenderHex,
-          mpCost
-        );
+        UnitUtils.moveUnit(attacker, attackerHex, defenderHex, mpCost);
 
         attackerWonHex = true;
       }

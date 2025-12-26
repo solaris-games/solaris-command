@@ -5,8 +5,9 @@ import {
   COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE,
   CONSTANTS,
 } from "../data";
-import { Unit, Hex } from "../models";
 import {
+  Unit,
+  Hex,
   CombatShift,
   CombatShiftType,
   SpecialistStepTypes,
@@ -61,8 +62,8 @@ export const CombatCalculator = {
     if (operation === CombatOperation.FEINT) {
       // Feint: 1 Suppress vs 1 Suppress (Fixed)
       forcedResult = {
-        attacker: { steps: 0, suppressed: 1 },
-        defender: { steps: 0, suppressed: 1, retreat: false, shattered: false },
+        attacker: { losses: 0, suppressed: 1 },
+        defender: { losses: 0, suppressed: 1, retreat: false },
         resultType: CombatResultType.SUPPRESS,
       };
     } else if (operation === CombatOperation.SUPPRESSIVE_FIRE) {

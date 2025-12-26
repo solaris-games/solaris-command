@@ -1,5 +1,5 @@
-import { UnifiedId } from "../types";
-import { HexCoords } from "../types/geometry";
+import { UnifiedId } from ".";
+import { HexCoords } from "./geometry";
 
 export enum TerrainTypes {
   // Standard Open Space

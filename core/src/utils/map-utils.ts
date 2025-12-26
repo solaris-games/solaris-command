@@ -1,9 +1,12 @@
-import { Unit } from "../models/unit";
 import { HexUtils } from "./hex-utils";
-import { CONSTANTS, TERRAIN_MP_COSTS, UNIT_CATALOG_ID_MAP } from "../data";
-import { Hex, Planet, TerrainTypes } from "../models";
+import {
+  CONSTANTS,
+  ERROR_CODES,
+  TERRAIN_MP_COSTS,
+  UNIT_CATALOG_ID_MAP,
+} from "../data";
 import { HexCoords, HexCoordsId } from "../types/geometry";
-import { UnifiedId } from "../types";
+import { UnifiedId, Unit, Hex, Planet, TerrainTypes } from "../types";
 import { UnitManager } from "./unit-manager";
 
 export const MapUtils = {
@@ -12,6 +15,10 @@ export const MapUtils = {
    */
   getHexMPCost(hex: Hex, playerId: UnifiedId | null) {
     let mpCost = TERRAIN_MP_COSTS[hex.terrain];
+
+    if (mpCost == null) {
+      throw new Error(ERROR_CODES.HEX_TERRAIN_UNKNOWN);
+    }
 
     if (playerId && MapUtils.isHexInEnemyZOC(hex, playerId)) {
       mpCost *= CONSTANTS.TERRAIN_MP_COST_ZOC_MULTIPLIER;

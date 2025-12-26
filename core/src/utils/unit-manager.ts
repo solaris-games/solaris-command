@@ -4,11 +4,13 @@ import {
   SPECIALIST_STEP_ID_MAP,
   UNIT_CATALOG_ID_MAP,
 } from "../data";
-import { Hex, Planet, Unit, UnitStatus, UnitStep } from "../models";
 import {
-  HexCoordsId,
   SpecialistStepTypes,
   UnitSpecialistStepCatalogItem,
+  Hex,
+  Planet,
+  Unit,
+  UnitStep,
 } from "../types";
 import { HexUtils } from "./hex-utils";
 import { MapUtils } from "./map-utils";

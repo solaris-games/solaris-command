@@ -1,5 +1,5 @@
 import { ERROR_CODES, TERRAIN_MP_COSTS } from "../data";
-import { Hex } from "../models/hex";
+import { Hex } from "../types/hex";
 import { UnifiedId } from "../types";
 import { HexCoords, HexCoordsId } from "../types/geometry";
 import { HexUtils } from "./hex-utils";

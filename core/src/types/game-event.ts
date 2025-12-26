@@ -1,4 +1,4 @@
-import { UnifiedId } from "../types";
+import { UnifiedId } from ".";
 
 export interface GameEvent {
   _id: UnifiedId;

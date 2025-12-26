@@ -1,5 +1,4 @@
-import { TerrainTypes } from "../models";
-import { CombatShift, CombatShiftType } from "../types";
+import { CombatShift, CombatShiftType, TerrainTypes } from "../types";
 import { CONSTANTS } from "./constants";
 
 export const TERRAIN_MP_COSTS: Record<TerrainTypes, number> = {

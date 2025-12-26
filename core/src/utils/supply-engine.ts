@@ -1,10 +1,15 @@
-import { Planet, Station, Unit } from "../models";
-import { Hex } from "../models/hex"; // Assuming Hex model exports TerrainTypes
 import { HexUtils } from "./hex-utils";
-import { HexCoords, HexCoordsId } from "../types/geometry";
 import { Pathfinding } from "./pathfinding";
 import { CONSTANTS } from "../data";
-import { SupplyTarget, UnifiedId } from "../types";
+import {
+  Hex,
+  HexCoords,
+  HexCoordsId,
+  SupplyTarget,
+  UnifiedId,
+  Planet,
+  Station,
+} from "../types";
 
 export const SupplyEngine = {
   /**

@@ -1,4 +1,4 @@
-import { UnifiedId } from "../types";
+import { UnifiedId } from ".";
 
 // TODO: Need to implement a migration utility for this that uses Mongoose or raw MongoDB?
 
