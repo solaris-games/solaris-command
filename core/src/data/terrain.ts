@@ -12,7 +12,7 @@ export const TERRAIN_MP_COSTS: Record<TerrainTypes, number> = {
   [TerrainTypes.RADIATION_STORM]: 999,
 };
 
-export const TERRAIN_COMBAT_SHIFTS: Record<TerrainTypes, CombatShift | null> = {
+export const COMBAT_SHIFTS_TERRAIN: Record<TerrainTypes, CombatShift | null> = {
   [TerrainTypes.EMPTY]: null, // No shift
   [TerrainTypes.ASTEROID_FIELD]: {
     type: CombatShiftType.ENTRENCHMENT,
@@ -36,4 +36,9 @@ export const TERRAIN_COMBAT_SHIFTS: Record<TerrainTypes, CombatShift | null> = {
     type: CombatShiftType.FORTIFICATIONS,
     value: CONSTANTS.COMBAT_SHIFT_FORTIFICATIONS,
   },
+};
+
+export const COMBAT_SHIFT_PLANETS: CombatShift = {
+  type: CombatShiftType.FORTIFICATIONS,
+  value: CONSTANTS.COMBAT_SHIFT_FORTIFICATIONS,
 };

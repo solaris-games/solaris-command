@@ -1,9 +1,10 @@
 import {
-  TERRAIN_COMBAT_SHIFTS,
+  COMBAT_SHIFTS_TERRAIN,
   SPECIALIST_STEP_ID_MAP,
   UNIT_CATALOG_ID_MAP,
   COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE,
   CONSTANTS,
+  COMBAT_SHIFT_PLANETS,
 } from "../data";
 import {
   Unit,
@@ -115,14 +116,21 @@ export const CombatCalculator = {
   calculateShifts(attacker: Unit, defender: Unit, hex: Hex): CombatShift[] {
     let shifts: CombatShift[] = [];
 
-    // --- 1. Terrain Shifts (Attacker/Defender Bonus) ---
-    const terrainShift = TERRAIN_COMBAT_SHIFTS[hex.terrain];
+    // --- Planet Shift (Defender Bonus) ---
+    const planetShift = hex.planetId != null;
+
+    if (planetShift) {
+      shifts.push(COMBAT_SHIFT_PLANETS);
+    }
+
+    // --- Terrain Shifts (Attacker/Defender Bonus) ---
+    const terrainShift = COMBAT_SHIFTS_TERRAIN[hex.terrain];
 
     if (terrainShift) {
       shifts.push(terrainShift);
     }
 
-    // --- 2. Specialist: ENGINEERS (Siege) ---
+    // --- Specialist: ENGINEERS (Siege) ---
     // Engineers negate fortification bonuses on high defense hexes
     if (terrainShift && terrainShift.value < 0) {
       const siegeVal = this.getSpecialistShiftSum(attacker, "siege");
@@ -132,14 +140,14 @@ export const CombatCalculator = {
       }
     }
 
-    // --- 3. Specialist: ARTILLERY ---
+    // --- Specialist: ARTILLERY ---
     const artilleryVal = this.getSpecialistShiftSum(attacker, "artillery");
 
     if (artilleryVal > 0) {
       shifts.push({ type: CombatShiftType.ARTILLERY, value: artilleryVal });
     }
 
-    // --- 4. Armor vs Torpedoes ---
+    // --- Armor vs Torpedoes ---
     const armorShifts = this.getArmorShifts(attacker, defender, terrainShift);
 
     shifts = shifts.concat(armorShifts);

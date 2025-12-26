@@ -8,7 +8,10 @@ export const CONSTANTS = {
     // Planets
     PLANET_PRESTIGE_INCOME_CAPITAL: 100,
     PLANET_PRESTIGE_INCOME: 50,
-    PLANET_VP_INCOME_CAPITAL: 3,
+
+    // VP income is based on the rule of thumb of 8 player games 
+    // with 8 planets per player; games should last ~2 weeks.
+    PLANET_VP_INCOME_CAPITAL: 3, 
     PLANET_VP_INCOME: 1,
 
     UNIT_STEP_RECOVERY_RATE: 2, // Steps recovered per cycle

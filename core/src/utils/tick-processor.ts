@@ -379,10 +379,13 @@ export const TickProcessor = {
       const isCrash = intents.length > 1 || occupier !== undefined;
 
       if (isCrash) {
+        // TODO: The unit with the best initiative will win the hex.
+        // TODO: Tie-break: Active steps, then total steps, then "crash".
+
         // --- CRASH RESOLUTION ---
         // "The Crash Rule": All movers Bounce, lose MP, and get Suppressed.
         intents.forEach(({ unit }) => {
-          unit.state.mp = 0; // Lose momentum
+          unit.state.mp = 0; // Lose momentum // TODO: Is this too harsh?
           unit.movement.path = []; // Clear the path
           unit.steps = UnitManager.suppressSteps(unit.steps, 1); // Take damage
           unit.state.status = UnitStatus.REGROUPING; // Forced stop

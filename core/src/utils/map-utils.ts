@@ -48,7 +48,8 @@ export const MapUtils = {
     ZOCCoords.forEach((coords) => {
       const hex = hexLookup.get(HexUtils.getCoordsID(coords))!;
 
-      if (hex) {
+      // No need to store ZOC on impassible hexes.
+      if (hex && !MapUtils.isHexImpassable(hex)) {
         const existing = hex.zoc.findIndex(
           (z) => String(z.unitId) === String(unit._id)
         );
@@ -85,7 +86,8 @@ export const MapUtils = {
     ZOCCoords.forEach((coords) => {
       const hex = hexLookup.get(HexUtils.getCoordsID(coords));
 
-      if (hex) {
+      // No need to store ZOC on impassible hexes.
+      if (hex && !MapUtils.isHexImpassable(hex)) {
         const existing = hex.zoc.find(
           (z) => String(z.unitId) === String(unit._id)
         );
