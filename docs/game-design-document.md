@@ -42,7 +42,8 @@ The hex grid imposes strategic constraints via terrain types.
 * **Empty Space:** Standard movement and combat.
 * **Asteroid/Debris Fields/Industrial Zones:** High movement cost. Provides **Defense Shifts** in combat (entrenchment and fortifications).
 * **Nebulas/Gas Clouds:** High movement cost. Provides **Attack Shifts** in combat (stealth).
-* **Gravity Wells/Radiation Storms:** Impassable.
+* **Radiation Storms:** Dangerous. Units suffer step suppression in these terrains.
+* **Gravity Wells:** Impassable.
 
 ---
 

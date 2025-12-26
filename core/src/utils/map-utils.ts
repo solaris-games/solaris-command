@@ -103,10 +103,7 @@ export const MapUtils = {
   },
 
   isHexImpassable(hex: Hex): boolean {
-    return (
-      hex.terrain === TerrainTypes.GRAVITY_WELL ||
-      hex.terrain === TerrainTypes.RADIATION_STORM
-    );
+    return hex.terrain === TerrainTypes.GRAVITY_WELL;
   },
 
   findPlayerPlanets(planets: Planet[], playerId: UnifiedId): Planet[] {

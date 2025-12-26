@@ -22,12 +22,16 @@ export enum TerrainTypes {
   // Effect: Impassable
   // Mechanical logic: Strategic walls that funnel movement.
   GRAVITY_WELL = "GRAVITY_WELL", // Near stars/black holes
-  RADIATION_STORM = "RADIATION_STORM",
 
   // Urban/Fortified
   // Effect: Massive Defense bonus.
   // Mechanical logic: Megastructures provide high defense. Attackers lose "Armor" bonuses.
   INDUSTRIAL_ZONE = "INDUSTRIAL_ZONE",
+
+  // Dangerous
+  // Effect: Units suffer step suppression in these terrains
+  // Mechanical logic: Base movement, full Armor shifts allows.
+  RADIATION_STORM = "RADIATION_STORM",
 }
 
 export interface Hex {

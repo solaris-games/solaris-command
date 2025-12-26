@@ -57,7 +57,7 @@ describe("Pathfinding", () => {
     it("should be blocked by Impassable terrain", () => {
       const map = createMap(3, 3);
       const neighborId = "1,0,-1";
-      map.get(neighborId)!.terrain = TerrainTypes.RADIATION_STORM;
+      map.get(neighborId)!.terrain = TerrainTypes.GRAVITY_WELL;
 
       const reachable = Pathfinding.getReachableHexes(start, 1, map, null);
 

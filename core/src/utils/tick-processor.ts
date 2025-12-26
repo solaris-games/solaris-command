@@ -16,6 +16,7 @@ import {
   PlayerStatus,
   GameEvent,
   GameEventTypes,
+  TerrainTypes,
 } from "../types";
 import { CombatEngine } from "./combat-engine";
 import { HexUtils } from "./hex-utils";
@@ -176,13 +177,28 @@ export const TickProcessor = {
    * Returns objects representing the CHANGES to be made (does not mutate DB directly).
    */
   processTick(context: TickContext): ProcessTickResult {
-    TickProcessor.processTickUnitStatus(context);
+    // If this new tick completes a cycle (e.g., tick 24, 48...)
+    const isCycleTick =
+      context.game.state.tick % context.game.settings.ticksPerCycle === 0;
+
+    TickProcessor.processTickRegroupingUnitStatus(context);
+    TickProcessor.processHexRadiationStorms(context);
     TickProcessor.processTickUnitCombat(context);
     TickProcessor.processTickUnitMovement(context);
     TickProcessor.processTickPlayerSupply(context);
-    TickProcessor.processTickWinnerCheck(context);
-    TickProcessor.tryProcessCycleTick(context);
+
+    if (isCycleTick) {
+      console.log(
+        `💰 Processing Cycle ${context.game.state.cycle + 1} for Game ${
+          context.game._id
+        }`
+      );
+
+      TickProcessor.processCycle(context);
+    }
+
     TickProcessor.processHexZOC(context);
+    TickProcessor.processTickWinnerCheck(context);
 
     return {
       gameEvents: context.gameEvents,
@@ -192,7 +208,7 @@ export const TickProcessor = {
     };
   },
 
-  processTickUnitStatus(context: TickContext) {
+  processTickRegroupingUnitStatus(context: TickContext) {
     // Reset Action States
     // If units were regrouping from the previous tick, then set them to idle now.
     for (const unit of context.units) {
@@ -443,16 +459,16 @@ export const TickProcessor = {
           return 0;
         });
 
-        processUnitMovementSuccess(sortedIntents[0]);
+        processUnitMovementSuccess(sortedIntents[0]!);
 
         // All other units should bounce
         for (let i = 1; i < sortedIntents.length; i++) {
-          processUnitMovementBounce(sortedIntents[i]);
+          processUnitMovementBounce(sortedIntents[i]!);
         }
       }
       // Otherwise, if this is the only unit attempting to enter this unoccupied hex then all good.
       else {
-        processUnitMovementSuccess(intents[0]);
+        processUnitMovementSuccess(intents[0]!);
       }
     });
   },
@@ -498,23 +514,91 @@ export const TickProcessor = {
   },
 
   processTickWinnerCheck(context: TickContext) {
-    // We only check for elimination victory here.
-    // Economic victory (VP) is checked in the Cycle Processor.
+    let winnerPlayer: Player | null = null;
 
+    // --- VICTORY BY LAST MAN STANDING CHECK ---
     // Filter active players (Not defeated)
     const activePlayers = context.players.filter(
       (p) => p.status !== PlayerStatus.DEFEATED
     );
 
-    // Last Man Standing Check
-    // Only applies if the game started with > 1 player
     if (activePlayers.length === 1) {
-      const winner = activePlayers[0]!;
+      winnerPlayer = activePlayers[0]!;
+    }
 
-      // Update in-memory object
+    // --- VICTORY BY VP CHECK ---
+    if (winnerPlayer == null) {
+      winnerPlayer =
+        context.players
+          .slice() // Create a copy so we don't accidentally reorder the player list.
+          .filter(
+            (x) =>
+              x.status === PlayerStatus.ACTIVE &&
+              x.victoryPoints >= context.game.settings.victoryPointsToWin
+          )
+          .sort((a, b) => {
+            // 1. Victory Points (Highest wins)
+            if (b.victoryPoints !== a.victoryPoints) {
+              return b.victoryPoints - a.victoryPoints;
+            }
+
+            // 2. Total Planets (Highest wins)
+            const playerPlanetsA = context.planets.filter(
+              (p) => p.playerId && String(p.playerId) === String(a._id)
+            ).length;
+            const playerPlanetsB = context.planets.filter(
+              (p) => p.playerId && String(p.playerId) === String(b._id)
+            ).length;
+
+            if (playerPlanetsB !== playerPlanetsA) {
+              return playerPlanetsB - playerPlanetsA;
+            }
+
+            // 3. Total Units (Highest wins)
+            const playerUnitsA = context.units.filter(
+              (u) =>
+                UnitManager.unitIsAlive(u) &&
+                u.playerId &&
+                String(u.playerId) === String(a._id)
+            ).length;
+            const playerUnitsB = context.units.filter(
+              (u) =>
+                UnitManager.unitIsAlive(u) &&
+                u.playerId &&
+                String(u.playerId) === String(b._id)
+            ).length;
+
+            if (playerUnitsB !== playerUnitsA) {
+              return playerUnitsB - playerUnitsA;
+            }
+
+            // 4. Prestige (Highest wins)
+            return b.prestigePoints - a.prestigePoints;
+          })[0] ?? null;
+    }
+
+    if (winnerPlayer) {
+      context.winnerPlayerId = winnerPlayer._id;
+      context.game.state.winnerPlayerId = winnerPlayer._id;
       context.game.state.status = GameStates.COMPLETED;
-      context.game.state.winnerPlayerId = winner._id;
       context.game.state.endDate = new Date();
+    }
+  },
+
+  processHexRadiationStorms(context: TickContext) {
+    // ----- RADIATION STORMS -----
+    // Units in radiation storms suffer 1 step suppression.
+    const hexes = context.hexes.filter(
+      (hex) =>
+        hex.unitId != null && hex.terrain === TerrainTypes.RADIATION_STORM
+    );
+
+    for (const hex of hexes) {
+      const unit = context.units.find(
+        (u) => String(u._id) === String(hex.unitId)
+      )!;
+
+      unit.steps = UnitManager.suppressSteps(unit.steps, 1);
     }
   },
 
@@ -543,28 +627,14 @@ export const TickProcessor = {
     // ----------
   },
 
-  tryProcessCycleTick(context: TickContext) {
-    // --- CHECK FOR CYCLE (Economy) ---
-    // If this new tick completes a cycle (e.g., tick 24, 48...)
-    const isCycleComplete =
-      context.game.state.tick % context.game.settings.ticksPerCycle === 0;
-
-    if (isCycleComplete) {
-      console.log(
-        `💰 Processing Cycle ${context.game.state.cycle + 1} for Game ${
-          context.game._id
-        }`
-      );
-
-      // Run the Economy/Logistics Logic
-      TickProcessor.processCycle(context);
-    }
-  },
-
   /**
    * Process the cycle tick
    */
   processCycle(context: TickContext) {
+    // Game State Update
+    // Note: We only increment the Cycle count here. The Ticks are incremented by another process.
+    context.game.state.cycle += 1;
+
     // Get only alive entities from arrays so that dead ones aren't processed in the cycle
     const liveUnits = context.units.filter(
       (u) => !context.unitsToRemove.some((id) => String(id) === String(u._id))
@@ -613,68 +683,6 @@ export const TickProcessor = {
       player.prestigePoints = newPrestige;
       player.victoryPoints = newVP;
     });
-
-    // --- VICTORY CHECK ---
-    const winnerPlayer =
-      context.players
-        .slice() // Create a copy so we don't accidentally reorder the player list.
-        .filter(
-          (x) => x.victoryPoints >= context.game.settings.victoryPointsToWin
-        )
-        .sort((a, b) => {
-          // 1. Victory Points (Highest wins)
-          if (b.victoryPoints !== a.victoryPoints) {
-            return b.victoryPoints - a.victoryPoints;
-          }
-
-          // 2. Total Planets (Highest wins)
-          const playerPlanetsA = context.planets.filter(
-            (p) => p.playerId && String(p.playerId) === String(a._id)
-          ).length;
-          const playerPlanetsB = context.planets.filter(
-            (p) => p.playerId && String(p.playerId) === String(b._id)
-          ).length;
-
-          if (playerPlanetsB !== playerPlanetsA) {
-            return playerPlanetsB - playerPlanetsA;
-          }
-
-          // 3. Total Units (Highest wins)
-          const playerUnitsA = context.units.filter(
-            (u) =>
-              UnitManager.unitIsAlive(u) &&
-              u.playerId &&
-              String(u.playerId) === String(a._id)
-          ).length;
-          const playerUnitsB = context.units.filter(
-            (u) =>
-              UnitManager.unitIsAlive(u) &&
-              u.playerId &&
-              String(u.playerId) === String(b._id)
-          ).length;
-
-          if (playerUnitsB !== playerUnitsA) {
-            return playerUnitsB - playerUnitsA;
-          }
-
-          // 4. Prestige (Highest wins)
-          return b.prestigePoints - a.prestigePoints;
-        })[0] ?? null;
-
-    if (winnerPlayer) {
-      context.game.state.winnerPlayerId = winnerPlayer._id;
-    }
-
-    // 2. Game State Update
-    // Note: We only increment the Cycle count here. The Ticks are incremented by another process.
-    context.game.state.cycle += 1;
-    context.game.state.lastTickDate = new Date();
-    context.game.state.winnerPlayerId = context.winnerPlayerId;
-
-    if (context.winnerPlayerId) {
-      context.game.state.status = GameStates.COMPLETED;
-      context.game.state.endDate = new Date();
-    }
   },
 
   /**

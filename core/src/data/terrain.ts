@@ -8,8 +8,8 @@ export const TERRAIN_MP_COSTS: Record<TerrainTypes, number> = {
   [TerrainTypes.NEBULA]: 2,
   [TerrainTypes.GAS_CLOUD]: 2,
   [TerrainTypes.INDUSTRIAL_ZONE]: 4,
+  [TerrainTypes.RADIATION_STORM]: 1,
   [TerrainTypes.GRAVITY_WELL]: 999, // Impassable
-  [TerrainTypes.RADIATION_STORM]: 999,
 };
 
 export const COMBAT_SHIFTS_TERRAIN: Record<TerrainTypes, CombatShift | null> = {
