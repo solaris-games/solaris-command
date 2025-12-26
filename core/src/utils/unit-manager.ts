@@ -317,4 +317,8 @@ export const UnitManager = {
 
     return apAdd;
   },
+
+  unitIsAlive(unit: Unit) {
+    return unit.steps.length > 0;
+  },
 };

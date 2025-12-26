@@ -303,7 +303,7 @@ export const TickProcessor = {
         });
 
         // Defender:
-        if (defender.steps.length === 0) {
+        if (!UnitManager.unitIsAlive(defender)) {
           // Defender Destroyed
           context.unitsToRemove.push(defender._id);
           context.unitLocations.delete(targetHexCoordsId); // Remove from board
@@ -322,7 +322,7 @@ export const TickProcessor = {
         }
 
         // Attacker:
-        if (attacker.steps.length === 0) {
+        if (!UnitManager.unitIsAlive(attacker)) {
           context.unitsToRemove.push(attacker._id);
           context.unitLocations.delete(
             HexUtils.getCoordsID(battleResult.attackerHex.location)
@@ -351,65 +351,114 @@ export const TickProcessor = {
     // Check for "Crashes" (Multiple units entering same hex, or entering occupied hex)
     // =================================================================================
 
+    const processUnitMovementSuccess = (intent: MoveIntent) => {
+      // --- MOVEMENT SUCCESS ---
+      const unit = intent.unit;
+
+      // Calculate Cost based on Target Terrain
+      const fromHex = context.hexLookup.get(intent.fromCoordId)!;
+      const toHex = context.hexLookup.get(intent.toCoordId)!;
+
+      const mpCost = MapUtils.getHexMPCost(toHex, unit.playerId);
+
+      // If unit cannot afford the move, they stall.
+      if (unit.state.mp < mpCost) {
+        unit.state.status = UnitStatus.IDLE;
+        unit.movement.path = [];
+        return; // Exit this specific move intent
+      }
+
+      UnitManager.moveUnit(unit, fromHex, toHex, mpCost);
+
+      // Stop if path done or out of gas
+      if (unit.movement.path.length === 0 || unit.state.mp === 0) {
+        unit.state.status = UnitStatus.IDLE;
+      }
+
+      // Update Working Set
+      context.unitLocations.delete(intent.fromCoordId);
+      context.unitLocations.set(intent.toCoordId, unit);
+
+      // Update Hexes: Capture New
+      handleHexCapture(context, toHex, unit);
+    };
+
+    const processUnitMovementBounce = (intent: MoveIntent) => {
+      // Apply the MP movement cost (even though the unit won't actually move)
+      const toHex = context.hexLookup.get(intent.toCoordId)!;
+      const mpCost = MapUtils.getHexMPCost(toHex, intent.unit.playerId);
+
+      intent.unit.state.mp = Math.max(0, intent.unit.state.mp - mpCost); // Reduce MP
+      intent.unit.movement.path = []; // Clear the path
+      intent.unit.steps = UnitManager.suppressSteps(intent.unit.steps, 1); // Take damage
+      intent.unit.state.status = UnitStatus.REGROUPING; // Forced stop
+    };
+
     contextMovement.movesByDest.forEach((intents, destCoordId) => {
-      // Check 1: Is the destination occupied? (Note: unitLocations acts as the live board state)
+      // If there is already a unit occupying the hex, then this unit should bounce.
+      // Note: This is possible if a unit has advanced into a hex through combat.
       const occupier = context.unitLocations.get(destCoordId);
 
-      // Check 2: Are multiple units trying to enter?
-      const isCrash = intents.length > 1 || occupier !== undefined;
+      if (occupier) {
+        // All units should bounce and have 1 step suppressed
+        intents.forEach(processUnitMovementBounce);
+      }
+      // If the unit isn't occupied, and more than 1 unit is attempting to enter it
+      // then we must resolve who captures the hex.
+      else if (intents.length > 1) {
+        // The unit with the best initiative will win the hex.
+        // Tie-break: Active steps, then total steps.
+        const sortedIntents = intents.sort((a, b) => {
+          const statsA = UNIT_CATALOG_ID_MAP.get(a.unit.catalogId)!.stats;
+          const statsB = UNIT_CATALOG_ID_MAP.get(b.unit.catalogId)!.stats;
 
-      if (isCrash) {
-        // TODO: The unit with the best initiative will win the hex.
-        // TODO: Tie-break: Active steps, then total steps, then "crash".
+          // 1. Primary: Initiative (LOWEST wins)
+          // Logic: Ascending order (a - b)
+          if (statsA.initiative !== statsB.initiative) {
+            return statsA.initiative - statsB.initiative;
+          }
 
-        // --- CRASH RESOLUTION ---
-        // "The Crash Rule": All movers Bounce, lose MP, and get Suppressed.
-        intents.forEach(({ unit }) => {
-          unit.state.mp = 0; // Lose momentum // TODO: Is this too harsh?
-          unit.movement.path = []; // Clear the path
-          unit.steps = UnitManager.suppressSteps(unit.steps, 1); // Take damage
-          unit.state.status = UnitStatus.REGROUPING; // Forced stop
+          const activeStepsA = UnitManager.getActiveSteps(a.unit).length;
+          const activeStepsB = UnitManager.getActiveSteps(b.unit).length;
+
+          // 2. Secondary: Active Steps (Highest wins)
+          // Logic: Descending order (b - a)
+          if (activeStepsB !== activeStepsA) {
+            return activeStepsB - activeStepsA;
+          }
+
+          const totalStepsA = a.unit.steps.length;
+          const totalStepsB = b.unit.steps.length;
+
+          // 3. Tertiary: Total Steps (Highest wins)
+          // Logic: Descending order (b - a)
+          if (totalStepsB !== totalStepsA) {
+            return totalStepsB - totalStepsA;
+          }
+
+          // All are equal.
+          // Note: If we want to add true randomness, be careful with the logic. We will
+          // have to randomize the intents BEFORE we sort them because randomising inside
+          // a sort is dangerous and can lead to glitches or infinite loops.
+          return 0;
         });
-        // Note: Occupier is unaffected (Interloper Rule)
-      } else {
-        // --- MOVEMENT SUCCESS ---
-        const intent = intents[0]!;
-        const unit = intent.unit;
 
-        // Calculate Cost based on Target Terrain
-        const targetHex = context.hexLookup.get(destCoordId)!;
+        processUnitMovementSuccess(sortedIntents[0]);
 
-        const fromHex = context.hexLookup.get(intent.fromCoordId)!;
-        const toHex = context.hexLookup.get(intent.toCoordId)!;
-
-        const mpCost = MapUtils.getHexMPCost(targetHex, unit.playerId);
-
-        // If unit cannot afford the move, they stall.
-        if (unit.state.mp < mpCost) {
-          unit.state.status = UnitStatus.IDLE;
-          unit.movement.path = [];
-          return; // Exit this specific move intent
+        // All other units should bounce
+        for (let i = 1; i < sortedIntents.length; i++) {
+          processUnitMovementBounce(sortedIntents[i]);
         }
-
-        UnitManager.moveUnit(unit, fromHex, toHex, mpCost);
-
-        // Stop if path done or out of gas
-        if (unit.movement.path.length === 0 || unit.state.mp === 0) {
-          unit.state.status = UnitStatus.IDLE;
-        }
-
-        // Update Working Set
-        context.unitLocations.delete(intent.fromCoordId);
-        context.unitLocations.set(intent.toCoordId, unit);
-
-        // Update Hexes: Capture New
-        handleHexCapture(context, targetHex, unit);
+      }
+      // Otherwise, if this is the only unit attempting to enter this unoccupied hex then all good.
+      else {
+        processUnitMovementSuccess(intents[0]);
       }
     });
   },
 
   processTickPlayerSupply(context: TickContext) {
-    // Make sure we are working with only the alive entities, 
+    // Make sure we are working with only the alive entities,
     // they may have been destroyed by combat earlier.
     const liveUnits = context.units.filter(
       (u) => !context.unitsToRemove.some((id) => String(id) === String(u._id))
@@ -536,7 +585,7 @@ export const TickProcessor = {
 
         // Check for Death (Starvation/Collapse)
         // We merge the update to check the resulting steps
-        if (unit.steps.length === 0) {
+        if (!UnitManager.unitIsAlive(unit)) {
           // Unit died this cycle
           context.unitsToRemove.push(unit._id);
 
@@ -563,20 +612,58 @@ export const TickProcessor = {
 
       player.prestigePoints = newPrestige;
       player.victoryPoints = newVP;
-
-      // --- VICTORY CHECK ---
-      if (newVP >= context.game.settings.victoryPointsToWin) {
-        // If multiple players cross the line same tick, highest wins (tie-break logic needed?)
-        if (
-          !context.winnerPlayerId ||
-          newVP >
-            (context.players.find((p) => p._id === context.winnerPlayerId)
-              ?.victoryPoints || 0)
-        ) {
-          context.winnerPlayerId = player._id;
-        }
-      }
     });
+
+    // --- VICTORY CHECK ---
+    const winnerPlayer =
+      context.players
+        .slice() // Create a copy so we don't accidentally reorder the player list.
+        .filter(
+          (x) => x.victoryPoints >= context.game.settings.victoryPointsToWin
+        )
+        .sort((a, b) => {
+          // 1. Victory Points (Highest wins)
+          if (b.victoryPoints !== a.victoryPoints) {
+            return b.victoryPoints - a.victoryPoints;
+          }
+
+          // 2. Total Planets (Highest wins)
+          const playerPlanetsA = context.planets.filter(
+            (p) => p.playerId && String(p.playerId) === String(a._id)
+          ).length;
+          const playerPlanetsB = context.planets.filter(
+            (p) => p.playerId && String(p.playerId) === String(b._id)
+          ).length;
+
+          if (playerPlanetsB !== playerPlanetsA) {
+            return playerPlanetsB - playerPlanetsA;
+          }
+
+          // 3. Total Units (Highest wins)
+          const playerUnitsA = context.units.filter(
+            (u) =>
+              UnitManager.unitIsAlive(u) &&
+              u.playerId &&
+              String(u.playerId) === String(a._id)
+          ).length;
+          const playerUnitsB = context.units.filter(
+            (u) =>
+              UnitManager.unitIsAlive(u) &&
+              u.playerId &&
+              String(u.playerId) === String(b._id)
+          ).length;
+
+          if (playerUnitsB !== playerUnitsA) {
+            return playerUnitsB - playerUnitsA;
+          }
+
+          // 4. Prestige (Highest wins)
+          return b.prestigePoints - a.prestigePoints;
+        })[0] ?? null;
+
+    if (winnerPlayer) {
+      context.game.state.winnerPlayerId = winnerPlayer._id;
+    }
 
     // 2. Game State Update
     // Note: We only increment the Cycle count here. The Ticks are incremented by another process.

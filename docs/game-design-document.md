@@ -56,10 +56,13 @@ Movement is simultaneous but resolved sequentially per Tick.
 ### Tactical Movement
 * **Zone of Control (ZOC):** Most units exert a ZOC into all 6 adjacent hexes. Movement into hexes with enemy ZOC consumes **double** MP.
 * **Front Lines & Capture:** Moving a unit into a hex owned by an enemy captures it. Under certain conditions (e.g., surrounding an area), adjacent hexes may also flip ownership.
-* **[Collision] The Crash Rule:** If two or more units attempt to enter the same hex on the same Tick, a **Collision** occurs.
+
+#### Movement Collisions
+* **The Crash Rule:** If two or more units attempt to enter the same hex on the same Tick, a **Collision** occurs.
     * *Scope:* This applies to **ALL** units (Enemy vs Enemy, Ally vs Ally, or Self vs Self).
-    * *Outcome:* All involved units "bounce" (stay in current hex), expend **All Remaining MP**, and suffer **1 Step Suppression**.
-    * *Note:* If a unit attempts to enter a hex that is already occupied then that unit will bounce (not the unit in the hex).
+    * *Logic:* The unit with the best **initiative** will win the hex. Tie-break on active steps, then total steps, then random.
+    * *Outcome:* Other units "bounce" (stay in current hex), expend **MP**, and suffer **1 Step Suppression**.
+    * *Note:* If a unit attempts to enter a hex that is already occupied (by units advancing in combat) then that unit will bounce (not the unit in the hex).
 
 > **Scenario: The Race**
 > **Player A** (Frigates, High MP) and **Player B** (Destroyers, Low MP) both race for a neutral planet.
@@ -167,3 +170,9 @@ There is no complex resource management (metal/crystal). The currency is **Prest
 ## 7. Win Conditions
 To win the game, players must earn Victory Points (VPs) which are earned by controlling planets. VPs are awarded at the end of each cycle and the
 first player to reach a certain number of VPs will win the game.
+
+* **Tie-breaks:** If more than one player reaches the requires Victory Points at the same time, then the following tie-break logic is applied:
+    * Total Victory Points
+    * Total Planets
+    * Total Units
+    * Total Prestige Points
