@@ -2,7 +2,8 @@ import { UnifiedId } from "../types";
 
 export enum PlayerStatus {
   ACTIVE = 'ACTIVE',
-  DEFEATED = 'DEFEATED'
+  DEFEATED = 'DEFEATED',
+  AFK = 'AFK'
 };
 
 export interface Player {

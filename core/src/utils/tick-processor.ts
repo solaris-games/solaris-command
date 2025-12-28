@@ -188,6 +188,7 @@ export const TickProcessor = {
       context.game.state.tick % context.game.settings.ticksPerCycle === 0;
 
     TickProcessor.processTickRegroupingUnitStatus(context);
+    TickProcessor.processTickPlayerAFK(context);
     TickProcessor.processHexRadiationStorms(context);
     TickProcessor.processTickUnitCombat(context);
     TickProcessor.processTickUnitMovement(context);
@@ -220,6 +221,34 @@ export const TickProcessor = {
     for (const unit of context.units) {
       if (unit.state.status === UnitStatus.REGROUPING) {
         unit.state.status = UnitStatus.IDLE;
+      }
+    }
+  },
+
+  processTickPlayerAFK(context: TickContext) {
+    // Only check AFK status if the game has started
+    if (!context.game.state.startDate) {
+      return;
+    }
+
+    const AFK_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 Hours
+    const now = new Date();
+
+    for (const player of context.players) {
+      // Don't touch defeated players
+      if (player.status === PlayerStatus.DEFEATED) {
+        continue;
+      }
+
+      const lastSeen = player.lastSeenDate ? new Date(player.lastSeenDate) : new Date(0);
+      const gameStart = new Date(context.game.state.startDate);
+
+      // Effective Last Activity = max(player.lastSeenDate, game.state.startDate)
+      // This ensures we don't mark players AFK immediately if they joined way before the game started.
+      const effectiveLastActivity = lastSeen.getTime() > gameStart.getTime() ? lastSeen : gameStart;
+
+      if (now.getTime() - effectiveLastActivity.getTime() > AFK_TIMEOUT_MS) {
+        player.status = PlayerStatus.AFK;
       }
     }
   },
