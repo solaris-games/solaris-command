@@ -40,3 +40,8 @@ export const TradePrestigeRequestSchema = z.object({
   targetPlayerId: z.string().length(24),
   prestige: z.number().min(1),
 });
+
+export const SendRenownRequestSchema = z.object({
+  targetPlayerId: z.string().length(24),
+  renown: z.number().min(1),
+});

@@ -30,6 +30,7 @@ import { HexUtils } from "./hex-utils";
 import { UnitManager } from "./unit-manager";
 import { SupplyEngine } from "./supply-engine";
 import { MapUtils } from "./map-utils";
+import { GameLeaderboardUtils } from "./game-leaderboard";
 
 // TODO: Split these into two files, tick-processor.ts and tick-cycle-processor.ts
 // This will make it more manageable to write unit tests for.
@@ -533,52 +534,15 @@ export const TickProcessor = {
     // --- VICTORY BY VP CHECK ---
     if (winnerPlayer == null) {
       winnerPlayer =
-        context.players
-          .slice() // Create a copy so we don't accidentally reorder the player list.
-          .filter(
-            (x) =>
-              x.status === PlayerStatus.ACTIVE &&
-              x.victoryPoints >= context.game.settings.victoryPointsToWin
-          )
-          .sort((a, b) => {
-            // 1. Victory Points (Highest wins)
-            if (b.victoryPoints !== a.victoryPoints) {
-              return b.victoryPoints - a.victoryPoints;
-            }
-
-            // 2. Total Planets (Highest wins)
-            const playerPlanetsA = context.planets.filter(
-              (p) => p.playerId && String(p.playerId) === String(a._id)
-            ).length;
-            const playerPlanetsB = context.planets.filter(
-              (p) => p.playerId && String(p.playerId) === String(b._id)
-            ).length;
-
-            if (playerPlanetsB !== playerPlanetsA) {
-              return playerPlanetsB - playerPlanetsA;
-            }
-
-            // 3. Total Units (Highest wins)
-            const playerUnitsA = context.units.filter(
-              (u) =>
-                UnitManager.unitIsAlive(u) &&
-                u.playerId &&
-                String(u.playerId) === String(a._id)
-            ).length;
-            const playerUnitsB = context.units.filter(
-              (u) =>
-                UnitManager.unitIsAlive(u) &&
-                u.playerId &&
-                String(u.playerId) === String(b._id)
-            ).length;
-
-            if (playerUnitsB !== playerUnitsA) {
-              return playerUnitsB - playerUnitsA;
-            }
-
-            // 4. Prestige (Highest wins)
-            return b.prestigePoints - a.prestigePoints;
-          })[0] ?? null;
+        GameLeaderboardUtils.getLeaderboard(
+          context.players,
+          context.planets,
+          context.units
+        ).filter(
+          (x) =>
+            x.status === PlayerStatus.ACTIVE &&
+            x.victoryPoints >= context.game.settings.victoryPointsToWin
+        )[0] ?? null;
     }
 
     if (winnerPlayer) {

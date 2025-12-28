@@ -8,7 +8,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
     name: "Patrol Corvette",
     description:
       "Long range reconnaissance vessel. Useful for deep space scouting and harassment.",
-    cost: 25,
+    cost: 100,
     stats: {
       attack: 1,
       defense: 1,
@@ -28,7 +28,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
     name: "Strike Frigate",
     description:
       "Long range screening vessel. The standard workhorse for wolf-pack tactics and screening larger fleets.",
-    cost: 50,
+    cost: 150,
     stats: {
       attack: 2,
       defense: 2,
@@ -50,7 +50,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
     name: "Heavy Destroyer",
     description:
       "Balanced combat vessel. Provides essential anti-screen firepower and can lock down space lanes with Zone of Control.",
-    cost: 100,
+    cost: 200,
     stats: {
       attack: 4,
       defense: 3,
@@ -70,7 +70,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
     name: "Interdictor Cruiser",
     description:
       "A 'Glass Cannon' designed for raiding. High firepower and speed, but sacrifices armor for mobility.",
-    cost: 130,
+    cost: 250,
     stats: {
       attack: 5, // High threat
       defense: 2, // Weak defense
@@ -92,7 +92,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
     name: "Armored Cruiser",
     description:
       "A durable line combatant. Trades the range of light cruisers for heavy plating and sustained combat endurance.",
-    cost: 160,
+    cost: 300,
     stats: {
       attack: 5,
       defense: 4,
@@ -112,7 +112,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
     name: "Battlecruiser",
     description:
       "The hunter of capitals. Mounts battleship-grade weaponry on a cruiser hull. Devastating on the attack but cannot sustain prolonged fire.",
-    cost: 180,
+    cost: 350,
     stats: {
       attack: 7, // Battleship guns
       defense: 3, // Cruiser hull
@@ -134,7 +134,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
     name: "Capital Battleship",
     description:
       "Heavily armored behemoth. Short range, but possesses devastating firepower and the armor to shrug off lighter attacks.",
-    cost: 200,
+    cost: 400,
     stats: {
       attack: 6,
       defense: 6,
@@ -154,7 +154,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
     name: "Planetary Siege Dreadnought",
     description:
       "The ultimate projection of power. Short range and expensive, but nearly impervious to standard weapons.",
-    cost: 350,
+    cost: 500,
     stats: {
       attack: 9,
       defense: 8,

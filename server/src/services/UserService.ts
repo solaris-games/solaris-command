@@ -106,4 +106,40 @@ export class UserService {
 
     return result;
   }
+
+  static async incrementUserVictories(
+    userId: UnifiedId,
+    amount: number,
+    session?: ClientSession
+  ) {
+    await UserModel.updateOne(
+      { _id: userId },
+      { $inc: { "achievements.victories": amount } },
+      { session }
+    );
+  }
+
+  static async incrementUserRank(
+    userId: UnifiedId,
+    amount: number,
+    session?: ClientSession
+  ) {
+    await UserModel.updateOne(
+      { _id: userId },
+      { $inc: { "achievements.rank": amount } },
+      { session }
+    );
+  }
+
+  static async incrementUserRenown(
+    userId: UnifiedId,
+    amount: number,
+    session?: ClientSession
+  ) {
+    await UserModel.updateOne(
+      { _id: userId },
+      { $inc: { "achievements.renown": amount } },
+      { session }
+    );
+  }
 }

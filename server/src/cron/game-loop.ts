@@ -10,8 +10,9 @@ import {
   Station,
   TickContext,
   UnitManager,
+  GameLeaderboardUtils,
 } from "@solaris-command/core";
-import { GameService } from "../services";
+import { GameService, UserService } from "../services";
 import { executeInTransaction } from "../db/instance";
 import {
   GameModel,
@@ -236,11 +237,25 @@ async function executeGameTick(game: Game) {
       );
 
       if (winnerPlayer) {
-        await UserModel.updateOne(
-          { _id: winnerPlayer.userId },
-          { $inc: { "achievements.victories": 1 } },
-          { session }
-        ).session(session);
+        await UserService.incrementUserVictories(
+          winnerPlayer.userId,
+          1,
+          session
+        );
+      }
+
+      const newUserRankings = GameLeaderboardUtils.calculateGameRankRewards(
+        players,
+        planets,
+        liveUnits
+      );
+
+      for (const newRanking of newUserRankings) {
+        await UserService.incrementUserRank(
+          newRanking.userId,
+          newRanking.rankChange,
+          session
+        );
       }
     }
   });

@@ -14,6 +14,7 @@ const PlayerSchema = new Schema<Player>({
   },
   prestigePoints: { type: Number, required: true, default: 0 },
   victoryPoints: { type: Number, required: true, default: 0 },
+  renownToDistribute: { type: Number, required: true, default: 0 },
   lastSeenDate: { type: Date, required: true, default: Date.now },
 });
 

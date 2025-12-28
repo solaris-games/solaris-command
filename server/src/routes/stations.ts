@@ -11,7 +11,7 @@ import {
 import {
   loadGame,
   loadPlayer,
-  requireOpenGame,
+  requireInPlayGame,
   validateRequest,
 } from "../middleware";
 import { StationService, PlayerService, HexService } from "../services";
@@ -28,7 +28,7 @@ router.post(
   authenticateToken,
   validateRequest(BuildStationRequestSchema),
   loadGame,
-  requireOpenGame,
+  requireInPlayGame,
   loadPlayer,
   loadStations,
   async (req, res) => {
@@ -125,7 +125,7 @@ router.delete(
   "/:stationId",
   authenticateToken,
   loadGame,
-  requireOpenGame,
+  requireInPlayGame,
   loadPlayer,
   loadPlayerStation,
   async (req, res) => {

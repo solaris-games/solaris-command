@@ -6,7 +6,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     type: SpecialistStepTypes.ARTILLERY,
     name: "Artillery",
     description: "Long-range kinetic bombardment.",
-    cost: 150,
+    cost: 50,
     stats: {
       attack: 2,
       defense: 0,
@@ -26,7 +26,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     name: "Engineers",
     description:
       "Elite infantry for boarding actions and planetary assault. Negates defensive bonuses.",
-    cost: 100,
+    cost: 50,
     stats: {
       attack: 1,
       defense: 1,
@@ -46,7 +46,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     name: "Recon",
     description:
       "Advanced sensors and electronic warfare. Increases vision range.",
-    cost: 75,
+    cost: 50,
     stats: {
       attack: 0,
       defense: 1,
@@ -66,7 +66,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     name: "Scouts",
     description:
       "Captures adjacent empty hexes in the unit's zone of control under certain conditions.",
-    cost: 200,
+    cost: 50,
     stats: {
       attack: 0,
       defense: 0,
@@ -86,7 +86,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     name: "Torpedo",
     description:
       "Dedicated anti-capital ship munitions. Negates the Armor Shift of heavy targets.",
-    cost: 125,
+    cost: 50,
     stats: {
       attack: 3,
       defense: 0,
@@ -106,7 +106,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     name: "Armor",
     description:
       "Reinforced hull plating. Provides high defense and armor shift.",
-    cost: 100,
+    cost: 50,
     stats: {
       attack: 1,
       defense: 3,
@@ -125,7 +125,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     type: SpecialistStepTypes.HEAVY_WEAPONS,
     name: "Heavy Weapons",
     description: "High caliber weaponry for increased attack power.",
-    cost: 100,
+    cost: 50,
     stats: {
       attack: 5,
       defense: 0,
@@ -144,7 +144,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     type: SpecialistStepTypes.SHIELDS,
     name: "Shields",
     description: "Energy shielding for increased defense capabilities.",
-    cost: 100,
+    cost: 50,
     stats: {
       attack: 0,
       defense: 5,
@@ -163,7 +163,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     type: SpecialistStepTypes.PROPULSION,
     name: "Propulsion",
     description: "Enhanced engines increasing maximum movement points.",
-    cost: 100,
+    cost: 50,
     stats: {
       attack: 0,
       defense: 0,
@@ -182,7 +182,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     type: SpecialistStepTypes.COMMAND,
     name: "Command",
     description: "Tactical command center increasing action points.",
-    cost: 100,
+    cost: 50,
     stats: {
       attack: 0,
       defense: 0,
@@ -202,7 +202,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     name: "Logistics",
     description:
       "Enhanced logistics capacity. Allows the unit to be out of supply for 1 cycle longer.",
-    cost: 150,
+    cost: 50,
     stats: {
       attack: 0,
       defense: 0,

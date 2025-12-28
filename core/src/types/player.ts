@@ -16,6 +16,7 @@ export interface Player {
   status: PlayerStatus
   prestigePoints: number; // Used to purchase units
   victoryPoints: number;
+  renownToDistribute: number;
 
   lastSeenDate: Date;
 }

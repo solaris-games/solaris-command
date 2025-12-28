@@ -81,6 +81,19 @@ export class PlayerService {
     );
   }
 
+  static async deductRenownToDistrubute(
+    gameId: UnifiedId,
+    playerId: UnifiedId,
+    renown: number,
+    session?: ClientSession
+  ) {
+    await PlayerModel.updateOne(
+      { gameId, _id: playerId },
+      { $inc: { renownToDistribute: -renown } },
+      { session }
+    );
+  }
+
   static async joinGame(
     gameId: UnifiedId,
     userId: UnifiedId,
