@@ -127,6 +127,6 @@ export const CombatTables = {
     const MIN = -3;
     const MAX = 9;
     const clamped = Math.max(MIN, Math.min(MAX, Math.floor(score)));
-    return COMBAT_RESULTS_TABLE[clamped];
+    return COMBAT_RESULTS_TABLE[clamped]!;
   },
 };
