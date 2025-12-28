@@ -184,11 +184,24 @@ export class PlayerService {
   static async touchPlayer(gameId: UnifiedId, playerId: UnifiedId) {
     return PlayerModel.updateOne(
       { gameId, _id: playerId },
-      {
-        $set: {
-          lastSeenDate: new Date(),
+      [
+        {
+          $set: {
+            lastSeenDate: new Date(),
+          },
         },
-      }
+        {
+          $set: {
+            status: {
+              $cond: {
+                if: { $eq: ["$status", PlayerStatus.AFK] },
+                then: PlayerStatus.ACTIVE,
+                else: "$status",
+              },
+            },
+          },
+        },
+      ]
     );
   }
 }

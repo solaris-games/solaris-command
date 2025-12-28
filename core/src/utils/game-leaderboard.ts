@@ -100,12 +100,11 @@ export const GameLeaderboardUtils = {
 
       // --- HANDLE AFK PENALTY ---
 
-      // TODO: Implement AFK status
       // If a player went AFK, they forfeit any gains.
       // We force their result to -1.
-      //   if (player.status === PlayerStatus.AFK) {
-      //     rankChange = -1;
-      //   }
+      if (player.status === PlayerStatus.AFK) {
+        rankChange = -1;
+      }
 
       return {
         userId: player.userId,
