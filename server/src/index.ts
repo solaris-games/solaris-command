@@ -22,6 +22,7 @@ const port = process.env.PORT || 3000;
 // ----- CORS -----
 const allowedOrigins = [
   'http://localhost:5173', // Frontend dev local (prototype)
+  'https://command.solaris.games',
 ];
 
 app.use(cors({
