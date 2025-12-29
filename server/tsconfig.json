@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "target": "es2024",
+
     // Treat files as modules even if it doesn't use import/export
     "moduleDetection": "force",
 

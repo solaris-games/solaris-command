@@ -106,6 +106,19 @@ export class TickContext {
       this.stationLookup.set(HexUtils.getCoordsID(s.location), s)
     );
   }
+
+  appendGameEvent(playerId: UnifiedId | null, type: GameEventTypes, data: any) {
+    this.gameEvents.push(
+      GameEventFactory.create(
+        this.game._id,
+        playerId,
+        this.game.state.tick,
+        type,
+        data,
+        this.idGenerator
+      )
+    );
+  }
 }
 
 interface MoveIntent {
@@ -165,12 +178,36 @@ const handleHexCapture = (context: TickContext, hex: Hex, unit: Unit) => {
   // Flip Planet Ownership (if one exists here)
   const planet = context.planetLookup.get(hexCoordsId);
   if (planet && String(planet.playerId) !== String(unit.playerId)) {
+    context.appendGameEvent(
+      null, // Everyone
+      GameEventTypes.PLANET_CAPTURED,
+      {
+        planetId: planet._id,
+        hexId: planet.hexId,
+        location: planet.location,
+        ownerPlayerId: planet.playerId,
+        capturedByPlayerId: unit.playerId,
+      }
+    );
+
     planet.playerId = unit.playerId;
   }
 
   // Destroy hostile stations
   const station = context.stationLookup.get(hexCoordsId);
   if (station && String(station.playerId) !== String(unit.playerId)) {
+    context.appendGameEvent(
+      null, // Everyone
+      GameEventTypes.STATION_DESTROYED,
+      {
+        stationId: station._id,
+        hexId: station.hexId,
+        location: station.location,
+        ownerPlayerId: station.playerId,
+        destroyedByPlayerId: unit.playerId,
+      }
+    );
+
     hex.stationId = null;
 
     context.stationsToRemove.push(station._id);
@@ -253,6 +290,12 @@ export const TickProcessor = {
 
       if (now.getTime() - effectiveLastActivity.getTime() > AFK_TIMEOUT_MS) {
         player.status = PlayerStatus.AFK;
+
+        context.appendGameEvent(null, GameEventTypes.PLAYER_AFK, {
+          playerId: player._id,
+          alias: player.alias,
+          color: player.color,
+        });
       }
     }
   },
@@ -311,9 +354,24 @@ export const TickProcessor = {
           !defender ||
           String(defender.playerId) === String(attacker.playerId)
         ) {
+          context.appendGameEvent(
+            attacker.playerId,
+            GameEventTypes.UNIT_COMBAT_ATTACK_CANCELLED,
+            {
+              unitId: attacker._id,
+              combat: {
+                hexId: attacker.combat.hexId,
+                location: attacker.combat.location,
+                operation: attacker.combat.operation,
+                advanceOnVictory: attacker.combat.advanceOnVictory,
+              },
+            }
+          );
+
           attacker.state.status = UnitStatus.REGROUPING; // Attack fails/cancels
           attacker.combat.hexId = null;
           attacker.combat.location = null;
+
           continue;
         }
 
@@ -339,26 +397,16 @@ export const TickProcessor = {
         battleResult.report.tick = context.game.state.tick;
 
         // One for the attacker and another for the defender.
-        context.gameEvents.push(
-          GameEventFactory.create(
-            context.game._id,
-            battleResult.report.attackerId,
-            context.game.state.tick,
-            GameEventTypes.COMBAT_REPORT,
-            battleResult.report,
-            context.idGenerator
-          )
+        context.appendGameEvent(
+          battleResult.report.attackerUnitId,
+          GameEventTypes.COMBAT_REPORT,
+          battleResult.report
         );
 
-        context.gameEvents.push(
-          GameEventFactory.create(
-            context.game._id,
-            battleResult.report.defenderId,
-            context.game.state.tick,
-            GameEventTypes.COMBAT_REPORT,
-            battleResult.report,
-            context.idGenerator
-          )
+        context.appendGameEvent(
+          battleResult.report.defenderUnitIt,
+          GameEventTypes.COMBAT_REPORT,
+          battleResult.report
         );
 
         // Defender:
@@ -366,6 +414,16 @@ export const TickProcessor = {
           // Defender Destroyed
           // Note: Hex unit reference is handled in battle resolution
           context.unitLocations.delete(targetHexCoordsId); // Remove from board
+
+          context.appendGameEvent(
+            defender.playerId,
+            GameEventTypes.UNIT_DESTROYED_IN_COMBAT,
+            {
+              unitId: defender._id,
+              hexId: defender.hexId,
+              location: defender.location,
+            }
+          );
         } else if (
           battleResult.report.defender.retreated &&
           battleResult.retreatHex
@@ -387,6 +445,16 @@ export const TickProcessor = {
           context.unitLocations.delete(
             HexUtils.getCoordsID(battleResult.attackerHex.location)
           ); // Remove from board
+
+          context.appendGameEvent(
+            attacker.playerId,
+            GameEventTypes.UNIT_DESTROYED_IN_COMBAT,
+            {
+              unitId: attacker._id,
+              hexId: attacker.hexId,
+              location: attacker.location,
+            }
+          );
         } else if (battleResult.attackerWonHex) {
           // Move the attacker
           context.unitLocations.delete(
@@ -452,6 +520,18 @@ export const TickProcessor = {
       intent.unit.movement.path = []; // Clear the path
       intent.unit.steps = UnitManager.suppressSteps(intent.unit.steps, 1); // Take damage
       intent.unit.state.status = UnitStatus.REGROUPING; // Forced stop
+
+      context.appendGameEvent(
+        intent.unit.playerId, // Owner of the unit
+        GameEventTypes.UNIT_MOVEMENT_BOUNCED,
+        {
+          unitId: intent.unit._id,
+          toHexId: toHex._id,
+          toHexLocation: toHex.location,
+          fromHexId: intent.unit.hexId,
+          fromHexLocation: intent.unit.location,
+        }
+      );
     };
 
     contextMovement.movesByDest.forEach((intents, destCoordId) => {
@@ -587,6 +667,14 @@ export const TickProcessor = {
       context.game.state.winnerPlayerId = winnerPlayer._id;
       context.game.state.status = GameStates.COMPLETED;
       context.game.state.endDate = new Date();
+
+      context.appendGameEvent(null, GameEventTypes.GAME_COMPLETED, {
+        winnerPlayer: {
+          _id: winnerPlayer._id,
+          alias: winnerPlayer.alias,
+          color: winnerPlayer.color,
+        },
+      });
     }
   },
 
@@ -719,6 +807,16 @@ export const TickProcessor = {
             HexUtils.getCoordsID(unit.location)
           )!;
           hex.unitId = null;
+
+          context.appendGameEvent(
+            unit.playerId, // Owner of the unit
+            GameEventTypes.UNIT_STARVED_BY_OOS,
+            {
+              unitId: unit._id,
+              hexId: unit.hexId,
+              location: unit.location,
+            }
+          );
         }
       });
 
@@ -737,6 +835,24 @@ export const TickProcessor = {
 
       player.prestigePoints = newPrestige;
       player.victoryPoints = newVP;
+
+      context.appendGameEvent(
+        player._id,
+        GameEventTypes.PLAYER_CYCLE_COMPLETED,
+        {
+          newPrestige,
+          newVP,
+        }
+      );
+    });
+
+    context.appendGameEvent(null, GameEventTypes.GAME_CYCLE_COMPLETED, {
+      players: context.players.map((p) => ({
+        _id: p._id,
+        alias: p.alias,
+        color: p.color,
+        newVP: p.victoryPoints,
+      })),
     });
   },
 

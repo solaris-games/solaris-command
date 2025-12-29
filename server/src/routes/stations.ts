@@ -4,6 +4,8 @@ import {
   BuildStationRequestSchema,
   CONSTANTS,
   ERROR_CODES,
+  GameEventFactory,
+  GameEventTypes,
   HexUtils,
   Station,
   StationFactory,
@@ -14,7 +16,12 @@ import {
   requireInPlayGame,
   validateRequest,
 } from "../middleware";
-import { StationService, PlayerService, HexService } from "../services";
+import {
+  StationService,
+  PlayerService,
+  HexService,
+  GameService,
+} from "../services";
 import { loadPlayerStation, loadStations } from "../middleware/station";
 import { executeInTransaction } from "../db";
 import { StationMapper } from "../map";
@@ -101,15 +108,34 @@ router.post(
           session
         );
 
+        await GameService.createGameEvent(
+          GameEventFactory.create(
+            req.game._id,
+            null, // Everyone
+            req.game.state.tick,
+            GameEventTypes.PLAYER_CONSTRUCTED_STATION,
+            {
+              stationId: newStation._id,
+              playerId: newStation.playerId,
+              hexId: newStation.hexId,
+              location: newStation.location,
+            },
+            () => new Types.ObjectId()
+          ),
+          session
+        );
+
         return station;
       });
 
-      res.status(201).json(
-        StationMapper.toBuildStationResponse(
-          createdStation,
-          CONSTANTS.STATION_PRESTIGE_COST
-        )
-      );
+      res
+        .status(201)
+        .json(
+          StationMapper.toBuildStationResponse(
+            createdStation,
+            CONSTANTS.STATION_PRESTIGE_COST
+          )
+        );
     } catch (error: any) {
       console.error("Error building station:", error);
 
@@ -132,10 +158,28 @@ router.delete(
     try {
       await executeInTransaction(async (session) => {
         await StationService.deleteStation(req.game._id, req.station._id);
+
         await HexService.updateHexStation(
           req.game._id,
           req.station.hexId,
           null
+        );
+
+        await GameService.createGameEvent(
+          GameEventFactory.create(
+            req.game._id,
+            null, // Everyone
+            req.game.state.tick,
+            GameEventTypes.PLAYER_DECOMMISSIONED_STATION,
+            {
+              stationId: req.station._id,
+              playerId: req.station.playerId,
+              hexId: req.station.hexId,
+              location: req.station.location,
+            },
+            () => new Types.ObjectId()
+          ),
+          session
         );
       });
     } catch (error: any) {

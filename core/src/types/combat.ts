@@ -47,8 +47,12 @@ export interface CombatForcedResult {
 
 export interface CombatReport {
   tick: number;
-  attackerId: UnifiedId;
-  defenderId: UnifiedId;
+
+  attackerPlayerId: UnifiedId;
+  attackerUnitId: UnifiedId;
+
+  defenderPlayerId: UnifiedId;
+  defenderUnitIt: UnifiedId;
 
   hexId: UnifiedId;
   location: HexCoords;

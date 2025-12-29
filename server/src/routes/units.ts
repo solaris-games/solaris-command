@@ -18,6 +18,8 @@ import {
   HexCoordsId,
   ERROR_CODES,
   UnitFactory,
+  GameEventFactory,
+  GameEventTypes,
 } from "@solaris-command/core";
 import {
   loadGame,
@@ -30,7 +32,12 @@ import {
   requireInPlayGame,
   validateRequest,
 } from "../middleware";
-import { UnitService, PlayerService, HexService } from "../services";
+import {
+  UnitService,
+  PlayerService,
+  HexService,
+  GameService,
+} from "../services";
 import { executeInTransaction } from "../db";
 import { UnitMapper } from "../map";
 import { Types } from "mongoose";
@@ -132,6 +139,20 @@ router.post(
           req.game._id,
           req.player._id,
           unitCtlg.cost,
+          session
+        );
+
+        await GameService.createGameEvent(
+          GameEventFactory.create(
+            req.game._id,
+            unit.playerId,
+            req.game.state.tick,
+            GameEventTypes.UNIT_DEPLOYED,
+            {
+              unit,
+            },
+            () => new Types.ObjectId()
+          ),
           session
         );
 

@@ -72,6 +72,8 @@ async function processActiveGames() {
   });
 
   for (const gameId of activeGames) {
+    let gameModel: Game | null = null;
+
     try {
       // 2. Time Check: Is it time for a tick?
       // Logic: Start Date + (Tick Count * Tick Duration)
@@ -87,18 +89,18 @@ async function processActiveGames() {
         );
 
         // Load the game right at the start of the tick so there is minimal delay.
-        const game = (await GameService.getById(gameId._id))!;
+        gameModel = (await GameService.getById(gameId._id))!;
 
-        game.state.lastTickDate = new Date(nextTickTime); // Set the tick time here to prevent clock drift
-        game.state.status = GameStates.LOCKED;
+        gameModel.state.lastTickDate = new Date(nextTickTime); // Set the tick time here to prevent clock drift
+        gameModel.state.status = GameStates.LOCKED;
 
         // Start by locking the game to prevent players from changing the game state
         // during tick processing. We don't know how long ticks will take to
         // process so better to be safe and lock the game now.
-        await GameService.lockGame(game._id);
+        await GameService.lockGame(gameModel._id);
 
         // Cast Mongoose Document to Game interface if needed, or pass as is if compatible
-        await executeGameTick(game as Game);
+        await executeGameTick(gameModel);
 
         const tickEnd = Date.now();
         const totalTime = (tickEnd - now) / 1000;
@@ -108,10 +110,6 @@ async function processActiveGames() {
     } catch (err) {
       console.error(`Failed to process game ${gameId._id}:`, err);
       // Continue to next game, don't crash the loop
-    } finally {
-      if (gameId.state.status !== GameStates.COMPLETED) {
-        await GameService.unlockGame(gameId._id);
-      }
     }
   }
 }

@@ -21,6 +21,7 @@ const SupplySourceSchema = new Schema(
 const PlanetSchema = new Schema<Planet>({
   gameId: { type: Schema.ObjectId, ref: "Game", required: true },
   playerId: { type: Schema.ObjectId, ref: "Player", default: null },
+  
   hexId: { type: Schema.ObjectId, ref: "Hex", required: true },
   location: { type: HexCoordsSchema, required: true },
 

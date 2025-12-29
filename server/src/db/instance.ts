@@ -92,4 +92,4 @@ export const executeInTransaction = async (
   } finally {
     await session.endSession();
   }
-}
+};

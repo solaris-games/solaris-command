@@ -7,7 +7,7 @@ import {
 export class GameEventFactory {
   static create(
     gameId: UnifiedId,
-    playerId: UnifiedId,
+    playerId: UnifiedId | null,
     tick: number,
     type: GameEventTypes,
     data: any,

@@ -5,6 +5,8 @@ import {
   CONSTANTS,
   TradePrestigeRequestSchema,
   SendRenownRequestSchema,
+  GameEventFactory,
+  GameEventTypes,
 } from "@solaris-command/core";
 import {
   loadGame,
@@ -13,7 +15,7 @@ import {
   requireCompletedGame,
   validateRequest,
 } from "../middleware";
-import { PlayerService, UserService } from "../services";
+import { GameService, PlayerService, UserService } from "../services";
 import { executeInTransaction, getDb } from "../db";
 import { Types } from "mongoose";
 
@@ -68,7 +70,45 @@ router.post(
         await PlayerService.incrementPrestigePoints(
           req.game._id,
           new Types.ObjectId(targetPlayerId),
-          CONSTANTS.STATION_PRESTIGE_COST,
+          prestige,
+          session
+        );
+
+        const eventPayload = {
+          fromPlayer: {
+            _id: req.player._id,
+            alias: req.player.alias,
+            color: req.player.color,
+          },
+          toPlayer: {
+            _id: targetPlayer._id,
+            alias: targetPlayer.alias,
+            color: targetPlayer.color,
+          },
+          prestige,
+        };
+
+        await GameService.createGameEvent(
+          GameEventFactory.create(
+            req.game._id,
+            req.player._id, // Sender
+            req.game.state.tick,
+            GameEventTypes.PLAYERS_TRADED_PRESTIGE,
+            eventPayload,
+            () => new Types.ObjectId()
+          ),
+          session
+        );
+
+        await GameService.createGameEvent(
+          GameEventFactory.create(
+            req.game._id,
+            targetPlayer._id, // Recipient
+            req.game.state.tick,
+            GameEventTypes.PLAYERS_TRADED_PRESTIGE,
+            eventPayload,
+            () => new Types.ObjectId()
+          ),
           session
         );
       });
@@ -98,15 +138,15 @@ router.post(
 
     try {
       if (req.player.renownToDistribute < renown) {
-        return res
-          .status(400)
-          .json({ errorCode: ERROR_CODES.PLAYER_INSUFFICIENT_RENOWN_TO_DISTRIBUTE });
+        return res.status(400).json({
+          errorCode: ERROR_CODES.PLAYER_INSUFFICIENT_RENOWN_TO_DISTRIBUTE,
+        });
       }
 
       if (String(req.player._id) === targetPlayerId) {
-        return res
-          .status(400)
-          .json({ errorCode: ERROR_CODES.PLAYER_CANNOT_SEND_RENOWN_TO_THEMSELVES });
+        return res.status(400).json({
+          errorCode: ERROR_CODES.PLAYER_CANNOT_SEND_RENOWN_TO_THEMSELVES,
+        });
       }
 
       const targetPlayer = await PlayerService.getByGameAndPlayerId(
@@ -131,6 +171,44 @@ router.post(
         await UserService.incrementUserRenown(
           targetPlayer.userId,
           renown,
+          session
+        );
+
+        const eventPayload = {
+          fromPlayer: {
+            _id: req.player._id,
+            alias: req.player.alias,
+            color: req.player.color,
+          },
+          toPlayer: {
+            _id: targetPlayer._id,
+            alias: targetPlayer.alias,
+            color: targetPlayer.color,
+          },
+          renown,
+        };
+
+        await GameService.createGameEvent(
+          GameEventFactory.create(
+            req.game._id,
+            req.player._id, // Sender
+            req.game.state.tick,
+            GameEventTypes.PLAYERS_TRADED_RENOWN,
+            eventPayload,
+            () => new Types.ObjectId()
+          ),
+          session
+        );
+
+        await GameService.createGameEvent(
+          GameEventFactory.create(
+            req.game._id,
+            targetPlayer._id, // Recipient
+            req.game.state.tick,
+            GameEventTypes.PLAYERS_TRADED_RENOWN,
+            eventPayload,
+            () => new Types.ObjectId()
+          ),
           session
         );
       });

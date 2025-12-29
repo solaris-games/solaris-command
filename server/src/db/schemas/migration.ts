@@ -6,4 +6,7 @@ const MigrationLogSchema = new Schema<MigrationLog>({
   executedAt: { type: Date, required: true, default: Date.now },
 });
 
-export const MigrationLogModel = model<MigrationLog>("MigrationLog", MigrationLogSchema);
+export const MigrationLogModel = model<MigrationLog>(
+  "MigrationLog",
+  MigrationLogSchema
+);

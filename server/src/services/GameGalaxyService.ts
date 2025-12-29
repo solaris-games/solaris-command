@@ -43,7 +43,9 @@ export class GameGalaxyService {
       StationService.getByGameId(gameId),
     ]);
 
-    const currentPlayer = players.find((p) => String(p.userId) === String(userId));
+    const currentPlayer = players.find(
+      (p) => String(p.userId) === String(userId)
+    );
 
     let galaxy: any = {
       game: game,
@@ -56,6 +58,7 @@ export class GameGalaxyService {
 
     if (game.state.status === GameStates.COMPLETED) {
       // Reveal all
+      galaxy.hexes = hexes;
       galaxy.units = allUnits;
 
       return { galaxy, currentPlayer };

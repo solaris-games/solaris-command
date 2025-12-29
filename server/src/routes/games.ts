@@ -15,6 +15,8 @@ import {
   GameStates,
   UnitFactory,
   JoinGameRequestSchema,
+  GameEventFactory,
+  GameEventTypes,
 } from "@solaris-command/core";
 import {
   GameService,
@@ -174,6 +176,22 @@ router.post(
         // Increment (Blind update)
         await GameService.addPlayerCount(gameId, session);
 
+        await GameService.createGameEvent(
+          GameEventFactory.create(
+            gameId,
+            null,
+            req.game.state.tick,
+            GameEventTypes.PLAYER_JOINED,
+            {
+              playerId: newPlayer._id,
+              alias: newPlayer.alias,
+              color: newPlayer.color,
+            },
+            () => new Types.ObjectId()
+          ),
+          session
+        );
+
         // Check Game Start (Using req.game count + 1 for current player)
         // Note: req.game.state.playerCount is old value. We add 1.
         if (req.game.state.playerCount + 1 >= req.game.settings.playerCount) {
@@ -188,6 +206,20 @@ router.post(
               "state.status": GameStates.ACTIVE,
               "state.startDate": startDate,
             },
+            session
+          );
+
+          await GameService.createGameEvent(
+            GameEventFactory.create(
+              gameId,
+              null,
+            req.game.state.tick,
+              GameEventTypes.GAME_STARTED,
+              {
+                startDate: startDate.toISOString(),
+              },
+              () => new Types.ObjectId()
+            ),
             session
           );
         }
@@ -247,6 +279,22 @@ router.post(
           session
         );
         await GameService.deductPlayerCount(req.game._id, session);
+
+        await GameService.createGameEvent(
+          GameEventFactory.create(
+            req.game._id,
+            null,
+            req.game.state.tick,
+            GameEventTypes.PLAYER_LEFT,
+            {
+              playerId: req.player._id,
+              alias: req.player.alias,
+              color: req.player.color,
+            },
+            () => new Types.ObjectId()
+          ),
+          session
+        );
       });
     } catch (error) {
       console.error("Error leaving game:", error);
@@ -269,7 +317,25 @@ router.post(
   loadPlayer,
   async (req, res) => {
     try {
-      await PlayerService.concedeGame(req.game._id, req.player._id);
+      await executeInTransaction(async (session) => {
+        await PlayerService.concedeGame(req.game._id, req.player._id);
+
+        await GameService.createGameEvent(
+          GameEventFactory.create(
+            req.game._id,
+            null,
+            req.game.state.tick,
+            GameEventTypes.PLAYER_CONCEDED,
+            {
+              playerId: req.player._id,
+              alias: req.player.alias,
+              color: req.player.color,
+            },
+            () => new Types.ObjectId()
+          ),
+          session
+        );
+      });
     } catch (error) {
       console.error("Error conceding game:", error);
 
@@ -319,19 +385,10 @@ router.get(
   loadPlayer,
   async (req, res) => {
     try {
-      // Check if player is in game
-      const player = await PlayerService.getByGameAndUserId(
+      const events = await GameService.getGameEvents(
         req.game._id,
-        req.user._id
+        req.player._id
       );
-
-      if (!player) {
-        return res
-          .status(403)
-          .json({ errorCode: ERROR_CODES.USER_NOT_IN_GAME });
-      }
-
-      const events = await GameService.getGameEvents(req.game._id);
 
       res.json(GameMapper.toGameEventsResponse(events));
     } catch (error) {

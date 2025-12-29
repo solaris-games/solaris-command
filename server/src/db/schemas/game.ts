@@ -1,5 +1,10 @@
 import { Schema, model } from "mongoose";
-import { Game, GameState, GameSettings, GameStates } from "@solaris-command/core";
+import {
+  Game,
+  GameState,
+  GameSettings,
+  GameStates,
+} from "@solaris-command/core";
 
 const GameStateSchema = new Schema<GameState>(
   {
@@ -9,7 +14,7 @@ const GameStateSchema = new Schema<GameState>(
       required: true,
       default: GameStates.PENDING,
     },
-    playerCount: { type: Number, required: true },
+    playerCount: { type: Number, required: true, default: 0 },
     tick: { type: Number, required: true, default: 0 },
     cycle: { type: Number, required: true, default: 0 },
     createdDate: { type: Date, required: true, default: Date.now },

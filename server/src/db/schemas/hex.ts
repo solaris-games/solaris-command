@@ -29,7 +29,7 @@ const HexSchema = new Schema<Hex>({
     {
       playerId: { type: Schema.ObjectId, required: true },
       unitId: { type: Schema.ObjectId, required: true },
-      _id: false
+      _id: false,
     },
   ],
 });

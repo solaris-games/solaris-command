@@ -16,7 +16,7 @@
         <h3>Hex</h3>
         <p>Coords: {{ galaxyStore.selected.data.location.q }}, {{ galaxyStore.selected.data.location.r }}</p>
         <p>Terrain: {{ galaxyStore.selected.data.terrain }}</p>
-        <button v-if="galaxyStore.selected.data.terrain === 'EMPTY' || !galaxyStore.selected.data.terrain" @click="galaxyStore.buildStation()">Build Station</button>
+        <button @click="galaxyStore.buildStation()">Build Station</button>
 
         <!-- Deploy Unit UI -->
         <div class="deploy-section">

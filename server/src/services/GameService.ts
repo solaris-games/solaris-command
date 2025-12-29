@@ -1,5 +1,5 @@
 import { ClientSession, Types } from "mongoose";
-import { Game, GameStates, UnifiedId } from "@solaris-command/core";
+import { Game, GameEvent, GameStates, UnifiedId } from "@solaris-command/core";
 import { GameModel } from "../db/schemas/game";
 import { PlayerModel } from "../db/schemas/player";
 import { GameEventModel } from "../db/schemas/game-event";
@@ -34,8 +34,26 @@ export class GameService {
     return game;
   }
 
-  static async getGameEvents(gameId: UnifiedId) {
-    return GameEventModel.find({ gameId }).sort({ createdAt: -1 }).limit(100);
+  static async createGameEvent(gameEvent: GameEvent, session?: ClientSession) {
+    const model = new GameEventModel(gameEvent);
+    await model.save({ session });
+    return model;
+  }
+
+  static async getGameEvents(gameId: UnifiedId, playerId: UnifiedId) {
+    return GameEventModel.find({
+      gameId,
+      $or: [
+        {
+          playerId: { $eq: null }, // Game events for everyone
+        },
+        {
+          playerId: playerId,
+        },
+      ],
+    })
+      .sort({ createdAt: -1 })
+      .limit(100);
   }
 
   static async lockGame(gameId: UnifiedId) {
