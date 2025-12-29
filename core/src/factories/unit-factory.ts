@@ -2,7 +2,7 @@ import { UNIT_CATALOG_ID_MAP } from "../data/units";
 import { UnifiedId, HexCoords, Unit, UnitStatus, UnitStep } from "../types";
 
 export class UnitFactory {
-  static createUnit(
+  static create(
     catalogId: string,
     playerId: UnifiedId,
     gameId: UnifiedId,

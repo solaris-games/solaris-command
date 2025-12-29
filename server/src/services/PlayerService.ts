@@ -3,6 +3,7 @@ import {
   CONSTANTS,
   GameStates,
   Player,
+  PlayerFactory,
   PlayerStatus,
   UnifiedId,
 } from "@solaris-command/core";
@@ -98,22 +99,22 @@ export class PlayerService {
   static async joinGame(
     gameId: UnifiedId,
     userId: UnifiedId,
-    options: { alias?: string; color?: string },
+    options: { alias?: string; color?: string, renownToDistribute: number },
     session?: ClientSession
   ) {
-    const newPlayer = new PlayerModel({
+    const player = PlayerFactory.create(
       gameId,
       userId,
-      alias: options.alias || "Unknown",
-      color: options.color || "#FF0000",
-      status: PlayerStatus.ACTIVE,
-      prestigePoints: CONSTANTS.GAME_STARTING_PRESTIGE_POINTS,
-      victoryPoints: 0,
-      lastSeenDate: new Date(),
-    });
+      options.alias || "Unknown",
+      options.color || "#FF0000",
+      options.renownToDistribute,
+      () => new Types.ObjectId()
+    );
 
-    await newPlayer.save({ session });
-    return newPlayer;
+    const model = new PlayerModel(player);
+
+    await model.save({ session });
+    return model;
   }
 
   static async removePlayerAssets(

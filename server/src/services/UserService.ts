@@ -1,6 +1,11 @@
 import { ClientSession, Types } from "mongoose";
 import { PlayerService } from "./PlayerService";
-import { PlayerStatus, UnifiedId, User } from "@solaris-command/core";
+import {
+  PlayerStatus,
+  UnifiedId,
+  User,
+  UserFactory,
+} from "@solaris-command/core";
 import { UserModel } from "../db/schemas/user";
 import { PlayerModel } from "../db/schemas/player";
 import { GameService } from "./GameService";
@@ -25,18 +30,12 @@ export class UserService {
       return user;
     }
 
-    const newUser: User = {
-      _id: new Types.ObjectId(),
+    const newUser: User = UserFactory.create(
       googleId,
       email,
       username,
-      lastSeenDate: new Date(),
-      achievements: {
-        victories: 0,
-        rank: 0,
-        renown: 0,
-      },
-    };
+      () => new Types.ObjectId()
+    );
 
     const createdUser = await this.createUser(newUser, session);
     return createdUser;

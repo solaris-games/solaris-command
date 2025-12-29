@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { UnitFactory } from "./unit-factory";
 import { UNIT_CATALOG_ID_MAP } from "../data/units";
 import { MockUnifiedId, UnitStatus } from "../types";
+import { UnitFactory } from "./unit-factory";
 
 describe("UnitFactory", () => {
   it("should create a unit with correct structure", () => {
@@ -12,7 +12,7 @@ describe("UnitFactory", () => {
     const catalogId = "unit_corvette_01";
     const catalogItem = UNIT_CATALOG_ID_MAP.get(catalogId)!;
 
-    const unit = UnitFactory.createUnit(
+    const unit = UnitFactory.create(
       catalogId,
       playerId,
       gameId,
@@ -47,7 +47,7 @@ describe("UnitFactory", () => {
 
   it("should throw error for invalid catalog ID", () => {
     expect(() => {
-      UnitFactory.createUnit(
+      UnitFactory.create(
         "invalid_id",
         new MockUnifiedId(),
         new MockUnifiedId(),

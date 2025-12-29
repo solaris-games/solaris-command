@@ -101,13 +101,13 @@ router.post(
         unitCtlg.stats.defaultSteps
       );
 
-      const newUnit = UnitFactory.createUnit(
+      const newUnit = UnitFactory.create(
         catalogId,
         req.player._id,
         req.game._id,
         hex._id,
         hex.location,
-        () => new Types.ObjectId() as any
+        () => new Types.ObjectId()
       );
 
       // Manual override for deploy stats
@@ -119,7 +119,12 @@ router.post(
       const createdUnit = await executeInTransaction(async (session) => {
         const unit = await UnitService.createUnit(newUnit, session);
 
-        await HexService.updateHexUnit(req.game._id, hex._id, unit._id, session);
+        await HexService.updateHexUnit(
+          req.game._id,
+          hex._id,
+          unit._id,
+          session
+        );
 
         // Note: All units spawn with all steps suppressed, therefore this unit will not exert a ZOC
 
@@ -534,7 +539,7 @@ router.post(
           );
 
           // Any units that are attempting to attack this hex should be cancelled.
-          await UnitService.cancelUnitAttackByHex(req.game._id, hex!._id)
+          await UnitService.cancelUnitAttackByHex(req.game._id, hex!._id);
 
           // TODO: If a unit is attempting to attack the hex and
           // it has `advanceOnVictory` enabled, we should convert that

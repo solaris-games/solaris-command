@@ -1,6 +1,7 @@
 import { GameMap, UnifiedId, Hex, Planet } from "../types";
 import { PLANET_NAMES } from "../data";
 import { HexUtils } from "./hex-utils";
+import { HexFactory, PlanetFactory } from "../factories";
 
 export const MapGenerator = {
   generateFromGameMap(
@@ -19,17 +20,7 @@ export const MapGenerator = {
         throw new Error(`Map hex is invalid (terrain): ${JSON.stringify(h)}`);
       }
 
-      return {
-        _id: idGenerator(),
-        gameId,
-        playerId: null,
-        planetId: null, // We will update this later
-        stationId: null,
-        unitId: null,
-        location: h.location!,
-        terrain: h.terrain!,
-        zoc: [],
-      };
+      return HexFactory.create(gameId, h.location, h.terrain, idGenerator);
     });
 
     const planetNames = PLANET_NAMES.slice();
@@ -46,30 +37,26 @@ export const MapGenerator = {
         );
       }
 
-      const planetId = idGenerator();
-
-      // Update the hex's planet id
       const hex = hexes.find((h) => HexUtils.equals(h.location, p.location))!;
-      hex.planetId = planetId;
 
       const planetName = planetNames.splice(
         Math.floor(Math.random() * planetNames.length),
         1
       )[0]!;
 
-      return {
-        _id: planetId,
+      const planet = PlanetFactory.create(
         gameId,
-        hexId: hex._id,
-        playerId: null,
-        name: planetName,
-        location: p.location!,
-        isCapital: p.isCapital!,
-        supply: {
-          isInSupply: p.isCapital!, // Note: This assumes players start with their capital planet ONLY.
-          isRoot: p.isCapital!,
-        },
-      };
+        hex._id,
+        planetName,
+        p.location,
+        p.isCapital, // Note: This assumes players start with their capital planet ONLY.
+        idGenerator
+      );
+
+      // Make sure to update the hex's planet id
+      hex.planetId = planet._id;
+
+      return planet;
     });
 
     return {

@@ -1,7 +1,7 @@
 import { UnifiedId, HexCoords, Station } from "../types";
 
 export class StationFactory {
-  static createStation(
+  static create(
     gameId: UnifiedId,
     playerId: UnifiedId,
     hexId: UnifiedId,

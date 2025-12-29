@@ -76,7 +76,7 @@ router.post(
           .json({ errorCode: ERROR_CODES.PLAYER_INSUFFICIENT_PRESTIGE });
       }
 
-      const newStation = StationFactory.createStation(
+      const newStation = StationFactory.create(
         req.game._id,
         req.player._id,
         hex._id,

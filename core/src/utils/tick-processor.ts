@@ -31,6 +31,7 @@ import { UnitManager } from "./unit-manager";
 import { SupplyEngine } from "./supply-engine";
 import { MapUtils } from "./map-utils";
 import { GameLeaderboardUtils } from "./game-leaderboard";
+import { GameEventFactory } from "../factories";
 
 // TODO: Split these into two files, tick-processor.ts and tick-cycle-processor.ts
 // This will make it more manageable to write unit tests for.
@@ -338,23 +339,27 @@ export const TickProcessor = {
         battleResult.report.tick = context.game.state.tick;
 
         // One for the attacker and another for the defender.
-        context.gameEvents.push({
-          _id: context.idGenerator(),
-          gameId: context.game._id,
-          playerId: battleResult.report.attackerId,
-          tick: context.game.state.tick,
-          type: GameEventTypes.COMBAT_REPORT,
-          data: battleResult.report,
-        });
+        context.gameEvents.push(
+          GameEventFactory.create(
+            context.game._id,
+            battleResult.report.attackerId,
+            context.game.state.tick,
+            GameEventTypes.COMBAT_REPORT,
+            battleResult.report,
+            context.idGenerator
+          )
+        );
 
-        context.gameEvents.push({
-          _id: context.idGenerator(),
-          gameId: context.game._id,
-          playerId: battleResult.report.defenderId,
-          tick: context.game.state.tick,
-          type: GameEventTypes.COMBAT_REPORT,
-          data: battleResult.report,
-        });
+        context.gameEvents.push(
+          GameEventFactory.create(
+            context.game._id,
+            battleResult.report.defenderId,
+            context.game.state.tick,
+            GameEventTypes.COMBAT_REPORT,
+            battleResult.report,
+            context.idGenerator
+          )
+        );
 
         // Defender:
         if (!UnitManager.unitIsAlive(defender)) {

@@ -10,7 +10,7 @@ describe("StationFactory", () => {
     const location = { q: 1, r: 0, s: -1 };
     const idGenerator = vi.fn().mockReturnValue("station1" as UnifiedId);
 
-    const station = StationFactory.createStation(
+    const station = StationFactory.create(
       gameId,
       playerId,
       hexId,

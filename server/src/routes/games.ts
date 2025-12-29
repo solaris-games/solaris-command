@@ -77,6 +77,7 @@ router.post(
           {
             alias: req.body.alias,
             color: req.body.color,
+            renownToDistribute: req.game.settings.playerCount, // Renown = Player limit of the game
           },
           session
         );
@@ -118,7 +119,7 @@ router.post(
           const hex = spawnHexes[i];
 
           // Create Unit
-          const unit = UnitFactory.createUnit(
+          const unit = UnitFactory.create(
             catalogId,
             newPlayer._id,
             gameId,

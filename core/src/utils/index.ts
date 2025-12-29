@@ -8,6 +8,4 @@ export * from "./supply-engine";
 export * from "./tick-processor";
 export * from "./unit-manager";
 export * from "./fog-of-war";
-export * from "./unit-factory";
-export * from "./station-factory";
 export * from "./game-leaderboard";
