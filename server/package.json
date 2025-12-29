@@ -2,6 +2,7 @@
   "name": "@solaris-command/server",
   "version": "1.0.0",
   "scripts": {
+    "build": "pkgroll",
     "dev": "tsx watch src/index.ts",
     "db:migrate": "tsx src/db/migrate.ts"
   },
@@ -22,7 +23,9 @@
     "@types/cors": "^2.8.12",
     "@types/express": "^4.17.17",
     "@types/node": "^20.0.0",
+    "pkgroll": "^2.21.4",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
-  }
+  },
+  "exports": "./dist/index.mjs"
 }
