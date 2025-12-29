@@ -187,8 +187,8 @@ export const TickProcessor = {
     const isCycleTick =
       context.game.state.tick % context.game.settings.ticksPerCycle === 0;
 
-    TickProcessor.processTickRegroupingUnitStatus(context);
     TickProcessor.processTickPlayerAFK(context);
+    TickProcessor.processTickRegroupingUnitStatus(context);
     TickProcessor.processHexRadiationStorms(context);
     TickProcessor.processTickUnitCombat(context);
     TickProcessor.processTickUnitMovement(context);
@@ -240,12 +240,15 @@ export const TickProcessor = {
         continue;
       }
 
-      const lastSeen = player.lastSeenDate ? new Date(player.lastSeenDate) : new Date(0);
+      const lastSeen = player.lastSeenDate
+        ? new Date(player.lastSeenDate)
+        : new Date(0);
       const gameStart = new Date(context.game.state.startDate);
 
       // Effective Last Activity = max(player.lastSeenDate, game.state.startDate)
       // This ensures we don't mark players AFK immediately if they joined way before the game started.
-      const effectiveLastActivity = lastSeen.getTime() > gameStart.getTime() ? lastSeen : gameStart;
+      const effectiveLastActivity =
+        lastSeen.getTime() > gameStart.getTime() ? lastSeen : gameStart;
 
       if (now.getTime() - effectiveLastActivity.getTime() > AFK_TIMEOUT_MS) {
         player.status = PlayerStatus.AFK;
@@ -654,7 +657,8 @@ export const TickProcessor = {
         if (
           hex.unitId != null ||
           hex.planetId != null ||
-          hex.stationId != null
+          hex.stationId != null ||
+          MapUtils.isHexImpassable(hex)
         ) {
           continue;
         }

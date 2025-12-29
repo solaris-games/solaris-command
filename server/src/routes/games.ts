@@ -160,12 +160,14 @@ router.post(
         );
 
         for (const hex of territoryHexes) {
-          await HexService.updateHexOwnership(
-            req.game._id,
-            hex._id,
-            newPlayer._id,
-            session
-          );
+          if (!MapUtils.isHexImpassable(hex)) {
+            await HexService.updateHexOwnership(
+              req.game._id,
+              hex._id,
+              newPlayer._id,
+              session
+            );
+          }
         }
 
         // Increment (Blind update)
@@ -292,7 +294,7 @@ router.get("/:id", authenticateToken, loadGame, async (req, res) => {
       req.player = currentPlayer; // Feed this into middleware
 
       // Now touch the player to ensure the last seen date is updated.
-      await PlayerService.touchPlayer(req.game._id, req.player._id);
+      await PlayerService.touchPlayer(req.game._id, req.player);
     }
 
     const currentPlayerId = currentPlayer?._id || null;

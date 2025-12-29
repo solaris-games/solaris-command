@@ -45,7 +45,7 @@
       <v-circle
         v-for="source in supplySources"
         :key="source.id"
-        :config="getHexCircleConfig(source)"
+        :config="getSupplyHexCircleConfig(source)"
       />
     </v-group>
 
@@ -54,7 +54,7 @@
       <v-circle
         v-for="source in zocSources"
         :key="source.id"
-        :config="getHexCircleConfig(source)"
+        :config="getZOCHexCircleConfig(source)"
       />
     </v-group>
   </v-layer>
@@ -122,15 +122,15 @@ const zocSources = computed(() => {
 
   for (const hex of galaxyStore.hexes) {
     if (hex.zoc.length) {
-    const { x, y } = hexToPixel(hex.location.q, hex.location.r, HEX_SIZE);
-    sources.push({ id: `h-${hex._id}`, x, y, range: 0.3 });
+      const { x, y } = hexToPixel(hex.location.q, hex.location.r, HEX_SIZE);
+      sources.push({ id: `h-${hex._id}`, x, y, range: 0.05 });
     }
   }
 
   return sources;
 });
 
-function getHexCircleConfig(source: {
+function getSupplyHexCircleConfig(source: {
   x: number;
   y: number;
   range: number;
@@ -141,6 +141,21 @@ function getHexCircleConfig(source: {
     radius: source.range * HEX_WIDTH,
     fill: "rgba(0, 255, 0, 0.1)",
     stroke: "rgba(0, 255, 0, 0.3)",
+    strokeWidth: 2,
+    listening: false, // Click through
+  };
+}
+
+function getZOCHexCircleConfig(source: {
+  x: number;
+  y: number;
+  range: number;
+}) {
+  return {
+    x: source.x,
+    y: source.y,
+    radius: source.range * HEX_WIDTH,
+    fill: "rgba(255, 255, 255, 1)",
     strokeWidth: 2,
     listening: false, // Click through
   };
@@ -157,39 +172,35 @@ function getPolygonConfig(hex: APIHex) {
 
   // Basic ownership visualization if any
   if (hex.playerId) {
-    if (hex.playerId === galaxyStore.currentPlayerId) {
-      fill = "#1a2a1a"; // Slight green tint
-      stroke = "#4CAF50";
-    } else {
-      fill = "#2a1a1a"; // Slight red tint
-      stroke = "#F44336";
+    const player = galaxyStore.playerLookup!.get(String(hex.playerId))!;
+    fill = player.color;
+    stroke = "#FFFFFF";
+  } else {
+    // Terrain overrides
+    switch (hex.terrain) {
+      case TerrainTypes.ASTEROID_FIELD:
+        fill = "#3a3a3a";
+        break;
+      case TerrainTypes.DEBRIS_FIELD:
+        fill = "#4a2a2a";
+        break;
+      case TerrainTypes.NEBULA:
+        fill = "#2a1a3a";
+        break;
+      case TerrainTypes.GAS_CLOUD:
+        fill = "#1a3a2a";
+        break;
+      case TerrainTypes.GRAVITY_WELL:
+        fill = "#000000";
+        stroke = "#fff";
+        break;
+      case TerrainTypes.RADIATION_STORM:
+        fill = "#3a1a00";
+        break;
+      case TerrainTypes.INDUSTRIAL_ZONE:
+        fill = "#3a3a00";
+        break;
     }
-  }
-
-  // Terrain overrides
-  switch (hex.terrain) {
-    case TerrainTypes.ASTEROID_FIELD:
-      fill = "#3a3a3a";
-      break;
-    case TerrainTypes.DEBRIS_FIELD:
-      fill = "#4a2a2a";
-      break;
-    case TerrainTypes.NEBULA:
-      fill = "#2a1a3a";
-      break;
-    case TerrainTypes.GAS_CLOUD:
-      fill = "#1a3a2a";
-      break;
-    case TerrainTypes.GRAVITY_WELL:
-      fill = "#000000";
-      stroke = "#fff";
-      break;
-    case TerrainTypes.RADIATION_STORM:
-      fill = "#3a1a00";
-      break;
-    case TerrainTypes.INDUSTRIAL_ZONE:
-      fill = "#3a3a00";
-      break;
   }
 
   return {
@@ -199,6 +210,7 @@ function getPolygonConfig(hex: APIHex) {
     stroke: stroke,
     strokeWidth: 2,
     rotation: 60,
+    opacity: 0.5,
   };
 }
 

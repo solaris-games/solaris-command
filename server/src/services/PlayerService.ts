@@ -25,10 +25,7 @@ export class PlayerService {
     });
   }
 
-  static async getByGameAndPlayerId(
-    gameId: UnifiedId,
-    playerId: UnifiedId
-  ) {
+  static async getByGameAndPlayerId(gameId: UnifiedId, playerId: UnifiedId) {
     return PlayerModel.findOne({
       gameId: gameId,
       _id: playerId,
@@ -36,7 +33,9 @@ export class PlayerService {
   }
 
   static async findActivePlayersForUser(userId: UnifiedId) {
-    const activeGames = await GameModel.find({ "state.status": GameStates.ACTIVE });
+    const activeGames = await GameModel.find({
+      "state.status": GameStates.ACTIVE,
+    });
 
     return PlayerModel.find({
       gameId: { $in: activeGames.map((g) => g._id) },
@@ -46,7 +45,9 @@ export class PlayerService {
   }
 
   static async findPendingPlayersForUser(userId: UnifiedId) {
-    const pendingGames = await GameModel.find({ "state.status": GameStates.PENDING });
+    const pendingGames = await GameModel.find({
+      "state.status": GameStates.PENDING,
+    });
 
     return PlayerModel.find({
       gameId: { $in: pendingGames.map((g) => g._id) },
@@ -181,27 +182,18 @@ export class PlayerService {
     );
   }
 
-  static async touchPlayer(gameId: UnifiedId, playerId: UnifiedId) {
+  static async touchPlayer(gameId: UnifiedId, player: Player) {
     return PlayerModel.updateOne(
-      { gameId, _id: playerId },
-      [
-        {
-          $set: {
-            lastSeenDate: new Date(),
-          },
+      { gameId, _id: player._id },
+      {
+        $set: {
+          lastSeenDate: new Date(),
+          status:
+            player.status === PlayerStatus.AFK
+              ? PlayerStatus.ACTIVE
+              : player.status,
         },
-        {
-          $set: {
-            status: {
-              $cond: {
-                if: { $eq: ["$status", PlayerStatus.AFK] },
-                then: PlayerStatus.ACTIVE,
-                else: "$status",
-              },
-            },
-          },
-        },
-      ]
+      }
     );
   }
 }

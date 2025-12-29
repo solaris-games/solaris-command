@@ -29,7 +29,7 @@ export const loadPlayer = async (
     if (!player)
       return res.status(404).json({ errorCode: ERROR_CODES.PLAYER_NOT_FOUND });
 
-    await PlayerService.touchPlayer(new Types.ObjectId(gameId), player._id);
+    await PlayerService.touchPlayer(new Types.ObjectId(gameId), player);
 
     req.player = player;
   } catch (error) {

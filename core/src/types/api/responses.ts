@@ -79,6 +79,7 @@ export interface GameGalaxyResponseSchema {
     prestigePoints: number | null;
     victoryPoints: number | null;
     lastSeenDate: string;
+    renownToDistribute: number | null;
   }[];
   hexes: {
     _id: UnifiedId;
