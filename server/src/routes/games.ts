@@ -25,6 +25,7 @@ import {
   PlanetService,
   HexService,
   UnitService,
+  SocketService,
 } from "../services";
 import { GameMapper, GameGalaxyMapper } from "../map";
 import { Types } from "mongoose";
@@ -176,21 +177,23 @@ router.post(
         // Increment (Blind update)
         await GameService.addPlayerCount(gameId, session);
 
-        await GameService.createGameEvent(
-          GameEventFactory.create(
-            gameId,
-            null,
-            req.game.state.tick,
-            GameEventTypes.PLAYER_JOINED,
-            {
-              playerId: newPlayer._id,
-              alias: newPlayer.alias,
-              color: newPlayer.color,
-            },
-            () => new Types.ObjectId()
-          ),
-          session
+        const joinEvent = GameEventFactory.create(
+          gameId,
+          null,
+          req.game.state.tick,
+          GameEventTypes.PLAYER_JOINED,
+          {
+            playerId: newPlayer._id,
+            alias: newPlayer.alias,
+            color: newPlayer.color,
+          },
+          () => new Types.ObjectId()
         );
+
+        await GameService.createGameEvent(joinEvent, session);
+
+        // Publish to WebSocket
+        SocketService.publishToGame(gameId.toString(), GameEventTypes.PLAYER_JOINED, joinEvent);
 
         // Check Game Start (Using req.game count + 1 for current player)
         // Note: req.game.state.playerCount is old value. We add 1.
@@ -209,19 +212,21 @@ router.post(
             session
           );
 
-          await GameService.createGameEvent(
-            GameEventFactory.create(
-              gameId,
-              null,
+          const startEvent = GameEventFactory.create(
+            gameId,
+            null,
             req.game.state.tick,
-              GameEventTypes.GAME_STARTED,
-              {
-                startDate: startDate.toISOString(),
-              },
-              () => new Types.ObjectId()
-            ),
-            session
+            GameEventTypes.GAME_STARTED,
+            {
+              startDate: startDate.toISOString(),
+            },
+            () => new Types.ObjectId()
           );
+
+          await GameService.createGameEvent(startEvent, session);
+
+          // Publish to WebSocket
+          SocketService.publishToGame(gameId.toString(), GameEventTypes.GAME_STARTED, startEvent);
         }
 
         return newPlayer;

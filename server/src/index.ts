@@ -1,4 +1,5 @@
 import express from "express";
+import { createServer } from "http";
 import cors from "cors";
 import dotenv from "dotenv";
 
@@ -13,10 +14,12 @@ import unitRoutes from "./routes/units";
 import stationRoutes from "./routes/stations";
 import playerRoutes from "./routes/players";
 import { CreateGameJob } from "./cron/create-game";
+import { initSocket } from "./socket";
 
 dotenv.config();
 
 const app = express();
+const httpServer = createServer(app);
 const port = process.env.PORT || 3000;
 
 // ----- CORS -----
@@ -65,8 +68,10 @@ async function startServer() {
     GameLoop.start();
     CreateGameJob.start();
 
-    // 3. Start Express
-    app.listen(port, () => {
+    // 3. Start Express + Socket.IO
+    initSocket(httpServer);
+
+    httpServer.listen(port, () => {
       console.log(`🚀 Server running at http://localhost:${port}`);
     });
 
