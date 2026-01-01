@@ -25,7 +25,7 @@ export const COMBAT_RESULTS_TABLE: Record<number, CombatResultEntry> = {
   // --- Defender Dominates (-3 or less) ---
   [-3]: {
     attacker: { losses: 5, suppressed: 0 },
-    defender: { losses: 0, suppressed: 0, retreat: true },
+    defender: { losses: 0, suppressed: 0, retreat: false },
     resultType: CombatResultType.MISS,
   },
 
