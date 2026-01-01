@@ -542,6 +542,14 @@ router.post(
             newSteps,
             session
           );
+
+          // Give player back some prestige.
+          await PlayerService.incrementPrestigePoints(
+            req.game._id,
+            req.unit.playerId,
+            CONSTANTS.UNIT_STEP_SCRAP_PRESTIGE_REWARD,
+            session
+          );
         } else {
           const hex = await HexService.getByGameAndId(
             req.game._id,

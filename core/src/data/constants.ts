@@ -17,6 +17,7 @@ export const CONSTANTS = {
     UNIT_STEP_RECOVERY_RATE: 2, // Steps recovered per cycle
     UNIT_STEP_OOS_SUPPRESS_RATE: 2,
     UNIT_STEP_OOS_KILL_RATE: 3,
+    UNIT_STEP_SCRAP_PRESTIGE_REWARD: 10,
 
     // Vision
     PLANET_VISION_RANGE: 3,

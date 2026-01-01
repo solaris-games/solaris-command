@@ -208,8 +208,8 @@ describe("UnitManager", () => {
     });
   });
 
-  describe("scrapSteps (Rear)", () => {
-    it("should scrap steps from the back", () => {
+  describe("scrapSteps", () => {
+    it("should scrap steps from the front", () => {
       const steps = [
         { isSuppressed: false, specialistId: "A" },
         { isSuppressed: false, specialistId: "B" },
@@ -218,7 +218,7 @@ describe("UnitManager", () => {
       const result = UnitManager.scrapSteps(steps, 1);
 
       expect(result.length).toBe(1);
-      expect(result[0].specialistId).toBe("A");
+      expect(result[0].specialistId).toBe("B");
     });
   });
 });

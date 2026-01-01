@@ -27,11 +27,6 @@ export const UnitManager = {
 
     const isInSupply = unit.supply.isInSupply;
 
-    if (isInSupply) {
-      // The unit is now going to be supplied.
-      unit.supply.ticksLastSupply = 0;
-    }
-
     // 1. Initialize Logic Variables
     // Calculate Base Max Stats + Specialist Bonuses
     let calculatedMaxAP = unitCtlg.stats.maxAP;
@@ -44,19 +39,10 @@ export const UnitManager = {
     // 2. Handle Supply States (The "Stick" & "Carrot")
 
     if (isInSupply) {
-      // --- RECOVERY LOGIC ---
-      // Recover suppressed steps (FIFO - First In, First Out, or just simple iteration)
-      let recoveredCount = 0;
-      unit.steps = unit.steps.map((step) => {
-        if (
-          step.isSuppressed &&
-          recoveredCount < CONSTANTS.UNIT_STEP_RECOVERY_RATE
-        ) {
-          recoveredCount++;
-          return { ...step, isSuppressed: false };
-        }
-        return step;
-      });
+      unit.supply.ticksLastSupply = 0; // The unit has now be resupplied
+
+      // Recover steps
+      UnitManager.resupplyUnitSteps(unit);
     }
 
     // --- CALCULATE BONUSES (Post-Recovery) ---
@@ -275,16 +261,13 @@ export const UnitManager = {
   },
 
   /**
-   * SCRAP steps (Optional Economy Feature)
+   * Scrap steps
    * Allows a player to voluntarily remove steps to free up cap/resources.
-   * Should they be allowed to scrap from the Front (High damage/suppressed) or Back (New)?
-   * Usually, you scrap the oldest/most damaged first? Or specific indices?
-   * For simplicity: Scrapping removes from the REAR (canceling reinforcements).
    */
   scrapSteps(steps: UnitStep[], count: number): UnitStep[] {
     const remaining = [...steps];
     for (let i = 0; i < count; i++) {
-      remaining.pop(); // Remove from End
+      remaining.shift(); // Remove from front
     }
     return remaining;
   },
@@ -395,5 +378,21 @@ export const UnitManager = {
         });
       }
     }
+  },
+
+  resupplyUnitSteps(unit: Unit) {
+    // --- RECOVERY LOGIC ---
+    // Recover suppressed steps (FIFO - First In, First Out, or just simple iteration)
+    let recoveredCount = 0;
+    unit.steps = unit.steps.map((step) => {
+      if (
+        step.isSuppressed &&
+        recoveredCount < CONSTANTS.UNIT_STEP_RECOVERY_RATE
+      ) {
+        recoveredCount++;
+        return { ...step, isSuppressed: false };
+      }
+      return step;
+    });
   },
 };
