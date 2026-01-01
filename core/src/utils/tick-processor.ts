@@ -743,7 +743,7 @@ export const TickProcessor = {
     const liveUnits = context.units.filter((u) => UnitManager.unitIsAlive(u));
 
     for (const unit of liveUnits) {
-      MapUtils.addUnitHexZOC(unit, context.hexLookup);
+      UnitManager.addUnitHexZOC(unit, context.hexLookup);
     }
     // ----------
   },
@@ -768,11 +768,11 @@ export const TickProcessor = {
             return spec.type === SpecialistStepTypes.SCOUTS; // Active spec step is a scouts type
           }).length > 0;
 
-        return MapUtils.unitHasZOCInfluence(u) && hasActiveScoutStep;
+        return UnitManager.unitHasZOCInfluence(u) && hasActiveScoutStep;
       });
 
     for (const unit of scoutUnits) {
-      const zocHexes = MapUtils.getUnitHexZOC(unit, context.hexLookup);
+      const zocHexes = UnitManager.getUnitHexZOC(unit, context.hexLookup);
 
       for (const hex of zocHexes) {
         // Scouts cannot capture planets or stations and cannot capture if the hex

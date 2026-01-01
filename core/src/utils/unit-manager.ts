@@ -11,6 +11,7 @@ import {
   Planet,
   Unit,
   UnitStep,
+  HexCoordsId,
 } from "../types";
 import { HexUtils } from "./hex-utils";
 import { MapUtils } from "./map-utils";
@@ -77,12 +78,11 @@ export const UnitManager = {
       // If the unit has an active logistics specialist, then this "out of supply" value is deducted by 1.
       // This effectively allows the unit to be out of supply for 1 cycle longer than normal units.
       const hasActiveLogisticsStep =
-        UnitManager.getActiveSpecialistSteps(unit)
-          .filter((s) => {
-            const spec = SPECIALIST_STEP_ID_MAP.get(s.specialistId!)!;
+        UnitManager.getActiveSpecialistSteps(unit).filter((s) => {
+          const spec = SPECIALIST_STEP_ID_MAP.get(s.specialistId!)!;
 
-            return spec.type === SpecialistStepTypes.LOGISTICS; // Active spec step is a logistics type
-          }).length > 0;
+          return spec.type === SpecialistStepTypes.LOGISTICS; // Active spec step is a logistics type
+        }).length > 0;
 
       if (hasActiveLogisticsStep) {
         cyclesOOS = Math.max(0, cyclesOOS - 1);
@@ -338,5 +338,62 @@ export const UnitManager = {
 
   unitIsAlive(unit: Unit) {
     return unit.steps.length > 0;
+  },
+
+  unitHasZOCInfluence(unit: Unit) {
+    const unitCtlg = UNIT_CATALOG_ID_MAP.get(unit.catalogId)!;
+
+    if (!unitCtlg.stats.zoc) {
+      return false;
+    }
+
+    // Units with no active steps to not project a ZOC.
+    const hasActiveSteps = UnitManager.getActiveSteps(unit).length > 0;
+
+    if (!hasActiveSteps) {
+      return false;
+    }
+
+    return true;
+  },
+
+  getUnitHexZOC(unit: Unit, hexLookup: Map<HexCoordsId, Hex>): Hex[] {
+    if (!UnitManager.unitHasZOCInfluence(unit)) {
+      return [];
+    }
+
+    const hexes: Hex[] = [];
+
+    // Get all of the neighbors (plus the current hex) to get ZOC influence
+    const ZOCCoords = HexUtils.neighbors(unit.location).concat([unit.location]);
+
+    ZOCCoords.forEach((coords) => {
+      const hex = hexLookup.get(HexUtils.getCoordsID(coords));
+
+      // Note: Impassable hexes are not influenced by ZOC
+      if (hex && !MapUtils.isHexImpassable(hex)) {
+        hexes.push(hex);
+      }
+    });
+
+    return hexes;
+  },
+
+  addUnitHexZOC(unit: Unit, hexLookup: Map<HexCoordsId, Hex>) {
+    const hexes = UnitManager.getUnitHexZOC(unit, hexLookup);
+
+    for (const hex of hexes) {
+      // Make sure we don't duplicate
+      const existing = hex.zoc.find(
+        (z) => String(z.unitId) === String(unit._id)
+      );
+
+      if (!existing) {
+        hex.zoc.push({
+          playerId: unit.playerId,
+          unitId: unit._id,
+        });
+      }
+    }
   },
 };

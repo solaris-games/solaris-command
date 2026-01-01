@@ -7,7 +7,6 @@ import {
 } from "../data";
 import { HexCoords, HexCoordsId } from "../types/geometry";
 import { UnifiedId, Unit, Hex, Planet, TerrainTypes } from "../types";
-import { UnitManager } from "./unit-manager";
 
 export const MapUtils = {
   /**
@@ -32,23 +31,6 @@ export const MapUtils = {
    */
   isHexInEnemyZOC(hex: Hex, playerId: UnifiedId) {
     return hex.zoc.some((z) => String(z.playerId) !== String(playerId));
-  },
-
-  unitHasZOCInfluence(unit: Unit) {
-    const unitCtlg = UNIT_CATALOG_ID_MAP.get(unit.catalogId)!;
-
-    if (!unitCtlg.stats.zoc) {
-      return false;
-    }
-
-    // Units with no active steps to not project a ZOC.
-    const hasActiveSteps = UnitManager.getActiveSteps(unit).length > 0;
-
-    if (!hasActiveSteps) {
-      return false;
-    }
-
-    return true;
   },
 
   removeUnitHexZOC(unit: Unit, hexLookup: Map<HexCoordsId, Hex>) {
@@ -76,46 +58,6 @@ export const MapUtils = {
         }
       }
     });
-  },
-
-  getUnitHexZOC(unit: Unit, hexLookup: Map<HexCoordsId, Hex>): Hex[] {
-    if (!MapUtils.unitHasZOCInfluence(unit)) {
-      return [];
-    }
-
-    const hexes: Hex[] = [];
-
-    // Get all of the neighbors (plus the current hex) to get ZOC influence
-    const ZOCCoords = HexUtils.neighbors(unit.location).concat([unit.location]);
-
-    ZOCCoords.forEach((coords) => {
-      const hex = hexLookup.get(HexUtils.getCoordsID(coords));
-
-      // Note: Impassable hexes are not influenced by ZOC
-      if (hex && !MapUtils.isHexImpassable(hex)) {
-        hexes.push(hex);
-      }
-    });
-
-    return hexes;
-  },
-
-  addUnitHexZOC(unit: Unit, hexLookup: Map<HexCoordsId, Hex>) {
-    const hexes = MapUtils.getUnitHexZOC(unit, hexLookup);
-
-    for (const hex of hexes) {
-      // Make sure we don't duplicate
-      const existing = hex.zoc.find(
-        (z) => String(z.unitId) === String(unit._id)
-      );
-
-      if (!existing) {
-        hex.zoc.push({
-          playerId: unit.playerId,
-          unitId: unit._id,
-        });
-      }
-    }
   },
 
   isHexImpassable(hex: Hex): boolean {
