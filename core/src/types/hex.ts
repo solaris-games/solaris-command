@@ -51,5 +51,5 @@ export interface Hex {
     unitId: UnifiedId;
   }[];
 
-  // TODO: Add supply
+  // TODO: Add supply?
 }

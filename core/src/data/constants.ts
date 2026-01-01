@@ -17,6 +17,7 @@ export const CONSTANTS = {
     UNIT_STEP_RECOVERY_RATE: 2, // Steps recovered per cycle
     UNIT_STEP_OOS_SUPPRESS_RATE: 2,
     UNIT_STEP_OOS_KILL_RATE: 3,
+    UNIT_STEP_BASE_COST: 25,
     UNIT_STEP_SCRAP_PRESTIGE_REWARD: 10,
 
     // Vision
@@ -28,7 +29,6 @@ export const CONSTANTS = {
     
     // Game Creation / Settings
     GAME_STARTING_PRESTIGE_POINTS: 500,
-    GAME_UNIT_STANDARD_STEP_COST: 25,
     GAME_STARTING_WARMUP_PERIOD_MS: 0, // DEV MODE ONLY // 4 * 60 * 60 * 1000, // 4 hours
     GAME_DEFAULT_TICK_DURATION_MS: 1 * 1000 * 10, // DEV MODE ONLY // 1 * 60 * 60 * 1000, // 1 hour
     GAME_DEFAULT_TICKS_PER_CYCLE: 24,

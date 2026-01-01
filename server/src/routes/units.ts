@@ -443,7 +443,7 @@ router.post(
             .json({ errorCode: ERROR_CODES.UNIT_IS_AT_MAX_STEPS });
         }
 
-        cost = CONSTANTS.GAME_UNIT_STANDARD_STEP_COST; // TODO: Should be a game setting?
+        cost = CONSTANTS.UNIT_STEP_BASE_COST; // TODO: Should be a game setting?
 
         if (req.player.prestigePoints < cost) {
           return res

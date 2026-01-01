@@ -33,9 +33,6 @@ import { MapUtils } from "./map-utils";
 import { GameLeaderboardUtils } from "./game-leaderboard";
 import { GameEventFactory } from "../factories";
 
-// TODO: Split these into two files, tick-processor.ts and tick-cycle-processor.ts
-// This will make it more manageable to write unit tests for.
-
 export interface ProcessTickResult {
   gameEvents: GameEvent[]; // Events from tick processing (e.g combat reports)
   stationsToRemove: UnifiedId[]; // Captured stations to delete

@@ -29,12 +29,6 @@ export class GameGalaxyService {
   static async getGameGalaxy(game: Game, userId: UnifiedId) {
     const gameId = game._id;
 
-    // TODO: Optimize this to execute in parallel
-    // Mongoose models return Query objects which are thenable.
-    // However, Promise.all needs Promises. .find() returns a Query.
-    // Query.exec() returns a Promise.
-    // Note: await Model.find() also works.
-
     const [players, hexes, allUnits, planets, stations] = await Promise.all([
       PlayerService.getByGameId(gameId),
       HexService.getByGameId(gameId),

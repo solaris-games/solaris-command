@@ -47,6 +47,6 @@ const GameSchema = new Schema<Game>({
 });
 
 // Indexes
-GameSchema.index({ "state.status": 1 });
+GameSchema.index({ "state.status": 1, "settings.playerCount": 1 });
 
 export const GameModel = model<Game>("Game", GameSchema);

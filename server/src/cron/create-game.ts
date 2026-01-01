@@ -20,7 +20,7 @@ export const CreateGameJob = {
 
     cron.schedule(schedule, async () => {
       try {
-        await checkAndCreateGame();
+        await checkAndCreateGames();
       } catch (err) {
         console.error("🔥 Error in Create Official Game Job:", err);
       }
@@ -28,62 +28,75 @@ export const CreateGameJob = {
   },
 };
 
-async function checkAndCreateGame() {
-  // Check for any PENDING games
-  const pendingGame = await GameModel.findOne({
-    "state.status": GameStates.PENDING,
-  });
+async function checkAndCreateGames() {
+  // We want to have an official game for each of these player counts:
+  const playerCountPool = [2, 4, 8];
 
-  if (pendingGame) {
-    // A pending game exists, do nothing
-    return;
+  for (const playerCount of playerCountPool) {
+    const maps = GAME_MAPS.filter((map) => map.playerCount === playerCount);
+
+    // Double check we actually have any maps for the target player count yet.
+    if (!maps.length) {
+      continue;
+    }
+
+    // Check for any PENDING game for the target player count.
+    const pendingGame = await GameModel.findOne({
+      "state.status": GameStates.PENDING,
+      "settings.playerCount": playerCount,
+    });
+
+    if (pendingGame) {
+      // A pending game exists, do nothing
+      return;
+    }
+
+    console.log(`Creating new official game for ${playerCount} players...`);
+
+    // Pick a random map from the official pool for the target player count.
+    const randomMap = maps[Math.floor(Math.random() * maps.length)];
+    const gameName = GAME_NAMES[Math.floor(Math.random() * GAME_NAMES.length)];
+
+    const gameId = new Types.ObjectId();
+
+    const newGameData: Game = {
+      _id: gameId,
+      mapId: randomMap.id,
+      name: gameName,
+      description: "Official Server Game",
+      settings: {
+        tickDurationMS: CONSTANTS.GAME_DEFAULT_TICK_DURATION_MS,
+        ticksPerCycle: CONSTANTS.GAME_DEFAULT_TICKS_PER_CYCLE,
+        victoryPointsToWin: CONSTANTS.GAME_DEFAULT_VICTORY_POINTS, // TODO: Move into map?
+        playerCount,
+        combatVersion: "v1",
+        movementVersion: "v1",
+      },
+      state: {
+        status: GameStates.PENDING,
+        playerCount: 0,
+        tick: 0,
+        cycle: 0,
+        createdDate: new Date(),
+        startDate: null,
+        endDate: null,
+        lastTickDate: null,
+        winnerPlayerId: null,
+      },
+    };
+
+    const { hexes, planets } = MapGenerator.generateFromGameMap(
+      gameId,
+      randomMap,
+      () => new Types.ObjectId() // ID generator
+    );
+
+    await executeInTransaction(async (session) => {
+      await GameService.createGame(newGameData, session);
+      await HexService.insertHexes(hexes, session);
+      await PlanetService.insertPlanets(planets, session);
+    });
+
+    console.log(`✅ New official game created for ${playerCount} players.`);
   }
-
-  console.log("Creating new Offical Game...");
-
-  const map = GAME_MAPS[0]; // TODO: Pick a random map from an 'official' pool.
-
-  const gameName = GAME_NAMES[Math.floor(Math.random() * GAME_NAMES.length)];
-
-  const gameId = new Types.ObjectId();
-
-  const newGameData: Game = {
-    _id: gameId,
-    mapId: map.id,
-    name: gameName,
-    description: "Official Server Game",
-    settings: {
-      tickDurationMS: CONSTANTS.GAME_DEFAULT_TICK_DURATION_MS,
-      ticksPerCycle: CONSTANTS.GAME_DEFAULT_TICKS_PER_CYCLE,
-      victoryPointsToWin: CONSTANTS.GAME_DEFAULT_VICTORY_POINTS, // TODO: Move into map?
-      playerCount: map.playerCount,
-      combatVersion: "v1",
-      movementVersion: "v1",
-    },
-    state: {
-      status: GameStates.PENDING,
-      playerCount: 0,
-      tick: 0,
-      cycle: 0,
-      createdDate: new Date(),
-      startDate: null,
-      endDate: null,
-      lastTickDate: null,
-      winnerPlayerId: null,
-    },
-  };
-
-  const { hexes, planets } = MapGenerator.generateFromGameMap(
-    gameId,
-    map,
-    () => new Types.ObjectId() // ID generator
-  );
-
-  await executeInTransaction(async (session) => {
-    await GameService.createGame(newGameData, session);
-    await HexService.insertHexes(hexes, session);
-    await PlanetService.insertPlanets(planets, session);
-  });
-
-  console.log("✅ New game created.");
 }
