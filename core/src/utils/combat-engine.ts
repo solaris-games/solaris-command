@@ -145,8 +145,6 @@ export const CombatEngine = {
         UnitUtils.moveUnit(defender, defenderHex, retreatHex, null);
 
         // Successful Retreat
-        defender.state.status = UnitStatus.REGROUPING;
-
         defenderRetreated = true;
         outcome = CombatResultType.RETREAT;
       } else {
@@ -192,12 +190,6 @@ export const CombatEngine = {
 
       firstArtSpec.isSuppressed = true;
     }
-
-    // Set Cooldowns
-    if (attackerAlive) attacker.state.status = UnitStatus.REGROUPING;
-
-    if (defenderAlive && !defenderRetreated)
-      defender.state.status = UnitStatus.REGROUPING;
 
     // 10. Generate Report
     const report: CombatReport = {

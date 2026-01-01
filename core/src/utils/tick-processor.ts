@@ -267,7 +267,9 @@ export const TickProcessor = {
 
   processTickRegroupingUnitStatus(context: TickContext) {
     // Reset Action States
-    // If units were regrouping from the previous tick and were not involved in combat, then set them to idle now.
+
+    // If units were regrouping from the previous tick 
+    // and were NOT involved in combat, then set them to idle now.
     for (const [, unit] of context.preTickRegroupingUnits) {
       const isStillRegrouping = context.postTickRegroupingUnits.has(
         String(unit._id)
@@ -275,6 +277,16 @@ export const TickProcessor = {
 
       if (!isStillRegrouping) {
         unit.state.status = UnitStatus.IDLE;
+      }
+    }
+
+    // Unit combat takes 'regrouping' status into account when calculating
+    // combat shifts (defender disorganised) therefore we must change 
+    // the status' of units that have been involved in combat AFTER ALL 
+    // combat has resolved.
+    for (const [, unit] of context.postTickRegroupingUnits) {
+      if (unit.state.status !== UnitStatus.REGROUPING) {
+        unit.state.status = UnitStatus.REGROUPING;
       }
     }
   },
@@ -384,9 +396,12 @@ export const TickProcessor = {
             }
           );
 
-          attacker.state.status = UnitStatus.REGROUPING; // Attack fails/cancels
+          // Attack fails/cancels
           attacker.combat.hexId = null;
           attacker.combat.location = null;
+
+          // Set the unit to regrouping at the end of the tick.
+          context.postTickRegroupingUnits.set(String(attacker._id), attacker);
 
           continue;
         }
@@ -549,7 +564,9 @@ export const TickProcessor = {
       intent.unit.state.mp = Math.max(0, intent.unit.state.mp - mpCost); // Reduce MP
       intent.unit.movement.path = []; // Clear the path
       intent.unit.steps = UnitManager.suppressSteps(intent.unit.steps, 1); // Take damage
-      intent.unit.state.status = UnitStatus.REGROUPING; // Forced stop
+
+      // Set the unit to regrouping at the end of the tick (disorganised from forced stop)
+      context.postTickRegroupingUnits.set(String(intent.unit._id), intent.unit);
 
       context.appendGameEvent(
         intent.unit.playerId, // Owner of the unit
