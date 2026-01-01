@@ -15,7 +15,12 @@ import {
   requireCompletedGame,
   validateRequest,
 } from "../middleware";
-import { GameService, PlayerService, UserService } from "../services";
+import {
+  GameService,
+  PlayerService,
+  SocketService,
+  UserService,
+} from "../services";
 import { executeInTransaction, getDb } from "../db";
 import { Types } from "mongoose";
 
@@ -88,28 +93,40 @@ router.post(
           prestige,
         };
 
-        await GameService.createGameEvent(
-          GameEventFactory.create(
-            req.game._id,
-            req.player._id, // Sender
-            req.game.state.tick,
-            GameEventTypes.PLAYERS_TRADED_PRESTIGE,
-            eventPayload,
-            () => new Types.ObjectId()
-          ),
-          session
+        const tradeSenderEvent =
+          await GameService.createGameEvent(
+            GameEventFactory.create(
+              req.game._id,
+              req.player._id, // Sender
+              req.game.state.tick,
+              GameEventTypes.PLAYERS_TRADED_PRESTIGE,
+              eventPayload,
+              () => new Types.ObjectId()
+            ),
+            session
+          );
+
+        SocketService.publishEventToUser(
+          tradeSenderEvent,
+          req.player.userId
         );
 
-        await GameService.createGameEvent(
-          GameEventFactory.create(
-            req.game._id,
-            targetPlayer._id, // Recipient
-            req.game.state.tick,
-            GameEventTypes.PLAYERS_TRADED_PRESTIGE,
-            eventPayload,
-            () => new Types.ObjectId()
-          ),
-          session
+        const tradeRecipientEvent =
+          await GameService.createGameEvent(
+            GameEventFactory.create(
+              req.game._id,
+              targetPlayer._id, // Recipient
+              req.game.state.tick,
+              GameEventTypes.PLAYERS_TRADED_PRESTIGE,
+              eventPayload,
+              () => new Types.ObjectId()
+            ),
+            session
+          );
+
+        SocketService.publishEventToUser(
+          tradeRecipientEvent,
+          targetPlayer.userId
         );
       });
     } catch (error: any) {
@@ -188,7 +205,7 @@ router.post(
           renown,
         };
 
-        await GameService.createGameEvent(
+        const tradeSenderEvent = await GameService.createGameEvent(
           GameEventFactory.create(
             req.game._id,
             req.player._id, // Sender
@@ -200,7 +217,12 @@ router.post(
           session
         );
 
-        await GameService.createGameEvent(
+        SocketService.publishEventToUser(
+          tradeSenderEvent,
+          targetPlayer.userId
+        );
+
+        const tradeRecipientEvent = await GameService.createGameEvent(
           GameEventFactory.create(
             req.game._id,
             targetPlayer._id, // Recipient
@@ -210,6 +232,11 @@ router.post(
             () => new Types.ObjectId()
           ),
           session
+        );
+
+        SocketService.publishEventToUser(
+          tradeRecipientEvent,
+          targetPlayer.userId
         );
       });
     } catch (error: any) {

@@ -21,6 +21,7 @@ import {
   PlayerService,
   HexService,
   GameService,
+  SocketService,
 } from "../services";
 import { loadPlayerStation, loadStations } from "../middleware/station";
 import { executeInTransaction } from "../db";
@@ -108,7 +109,7 @@ router.post(
           session
         );
 
-        await GameService.createGameEvent(
+        const stationCreatedEvent = await GameService.createGameEvent(
           GameEventFactory.create(
             req.game._id,
             null, // Everyone
@@ -124,6 +125,8 @@ router.post(
           ),
           session
         );
+
+        SocketService.publishEventToGame(stationCreatedEvent);
 
         return station;
       });
@@ -165,7 +168,7 @@ router.delete(
           null
         );
 
-        await GameService.createGameEvent(
+        const stationDecommissionedEvent = await GameService.createGameEvent(
           GameEventFactory.create(
             req.game._id,
             null, // Everyone
@@ -181,6 +184,8 @@ router.delete(
           ),
           session
         );
+
+        SocketService.publishEventToGame(stationDecommissionedEvent);
       });
     } catch (error: any) {
       console.error("Error decomissioning station:", error);

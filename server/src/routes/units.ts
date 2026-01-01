@@ -156,6 +156,9 @@ router.post(
           session
         );
 
+        // TODO: Unit deployed websocket is tricky since we need to send only
+        // to players who have vision on the hex.
+
         return unit;
       });
 

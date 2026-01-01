@@ -177,20 +177,21 @@ router.post(
         // Increment (Blind update)
         await GameService.addPlayerCount(gameId, session);
 
-        const joinEvent = GameEventFactory.create(
-          gameId,
-          null,
-          req.game.state.tick,
-          GameEventTypes.PLAYER_JOINED,
-          {
-            playerId: newPlayer._id,
-            alias: newPlayer.alias,
-            color: newPlayer.color,
-          },
-          () => new Types.ObjectId()
+        const joinEvent = await GameService.createGameEvent(
+          GameEventFactory.create(
+            gameId,
+            null,
+            req.game.state.tick,
+            GameEventTypes.PLAYER_JOINED,
+            {
+              playerId: newPlayer._id,
+              alias: newPlayer.alias,
+              color: newPlayer.color,
+            },
+            () => new Types.ObjectId()
+          ),
+          session
         );
-
-        await GameService.createGameEvent(joinEvent, session);
 
         // Publish to WebSocket
         SocketService.publishEventToGame(joinEvent);
@@ -212,18 +213,19 @@ router.post(
             session
           );
 
-          const startEvent = GameEventFactory.create(
-            gameId,
-            null,
-            req.game.state.tick,
-            GameEventTypes.GAME_STARTED,
-            {
-              startDate: startDate.toISOString(),
-            },
-            () => new Types.ObjectId()
+          const startEvent = await GameService.createGameEvent(
+            GameEventFactory.create(
+              gameId,
+              null,
+              req.game.state.tick,
+              GameEventTypes.GAME_STARTED,
+              {
+                startDate: startDate.toISOString(),
+              },
+              () => new Types.ObjectId()
+            ),
+            session
           );
-
-          await GameService.createGameEvent(startEvent, session);
 
           // Publish to WebSocket
           SocketService.publishEventToGame(startEvent);
@@ -285,7 +287,7 @@ router.post(
         );
         await GameService.deductPlayerCount(req.game._id, session);
 
-        await GameService.createGameEvent(
+        const playerLeftEvent = await GameService.createGameEvent(
           GameEventFactory.create(
             req.game._id,
             null,
@@ -300,6 +302,8 @@ router.post(
           ),
           session
         );
+
+        SocketService.publishEventToGame(playerLeftEvent);
       });
     } catch (error) {
       console.error("Error leaving game:", error);
@@ -325,7 +329,7 @@ router.post(
       await executeInTransaction(async (session) => {
         await PlayerService.concedeGame(req.game._id, req.player._id);
 
-        await GameService.createGameEvent(
+        const playerConcededEvent = await GameService.createGameEvent(
           GameEventFactory.create(
             req.game._id,
             null,
@@ -340,6 +344,8 @@ router.post(
           ),
           session
         );
+
+        SocketService.publishEventToGame(playerConcededEvent);
       });
     } catch (error) {
       console.error("Error conceding game:", error);

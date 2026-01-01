@@ -12,7 +12,7 @@ import {
   UnitManager,
   GameLeaderboardUtils,
 } from "@solaris-command/core";
-import { GameService, UserService } from "../services";
+import { GameService, SocketService, UserService } from "../services";
 import { executeInTransaction } from "../db/instance";
 import {
   GameModel,
@@ -88,6 +88,9 @@ async function processActiveGames() {
           `⚡ Processing Tick ${gameId.state.tick + 1} for Game ${gameId._id}`
         );
 
+        // Publish to websocket so that clients are aware that the game tick is currently being processed.
+        SocketService.publishToGame(gameModel._id, "TICK_STARTED", {});
+
         // Load the game right at the start of the tick so there is minimal delay.
         gameModel = (await GameService.getById(gameId._id))!;
 
@@ -104,6 +107,9 @@ async function processActiveGames() {
 
         const tickEnd = Date.now();
         const totalTime = (tickEnd - now) / 1000;
+
+        // Publish to websocket so that clients can refresh.
+        SocketService.publishToGame(gameModel._id, "TICK_COMPLETED", {});
 
         console.log(`✅ Tick Complete - ${totalTime}s`);
       }
