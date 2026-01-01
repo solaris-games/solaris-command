@@ -187,6 +187,23 @@ describe("CombatCalculator", () => {
   });
 
   describe("calculateShifts", () => {
+    it("should apply defender disorganised shift", () => {
+      const attacker = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5);
+      const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5);
+      const emptyHex = createHex(TerrainTypes.EMPTY);
+
+      defender.state.status = UnitStatus.REGROUPING;
+
+      const result = CombatCalculator.calculate(attacker, defender, emptyHex);
+
+      const shift = result.shifts.find(
+        (s) => s.type === CombatShiftType.DEFENDER_DISORGANISED
+      );
+      expect(shift).toBeDefined();
+      expect(shift?.value).toBe(1);
+      expect(result.finalScore).toBe(1); // 0 (Odds) + 1 (Shift)
+    });
+
     it("should apply Terrain Shifts", () => {
       const attacker = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5);
       const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5);

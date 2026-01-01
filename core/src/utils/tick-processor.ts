@@ -58,6 +58,12 @@ export class TickContext {
   planetLookup: Map<HexCoordsId, Planet>;
   stationLookup: Map<HexCoordsId, Station>;
 
+  // We need to track units that are regrouping from the previous tick.
+  // Combat acts on regrouping units so we'll use the raw status of the unit in the combat phase,
+  // and then reset any regrouping units that were not in combat back to idle at the end of the tick.
+  preTickRegroupingUnits: Map<string, Unit>;
+  postTickRegroupingUnits: Map<string, Unit>;
+
   // --- OUTPUT CONTAINERS ---
   gameEvents: GameEvent[] = [];
   stationsToRemove: UnifiedId[] = [];
@@ -105,6 +111,12 @@ export class TickContext {
     stations.forEach((s) =>
       this.stationLookup.set(HexUtils.getCoordsID(s.location), s)
     );
+
+    this.postTickRegroupingUnits = new Map<string, Unit>();
+    this.preTickRegroupingUnits = new Map<string, Unit>();
+    units
+      .filter((u) => u.state.status === UnitStatus.REGROUPING)
+      .forEach((u) => this.preTickRegroupingUnits.set(String(u._id), u));
   }
 
   appendGameEvent(playerId: UnifiedId | null, type: GameEventTypes, data: any) {
@@ -226,7 +238,6 @@ export const TickProcessor = {
       context.game.state.tick % context.game.settings.ticksPerCycle === 0;
 
     TickProcessor.processTickPlayerAFK(context);
-    TickProcessor.processTickRegroupingUnitStatus(context);
     TickProcessor.processHexRadiationStorms(context);
     TickProcessor.processTickUnitCombat(context);
     TickProcessor.processTickUnitMovement(context);
@@ -244,6 +255,7 @@ export const TickProcessor = {
 
     TickProcessor.processHexZOC(context);
     TickProcessor.processUnitScoutsHexCapture(context);
+    TickProcessor.processTickRegroupingUnitStatus(context);
     TickProcessor.processTickWinnerCheck(context);
 
     return {
@@ -255,9 +267,13 @@ export const TickProcessor = {
 
   processTickRegroupingUnitStatus(context: TickContext) {
     // Reset Action States
-    // If units were regrouping from the previous tick, then set them to idle now.
-    for (const unit of context.units) {
-      if (unit.state.status === UnitStatus.REGROUPING) {
+    // If units were regrouping from the previous tick and were not involved in combat, then set them to idle now.
+    for (const [, unit] of context.preTickRegroupingUnits) {
+      const isStillRegrouping = context.postTickRegroupingUnits.has(
+        String(unit._id)
+      );
+
+      if (!isStillRegrouping) {
         unit.state.status = UnitStatus.IDLE;
       }
     }
@@ -408,6 +424,20 @@ export const TickProcessor = {
           GameEventTypes.COMBAT_REPORT,
           battleResult.report
         );
+
+        // Keep track of which units are regrouping
+        if (
+          UnitManager.unitIsAlive(defender) &&
+          !context.postTickRegroupingUnits.has(String(defender._id))
+        ) {
+          context.postTickRegroupingUnits.set(String(defender._id), defender);
+        }
+        if (
+          UnitManager.unitIsAlive(attacker) &&
+          !context.postTickRegroupingUnits.has(String(attacker._id))
+        ) {
+          context.postTickRegroupingUnits.set(String(attacker._id), attacker);
+        }
 
         // Defender:
         if (!UnitManager.unitIsAlive(defender)) {

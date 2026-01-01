@@ -5,6 +5,7 @@ import {
   COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE,
   CONSTANTS,
   COMBAT_SHIFT_PLANETS,
+  COMBAT_SHIFT_DEFENDER_DISORGANISED,
 } from "../data";
 import {
   Unit,
@@ -15,6 +16,7 @@ import {
   CombatOperation,
   CombatResultType,
   CombatForcedResult,
+  UnitStatus,
 } from "../types";
 import { UnitManager } from "./unit-manager";
 
@@ -115,6 +117,11 @@ export const CombatCalculator = {
    */
   calculateShifts(attacker: Unit, defender: Unit, hex: Hex): CombatShift[] {
     let shifts: CombatShift[] = [];
+
+    // --- Defender disorganised shift (Attacker bonus) ---
+    if (defender.state.status === UnitStatus.REGROUPING) {
+      shifts.push(COMBAT_SHIFT_DEFENDER_DISORGANISED)
+    }
 
     // --- Planet Shift (Defender Bonus) ---
     const planetShift = hex.planetId != null;

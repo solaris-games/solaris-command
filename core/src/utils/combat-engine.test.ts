@@ -176,6 +176,10 @@ describe("CombatEngine", () => {
         expect.anything(),
         1
       ); // Defender
+
+      // Attacker and defender should be regrouping.
+      expect(defender.state.status).toBe(UnitStatus.REGROUPING);
+      expect(attacker.state.status).toBe(UnitStatus.REGROUPING);
     });
 
     it("should use CombatTables result if no forcedResult (Standard Attack)", () => {
@@ -211,6 +215,10 @@ describe("CombatEngine", () => {
 
       // Verify Damage
       expect(UnitUtils.killSteps).toHaveBeenCalledWith(expect.anything(), 1); // Defender loses 1 step
+
+      // Attacker and defender should be regrouping.
+      expect(defender.state.status).toBe(UnitStatus.REGROUPING);
+      expect(attacker.state.status).toBe(UnitStatus.REGROUPING);
     });
 
     it("should kill and suppress steps based on combat table result (Standard Attack)", () => {

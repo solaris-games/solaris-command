@@ -17,6 +17,7 @@ export enum CombatShiftType {
   ENTRENCHMENT = "ENTRENCHMENT",
   FORTIFICATIONS = "FORTIFICATIONS",
   SIEGE = "SIEGE",
+  DEFENDER_DISORGANISED = "DEFENDER_DISORGANISED"
 }
 
 export enum CombatOperation {
