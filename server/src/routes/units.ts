@@ -20,6 +20,7 @@ import {
   UnitFactory,
   GameEventFactory,
   GameEventTypes,
+  SpecialistStepTypes,
 } from "@solaris-command/core";
 import {
   loadGame,
@@ -101,12 +102,13 @@ router.post(
           .json({ errorCode: ERROR_CODES.PLAYER_INSUFFICIENT_PRESTIGE });
       }
 
-      // Generate initial steps using helper
-      // "New units spawn ... They spawn with All Steps Suppressed." - GDD
+      // Generate initial steps. All but one should be suppressed.
       const initialSteps = UnitManager.addSteps(
         [],
         unitCtlg.stats.defaultSteps
       );
+
+      initialSteps[0].isSuppressed = false; // The first step should not be suppressed.
 
       const newUnit = UnitFactory.create(
         catalogId,
@@ -468,6 +470,14 @@ router.post(
           return res
             .status(400)
             .json({ errorCode: ERROR_CODES.UNIT_IS_AT_MAX_STEPS });
+        }
+
+        // If the user is trying to purchase a scout specialist then we need to check that
+        // the unit can project a ZOC.
+        if (spec.type === SpecialistStepTypes.SCOUTS && !unitTemplate.stats.zoc) {
+          return res
+            .status(400)
+            .json({ errorCode: ERROR_CODES.UNIT_DOES_NOT_PROJECT_ZOC });
         }
 
         cost = spec.cost;

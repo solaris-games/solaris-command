@@ -3,6 +3,7 @@ import {
   Hex,
   HexCoords,
   HexUtils,
+  TerrainTypes,
   UnifiedId,
   Unit,
   UNIT_CATALOG_ID_MAP,
@@ -114,6 +115,9 @@ export class HexService {
       "location.q": c.q,
       "location.r": c.r,
       "location.s": c.s,
+      terrain: {
+        $ne: TerrainTypes.GRAVITY_WELL // Not impassible
+      }
     }));
 
     // We update all hexes matching the coordinates in the game

@@ -196,7 +196,7 @@ There is no complex resource management (metal/crystal). The currency is **Prest
 ### Deployment & Reconstitution
 
 - **New Deployment:** Players spend Prestige to deploy new units.
-  - _Rule:_ New units spawn adjacent to any player owned planet. **They spawn with All Steps Suppressed.** They require supply cycles to become combat-ready.
+  - _Rule:_ New units spawn adjacent to any player owned planet. **They spawn with all but one step suppressed.** They require supply cycles to become combat-ready.
 - **Reinforcement:** Prestige can purchase **Specialist Steps** or replace lost standard steps. These also spawn/attach in a Suppressed state.
 - **Scrapping:** Players can decommission units or individual steps and small amount of prestige will be returned to the player.
 

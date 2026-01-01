@@ -209,7 +209,7 @@ export const CombatEngine = {
       hexId: defenderHex._id,
       location: defenderHex.location,
       odds: `${prediction.oddsRatio}:1`,
-      roll: prediction.finalScore, // The "Net Score"
+      finalScore: prediction.finalScore, // The "Net Score"
       outcome,
       attacker: {
         combatValue: prediction.attackPower,

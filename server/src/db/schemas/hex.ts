@@ -36,7 +36,7 @@ const HexSchema = new Schema<Hex>({
 
 // Indexes
 HexSchema.index(
-  { gameId: 1, "location.q": 1, "location.r": 1, "location.s": 1 },
+  { gameId: 1, "location.q": 1, "location.r": 1, "location.s": 1, terrain: 1 },
   { unique: true }
 );
 HexSchema.index({ gameId: 1 });

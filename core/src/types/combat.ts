@@ -60,7 +60,7 @@ export interface CombatReport {
 
   // The "Dice Roll" outcome
   odds: string; // e.g. "3:1"
-  roll: number;
+  finalScore: number;
   outcome: CombatResultType;
 
   attacker: {

@@ -27,7 +27,7 @@ export interface CombatPrediction {
   oddsScore: number; // The base score derived from ratio (e.g. +1)
   shifts: CombatShift[];
   finalScore: number;
-  forcedResult: CombatForcedResult | null; // If set, this result is applied directly without a dice roll
+  forcedResult: CombatForcedResult | null; // If set, this result is applied directly
 }
 
 export const CombatCalculator = {

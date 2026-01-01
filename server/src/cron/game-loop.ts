@@ -88,11 +88,11 @@ async function processActiveGames() {
           `⚡ Processing Tick ${gameId.state.tick + 1} for Game ${gameId._id}`
         );
 
-        // Publish to websocket so that clients are aware that the game tick is currently being processed.
-        SocketService.publishToGame(gameModel._id, "TICK_STARTED", {});
-
         // Load the game right at the start of the tick so there is minimal delay.
         gameModel = (await GameService.getById(gameId._id))!;
+
+        // Publish to websocket so that clients are aware that the game tick is currently being processed.
+        SocketService.publishToGame(gameModel._id, "TICK_STARTED", {});
 
         gameModel.state.lastTickDate = new Date(nextTickTime); // Set the tick time here to prevent clock drift
         gameModel.state.status = GameStates.LOCKED;
