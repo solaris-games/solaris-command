@@ -1,4 +1,3 @@
-export * from "./maps";
 export * from "./combat-tables";
 export * from "./constants";
 export * from "./error-codes";

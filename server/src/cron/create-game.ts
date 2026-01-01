@@ -5,12 +5,12 @@ import {
   GameStates,
   Game,
   GAME_NAMES,
-  MapGenerator,
-  GAME_MAPS,
+  MapGenerator
 } from "@solaris-command/core";
 import { executeInTransaction } from "../db";
 import { GameService, HexService, PlanetService } from "../services";
 import { GameModel } from "../db/schemas/game";
+import { GAME_MAPS } from "../data";
 
 export const CreateGameJob = {
   start() {
@@ -48,7 +48,7 @@ async function checkAndCreateGames() {
 
     if (pendingGame) {
       // A pending game exists, do nothing
-      return;
+      continue;
     }
 
     console.log(`Creating new official game for ${playerCount} players...`);
