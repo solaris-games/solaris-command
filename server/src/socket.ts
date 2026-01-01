@@ -15,8 +15,6 @@ const allowedOrigins = [
 interface AuthenticatedSocket extends Socket {
   user?: {
     _id: string;
-    email: string;
-    alias?: string;
   };
 }
 
@@ -31,8 +29,7 @@ export const initSocket = (httpServer: HttpServer) => {
 
   // Authentication Middleware
   io.use((socket: AuthenticatedSocket, next) => {
-    const token =
-      socket.handshake.auth.token || socket.handshake.query.token;
+    const token = socket.handshake.auth.token || socket.handshake.query.token;
 
     if (!token) {
       return next(new Error("Authentication error: No token provided"));
@@ -52,16 +49,16 @@ export const initSocket = (httpServer: HttpServer) => {
         // The API middleware checks DB, so let's do it here too for safety.
 
         // Note: We need to be careful about async inside middleware if it takes too long
-        const dbUser = await UserService.getUserById(new Types.ObjectId(decoded.id));
+        const dbUser = await UserService.getUserById(
+          new Types.ObjectId(decoded.id)
+        );
 
         if (!dbUser) {
-           return next(new Error("Authentication error: User not found"));
+          return next(new Error("Authentication error: User not found"));
         }
 
         socket.user = {
-          _id: dbUser._id.toString(),
-          email: dbUser.email,
-          alias: dbUser.settings?.alias
+          _id: String(dbUser._id),
         };
 
         next();
@@ -88,16 +85,20 @@ export const initSocket = (httpServer: HttpServer) => {
       // For now trust the client, but in production we might want to verify access rights
       const gameRoom = `game:${gameId}`;
       socket.join(gameRoom);
-      console.log(`Socket ${socket.id} (User: ${socket.user?._id}) joined ${gameRoom}`);
+      console.log(
+        `Socket ${socket.id} (User: ${socket.user?._id}) joined ${gameRoom}`
+      );
 
       // Acknowledge join
       socket.emit("game_joined", { gameId });
     });
 
     socket.on("leave_game", (gameId: string) => {
-        const gameRoom = `game:${gameId}`;
-        socket.leave(gameRoom);
-        console.log(`Socket ${socket.id} (User: ${socket.user?._id}) left ${gameRoom}`);
+      const gameRoom = `game:${gameId}`;
+      socket.leave(gameRoom);
+      console.log(
+        `Socket ${socket.id} (User: ${socket.user?._id}) left ${gameRoom}`
+      );
     });
 
     socket.on("disconnect", () => {
@@ -105,13 +106,13 @@ export const initSocket = (httpServer: HttpServer) => {
     });
   });
 
-  console.log("Socket.IO initialized");
+  console.log("📢 Socket.IO initialized");
   return io;
 };
 
 export const getIO = () => {
   if (!io) {
-    throw new Error("Socket.IO not initialized!");
+    throw new Error("📢 Socket.IO not initialized!");
   }
   return io;
 };

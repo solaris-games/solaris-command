@@ -193,7 +193,7 @@ router.post(
         await GameService.createGameEvent(joinEvent, session);
 
         // Publish to WebSocket
-        SocketService.publishToGame(gameId.toString(), GameEventTypes.PLAYER_JOINED, joinEvent);
+        SocketService.publishEventToGame(joinEvent);
 
         // Check Game Start (Using req.game count + 1 for current player)
         // Note: req.game.state.playerCount is old value. We add 1.
@@ -226,7 +226,7 @@ router.post(
           await GameService.createGameEvent(startEvent, session);
 
           // Publish to WebSocket
-          SocketService.publishToGame(gameId.toString(), GameEventTypes.GAME_STARTED, startEvent);
+          SocketService.publishEventToGame(startEvent);
         }
 
         return newPlayer;
