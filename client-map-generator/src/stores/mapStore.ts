@@ -1,5 +1,4 @@
 import { reactive } from 'vue';
-// import { TerrainTypes } from '@solaris-command/core';
 import { TerrainTypes } from '@solaris-command/core/src/types/hex';
 
 // We need a partial hex type that fits our needs (we don't need all DB fields)

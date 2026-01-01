@@ -6,17 +6,24 @@
 </template>
 
 <script setup lang="ts">
-import ControlPanel from './components/ControlPanel.vue';
-import HexMap from './components/HexMap.vue';
-import { mapStore } from './stores/mapStore';
-import { Hex, Planet } from '@solaris-command/core';
+import ControlPanel from "./components/ControlPanel.vue";
+import HexMap from "./components/HexMap.vue";
+import { mapStore } from "./stores/mapStore";
+import { Hex } from "@solaris-command/core/src/types/hex";
+import { Planet } from "@solaris-command/core/src/types/planet";
 
 function handleSave() {
-  const capitals = Array.from(mapStore.hexes.values()).filter(h => h.isCapital).length;
+  const capitals = Array.from(mapStore.hexes.values()).filter(
+    (h) => h.isCapital
+  ).length;
 
   if (capitals !== mapStore.playerCount) {
-    console.warn(`Validation Warning: Found ${capitals} capitals, expected ${mapStore.playerCount}.`);
-    alert(`Warning: You have ${capitals} capital planets, but Player Count is ${mapStore.playerCount}. Please correct this before using the map.`);
+    console.warn(
+      `Validation Warning: Found ${capitals} capitals, expected ${mapStore.playerCount}.`
+    );
+    alert(
+      `Warning: You have ${capitals} capital planets, but Player Count is ${mapStore.playerCount}. Please correct this before using the map.`
+    );
   }
 
   const hexesOutput = [];
@@ -25,7 +32,7 @@ function handleSave() {
   for (const hex of mapStore.hexes.values()) {
     const hexObj: Partial<Hex> = {
       location: { q: hex.q, r: hex.r, s: hex.s },
-      terrain: hex.terrain
+      terrain: hex.terrain,
     };
 
     hexesOutput.push(hexObj);
@@ -45,13 +52,13 @@ function handleSave() {
     radius: mapStore.radius,
     playerCount: mapStore.playerCount,
     hexes: hexesOutput,
-    planets: planetsOutput
+    planets: planetsOutput,
   };
 
-  console.log('--- MAP EXPORT ---');
+  console.log("--- MAP EXPORT ---");
   console.log(JSON.stringify(output, null, 2));
-  console.log('------------------');
-  alert('Map data exported to console!');
+  console.log("------------------");
+  alert("Map data exported to console!");
 }
 </script>
 

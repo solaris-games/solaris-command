@@ -5,12 +5,12 @@ import {
   GameStates,
   Game,
   GAME_NAMES,
-  MapGenerator
+  MapGenerator,
+  GAME_MAPS
 } from "@solaris-command/core";
 import { executeInTransaction } from "../db";
 import { GameService, HexService, PlanetService } from "../services";
 import { GameModel } from "../db/schemas/game";
-import { GAME_MAPS } from "../data";
 
 export const CreateGameJob = {
   start() {

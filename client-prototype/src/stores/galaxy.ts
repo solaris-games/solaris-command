@@ -2,7 +2,8 @@ import { defineStore } from "pinia";
 import axios from "axios";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
 import type { HexCoords } from "@solaris-command/core/src/types/geometry";
-import { Player, UnifiedId } from "@solaris-command/core";
+import { Player } from "@solaris-command/core/src/types/player";
+import { UnifiedId } from "@solaris-command/core/src/types/unified-id";
 
 interface SelectedItem {
   type: "HEX" | "UNIT" | "STATION" | "PLANET";

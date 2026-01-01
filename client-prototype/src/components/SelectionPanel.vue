@@ -75,7 +75,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useGalaxyStore } from '../stores/galaxy';
-import { UNIT_CATALOG } from '@solaris-command/core';
+import { UNIT_CATALOG } from "@solaris-command/core/src/data/units";
 
 const galaxyStore = useGalaxyStore();
 const selectedUnitId = ref('');

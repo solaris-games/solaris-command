@@ -64,9 +64,10 @@
 import { computed } from "vue";
 import { useGalaxyStore } from "../stores/galaxy";
 import { hexToPixel } from "../utils/hexUtils";
-import { TerrainTypes } from "@solaris-command/core";
-import type { GameGalaxyResponseSchema } from "@solaris-command/core";
-import { HexUtils, SupplyEngine } from "@solaris-command/core";
+import { TerrainTypes } from "@solaris-command/core/src/types/hex";
+import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api";
+import { HexUtils } from "@solaris-command/core/src/utils/hex-utils";
+import { SupplyEngine } from "@solaris-command/core/src/utils/supply-engine";
 
 type APIHex = GameGalaxyResponseSchema["hexes"][0];
 type APIUnit = GameGalaxyResponseSchema["units"][0];

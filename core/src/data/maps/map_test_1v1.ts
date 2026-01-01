@@ -1,4 +1,4 @@
-import { GameMap, TerrainTypes } from "@solaris-command/core";
+import { GameMap, TerrainTypes } from "../../types";
 
 export const GAME_MAP_TEST_1V1: GameMap = {
   id: "test_1v1",

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
-import type { GameListItemResponseSchema } from '@solaris-command/core';
+import type { GameListItemResponseSchema } from '@solaris-command/core/src/types/api';
 
 // Use the exact type from the response schema
 type Game = GameListItemResponseSchema;

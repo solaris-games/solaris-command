@@ -41,7 +41,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, onUnmounted, watch } from 'vue';
 import { mapStore, EditorHex } from '../stores/mapStore';
-// import { TerrainTypes } from '@solaris-command/core';
 import { TerrainTypes } from '@solaris-command/core/src/types/hex';
 import { hexToPixel } from '../utils/hexUtils';
 
