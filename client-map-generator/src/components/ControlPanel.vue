@@ -30,6 +30,14 @@
       />
     </div>
 
+    <div class="form-group">
+      <label>Victory Points to Win</label>
+      <input
+        type="number"
+        v-model="mapStore.victoryPointsToWin"
+      />
+    </div>
+
     <button @click="generate" class="action-btn generate-btn">Generate Map</button>
     <button @click="reset" class="action-btn reset-btn">Reset</button>
 

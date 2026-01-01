@@ -4,6 +4,7 @@ import { HexCoords } from "./geometry";
 export interface GameMap {
   id: string;
   playerCount: number;
+  victoryPointsToWin: number;
   hexes: {
     location: HexCoords,
     terrain: TerrainTypes

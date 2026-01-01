@@ -67,7 +67,7 @@ async function checkAndCreateGames() {
       settings: {
         tickDurationMS: CONSTANTS.GAME_DEFAULT_TICK_DURATION_MS,
         ticksPerCycle: CONSTANTS.GAME_DEFAULT_TICKS_PER_CYCLE,
-        victoryPointsToWin: CONSTANTS.GAME_DEFAULT_VICTORY_POINTS, // TODO: Move into map?
+        victoryPointsToWin: randomMap.victoryPointsToWin,
         playerCount,
         combatVersion: "v1",
         movementVersion: "v1",

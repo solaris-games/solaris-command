@@ -51,6 +51,7 @@ function handleSave() {
     id: mapStore.mapId,
     radius: mapStore.radius,
     playerCount: mapStore.playerCount,
+    victoryPointsToWin: mapStore.victoryPointsToWin,
     hexes: hexesOutput,
     planets: planetsOutput,
   };

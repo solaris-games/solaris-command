@@ -1,5 +1,6 @@
 import { reactive } from 'vue';
 import { TerrainTypes } from '@solaris-command/core/src/types/hex';
+import { CONSTANTS } from '@solaris-command/core/src/data/constants';
 
 // We need a partial hex type that fits our needs (we don't need all DB fields)
 // But strictly we want to output Partial<Hex> and Partial<Planet>
@@ -18,6 +19,7 @@ interface MapState {
   radius: number;
   playerCount: number;
   mapId: string;
+  victoryPointsToWin: number;
   hexes: Map<string, EditorHex>; // Key is "q,r,s"
 
   selectedTerrain: TerrainTypes | 'PLANET' | 'CAPITAL' | null;
@@ -28,6 +30,7 @@ export const mapStore = reactive<MapState>({
   playerCount: 2,
   mapId: 'new-map',
   hexes: new Map(),
+  victoryPointsToWin: CONSTANTS.GAME_DEFAULT_VICTORY_POINTS_TO_WIN,
   selectedTerrain: TerrainTypes.EMPTY
 });
 
