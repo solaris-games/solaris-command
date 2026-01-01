@@ -71,6 +71,7 @@ Send a `POST` request to `/api/v1/auth/dev`:
 **Body**:
 ```json
 {
+  "email": "commander_shepard@dev.local",
   "username": "commander_shepard"
 }
 ```
@@ -80,8 +81,8 @@ Send a `POST` request to `/api/v1/auth/dev`:
 {
   "user": {
     "_id": "...",
-    "username": "commander_shepard",
     "email": "commander_shepard@dev.local",
+    "username": "commander_shepard",
     ...
   },
   "token": "eyJhbGciOiJIUzI1NiIs..."
@@ -97,7 +98,6 @@ The API is RESTful and versioned.
 *   **Base URL**: `/api/v1`
 *   **Key Endpoints**:
     *   `GET /api/v1/games`: List active games.
-    *   `POST /api/v1/games`: Create a new game.
-    *   `GET /api/v1/games/:id`: Get game state.
+    *   `GET /api/v1/games/:id`: Get game galaxy state.
 
 **Note**: Use the `client-prototype` to visualize and interact with the API during development, or use tools like Postman/Insomnia.

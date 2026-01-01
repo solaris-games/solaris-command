@@ -60,18 +60,18 @@ Since the repository is a monorepo, the build process bundles the shared core lo
     npm run build --workspace=server
     ```
 3.  **Prepare Deployment**:
-    Create a deployment folder (e.g., `/var/www/solaris-server`) and copy the artifact.
+    Create a deployment folder (e.g., `/var/www/solaris-command-server`) and copy the artifact.
     ```bash
-    mkdir -p /var/www/solaris-server
-    cp server/dist/index.mjs /var/www/solaris-server/
-    cp server/package.json /var/www/solaris-server/
+    mkdir -p /var/www/solaris-command-server
+    cp server/dist/index.mjs /var/www/solaris-command-server/
+    cp server/package.json /var/www/solaris-command-server/
     ```
 
 ## Installation & Running
 
 1.  **Navigate to Deployment Folder**:
     ```bash
-    cd /var/www/solaris-server
+    cd /var/www/solaris-command-server
     ```
 
 2.  **Install Production Dependencies**:
@@ -87,7 +87,7 @@ Since the repository is a monorepo, the build process bundles the shared core lo
 
 4.  **Start with PM2**:
     ```bash
-    pm2 start index.mjs --name "solaris-server"
+    pm2 start index.mjs --name "solaris-command-server"
     pm2 save
     pm2 startup
     ```

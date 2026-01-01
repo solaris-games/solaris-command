@@ -6,6 +6,8 @@ This repository contains multiple client applications.
 
 This is the **primary development tool** for testing game mechanics and API interactions. It provides a raw, functional UI to visualize the game state and perform actions.
 
+_Note: There is **a lot** of missing functionality in the prototype, prefer the real `client/` app over the prototype where possible._
+
 ### Setup & Run
 1.  Ensure you have run `npm install` in the root directory.
 2.  Start the prototype:
