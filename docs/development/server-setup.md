@@ -18,6 +18,18 @@ This guide explains how to set up the Solaris Command Server for local developme
             ```javascript
             rs.initiate()
             ```
+    *   **Docker Setup**:
+        1.  If you want to set up mongo in docker you can by adding the following to the end of your docker command `--replSetName rs0` here is a full example of what that would look like
+            ```
+            docker run --name mongo-replica -d -p 27017:27017 mongo --replSetName rs0
+            ```
+        2. Enter the MongoDB shell (`mongosh`) and run:
+            ```javascript
+            rs.initiate()
+            cfg = rs.conf()
+            cfg.members[0].host = '127.0.0.1:27017'
+            rs.reconfig(cfg)
+            ```
 
 ## Installation
 
