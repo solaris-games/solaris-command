@@ -1,9 +1,9 @@
-import { ERROR_CODES, TERRAIN_MP_COSTS } from "../data";
+import { ERROR_CODES } from "../data/error-codes";
 import { Hex } from "../types/hex";
-import { UnifiedId } from "../types";
 import { HexCoords, HexCoordsId } from "../types/geometry";
 import { HexUtils } from "./hex-utils";
 import { MapUtils } from "./map-utils";
+import { UnifiedId } from "../types/unified-id";
 
 export const Pathfinding = {
   /**

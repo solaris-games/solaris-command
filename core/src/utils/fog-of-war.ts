@@ -1,10 +1,13 @@
+import { CONSTANTS } from "../data/constants";
+import { SPECIALIST_STEP_ID_MAP } from "../data/specialists";
+import { UNIT_CATALOG_ID_MAP } from "../data/units";
+import { HexCoordsId } from "../types/geometry";
+import { Hex } from "../types/hex";
+import { Planet } from "../types/planet";
+import { Station } from "../types/station";
+import { UnifiedId } from "../types/unified-id";
+import { Unit } from "../types/unit";
 import { HexUtils } from "./hex-utils";
-import { HexCoordsId, UnifiedId, Unit, Planet, Station, Hex } from "../types";
-import {
-  CONSTANTS,
-  SPECIALIST_STEP_ID_MAP,
-  UNIT_CATALOG_ID_MAP,
-} from "../data";
 
 export const FogOfWar = {
   /**

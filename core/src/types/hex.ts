@@ -1,4 +1,4 @@
-import { UnifiedId } from ".";
+import { UnifiedId } from "./unified-id";
 import { HexCoords } from "./geometry";
 
 export enum TerrainTypes {

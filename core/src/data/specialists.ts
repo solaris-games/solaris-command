@@ -1,4 +1,4 @@
-import { UnitSpecialistStepCatalogItem, SpecialistStepTypes } from "../types";
+import { UnitSpecialistStepCatalogItem, SpecialistStepTypes } from "../types/unit";
 
 export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
   {

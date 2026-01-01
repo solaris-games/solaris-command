@@ -1,30 +1,3 @@
-import {
-  CONSTANTS,
-  ERROR_CODES,
-  SPECIALIST_STEP_CATALOG,
-  SPECIALIST_STEP_ID_MAP,
-  SPECIALIST_STEP_MAP,
-  UNIT_CATALOG_ID_MAP,
-} from "../data";
-import {
-  CombatOperation,
-  HexCoords,
-  HexCoordsId,
-  UnifiedId,
-  Game,
-  Unit,
-  UnitStatus,
-  Hex,
-  Planet,
-  Station,
-  Player,
-  GameStates,
-  PlayerStatus,
-  GameEvent,
-  GameEventTypes,
-  TerrainTypes,
-  SpecialistStepTypes,
-} from "../types";
 import { CombatEngine } from "./combat-engine";
 import { HexUtils } from "./hex-utils";
 import { UnitManager } from "./unit-manager";
@@ -32,6 +5,20 @@ import { SupplyEngine } from "./supply-engine";
 import { MapUtils } from "./map-utils";
 import { GameLeaderboardUtils } from "./game-leaderboard";
 import { GameEventFactory } from "../factories";
+import { UnifiedId } from "../types/unified-id";
+import { GameEvent, GameEventTypes } from "../types/game-event";
+import { Game, GameStates } from "../types/game";
+import { Player, PlayerStatus } from "../types/player";
+import { Hex, TerrainTypes } from "../types/hex";
+import { SpecialistStepTypes, Unit, UnitStatus, UnitStep } from "../types/unit";
+import { Planet } from "../types/planet";
+import { Station } from "../types/station";
+import { HexCoords, HexCoordsId } from "../types/geometry";
+import { UNIT_CATALOG_ID_MAP } from "../data/units";
+import { SPECIALIST_STEP_ID_MAP } from "../data/specialists";
+import { CONSTANTS } from "../data/constants";
+import { ERROR_CODES } from "../data/error-codes";
+import { CombatOperation } from "../types/combat";
 
 export interface ProcessTickResult {
   gameEvents: GameEvent[]; // Events from tick processing (e.g combat reports)
@@ -776,7 +763,7 @@ export const TickProcessor = {
       .filter((u) => {
         // Unit must have active scout specialist to do this.
         const hasActiveScoutStep =
-          UnitManager.getActiveSpecialistSteps(u).filter((s) => {
+          UnitManager.getActiveSpecialistSteps(u).filter((s: UnitStep) => {
             const spec = SPECIALIST_STEP_ID_MAP.get(s.specialistId!)!;
 
             return spec.type === SpecialistStepTypes.SCOUTS; // Active spec step is a scouts type
@@ -806,7 +793,7 @@ export const TickProcessor = {
         }
 
         // If the hex is being influenced by this player only, then the player will gain control of the hex.
-        const zocPlayers = [...new Set(hex.zoc.map((z) => String(z.playerId)))];
+        const zocPlayers = [...new Set(hex.zoc.map((z: any) => String(z.playerId)))];
 
         if (
           zocPlayers.length === 1 && // Only one player influencing the hex

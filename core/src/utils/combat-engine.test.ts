@@ -1,26 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { CombatEngine } from "./combat-engine";
-import {
-  CombatOperation,
-  CombatResultType,
-  CombatForcedResult,
-  SpecialistStepTypes,
-  HexCoordsId,
-  MockUnifiedId,
-  UnifiedId,
-  Unit,
-  UnitStatus,
-  Hex,
-  TerrainTypes,
-} from "../types";
-import { CombatCalculator } from "./combat-calculator";
-import { CombatTables, SPECIALIST_STEP_MAP } from "../data";
-import { UnitManager as UnitUtils } from "./unit-manager";
+import { MockUnifiedId, UnifiedId } from "../types/unified-id";
+import { Hex, TerrainTypes } from "../types/hex";
+import { SpecialistStepTypes, Unit, UnitStatus } from "../types/unit";
 import { HexUtils } from "./hex-utils";
+import { UnitManager } from "./unit-manager";
+import { HexCoordsId } from "../types/geometry";
+import { CombatForcedResult, CombatOperation, CombatResultType } from "../types/combat";
+import { CombatCalculator } from "./combat-calculator";
+import { CombatEngine } from "./combat-engine";
+import { CombatTables } from "../data/combat-tables";
+import { SPECIALIST_STEP_MAP } from "../data/specialists";
 
 // --- MOCKS ---
 vi.mock("./combat-calculator");
-vi.mock("../data");
+vi.mock("../data/combat-tables");
 vi.mock("./unit-manager");
 
 // --- FACTORIES ---
@@ -118,13 +111,13 @@ describe("CombatEngine", () => {
 
     // Mock Unit Utils to simulate damage application (simple pass-through or modification)
     // We mock them to return modified arrays so we can check calls
-    vi.mocked(UnitUtils.suppressSteps).mockImplementation((steps, count) => {
+    vi.mocked(UnitManager.suppressSteps).mockImplementation((steps, count) => {
       // Simple mock logic: just flag 'count' steps as suppressed for the test return
       return steps.map((s, i) =>
         i < count ? { ...s, isSuppressed: true } : s
       );
     });
-    vi.mocked(UnitUtils.killSteps).mockImplementation((steps, count) => {
+    vi.mocked(UnitManager.killSteps).mockImplementation((steps, count) => {
       return steps.slice(count);
     });
   });
@@ -168,11 +161,11 @@ describe("CombatEngine", () => {
       expect(CombatTables.getResult).not.toHaveBeenCalled();
 
       // Verify Damage Application based on forced result
-      expect(UnitUtils.suppressSteps).toHaveBeenCalledWith(
+      expect(UnitManager.suppressSteps).toHaveBeenCalledWith(
         expect.anything(),
         1
       ); // Attacker
-      expect(UnitUtils.suppressSteps).toHaveBeenCalledWith(
+      expect(UnitManager.suppressSteps).toHaveBeenCalledWith(
         expect.anything(),
         1
       ); // Defender
@@ -210,7 +203,7 @@ describe("CombatEngine", () => {
       expect(CombatTables.getResult).toHaveBeenCalledWith(2);
 
       // Verify Damage
-      expect(UnitUtils.killSteps).toHaveBeenCalledWith(expect.anything(), 1); // Defender loses 1 step
+      expect(UnitManager.killSteps).toHaveBeenCalledWith(expect.anything(), 1); // Defender loses 1 step
     });
 
     it("should kill and suppress steps based on combat table result (Standard Attack)", () => {
@@ -245,13 +238,13 @@ describe("CombatEngine", () => {
       expect(CombatTables.getResult).toHaveBeenCalledWith(2);
 
       // Verify Damage
-      expect(UnitUtils.killSteps).toHaveBeenCalledWith(expect.anything(), 1);
-      expect(UnitUtils.suppressSteps).toHaveBeenCalledWith(
+      expect(UnitManager.killSteps).toHaveBeenCalledWith(expect.anything(), 1);
+      expect(UnitManager.suppressSteps).toHaveBeenCalledWith(
         expect.anything(),
         2
       );
-      expect(UnitUtils.killSteps).toHaveBeenCalledWith(expect.anything(), 3);
-      expect(UnitUtils.suppressSteps).toHaveBeenCalledWith(
+      expect(UnitManager.killSteps).toHaveBeenCalledWith(expect.anything(), 3);
+      expect(UnitManager.suppressSteps).toHaveBeenCalledWith(
         expect.anything(),
         4
       );
@@ -292,7 +285,7 @@ describe("CombatEngine", () => {
       expect(result.report.defender.shattered).toBe(false);
 
       // Defender should move
-      expect(UnitUtils.moveUnit).toHaveBeenCalledWith(
+      expect(UnitManager.moveUnit).toHaveBeenCalledWith(
         defender,
         result.defenderHex,
         result.retreatHex,
@@ -341,7 +334,7 @@ describe("CombatEngine", () => {
       expect(result.report.defender.shattered).toBe(true);
 
       // Should apply massive suppression
-      expect(UnitUtils.suppressSteps).toHaveBeenCalledWith(
+      expect(UnitManager.suppressSteps).toHaveBeenCalledWith(
         expect.anything(),
         999
       );
@@ -380,7 +373,7 @@ describe("CombatEngine", () => {
 
       expect(result.attackerWonHex).toBe(true);
 
-      expect(UnitUtils.moveUnit).toHaveBeenCalledWith(
+      expect(UnitManager.moveUnit).toHaveBeenCalledWith(
         attacker,
         result.attackerHex,
         result.defenderHex,
@@ -432,7 +425,7 @@ describe("CombatEngine", () => {
         { isSuppressed: false, specialistId: null },
       ];
 
-      vi.mocked(UnitUtils.unitHasActiveSpecialistStep).mockImplementation(
+      vi.mocked(UnitManager.unitHasActiveSpecialistStep).mockImplementation(
         () => {
           return false;
         }
@@ -472,7 +465,7 @@ describe("CombatEngine", () => {
         SpecialistStepTypes.ARTILLERY
       )!.id;
 
-      vi.mocked(UnitUtils.unitHasActiveSpecialistStep).mockImplementation(
+      vi.mocked(UnitManager.unitHasActiveSpecialistStep).mockImplementation(
         () => {
           return true;
         }
@@ -517,7 +510,7 @@ describe("CombatEngine", () => {
         SpecialistStepTypes.ARTILLERY
       )!.id;
 
-      vi.mocked(UnitUtils.unitHasActiveSpecialistStep).mockImplementation(
+      vi.mocked(UnitManager.unitHasActiveSpecialistStep).mockImplementation(
         () => {
           return true;
         }

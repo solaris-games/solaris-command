@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { HexUtils } from "./hex-utils";
-import { HexCoords } from "../types";
+import { HexCoords } from "../types/geometry";
 
 describe("HexUtils", () => {
   const center: HexCoords = { q: 0, r: 0, s: 0 };

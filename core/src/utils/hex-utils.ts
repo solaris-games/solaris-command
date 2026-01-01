@@ -1,6 +1,8 @@
-import { HexCoords, HexCoordsId } from "../types";
 
 // The 6 directions in Cube Coordinates
+
+import { HexCoords, HexCoordsId } from "../types/geometry";
+
 // Order: NE, E, SE, SW, W, NW
 const HEX_DIRECTIONS: HexCoords[] = [
   { q: 1, r: 0, s: -1 }, // 0: East-ish

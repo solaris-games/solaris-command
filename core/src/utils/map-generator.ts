@@ -1,7 +1,10 @@
-import { GameMap, UnifiedId, Hex, Planet } from "../types";
-import { PLANET_NAMES } from "../data";
 import { HexUtils } from "./hex-utils";
 import { HexFactory, PlanetFactory } from "../factories";
+import { UnifiedId } from "../types/unified-id";
+import { GameMap } from "../types/game-map";
+import { Hex } from "../types/hex";
+import { Planet } from "../types/planet";
+import { PLANET_NAMES } from "../data/names";
 
 export const MapGenerator = {
   generateFromGameMap(

@@ -1,4 +1,4 @@
-import { UnifiedId } from ".";
+import { UnifiedId } from "./unified-id";
 
 export interface UserAchievements {
   victories: number;

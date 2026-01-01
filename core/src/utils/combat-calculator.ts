@@ -1,24 +1,12 @@
-import {
-  COMBAT_SHIFTS_TERRAIN,
-  SPECIALIST_STEP_ID_MAP,
-  UNIT_CATALOG_ID_MAP,
-  COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE,
-  CONSTANTS,
-  COMBAT_SHIFT_PLANETS,
-  COMBAT_SHIFT_DEFENDER_DISORGANISED,
-} from "../data";
-import {
-  Unit,
-  Hex,
-  CombatShift,
-  CombatShiftType,
-  SpecialistStepTypes,
-  CombatOperation,
-  CombatResultType,
-  CombatForcedResult,
-  UnitStatus,
-} from "../types";
+import { CombatForcedResult, CombatOperation, CombatResultType, CombatShift, CombatShiftType } from "../types/combat";
+import { Hex } from "../types/hex";
+import { SpecialistStepTypes, Unit, UnitStatus } from "../types/unit";
 import { UnitManager } from "./unit-manager";
+import { COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE } from '../data/combat-tables'
+import { UNIT_CATALOG_ID_MAP } from "../data/units";
+import { SPECIALIST_STEP_ID_MAP } from "../data/specialists";
+import { COMBAT_SHIFT_DEFENDER_DISORGANISED, COMBAT_SHIFT_PLANETS, COMBAT_SHIFTS_TERRAIN } from "../data/terrain";
+import { CONSTANTS } from "../data/constants";
 
 export interface CombatPrediction {
   attackPower: number;

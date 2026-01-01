@@ -1,16 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { SupplyEngine } from "./supply-engine";
 import { Pathfinding } from "./pathfinding";
-import { CONSTANTS } from "../data";
-import {
-  MockUnifiedId,
-  Planet,
-  Station,
-  Unit,
-  UnitStatus,
-  Hex,
-  TerrainTypes,
-} from "../types";
+import { MockUnifiedId } from "../types/unified-id";
+import { Hex, TerrainTypes } from "../types/hex";
+import { Planet } from "../types/planet";
+import { Station } from "../types/station";
+import { Unit, UnitStatus } from "../types/unit";
+import { CONSTANTS } from "../data/constants";
 
 // --- MOCKS ---
 // We mock Pathfinding because calculating the exact flood fill is tested in pathfinding.test.ts.

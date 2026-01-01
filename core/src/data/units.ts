@@ -1,4 +1,4 @@
-import { UnitCatalogItem, UnitClasses } from "../types";
+import { UnitCatalogItem, UnitClasses } from "../types/unit";
 
 export const UNIT_CATALOG: UnitCatalogItem[] = [
   // --- TIER 1: SCREENING SHIPS (Fast, No ZOC) ---

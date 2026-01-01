@@ -1,4 +1,4 @@
-import { UnifiedId } from ".";
+import { UnifiedId } from "./unified-id";
 
 export enum GameEventTypes {
   PLAYER_AFK = "PLAYER_AFK",

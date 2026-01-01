@@ -1,15 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { CombatCalculator } from "./combat-calculator";
-import {
-  Unit,
-  UnitStatus,
-  UnitStep,
-  Hex,
-  TerrainTypes,
-  CombatShiftType,
-  CombatOperation,
-  MockUnifiedId,
-} from "../types";
+import { Unit, UnitStatus, UnitStep } from "../types/unit";
+import { MockUnifiedId } from "../types/unified-id";
+import { Hex, TerrainTypes } from "../types/hex";
+import { CombatOperation, CombatShiftType } from "../types/combat";
 
 const CATALOG_UNIT_FRIGATE_ID = "unit_frigate_01";
 const CATALOG_UNIT_BATTLESHIP_ID = "unit_battleship_01";

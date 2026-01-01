@@ -1,18 +1,13 @@
-import { CombatTables, SPECIALIST_STEP_ID_MAP } from "../data";
-import {
-  CombatOperation,
-  CombatReport,
-  CombatResultType,
-  HexCoordsId,
-  SpecialistStepTypes,
-  Unit,
-  UnitStatus,
-  Hex,
-} from "../types";
+import { CombatTables } from "../data/combat-tables";
+import { SPECIALIST_STEP_ID_MAP } from "../data/specialists";
+import { CombatOperation, CombatReport, CombatResultType } from "../types/combat";
+import { HexCoordsId } from "../types/geometry";
+import { Hex } from "../types/hex";
+import { SpecialistStepTypes, Unit, UnitStatus } from "../types/unit";
 import { CombatCalculator } from "./combat-calculator";
 import { HexUtils } from "./hex-utils";
 import { MapUtils } from "./map-utils";
-import { UnitManager as UnitUtils } from "./unit-manager";
+import { UnitManager } from "./unit-manager";
 
 export const CombatEngine = {
   validateBattle(
@@ -36,7 +31,7 @@ export const CombatEngine = {
 
     if (operation === CombatOperation.SUPPRESSIVE_FIRE) {
       // Must have Artillery Specialist for suppressive fire attacks.
-      const hasArtillery = UnitUtils.unitHasActiveSpecialistStep(attacker);
+      const hasArtillery = UnitManager.unitHasActiveSpecialistStep(attacker);
 
       if (!hasArtillery) {
         throw new Error(
@@ -98,21 +93,21 @@ export const CombatEngine = {
 
     // 4. Apply Damage (Attacker)
     // Note: We kill steps first, then suppress the remaining steps.
-    attacker.steps = UnitUtils.killSteps(
+    attacker.steps = UnitManager.killSteps(
       attacker.steps,
       resultEntry.attacker.losses
     );
-    attacker.steps = UnitUtils.suppressSteps(
+    attacker.steps = UnitManager.suppressSteps(
       attacker.steps,
       resultEntry.attacker.suppressed
     );
 
     // 5. Apply Damage (Defender)
-    defender.steps = UnitUtils.killSteps(
+    defender.steps = UnitManager.killSteps(
       defender.steps,
       resultEntry.defender.losses
     );
-    defender.steps = UnitUtils.suppressSteps(
+    defender.steps = UnitManager.suppressSteps(
       defender.steps,
       resultEntry.defender.suppressed
     );
@@ -142,14 +137,14 @@ export const CombatEngine = {
       retreatHex = CombatEngine.findRetreatHex(defender, attacker, hexLookup);
 
       if (retreatHex) {
-        UnitUtils.moveUnit(defender, defenderHex, retreatHex, null);
+        UnitManager.moveUnit(defender, defenderHex, retreatHex, null);
 
         // Successful Retreat
         defenderRetreated = true;
         outcome = CombatResultType.RETREAT;
       } else {
         // Cornered -> Shattered!
-        defender.steps = UnitUtils.suppressSteps(defender.steps, 999);
+        defender.steps = UnitManager.suppressSteps(defender.steps, 999);
         defenderShattered = true;
         outcome = CombatResultType.SHATTERED;
       }
@@ -171,7 +166,7 @@ export const CombatEngine = {
       const mpCost = MapUtils.getHexMPCost(defenderHex, attacker.playerId);
 
       if (advanceOnVictory && attacker.state.mp > mpCost) {
-        UnitUtils.moveUnit(attacker, attackerHex, defenderHex, mpCost);
+        UnitManager.moveUnit(attacker, attackerHex, defenderHex, mpCost);
 
         attackerWonHex = true;
       }

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { MapUtils } from "./map-utils";
-import { MockUnifiedId, Hex } from "../types";
+import { MockUnifiedId } from "../types/unified-id";
+import { Hex } from "../types/hex";
 
 // We need to mock the catalog to control ZOC
 vi.mock("../data", () => ({

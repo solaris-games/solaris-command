@@ -1,13 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { Pathfinding } from "./pathfinding";
 import { HexUtils } from "./hex-utils";
-import {
-  MockUnifiedId,
-  Hex,
-  TerrainTypes,
-  HexCoords,
-  HexCoordsId,
-} from "../types";
+import { HexCoords, HexCoordsId } from "../types/geometry";
+import { Hex, TerrainTypes } from "../types/hex";
+import { MockUnifiedId } from "../types/unified-id";
 
 // --- HELPER: Create a map of hexes ---
 function createMap(

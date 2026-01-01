@@ -1,4 +1,4 @@
-import { UnifiedId } from "../types";
+import { UnifiedId } from "../types/unified-id";
 import { HexCoords } from "../types/geometry";
 import { SupplySource } from "../types/supply";
 

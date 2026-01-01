@@ -1,3 +1,8 @@
+import { CombatOperation } from "../types/combat";
+import { HexCoords } from "./geometry";
+import { SupplyTarget } from "./supply";
+import { UnifiedId } from "./unified-id";
+
 export enum UnitClasses {
   CORVETTE = "CORVETTE",
   FRIGATE = "FRIGATE",
@@ -72,8 +77,6 @@ export interface UnitSpecialistStepCatalogItem {
     visionAdd: number;
   };
 }
-
-import { CombatOperation, HexCoords, SupplyTarget, UnifiedId } from "../types";
 
 export enum UnitStatus {
   IDLE = "IDLE",

@@ -1,8 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { UnitManager } from "./unit-manager";
-import { UNIT_CATALOG_ID_MAP } from "../data";
-import { HexCoordsId, MockUnifiedId, Hex, Unit, UnitStatus } from "../types";
-import { HexUtils } from "./hex-utils";
+import { UNIT_CATALOG_ID_MAP } from "../data/units";
+import { MockUnifiedId } from "../types/unified-id";
+import { Unit, UnitStatus } from "../types/unit";
+import { Hex } from "../types/hex";
 
 // --- FACTORY HELPER ---
 const CATALOG_UNIT_ID = "unit_frigate_01";

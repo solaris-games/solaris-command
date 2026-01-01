@@ -1,4 +1,7 @@
-import { Game, Planet, Player, PlayerStatus, UnifiedId, Unit } from "../types";
+import { Planet } from "../types/planet";
+import { Player, PlayerStatus } from "../types/player";
+import { UnifiedId } from "../types/unified-id";
+import { Unit } from "../types/unit";
 import { UnitManager } from "./unit-manager";
 
 export const GameLeaderboardUtils = {

@@ -1,12 +1,13 @@
 import { HexUtils } from "./hex-utils";
-import {
-  CONSTANTS,
-  ERROR_CODES,
-  TERRAIN_MP_COSTS,
-  UNIT_CATALOG_ID_MAP,
-} from "../data";
+import { CONSTANTS } from "../data/constants";
+import { ERROR_CODES } from "../data/error-codes";
+import { TERRAIN_MP_COSTS } from "../data/terrain";
+import { UNIT_CATALOG_ID_MAP } from "../data/units";
 import { HexCoords, HexCoordsId } from "../types/geometry";
-import { UnifiedId, Unit, Hex, Planet, TerrainTypes } from "../types";
+import { UnifiedId } from "../types/unified-id";
+import { Hex, TerrainTypes } from "../types/hex";
+import { Planet } from "../types/planet";
+import { Unit } from "../types/unit";
 
 export const MapUtils = {
   /**

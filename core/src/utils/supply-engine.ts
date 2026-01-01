@@ -1,15 +1,12 @@
 import { HexUtils } from "./hex-utils";
 import { Pathfinding } from "./pathfinding";
-import { CONSTANTS } from "../data";
-import {
-  Hex,
-  HexCoords,
-  HexCoordsId,
-  SupplyTarget,
-  UnifiedId,
-  Planet,
-  Station,
-} from "../types";
+import { CONSTANTS } from "../data/constants";
+import { UnifiedId } from "../types/unified-id";
+import { Hex } from "../types/hex";
+import { Planet } from "../types/planet";
+import { Station } from "../types/station";
+import { HexCoords, HexCoordsId } from "../types/geometry";
+import { SupplyTarget } from "../types/supply";
 
 export const SupplyEngine = {
   /**
