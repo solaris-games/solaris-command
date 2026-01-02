@@ -26,6 +26,7 @@ import {
   HexService,
   UnitService,
   SocketService,
+  UserService,
 } from "../services";
 import { GameMapper, GameGalaxyMapper } from "../map";
 import { Types } from "mongoose";
@@ -59,6 +60,21 @@ router.post(
   requirePendingGame,
   async (req, res) => {
     try {
+      const alias = req.body.alias;
+
+      // Check if alias is already taken in the game
+      if (await PlayerService.isAliasTaken(req.game._id, alias)) {
+        throw new Error(ERROR_CODES.PLAYER_ALIAS_ALREADY_TAKEN);
+      }
+
+      // Check if alias matches another user's username
+      if (alias.toLowerCase() !== req.user.username.toLowerCase()) {
+        const existingUser = await UserService.findByUsernameInsensitive(alias);
+        if (existingUser) {
+          throw new Error(ERROR_CODES.PLAYER_ALIAS_ALREADY_TAKEN);
+        }
+      }
+
       const result = await executeInTransaction(async (session) => {
         const gameId = req.game._id;
         const userId = req.user._id;
@@ -240,6 +256,11 @@ router.post(
         return res
           .status(400)
           .json({ errorCode: ERROR_CODES.USER_ALREADY_JOINED_GAME });
+      }
+      if (error.message === ERROR_CODES.PLAYER_ALIAS_ALREADY_TAKEN) {
+        return res
+          .status(400)
+          .json({ errorCode: ERROR_CODES.PLAYER_ALIAS_ALREADY_TAKEN });
       }
       if (error.message === ERROR_CODES.GAME_IS_FULL) {
         return res.status(400).json({ errorCode: ERROR_CODES.GAME_IS_FULL });

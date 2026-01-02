@@ -33,6 +33,14 @@ export class PlayerService {
     });
   }
 
+  static async isAliasTaken(gameId: UnifiedId, alias: string): Promise<boolean> {
+    const existingPlayer = await PlayerModel.findOne({
+      gameId: gameId,
+      alias: { $regex: new RegExp(`^${alias}$`, "i") },
+    });
+    return !!existingPlayer;
+  }
+
   static async findActivePlayersForUser(userId: UnifiedId) {
     const activeGames = await GameModel.find({
       "state.status": GameStates.ACTIVE,

@@ -49,6 +49,12 @@ export class UserService {
     return UserModel.findOne({ email });
   }
 
+  static async findByUsernameInsensitive(username: string) {
+    return UserModel.findOne({
+      username: { $regex: new RegExp(`^${username}$`, "i") },
+    });
+  }
+
   static async touchUser(userId: UnifiedId) {
     // Update last seen
     return UserModel.updateOne(

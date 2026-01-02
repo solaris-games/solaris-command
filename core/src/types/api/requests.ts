@@ -32,7 +32,11 @@ export const UpgradeUnitRequestSchema = z.object({
 });
 
 export const JoinGameRequestSchema = z.object({
-  alias: z.string().min(3),
+  alias: z
+    .string()
+    .trim()
+    .min(3)
+    .regex(/^[a-zA-Z0-9 _-]+$/, "Invalid characters in alias"),
   color: z.string().length(7),
 });
 
