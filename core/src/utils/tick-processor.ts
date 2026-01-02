@@ -9,7 +9,7 @@ import { UnifiedId } from "../types/unified-id";
 import { GameEvent, GameEventTypes } from "../types/game-event";
 import { Game, GameStates } from "../types/game";
 import { Player, PlayerStatus } from "../types/player";
-import { Hex, TerrainTypes } from "../types/hex";
+import { Hex, HexZOCEntry, TerrainTypes } from "../types/hex";
 import { SpecialistStepTypes, Unit, UnitStatus, UnitStep } from "../types/unit";
 import { Planet } from "../types/planet";
 import { Station } from "../types/station";
@@ -119,10 +119,10 @@ export class TickContext {
 
 interface MoveIntent {
   unit: Unit;
-  fromHexCoord: HexCoords;
   fromCoordId: HexCoordsId;
-  toHexCoord: HexCoords;
+  fromHex: Hex;
   toCoordId: HexCoordsId;
+  toHex: Hex;
 }
 
 export class GameUnitMovementContext {
@@ -138,16 +138,38 @@ export class GameUnitMovementContext {
         unit.state.status === UnitStatus.MOVING &&
         UnitManager.unitIsAlive(unit)
       ) {
-        const nextHex = unit.movement.path[0]!;
+        const nextHexCoord = unit.movement.path[0]!;
+
+        const fromCoordId = HexUtils.getCoordsID(unit.location);
+        const fromHex = context.hexLookup.get(fromCoordId)!;
+        const toCoordId = HexUtils.getCoordsID(nextHexCoord);
+        const toHex = context.hexLookup.get(toCoordId)!;
 
         this.moveIntents.push({
           unit,
-          fromCoordId: HexUtils.getCoordsID(unit.location),
-          fromHexCoord: unit.location,
-          toCoordId: HexUtils.getCoordsID(nextHex),
-          toHexCoord: nextHex,
+          fromCoordId,
+          fromHex,
+          toCoordId,
+          toHex,
         });
       }
+    });
+
+    // We need to sort the movements by destinations that are not occupied first.
+    // This prevents clashes where units attempt to move into hexes that are occupied by
+    // another unit that is about to leave that hex.
+    // Sorting in this way ensures that units move into empty hexes first, clearing the way
+    // for the unit _behind_ it to move into the now empty hex.
+    this.moveIntents = this.moveIntents.sort((a, b) => {
+      if (a.toHex.unitId == null && b.toHex.unitId != null) {
+        return -1;
+      }
+
+      if (a.toHex.unitId != null && b.toHex.unitId == null) {
+        return 1;
+      }
+
+      return 0; // Both are empty
     });
 
     // Group intents by Destination
@@ -252,7 +274,7 @@ export const TickProcessor = {
   processTickRegroupingUnitStatus(context: TickContext) {
     // Reset Action States
 
-    // If units were regrouping from the previous tick 
+    // If units were regrouping from the previous tick
     // and were NOT involved in combat, then set them to idle now.
     for (const [, unit] of context.preTickRegroupingUnits) {
       const isStillRegrouping = context.postTickRegroupingUnits.has(
@@ -265,8 +287,8 @@ export const TickProcessor = {
     }
 
     // Unit combat takes 'regrouping' status into account when calculating
-    // combat shifts (defender disorganised) therefore we must change 
-    // the status' of units that have been involved in combat AFTER ALL 
+    // combat shifts (defender disorganised) therefore we must change
+    // the status' of units that have been involved in combat AFTER ALL
     // combat has resolved.
     for (const [, unit] of context.postTickRegroupingUnits) {
       if (unit.state.status !== UnitStatus.REGROUPING) {
@@ -319,9 +341,21 @@ export const TickProcessor = {
     // =================================================================================
 
     // 1. Identify Units Declaring Attack
-    const attackers = context.units.filter(
-      (u) => u.state.status === UnitStatus.PREPARING
-    );
+    // Sort Attackers: Frigates (High Init) strike before Battleships.
+    // Tiebreaker: Units with more MP act faster.
+    const attackers = context.units
+      .filter((u) => u.state.status === UnitStatus.PREPARING)
+      .sort((a, b) => {
+        const unitACtlg = UNIT_CATALOG_ID_MAP.get(a.catalogId)!;
+        const unitBCtlg = UNIT_CATALOG_ID_MAP.get(b.catalogId)!;
+
+        const initDiff =
+          unitACtlg.stats.initiative - unitBCtlg.stats.initiative;
+
+        if (initDiff !== 0) return initDiff;
+
+        return b.state.mp - a.state.mp;
+      });
 
     // 2. Group by Target Hex (To handle Multi-Unit vs Single-Defender scenarios)
     const attacksByHexCoords = new Map<HexCoordsId, Unit[]>();
@@ -337,21 +371,8 @@ export const TickProcessor = {
 
     // 3. Resolve Battles per Hex
     attacksByHexCoords.forEach((hexAttackers, targetHexCoordsId) => {
-      // Sort Attackers: Frigates (High Init) strike before Battleships.
-      // Tiebreaker: Units with more MP act faster.
-      hexAttackers.sort((a, b) => {
-        const unitACtlg = UNIT_CATALOG_ID_MAP.get(a.catalogId)!;
-        const unitBCtlg = UNIT_CATALOG_ID_MAP.get(b.catalogId)!;
-
-        const initDiff =
-          unitACtlg.stats.initiative - unitBCtlg.stats.initiative;
-
-        if (initDiff !== 0) return initDiff;
-
-        return b.state.mp - a.state.mp;
-      });
-
       // Execute Sequential 1v1s
+      // Note: The attackers will be pre-sorted by initiative and MP.
       for (const attacker of hexAttackers) {
         // Lookup Target Hex
         const targetHex = context.hexLookup.get(targetHexCoordsId);
@@ -360,7 +381,7 @@ export const TickProcessor = {
         // Lookup Defender (Is there a unit at the location RIGHT NOW?)
         const defender = context.unitLocations.get(targetHexCoordsId);
 
-        // Whiff Check: Did the defender die or retreat in a previous sequence step?
+        // Whiff Check: Did the defender die, retreat in a previous sequence step or move as part of another battle?
         // Also check Friendly Fire (Attacker vs Attacker race condition)
         if (
           !defender ||
@@ -419,7 +440,7 @@ export const TickProcessor = {
         );
 
         context.appendGameEvent(
-          battleResult.report.defenderUnitIt,
+          battleResult.report.defenderUnitId,
           GameEventTypes.COMBAT_REPORT,
           battleResult.report
         );
@@ -508,36 +529,34 @@ export const TickProcessor = {
     // Check for "Crashes" (Multiple units entering same hex, or entering occupied hex)
     // =================================================================================
 
+    // --- MOVEMENT SUCCESS ---
     const processUnitMovementSuccess = (intent: MoveIntent) => {
-      // --- MOVEMENT SUCCESS ---
-      const unit = intent.unit;
-
       // Calculate Cost based on Target Terrain
-      const fromHex = context.hexLookup.get(intent.fromCoordId)!;
-      const toHex = context.hexLookup.get(intent.toCoordId)!;
-
-      const mpCost = MapUtils.getHexMPCost(toHex, unit.playerId);
+      const mpCost = MapUtils.getHexMPCost(intent.toHex, intent.unit.playerId);
 
       // If unit cannot afford the move, they stall.
-      if (unit.state.mp < mpCost) {
-        unit.state.status = UnitStatus.IDLE;
-        unit.movement.path = [];
+      if (intent.unit.state.mp < mpCost) {
+        intent.unit.state.status = UnitStatus.IDLE;
+        intent.unit.movement.path = [];
         return; // Exit this specific move intent
       }
 
-      UnitManager.moveUnit(unit, fromHex, toHex, mpCost);
+      UnitManager.moveUnit(intent.unit, intent.fromHex, intent.toHex, mpCost);
 
       // Stop if path done or out of gas
-      if (unit.movement.path.length === 0 || unit.state.mp === 0) {
-        unit.state.status = UnitStatus.IDLE;
+      if (
+        intent.unit.movement.path.length === 0 ||
+        intent.unit.state.mp === 0
+      ) {
+        intent.unit.state.status = UnitStatus.IDLE;
       }
 
       // Update Working Set
       context.unitLocations.delete(intent.fromCoordId);
-      context.unitLocations.set(intent.toCoordId, unit);
+      context.unitLocations.set(intent.toCoordId, intent.unit);
 
       // Update Hexes: Capture New
-      handleHexCapture(context, toHex, unit);
+      handleHexCapture(context, intent.toHex, intent.unit);
     };
 
     const processUnitMovementBounce = (intent: MoveIntent) => {
@@ -793,7 +812,9 @@ export const TickProcessor = {
         }
 
         // If the hex is being influenced by this player only, then the player will gain control of the hex.
-        const zocPlayers = [...new Set(hex.zoc.map((z: any) => String(z.playerId)))];
+        const zocPlayers = [
+          ...new Set(hex.zoc.map((z: HexZOCEntry) => String(z.playerId))),
+        ];
 
         if (
           zocPlayers.length === 1 && // Only one player influencing the hex
@@ -979,6 +1000,14 @@ export const TickProcessor = {
             ERROR_CODES.UNIT_MUST_HAVE_ACTIVE_ARTILLERY_SPECIALIST
           );
         }
+      }
+
+      // Units must not be attacking eachother.
+      if (
+        targetUnit.state.status === UnitStatus.PREPARING &&
+        String(targetUnit.combat.hexId) === String(unit.hexId)
+      ) {
+        throw new Error(ERROR_CODES.UNIT_CANNOT_COUNTER_ATTACK);
       }
     }
 

@@ -350,6 +350,14 @@ router.post(
       }
     }
 
+    // Units must not be attacking eachother.
+    if (
+      targetUnit.state.status === UnitStatus.PREPARING &&
+      String(targetUnit.combat.hexId) === String(req.unit.hexId)
+    ) {
+      throw new Error(ERROR_CODES.UNIT_CANNOT_COUNTER_ATTACK);
+    }
+
     try {
       await UnitService.declareUnitAttack(req.game._id, req.unit._id, {
         hexId: hex._id,
@@ -474,7 +482,10 @@ router.post(
 
         // If the user is trying to purchase a scout specialist then we need to check that
         // the unit can project a ZOC.
-        if (spec.type === SpecialistStepTypes.SCOUTS && !unitTemplate.stats.zoc) {
+        if (
+          spec.type === SpecialistStepTypes.SCOUTS &&
+          !unitTemplate.stats.zoc
+        ) {
           return res
             .status(400)
             .json({ errorCode: ERROR_CODES.UNIT_DOES_NOT_PROJECT_ZOC });

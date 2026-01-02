@@ -34,6 +34,11 @@ export enum TerrainTypes {
   RADIATION_STORM = "RADIATION_STORM",
 }
 
+export interface HexZOCEntry {
+  playerId: UnifiedId;
+  unitId: UnifiedId;
+}
+
 export interface Hex {
   _id: UnifiedId;
   gameId: UnifiedId;
@@ -46,10 +51,7 @@ export interface Hex {
   terrain: TerrainTypes;
 
   // Which units have ZOC influence on this hex
-  zoc: {
-    playerId: UnifiedId;
-    unitId: UnifiedId;
-  }[];
+  zoc: HexZOCEntry[];
 
   // TODO: Add supply?
 }

@@ -192,7 +192,7 @@ export const CombatEngine = {
       attackerPlayerId: attacker.playerId,
       attackerUnitId: attacker._id,
       defenderPlayerId: defender.playerId,
-      defenderUnitIt: defender._id,
+      defenderUnitId: defender._id,
       hexId: defenderHex._id,
       location: defenderHex.location,
       odds: `${prediction.oddsRatio}:1`,

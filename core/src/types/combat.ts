@@ -53,7 +53,7 @@ export interface CombatReport {
   attackerUnitId: UnifiedId;
 
   defenderPlayerId: UnifiedId;
-  defenderUnitIt: UnifiedId;
+  defenderUnitId: UnifiedId;
 
   hexId: UnifiedId;
   location: HexCoords;
