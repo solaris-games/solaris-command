@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { TickProcessor, TickContext } from "./tick-processor";
+import { TickProcessor } from "./tick-processor";
+import { TickContext } from "../types/tick";
 import { MockUnifiedId } from "../types/unified-id";
 import { Hex, TerrainTypes } from "../types/hex";
 import { Unit, UnitStatus, SpecialistStepTypes, UnitStep } from "../types/unit";
@@ -58,6 +59,7 @@ function createPlayer(id: string, overrides: Partial<Player> = {}): Player {
     victoryPoints: 0,
     renownToDistribute: 0,
     lastSeenDate: new Date(),
+    isAIControlled: false,
     ...overrides,
   };
 }

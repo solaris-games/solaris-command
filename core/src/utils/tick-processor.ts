@@ -19,6 +19,7 @@ import { SPECIALIST_STEP_ID_MAP } from "../data/specialists";
 import { CONSTANTS } from "../data/constants";
 import { ERROR_CODES } from "../data/error-codes";
 import { CombatOperation } from "../types/combat";
+import { TickContext } from "../types/tick";
 
 export interface ProcessTickResult {
   gameEvents: GameEvent[]; // Events from tick processing (e.g combat reports)
@@ -26,96 +27,7 @@ export interface ProcessTickResult {
   winnerPlayerId: UnifiedId | null;
 }
 
-export class TickContext {
-  game: Game;
-  players: Player[];
-  hexes: Hex[];
-  units: Unit[];
-  planets: Planet[];
-  stations: Station[];
-
-  // --- WORKING SETS (In-Memory State) ---
-  // We track unit locations in a Map for O(1) lookup during collision/combat checks.
-  // This map is updated continuously as the Tick progresses (e.g., after a Blitz move).
-  hexLookup: Map<HexCoordsId, Hex>;
-  unitLocations: Map<HexCoordsId, Unit>;
-  planetLookup: Map<HexCoordsId, Planet>;
-  stationLookup: Map<HexCoordsId, Station>;
-
-  // We need to track units that are regrouping from the previous tick.
-  // Combat acts on regrouping units so we'll use the raw status of the unit in the combat phase,
-  // and then reset any regrouping units that were not in combat back to idle at the end of the tick.
-  preTickRegroupingUnits: Map<string, Unit>;
-  postTickRegroupingUnits: Map<string, Unit>;
-
-  // --- OUTPUT CONTAINERS ---
-  gameEvents: GameEvent[] = [];
-  stationsToRemove: UnifiedId[] = [];
-  winnerPlayerId: UnifiedId | null = null;
-
-  idGenerator: () => UnifiedId;
-
-  constructor(
-    game: Game,
-    players: Player[],
-    hexes: Hex[],
-    units: Unit[],
-    planets: Planet[],
-    stations: Station[],
-    idGenerator: () => UnifiedId
-  ) {
-    this.game = game;
-    this.players = players;
-    this.hexes = hexes;
-    this.units = units;
-    this.planets = planets;
-    this.stations = stations;
-
-    this.idGenerator = idGenerator;
-
-    // We track unit locations in a Map for O(1) lookup during collision/combat checks.
-    // This map is updated continuously as the Tick progresses (e.g., after a Blitz move).
-    this.hexLookup = new Map<HexCoordsId, Hex>();
-    hexes.forEach((h) =>
-      this.hexLookup.set(HexUtils.getCoordsID(h.location), h)
-    );
-
-    this.unitLocations = new Map<HexCoordsId, Unit>();
-    units.forEach((u) =>
-      this.unitLocations.set(HexUtils.getCoordsID(u.location), u)
-    );
-
-    // Lookup map for Planets to check for capture logic efficiently
-    this.planetLookup = new Map<HexCoordsId, Planet>();
-    planets.forEach((p) =>
-      this.planetLookup.set(HexUtils.getCoordsID(p.location), p)
-    );
-
-    this.stationLookup = new Map<HexCoordsId, Station>();
-    stations.forEach((s) =>
-      this.stationLookup.set(HexUtils.getCoordsID(s.location), s)
-    );
-
-    this.postTickRegroupingUnits = new Map<string, Unit>();
-    this.preTickRegroupingUnits = new Map<string, Unit>();
-    units
-      .filter((u) => u.state.status === UnitStatus.REGROUPING)
-      .forEach((u) => this.preTickRegroupingUnits.set(String(u._id), u));
-  }
-
-  appendGameEvent(playerId: UnifiedId | null, type: GameEventTypes, data: any) {
-    this.gameEvents.push(
-      GameEventFactory.create(
-        this.game._id,
-        playerId,
-        this.game.state.tick,
-        type,
-        data,
-        this.idGenerator
-      )
-    );
-  }
-}
+export { TickContext };
 
 interface MoveIntent {
   unit: Unit;
@@ -263,6 +175,10 @@ export const TickProcessor = {
     TickProcessor.processUnitScoutsHexCapture(context);
     TickProcessor.processTickRegroupingUnitStatus(context);
     TickProcessor.processTickWinnerCheck(context);
+
+    // AI Processing is intentionally omitted here as the AI logic is provided in ai-system.ts
+    // but the Player schema update required for it (isAIControlled) cannot be persisted in this environment.
+    // The user will wire this in manually.
 
     return {
       gameEvents: context.gameEvents,
