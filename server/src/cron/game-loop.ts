@@ -198,6 +198,10 @@ async function executeGameTick(game: Game) {
 
     // Players (Points updates)
     for (const player of players) {
+      // TODO: Occasionally fails with error:
+      /*
+      Failed to process game XXX: MongoServerError: Caused by :: Write conflict during plan execution and yielding is disabled. :: Please retry your operation or multi-document transaction.
+      */
       await player.save({ session });
     }
 

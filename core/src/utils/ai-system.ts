@@ -13,7 +13,6 @@ import { UnitFactory } from "../factories/unit-factory";
 import { HexCoordsId } from "../types/geometry";
 import { SupplyEngine } from "./supply-engine";
 import { CombatCalculator } from "./combat-calculator";
-import { COMBAT_SHIFTS_TERRAIN } from "../data/terrain";
 import { Hex } from "../types/hex";
 
 const AI_EXECUTION_INTERVAL_TICKS = 1;
@@ -216,7 +215,7 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
     // If we are pinning (adjacent to enemy), we hold.
     // If we are just sitting in rocks alone, we should move to the front.
     if (isPinning) {
-      waitScore = 80;
+      waitScore = 25;
     }
 
     if (isObjective) {
@@ -234,7 +233,7 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
       score: waitScore,
     };
 
-    neighbors.forEach((nLoc) => {
+    for (const nLoc of neighbors) {
       const nId = HexUtils.getCoordsID(nLoc);
       const nHex = context.hexLookup.get(nId);
       if (!nHex) return;
@@ -309,35 +308,35 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
           MAX_INFLUENCE - Math.min(MAX_INFLUENCE, Math.abs(nInfluence));
 
         // --- Shield Wall (Cohesion Bonus) ---
-        // Pass current unit ID to exclude it from count (we can't support ourselves from our previous position)
-        // const friendlyNeighbors = countFriendlyNeighbors(nHex, context, player._id, unit._id);
-        // moveScore += friendlyNeighbors * 10;
+        // Note: Pass current unit ID to exclude it from count (we can't support ourselves from our previous position)
+        const friendlyNeighbors = countFriendlyNeighbors(nHex, context, player._id, unit._id);
+        moveScore += friendlyNeighbors * 5;
 
         // --- ZOC Safety ---
-        // const inEnemyZOC = MapUtils.isHexInEnemyZOC(nHex, player._id);
-        // const hasSupport = friendlyNeighbors > 0; // "Support" implies friendly adjacent units at destination
+        const inEnemyZOC = MapUtils.isHexInEnemyZOC(nHex, player._id);
+        const hasSupport = friendlyNeighbors > 0; // "Support" implies friendly adjacent units at destination
 
-        // if (inEnemyZOC && !hasSupport) {
-        //     moveScore -= 500;
-        // }
+        if (inEnemyZOC && !hasSupport) {
+            moveScore -= 10; // We don't want to move units where they could easily be surrounded.
+        }
 
         // Bonus: Capture Planet/Station
         if (
           (nHex.planetId || nHex.stationId) &&
           String(nHex.playerId) !== String(player._id)
         ) {
-          moveScore += 20;
+          moveScore += 50;
         }
         // Bonus: Capture Empty Territory
         else if (String(nHex.playerId) !== String(player._id)) {
-          moveScore += 5;
+          moveScore += 20;
         }
 
         // Units OOS should prioritize moving towards supply
         if (!unit.supply.isInSupply && supplyNetwork.has(hexCoordsId)) {
           // In influence map, friendly stations/planets are high value.
           // So moving to higher influence is naturally moving to supply.
-          moveScore += 10; // Urgency
+          moveScore += 30; // Urgency
         }
 
         const validMove = UnitValidation.validateUnitMove(
@@ -355,7 +354,7 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
           };
         }
       }
-    });
+    }
 
     // Execute Best Action
     if (bestAction.type === "ATTACK") {
