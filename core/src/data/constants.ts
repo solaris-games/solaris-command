@@ -21,7 +21,7 @@ export const CONSTANTS = {
     UNIT_STEP_SCRAP_PRESTIGE_REWARD: 10,
 
     // Vision
-    PLANET_VISION_RANGE: 3,
+    PLANET_VISION_RANGE: 100, // 3,
     STATION_VISION_RANGE: 2,
 
     // Stations

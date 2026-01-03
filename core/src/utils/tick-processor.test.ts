@@ -667,6 +667,7 @@ describe("TickProcessor Integration Tests", () => {
       TickProcessor.processTick(context);
 
       expect(player.status).toBe(PlayerStatus.AFK);
+      expect(player.isAIControlled).toBe(true);
     });
 
     it("should NOT mark active player as AFK if last seen < 24 hours ago", () => {
@@ -691,6 +692,7 @@ describe("TickProcessor Integration Tests", () => {
       TickProcessor.processTick(context);
 
       expect(player.status).toBe(PlayerStatus.ACTIVE);
+      expect(player.isAIControlled).toBe(false);
     });
 
     it("should NOT mark defeated player as AFK", () => {

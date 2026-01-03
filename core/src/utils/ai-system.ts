@@ -1,8 +1,4 @@
-import {
-  CONSTANTS,
-  UNIT_CATALOG,
-} from "../data";
-import { HexCoordsId } from "../types/hex";
+import { UNIT_CATALOG } from "../data";
 import { Player, PlayerStatus } from "../types/player";
 import { UnitStatus } from "../types/unit";
 import { UnifiedId } from "../types/unified-id";
@@ -13,20 +9,21 @@ import { HexUtils } from "./hex-utils";
 import { MapUtils } from "./map-utils";
 import { TickContext } from "../types/tick";
 import { UnitValidation } from "../validation/unit";
-import { StationValidation } from "../validation/station";
-import { StationFactory } from "../factories/station-factory";
 import { UnitFactory } from "../factories/unit-factory";
+import { HexCoordsId } from "../types/geometry";
+import { SupplyEngine } from "./supply-engine";
+import { CombatCalculator } from "./combat-calculator";
 
-const AI_EXECUTION_INTERVAL_TICKS = 6;
+const AI_EXECUTION_INTERVAL_TICKS = 1;
 
 // Weights for Influence Map
 const INFLUENCE_WEIGHTS = {
-  FRIENDLY_UNIT: 10,
+  FRIENDLY_UNIT: 1,
   FRIENDLY_STATION: 5,
-  FRIENDLY_PLANET: 5,
-  ENEMY_UNIT: -10,
+  FRIENDLY_PLANET: 10,
+  ENEMY_UNIT: -1,
   ENEMY_STATION: -5,
-  ENEMY_PLANET: -5,
+  ENEMY_PLANET: -10,
   DECAY: 0.8, // Decay factor per hex distance
 };
 
@@ -38,20 +35,19 @@ export const AISystem = {
     }
 
     // Filter AI players
-    // Cast to any to access isAIControlled since the interface update failed to persist
     const aiPlayers = context.players.filter(
-      (p) => (p as any).isAIControlled && p.status !== PlayerStatus.DEFEATED
+      (p) => p.isAIControlled && p.status !== PlayerStatus.DEFEATED
     );
 
     if (aiPlayers.length === 0) return;
 
     for (const player of aiPlayers) {
-      processPlayerDecisions(player, context);
+      processAIPlayerDecisions(player, context);
     }
   },
 };
 
-// Re-implementing correctly per player
+// Generates an influence map which aids in AI player decision making.
 function getInfluenceMapForPlayer(
   context: TickContext,
   playerId: UnifiedId
@@ -70,7 +66,7 @@ function getInfluenceMapForPlayer(
     if (!startHex) return;
 
     // BFS
-    const visited = new Set<string>();
+    const visited = new Set<UnifiedId>();
     const queue = [{ hex: startHex, val: amount, dist: 0 }];
     visited.add(HexUtils.getCoordsID(startHex.location));
 
@@ -82,7 +78,7 @@ function getInfluenceMapForPlayer(
 
       if (dist >= range) continue;
 
-      const neighbors = HexUtils.getNeighbors(hex.location);
+      const neighbors = HexUtils.neighbors(hex.location);
       for (const nLoc of neighbors) {
         const nId = HexUtils.getCoordsID(nLoc);
         const nHex = context.hexLookup.get(nId);
@@ -130,28 +126,42 @@ function getInfluenceMapForPlayer(
   return influenceMap;
 }
 
-function processPlayerDecisions(
-  player: Player,
-  context: TickContext
-) {
+function processAIPlayerDecisions(player: Player, context: TickContext) {
   const influenceMap = getInfluenceMapForPlayer(context, player._id);
-  const myUnits = context.units.filter(
+  const myAliveUnits = context.units.filter(
     (u) =>
       String(u.playerId) === String(player._id) && UnitManager.unitIsAlive(u)
   );
+  const myAliveStations = context.stations.filter(
+    (s) =>
+      !context.stationsToRemove.some((id) => String(id) === String(s._id)) &&
+      String(s.playerId) === String(player._id)
+  );
+
+  // Keep track of which hexes are going to be moved into
+  // so that the AI can avoid bouncing units.
+  const movementHexes = new Set<HexCoordsId>();
+
+  const supplyNetwork = SupplyEngine.calculatePlayerSupplyNetwork(
+    player._id,
+    context.hexes,
+    context.planets,
+    myAliveStations
+  );
 
   // 1. UNIT DECISIONS
-  myUnits.forEach((unit) => {
+  myAliveUnits.forEach((unit) => {
     if (unit.state.status !== UnitStatus.IDLE) return;
 
     const unitLocId = HexUtils.getCoordsID(unit.location);
+    const unitHex = context.hexLookup.get(unitLocId)!;
     const currentSafety = influenceMap.get(unitLocId) || 0;
-    const neighbors = HexUtils.getNeighbors(unit.location);
+    const neighbors = HexUtils.neighbors(unit.location);
 
     // Potential Actions
     let bestAction: { type: string; score: number; data?: any } = {
       type: "WAIT",
-      score: -100,
+      score: -25,
     };
 
     neighbors.forEach((nLoc) => {
@@ -164,22 +174,26 @@ function processPlayerDecisions(
       // ACTION: ATTACK
       if (nHex.unitId) {
         const targetUnit = context.unitLocations.get(nId);
-        if (targetUnit && String(targetUnit.playerId) !== String(player._id)) {
-          // Score Attack
-          // Simple heuristic: (My Strength - Enemy Strength) + Influence Safety
-          const myStrength = unit.steps.length; // Approximate
-          const enemyStrength = targetUnit.steps.length; // Approximate
-          let score = (myStrength - enemyStrength) * 10 + currentSafety;
 
-          // Bonus for kill
-          if (myStrength > enemyStrength) score += 20;
+        if (targetUnit && String(targetUnit.playerId) !== String(player._id)) {
+          // Run a combat simulation to see if attacking this unit is favourable.
+          const combatPrediction = CombatCalculator.calculate(
+            unit,
+            targetUnit,
+            nHex,
+            CombatOperation.STANDARD
+          );
+
+          // Score Attack
+          // Simple heuristic: Combat Odds * Safety
+          let score = combatPrediction.oddsScore * currentSafety;
 
           // Validate
           const valid = UnitValidation.validateUnitAttack(
             unit,
             nHex,
             targetUnit,
-            CombatOperation.ATTACK
+            CombatOperation.STANDARD
           );
           if (valid.isValid && score > bestAction.score) {
             bestAction = {
@@ -188,77 +202,67 @@ function processPlayerDecisions(
               data: {
                 hex: nHex,
                 target: targetUnit,
-                op: CombatOperation.ATTACK,
+                op: CombatOperation.STANDARD,
               },
             };
-          }
-
-          // Check Suppressive Fire
-          const validSuppression = UnitValidation.validateUnitAttack(
-            unit,
-            nHex,
-            targetUnit,
-            CombatOperation.SUPPRESSIVE_FIRE
-          );
-          if (validSuppression.isValid) {
-            // Prefer suppression if enemy is strong
-            let supScore = score + (enemyStrength > myStrength ? 15 : 0);
-            if (supScore > bestAction.score) {
-              bestAction = {
-                type: "ATTACK",
-                score: supScore,
-                data: {
-                  hex: nHex,
-                  target: targetUnit,
-                  op: CombatOperation.SUPPRESSIVE_FIRE,
-                },
-              };
-            }
           }
         }
       }
       // ACTION: MOVE / CAPTURE
       else {
-        if (MapUtils.isHexImpassable(nHex)) return;
+        const hexCoordsId = HexUtils.getCoordsID(nHex.location);
 
-        let moveScore = nInfluence; // Move towards safety/friendlies or valid frontlines
+        // TODO: If the unit is in enemy ZOC right now then moving is not favourable.
+        // if (MapUtils.isHexInEnemyZOC(unitHex, unit.playerId)) {
+        //   ...
+        // }
+
+        // TODO: If the unit is occupying a planet hex, then moving is not favourable.
+        // if (unitHex.planetId) {
+        //   ...
+        // }
+
+        if (
+          MapUtils.isHexImpassable(nHex) || // Hex can't be moved into
+          nHex.unitId || // Hex is occupied by any unit
+          movementHexes.has(hexCoordsId) // Hex is going to be moved into by a friendly unit (avoid bounces)
+        )
+          return;
+
+        let moveScore = -nInfluence; // Move towards frontlines.
 
         // Bonus: Capture Planet/Station
         if (
           (nHex.planetId || nHex.stationId) &&
           String(nHex.playerId) !== String(player._id)
         ) {
-          moveScore += 50;
+          moveScore += 20;
         }
         // Bonus: Capture Empty Territory
         else if (String(nHex.playerId) !== String(player._id)) {
-          moveScore += 10;
+          moveScore += 5;
         }
 
-        // Penalty: Moving out of supply (if we can detect it easily? simplified: prefer friendly territory)
-        // If current is bad, moving to better is good.
-
-        // Supply Check Logic Simplification:
-        // Units OOS should prioritize moving towards supply (Friendly Stations/Planets)
-        if (!unit.supply.isInSupply) {
-            // In influence map, friendly stations/planets are high value.
-            // So moving to higher influence is naturally moving to supply.
-            moveScore += 20; // Urgency
+        // Units OOS should prioritize moving towards supply
+        if (!unit.supply.isInSupply && supplyNetwork.has(hexCoordsId)) {
+          // In influence map, friendly stations/planets are high value.
+          // So moving to higher influence is naturally moving to supply.
+          moveScore += 10; // Urgency
         }
 
         const validMove = UnitValidation.validateUnitMove(
-            unit,
-            [nLoc],
-            context.hexLookup,
-            player._id
+          unit,
+          [nLoc],
+          context.hexLookup,
+          player._id
         );
 
         if (validMove.isValid && moveScore > bestAction.score) {
-             bestAction = {
-                 type: 'MOVE',
-                 score: moveScore,
-                 data: { path: [nLoc] }
-             }
+          bestAction = {
+            type: "MOVE",
+            score: moveScore,
+            data: { path: [nLoc] },
+          };
         }
       }
     });
@@ -278,130 +282,83 @@ function processPlayerDecisions(
       unit.movement = {
         path: bestAction.data.path,
       };
+
+      movementHexes.add(HexUtils.getCoordsID(bestAction.data.path[0]));
     }
-  });
-
-  // 2. STATION DESTRUCTION (High Risk)
-  const myStations = context.stations.filter(s => String(s.playerId) === String(player._id));
-  myStations.forEach(station => {
-      // Check if station is in context.stationsToRemove (already destroyed this tick)
-      if (context.stationsToRemove.some(id => String(id) === String(station._id))) return;
-
-      const stationHexId = HexUtils.getCoordsID(station.location);
-      const safetyScore = influenceMap.get(stationHexId) || 0;
-
-      // Threshold: If safety is very low (e.g. < -5, meaning heavy enemy presence and no friendly support)
-      // AND there is an enemy unit adjacent (immediate threat of capture)
-      if (safetyScore < -5) {
-          const neighbors = HexUtils.getNeighbors(station.location);
-          let enemyAdjacent = false;
-          for (const nLoc of neighbors) {
-              const nId = HexUtils.getCoordsID(nLoc);
-              const nUnit = context.unitLocations.get(nId);
-              if (nUnit && String(nUnit.playerId) !== String(player._id)) {
-                  enemyAdjacent = true;
-                  break;
-              }
-          }
-
-          if (enemyAdjacent) {
-              // Destroy Station
-              context.stationsToRemove.push(station._id);
-              const hex = context.hexLookup.get(stationHexId);
-              if (hex) hex.stationId = null;
-
-              context.appendGameEvent(null, GameEventTypes.PLAYER_DECOMMISSIONED_STATION, {
-                  stationId: station._id,
-                  playerId: station.playerId,
-                  hexId: station.hexId,
-                  location: station.location
-              });
-          }
-      }
   });
 
   // 3. SPENDING DECISIONS (Prestige)
   // Randomness: Try to spend if we have lots of prestige.
   if (player.prestigePoints > 20) {
-    // Try Build Station
-    if (player.prestigePoints >= CONSTANTS.STATION_PRESTIGE_COST) {
-       // Find valid location near front line (Safety ~ 0) but owned by us
-       // To keep it simple: Pick a random unit, check its neighbors.
-       const candidates = myUnits.map(u => u.location).flatMap(l => HexUtils.getNeighbors(l));
-       for (const loc of candidates) {
-           const hexId = HexUtils.getCoordsID(loc);
-           const hex = context.hexLookup.get(hexId);
-           if (!hex) continue;
-
-           const val = StationValidation.validateBuildStation(player, hex, context.stations);
-           if (val.isValid) {
-               // Build it!
-               // Need to modify State directly as per instructions
-               const newStation = StationFactory.create(
-                   context.game._id,
-                   player._id,
-                   hex._id,
-                   hex.location,
-                   context.idGenerator
-               );
-               context.stations.push(newStation);
-               context.stationLookup.set(hexId, newStation);
-               hex.stationId = newStation._id;
-               player.prestigePoints -= CONSTANTS.STATION_PRESTIGE_COST;
-
-               context.appendGameEvent(null, GameEventTypes.PLAYER_CONSTRUCTED_STATION, {
-                   stationId: newStation._id,
-                   playerId: newStation.playerId,
-                   hexId: newStation.hexId,
-                   location: newStation.location
-               });
-               break; // One per tick
-           }
-       }
-    }
-
     // Try Deploy Unit
-    // TODO: Need catalog IDs. Using CONSTANTS or just picking one?
-    // Let's assume some defaults or find them.
-    // Core doesn't export the catalog list easily as an array? `UNIT_CATALOG` is a map or object?
-    // `UNIT_CATALOG` in `core/src/data/units.ts` is an array.
+    // Pick a random one that we can afford
+    const affordableUnits = UNIT_CATALOG.filter(
+      (u) => u.cost <= player.prestigePoints
+    );
 
-    // Pick expensive one if rich
-    const affordableUnits = UNIT_CATALOG.filter(u => u.cost <= player.prestigePoints);
     if (affordableUnits.length > 0) {
-        // Pick random
-        const chosen = affordableUnits[Math.floor(Math.random() * affordableUnits.length)];
-        // Find spawn
-        const spawns = UnitManager.getValidSpawnLocations(player._id, context.planets, context.hexes, context.units);
-        if (spawns.length > 0) {
-            const spawnHex = spawns[Math.floor(Math.random() * spawns.length)];
+      const chosen =
+        affordableUnits[Math.floor(Math.random() * affordableUnits.length)];
 
-            const valid = UnitValidation.validateDeployUnit(player, spawnHex, context.hexes, context.planets, context.units, chosen.id);
-            if (valid.isValid) {
-                 // Deploy
-                 const initialSteps = UnitManager.addSteps([], chosen.stats.defaultSteps);
-                 initialSteps[0].isSuppressed = false;
+      // Find spawn
+      const spawns = UnitManager.getValidSpawnLocations(
+        player._id,
+        context.planets,
+        context.hexes,
+        context.units
+      );
 
-                 const newUnit = UnitFactory.create(
-                     chosen.id,
-                     player._id,
-                     context.game._id,
-                     spawnHex._id,
-                     spawnHex.location,
-                     context.idGenerator
-                 );
-                 newUnit.state.mp = Math.floor(chosen.stats.maxMP / 2); // Deploy penalty
-                 newUnit.state.ap = 0;
-                 newUnit.steps = initialSteps;
+      if (spawns.length > 0) {
+        const spawnHex = spawns[Math.floor(Math.random() * spawns.length)];
 
-                 context.units.push(newUnit);
-                 context.unitLocations.set(HexUtils.getCoordsID(spawnHex.location), newUnit);
-                 spawnHex.unitId = newUnit._id;
-                 player.prestigePoints -= chosen.cost;
+        const valid = UnitValidation.validateDeployUnit(
+          player,
+          spawnHex,
+          context.hexes,
+          context.planets,
+          context.units,
+          chosen.id
+        );
 
-                 context.appendGameEvent(player._id, GameEventTypes.UNIT_DEPLOYED, { unit: newUnit });
-            }
+        if (valid.isValid) {
+          // Deploy
+          // Generate initial steps. All but one should be suppressed.
+          const initialSteps = UnitManager.addSteps(
+            [],
+            chosen.stats.defaultSteps
+          );
+
+          initialSteps[0].isSuppressed = false; // The first step should not be suppressed.
+
+          const newUnit = UnitFactory.create(
+            chosen.id,
+            player._id,
+            context.game._id,
+            spawnHex._id,
+            spawnHex.location,
+            context.idGenerator
+          );
+
+          // Manual override for deploy stats
+          // Units start with half MP
+          newUnit.state.mp = Math.floor(chosen.stats.maxMP / 2);
+          newUnit.state.ap = 0;
+          newUnit.steps = initialSteps;
+
+          context.units.push(newUnit);
+          context.unitLocations.set(
+            HexUtils.getCoordsID(spawnHex.location),
+            newUnit
+          );
+
+          spawnHex.unitId = newUnit._id;
+          player.prestigePoints -= chosen.cost;
+
+          context.appendGameEvent(player._id, GameEventTypes.UNIT_DEPLOYED, {
+            unit: newUnit,
+          });
         }
+      }
     }
   }
 }

@@ -166,6 +166,8 @@ export const CombatEngine = {
       const mpCost = MapUtils.getHexMPCost(defenderHex, attacker.playerId);
 
       if (advanceOnVictory && attacker.state.mp > mpCost) {
+        attacker.movement.path = [defenderHex.location]
+        
         UnitManager.moveUnit(attacker, attackerHex, defenderHex, mpCost);
 
         attackerWonHex = true;

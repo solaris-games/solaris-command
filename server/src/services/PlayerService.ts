@@ -33,7 +33,10 @@ export class PlayerService {
     });
   }
 
-  static async isAliasTaken(gameId: UnifiedId, alias: string): Promise<boolean> {
+  static async isAliasTaken(
+    gameId: UnifiedId,
+    alias: string
+  ): Promise<boolean> {
     const existingPlayer = await PlayerModel.findOne({
       gameId: gameId,
       alias: { $regex: new RegExp(`^${alias}$`, "i") },
@@ -107,7 +110,7 @@ export class PlayerService {
   static async joinGame(
     gameId: UnifiedId,
     userId: UnifiedId,
-    options: { alias?: string; color?: string, renownToDistribute: number },
+    options: { alias?: string; color?: string; renownToDistribute: number },
     session?: ClientSession
   ) {
     const player = PlayerFactory.create(
@@ -192,15 +195,23 @@ export class PlayerService {
   }
 
   static async touchPlayer(gameId: UnifiedId, player: Player) {
+    let newStatus = player.status;
+    let newIsAIControlled = player.isAIControlled;
+
+    // If the player is currently AFK then touching them
+    // should make them active again and not controlled by AI.
+    if (player.status === PlayerStatus.AFK) {
+      newStatus = PlayerStatus.ACTIVE;
+      newIsAIControlled = false;
+    }
+
     return PlayerModel.updateOne(
       { gameId, _id: player._id },
       {
         $set: {
           lastSeenDate: new Date(),
-          status:
-            player.status === PlayerStatus.AFK
-              ? PlayerStatus.ACTIVE
-              : player.status,
+          status: newStatus,
+          isAIControlled: newIsAIControlled,
         },
       }
     );

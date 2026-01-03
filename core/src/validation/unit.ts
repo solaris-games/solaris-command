@@ -4,7 +4,6 @@ import {
   UNIT_CATALOG_ID_MAP,
   SPECIALIST_STEP_ID_MAP,
 } from "../data";
-import { Hex, HexCoords, HexCoordsId } from "../types/hex";
 import { Planet } from "../types/planet";
 import { Player } from "../types/player";
 import { Unit, UnitStatus, SpecialistStepTypes } from "../types/unit";
@@ -13,6 +12,8 @@ import { CombatOperation } from "../types/combat";
 import { UnitManager } from "../utils/unit-manager";
 import { Pathfinding } from "../utils/pathfinding";
 import { HexUtils } from "../utils/hex-utils";
+import { HexCoords, HexCoordsId } from "../types/geometry";
+import { Hex } from "../types/hex";
 
 export interface ValidationResult {
   isValid: boolean;

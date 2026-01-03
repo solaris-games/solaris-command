@@ -92,6 +92,7 @@ export class GameGalaxyMapper {
         victoryPoints: p.victoryPoints,
         lastSeenDate: p.lastSeenDate.toISOString(),
         renownToDistribute: p.renownToDistribute,
+        isAIControlled: p.isAIControlled
       })),
       hexes: galaxy.hexes.map((h) => ({
         _id: String(h._id),

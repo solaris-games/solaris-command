@@ -80,6 +80,7 @@ export interface GameGalaxyResponseSchema {
     victoryPoints: number | null;
     lastSeenDate: string;
     renownToDistribute: number | null;
+    isAIControlled: boolean;
   }[];
   hexes: {
     _id: UnifiedId;

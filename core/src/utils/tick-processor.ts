@@ -20,6 +20,7 @@ import { CONSTANTS } from "../data/constants";
 import { ERROR_CODES } from "../data/error-codes";
 import { CombatOperation } from "../types/combat";
 import { TickContext } from "../types/tick";
+import { AISystem } from "./ai-system";
 
 export interface ProcessTickResult {
   gameEvents: GameEvent[]; // Events from tick processing (e.g combat reports)
@@ -176,10 +177,8 @@ export const TickProcessor = {
     TickProcessor.processTickRegroupingUnitStatus(context);
     TickProcessor.processTickWinnerCheck(context);
 
-    // AI Processing is intentionally omitted here as the AI logic is provided in ai-system.ts
-    // but the Player schema update required for it (isAIControlled) cannot be persisted in this environment.
-    // The user will wire this in manually.
-
+    AISystem.processAIPlayers(context);
+    
     return {
       gameEvents: context.gameEvents,
       stationsToRemove: context.stationsToRemove,
@@ -240,6 +239,7 @@ export const TickProcessor = {
 
       if (now.getTime() - effectiveLastActivity.getTime() > AFK_TIMEOUT_MS) {
         player.status = PlayerStatus.AFK;
+        player.isAIControlled = true;
 
         context.appendGameEvent(null, GameEventTypes.PLAYER_AFK, {
           playerId: player._id,

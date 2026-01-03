@@ -183,7 +183,12 @@ async function executeGameTick(game: Game) {
 
     // Units
     for (const unit of liveUnits) {
-      await unit.save({ session });
+      if (unit.save == null) { // This might be a unit created by AI.
+        let newDBUnit = new UnitModel(unit);
+        await newDBUnit.save({ session });
+      } else {
+        await unit.save({ session });
+      }
     }
 
     // Hexes

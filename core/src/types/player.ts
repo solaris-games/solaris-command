@@ -20,4 +20,5 @@ export interface Player {
   renownToDistribute: number;
 
   lastSeenDate: Date;
+  isAIControlled: boolean;
 }

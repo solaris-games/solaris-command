@@ -20,7 +20,8 @@ export const PlayerFactory = {
       prestigePoints: CONSTANTS.GAME_STARTING_PRESTIGE_POINTS,
       victoryPoints: 0,
       lastSeenDate: new Date(),
-      renownToDistribute
+      renownToDistribute,
+      isAIControlled: false
     };
   },
 };
