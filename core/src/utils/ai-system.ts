@@ -13,6 +13,8 @@ import { UnitFactory } from "../factories/unit-factory";
 import { HexCoordsId } from "../types/geometry";
 import { SupplyEngine } from "./supply-engine";
 import { CombatCalculator } from "./combat-calculator";
+import { COMBAT_SHIFTS_TERRAIN } from "../data/terrain";
+import { Hex } from "../types/hex";
 
 const AI_EXECUTION_INTERVAL_TICKS = 1;
 
@@ -126,6 +128,27 @@ function getInfluenceMapForPlayer(
   return influenceMap;
 }
 
+function countFriendlyNeighbors(
+  hex: Hex,
+  context: TickContext,
+  playerId: UnifiedId,
+  excludeUnitId?: UnifiedId
+): number {
+  const neighbors = HexUtils.neighbors(hex.location);
+  let count = 0;
+  for (const nLoc of neighbors) {
+    const nId = HexUtils.getCoordsID(nLoc);
+    const nUnit = context.unitLocations.get(nId);
+    if (nUnit && String(nUnit.playerId) === String(playerId)) {
+      if (excludeUnitId && String(nUnit._id) === String(excludeUnitId)) {
+        continue;
+      }
+      count++;
+    }
+  }
+  return count;
+}
+
 function processAIPlayerDecisions(player: Player, context: TickContext) {
   const influenceMap = getInfluenceMapForPlayer(context, player._id);
   const myAliveUnits = context.units.filter(
@@ -151,17 +174,49 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
 
   // 1. UNIT DECISIONS
   myAliveUnits.forEach((unit) => {
-    if (unit.state.status !== UnitStatus.IDLE) return;
+    if (unit.state.status !== UnitStatus.IDLE) {
+        return;
+    }
 
     const unitLocId = HexUtils.getCoordsID(unit.location);
     const unitHex = context.hexLookup.get(unitLocId)!;
-    const currentSafety = influenceMap.get(unitLocId) || 0;
     const neighbors = HexUtils.neighbors(unit.location);
+
+    // --- Anvil Strategy (Calculated Wait Score) ---
+    // Default wait score
+    let waitScore = -25;
+
+    // Check 1: Are we pinning an enemy? (Adjacent to Enemy Unit)
+    let isPinning = false;
+    for (const nLoc of neighbors) {
+        const nId = HexUtils.getCoordsID(nLoc);
+        const nUnit = context.unitLocations.get(nId);
+        if (nUnit && String(nUnit.playerId) !== String(player._id)) {
+            isPinning = true;
+            break;
+        }
+    }
+
+    // Check 3: Objective (Planet/Station)
+    const isObjective = !!(unitHex.planetId || unitHex.stationId);
+
+    // "Anvil" Logic: High Defense terrain is only useful if we are pinning an enemy.
+    // If we are pinning (adjacent to enemy), we hold.
+    // If we are just sitting in rocks alone, we should move to the front.
+    if (isPinning) {
+        waitScore = 80;
+    }
+
+    if (isObjective) {
+        waitScore += 10;
+        // Ensure objective holding is prioritized even if not strictly pinning yet (e.g. anticipating)
+        if (waitScore < 50) waitScore = 50;
+    }
 
     // Potential Actions
     let bestAction: { type: string; score: number; data?: any } = {
       type: "WAIT",
-      score: -25,
+      score: waitScore,
     };
 
     neighbors.forEach((nLoc) => {
@@ -184,9 +239,23 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
             CombatOperation.STANDARD
           );
 
-          // Score Attack
-          // Simple heuristic: Combat Odds * Safety
-          let score = combatPrediction.oddsScore * currentSafety;
+          // --- Killer Instinct (Combat Thresholding) ---
+          let score = 0;
+          const oddsScore = combatPrediction.oddsScore;
+
+          // Tier 1: Guaranteed Kill (Odds 3:1 -> Score +3)
+          if (oddsScore >= 3) {
+            score = 1000 + (oddsScore * 10);
+          }
+          // Tier 2: Favorable Combat (Odds 1.5:1 -> Score +1)
+          else if (oddsScore >= 1) {
+             score = 500 + (oddsScore * 10);
+          }
+          // Tier 4: Desperation / Bad Attacks
+          else {
+             // If ratio is < 1.5:1, we penalize it heavily unless desperate.
+             score = -100 + (oddsScore * 10);
+          }
 
           // Validate
           const valid = UnitValidation.validateUnitAttack(
@@ -212,16 +281,6 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
       else {
         const hexCoordsId = HexUtils.getCoordsID(nHex.location);
 
-        // TODO: If the unit is in enemy ZOC right now then moving is not favourable.
-        // if (MapUtils.isHexInEnemyZOC(unitHex, unit.playerId)) {
-        //   ...
-        // }
-
-        // TODO: If the unit is occupying a planet hex, then moving is not favourable.
-        // if (unitHex.planetId) {
-        //   ...
-        // }
-
         if (
           MapUtils.isHexImpassable(nHex) || // Hex can't be moved into
           nHex.unitId || // Hex is occupied by any unit
@@ -229,7 +288,22 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
         )
           return;
 
-        let moveScore = -nInfluence; // Move towards frontlines.
+        // --- Target Zero (Bell Curve) ---
+        const MAX_INFLUENCE = 20;
+        let moveScore = MAX_INFLUENCE - Math.min(MAX_INFLUENCE, Math.abs(nInfluence));
+
+        // --- Shield Wall (Cohesion Bonus) ---
+        // Pass current unit ID to exclude it from count (we can't support ourselves from our previous position)
+        const friendlyNeighbors = countFriendlyNeighbors(nHex, context, player._id, unit._id);
+        moveScore += friendlyNeighbors * 10;
+
+        // --- ZOC Safety ---
+        const inEnemyZOC = MapUtils.isHexInEnemyZOC(nHex, player._id);
+        const hasSupport = friendlyNeighbors > 0; // "Support" implies friendly adjacent units at destination
+
+        if (inEnemyZOC && !hasSupport) {
+            moveScore -= 500;
+        }
 
         // Bonus: Capture Planet/Station
         if (
