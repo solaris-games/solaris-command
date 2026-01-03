@@ -20,10 +20,12 @@ const AI_EXECUTION_INTERVAL_TICKS = 1;
 
 // Weights for Influence Map
 const INFLUENCE_WEIGHTS = {
-  FRIENDLY_UNIT: 1,
+  FRIENDLY_HEX: 1,
+  FRIENDLY_UNIT: 3,
   FRIENDLY_STATION: 5,
   FRIENDLY_PLANET: 10,
-  ENEMY_UNIT: -1,
+  ENEMY_HEX: -1,
+  ENEMY_UNIT: -3,
   ENEMY_STATION: -5,
   ENEMY_PLANET: -10,
   DECAY: 0.8, // Decay factor per hex distance
@@ -95,6 +97,16 @@ function getInfluenceMapForPlayer(
       }
     }
   };
+
+  // Hexes
+  context.hexes.forEach((h) => {
+    if (MapUtils.isHexImpassable(h)) return; // Impassible hexes do not influence
+    const isFriendly = String(h.playerId) === String(playerId);
+    const val = isFriendly
+      ? INFLUENCE_WEIGHTS.FRIENDLY_HEX
+      : INFLUENCE_WEIGHTS.ENEMY_HEX;
+    addInfluence(HexUtils.getCoordsID(h.location), val);
+  });
 
   // Units
   context.units.forEach((u) => {
@@ -175,7 +187,7 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
   // 1. UNIT DECISIONS
   myAliveUnits.forEach((unit) => {
     if (unit.state.status !== UnitStatus.IDLE) {
-        return;
+      return;
     }
 
     const unitLocId = HexUtils.getCoordsID(unit.location);
@@ -189,12 +201,12 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
     // Check 1: Are we pinning an enemy? (Adjacent to Enemy Unit)
     let isPinning = false;
     for (const nLoc of neighbors) {
-        const nId = HexUtils.getCoordsID(nLoc);
-        const nUnit = context.unitLocations.get(nId);
-        if (nUnit && String(nUnit.playerId) !== String(player._id)) {
-            isPinning = true;
-            break;
-        }
+      const nId = HexUtils.getCoordsID(nLoc);
+      const nUnit = context.unitLocations.get(nId);
+      if (nUnit && String(nUnit.playerId) !== String(player._id)) {
+        isPinning = true;
+        break;
+      }
     }
 
     // Check 3: Objective (Planet/Station)
@@ -204,13 +216,16 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
     // If we are pinning (adjacent to enemy), we hold.
     // If we are just sitting in rocks alone, we should move to the front.
     if (isPinning) {
-        waitScore = 80;
+      waitScore = 80;
     }
 
     if (isObjective) {
-        waitScore += 10;
-        // Ensure objective holding is prioritized even if not strictly pinning yet (e.g. anticipating)
-        if (waitScore < 50) waitScore = 50;
+      const objectiveInfluence =
+        influenceMap.get(HexUtils.getCoordsID(unitHex.location)) || 0;
+
+      // Add weight to the weight score but factor in relative safety. There is no point
+      // waiting on objectives when no enemies are around.
+      waitScore += 25 - objectiveInfluence / 2;
     }
 
     // Potential Actions
@@ -245,16 +260,16 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
 
           // Tier 1: Guaranteed Kill (Odds 3:1 -> Score +3)
           if (oddsScore >= 3) {
-            score = 1000 + (oddsScore * 10);
+            score = 1000 + oddsScore * 10;
           }
           // Tier 2: Favorable Combat (Odds 1.5:1 -> Score +1)
           else if (oddsScore >= 1) {
-             score = 500 + (oddsScore * 10);
+            score = 500 + oddsScore * 10;
           }
           // Tier 4: Desperation / Bad Attacks
           else {
-             // If ratio is < 1.5:1, we penalize it heavily unless desperate.
-             score = -100 + (oddsScore * 10);
+            // If ratio is < 1.5:1, we penalize it heavily unless desperate.
+            score = -100 + oddsScore * 10;
           }
 
           // Validate
@@ -290,20 +305,21 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
 
         // --- Target Zero (Bell Curve) ---
         const MAX_INFLUENCE = 20;
-        let moveScore = MAX_INFLUENCE - Math.min(MAX_INFLUENCE, Math.abs(nInfluence));
+        let moveScore =
+          MAX_INFLUENCE - Math.min(MAX_INFLUENCE, Math.abs(nInfluence));
 
         // --- Shield Wall (Cohesion Bonus) ---
         // Pass current unit ID to exclude it from count (we can't support ourselves from our previous position)
-        const friendlyNeighbors = countFriendlyNeighbors(nHex, context, player._id, unit._id);
-        moveScore += friendlyNeighbors * 10;
+        // const friendlyNeighbors = countFriendlyNeighbors(nHex, context, player._id, unit._id);
+        // moveScore += friendlyNeighbors * 10;
 
         // --- ZOC Safety ---
-        const inEnemyZOC = MapUtils.isHexInEnemyZOC(nHex, player._id);
-        const hasSupport = friendlyNeighbors > 0; // "Support" implies friendly adjacent units at destination
+        // const inEnemyZOC = MapUtils.isHexInEnemyZOC(nHex, player._id);
+        // const hasSupport = friendlyNeighbors > 0; // "Support" implies friendly adjacent units at destination
 
-        if (inEnemyZOC && !hasSupport) {
-            moveScore -= 500;
-        }
+        // if (inEnemyZOC && !hasSupport) {
+        //     moveScore -= 500;
+        // }
 
         // Bonus: Capture Planet/Station
         if (
