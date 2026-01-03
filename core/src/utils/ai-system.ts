@@ -100,10 +100,17 @@ function getInfluenceMapForPlayer(
   // Hexes
   context.hexes.forEach((h) => {
     if (MapUtils.isHexImpassable(h)) return; // Impassible hexes do not influence
-    const isFriendly = String(h.playerId) === String(playerId);
-    const val = isFriendly
-      ? INFLUENCE_WEIGHTS.FRIENDLY_HEX
-      : INFLUENCE_WEIGHTS.ENEMY_HEX;
+
+    let val = 0;
+    if (!h.playerId) {
+      val = -0.1; // Neutral
+    } else {
+      const isFriendly = String(h.playerId) === String(playerId);
+      val = isFriendly
+        ? INFLUENCE_WEIGHTS.FRIENDLY_HEX
+        : INFLUENCE_WEIGHTS.ENEMY_HEX;
+    }
+
     addInfluence(HexUtils.getCoordsID(h.location), val);
   });
 
@@ -128,11 +135,15 @@ function getInfluenceMapForPlayer(
 
   // Planets
   context.planets.forEach((p) => {
-    if (!p.playerId) return; // Neutral doesn't influence safety directly? Maybe neutral is safe.
-    const isFriendly = String(p.playerId) === String(playerId);
-    const val = isFriendly
-      ? INFLUENCE_WEIGHTS.FRIENDLY_PLANET
-      : INFLUENCE_WEIGHTS.ENEMY_PLANET;
+    let val = 0;
+    if (!p.playerId) {
+      val = INFLUENCE_WEIGHTS.ENEMY_PLANET; // Neutral planets are targets/dangerous enough to attract "Bravery"
+    } else {
+      const isFriendly = String(p.playerId) === String(playerId);
+      val = isFriendly
+        ? INFLUENCE_WEIGHTS.FRIENDLY_PLANET
+        : INFLUENCE_WEIGHTS.ENEMY_PLANET;
+    }
     addInfluence(HexUtils.getCoordsID(p.location), val);
   });
 
@@ -172,6 +183,31 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
       String(s.playerId) === String(player._id)
   );
 
+  // --- Pre-calculation: Map Dimensions & Objectives ---
+  let maxMapDistance = 0;
+  // Approximation of map radius/width to normalize distance scores
+  context.hexes.forEach((h) => {
+    // Distance from origin is a decent proxy for half-width in hexagonal grids
+    const dist = HexUtils.distance(h.location, { q: 0, r: 0, s: 0 });
+    if (dist > maxMapDistance) maxMapDistance = dist;
+  });
+  // Double the radius for "diameter" approximation
+  const MAX_MAP_DISTANCE = maxMapDistance * 2;
+
+  // Identify Objectives (Enemy/Neutral Planets & Stations)
+  const objectives: { location: any; isNeutral: boolean }[] = [];
+  context.planets.forEach((p) => {
+    if (String(p.playerId) !== String(player._id)) {
+      objectives.push({ location: p.location, isNeutral: !p.playerId });
+    }
+  });
+  context.stations.forEach((s) => {
+    // Stations always have owners, so just check if enemy
+    if (String(s.playerId) !== String(player._id)) {
+      objectives.push({ location: s.location, isNeutral: false });
+    }
+  });
+
   // Keep track of which hexes are going to be moved into
   // so that the AI can avoid bouncing units.
   const movementHexes = new Set<HexCoordsId>();
@@ -192,6 +228,20 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
     const unitLocId = HexUtils.getCoordsID(unit.location);
     const unitHex = context.hexLookup.get(unitLocId)!;
     const neighbors = HexUtils.neighbors(unit.location);
+
+    // --- Target Selection (Nearest Objective) ---
+    let bestObjectiveDistance = Infinity;
+    // Find the "effective" nearest objective
+    for (const obj of objectives) {
+      const dist = HexUtils.distance(unit.location, obj.location);
+      // Bias: Neutral planets effectively 2 hexes closer
+      const effectiveDist = dist - (obj.isNeutral ? 2 : 0);
+      if (effectiveDist < bestObjectiveDistance) {
+        bestObjectiveDistance = effectiveDist;
+      }
+    }
+    // If no objectives found (rare), fallback to 0
+    if (bestObjectiveDistance === Infinity) bestObjectiveDistance = 0;
 
     // --- Anvil Strategy (Calculated Wait Score) ---
     // Default wait score
@@ -302,15 +352,56 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
         )
           return;
 
-        // --- Target Zero (Bell Curve) ---
+        // --- Asymmetric "Bravery" Score (Target -5) ---
         const MAX_INFLUENCE = 20;
-        let moveScore =
-          MAX_INFLUENCE - Math.min(MAX_INFLUENCE, Math.abs(nInfluence));
+        const TARGET_INFLUENCE = -5; // We want to be slightly in enemy territory
+        const diff = nInfluence - TARGET_INFLUENCE;
+        let penalty = 0;
+
+        if (diff > 0) {
+          // We are too safe (Influence > -5). Punish heavily (Cowardice).
+          penalty = diff * 2.0;
+        } else {
+          // We are too deep (Influence < -5). Punish lightly (Aggression is good).
+          penalty = Math.abs(diff) * 0.1;
+        }
+
+        let moveScore = MAX_INFLUENCE - Math.min(MAX_INFLUENCE, penalty);
+
+        // --- Global Compass (Distance Score) ---
+        // Pull units towards the objective line
+        // Calculate distance from *this specific neighbor* to the objective we picked earlier
+        // Note: We used 'bestObjectiveDistance' (from unit) earlier, but for movement,
+        // we need to know if *this step* gets us closer.
+        // We can re-evaluate which objective is "nearest" for this neighbor, or stick to the unit's target.
+        // Sticking to unit's target is more consistent.
+        // However, we didn't save *which* objective was chosen, just the distance.
+        // Let's quickly re-find the exact target to get the distance from neighbor.
+        // OPTIMIZATION: Just re-scan objectives for this neighbor. It's O(N_Objectives) where N is small (Planets/Stations).
+        let neighborBestObjDist = Infinity;
+        for (const obj of objectives) {
+          const dist = HexUtils.distance(nLoc, obj.location);
+          const effectiveDist = dist - (obj.isNeutral ? 2 : 0);
+          if (effectiveDist < neighborBestObjDist) {
+            neighborBestObjDist = effectiveDist;
+          }
+        }
+        // Apply Formula A: (MapWidth - Distance) * Bias
+        // Using real distance (neighborBestObjDist includes bias, so add it back? No, effective distance is fine for comparison)
+        // Actually, let's use the raw distance for the linear pull, but determining which objective to pull to based on effective distance.
+        // Simplified: The score is based on reducing effective distance.
+        moveScore += (MAX_MAP_DISTANCE - neighborBestObjDist) * 0.5;
 
         // --- Shield Wall (Cohesion Bonus) ---
         // Note: Pass current unit ID to exclude it from count (we can't support ourselves from our previous position)
-        const friendlyNeighbors = countFriendlyNeighbors(nHex, context, player._id, unit._id);
-        moveScore += friendlyNeighbors * 5;
+        const friendlyNeighbors = countFriendlyNeighbors(
+          nHex,
+          context,
+          player._id,
+          unit._id
+        );
+        // Diminishing returns: Cap at 2 neighbors
+        moveScore += Math.min(friendlyNeighbors, 2) * 5;
 
         // --- ZOC Safety ---
         const inEnemyZOC = MapUtils.isHexInEnemyZOC(nHex, player._id);
