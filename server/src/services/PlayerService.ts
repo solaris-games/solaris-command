@@ -206,7 +206,11 @@ export class PlayerService {
     }
 
     return PlayerModel.updateOne(
-      { gameId, _id: player._id },
+      {
+        gameId,
+        _id: player._id,
+        "state.status": { $ne: GameStates.LOCKED }, // Do not update locked games due to concurrency issues
+      },
       {
         $set: {
           lastSeenDate: new Date(),
