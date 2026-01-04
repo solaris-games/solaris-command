@@ -81,7 +81,12 @@ export class UserService {
       const playerIds = activePlayers.map((p) => p._id);
       await PlayerModel.updateMany(
         { _id: { $in: playerIds } },
-        { $set: { status: PlayerStatus.DEFEATED } },
+        {
+          $set: {
+            status: PlayerStatus.DEFEATED,
+            isAIControlled: true,
+          },
+        },
         { session }
       );
     }

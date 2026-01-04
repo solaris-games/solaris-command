@@ -476,7 +476,7 @@ describe("TickProcessor Integration Tests", () => {
 
       const unit = createUnit("u1", "p1", hexes[0]);
       unit.supply.isInSupply = false;
-      
+
       // 4 cycles OOS is collapse.
       unit.supply.ticksLastSupply = 4 * 10; // 4 cycles
 
@@ -654,12 +654,16 @@ describe("TickProcessor Integration Tests", () => {
       // Player seen 25 hours ago
       player.lastSeenDate = new Date(Date.now() - 25 * 60 * 60 * 1000);
 
+      const hexes = createTinyGalaxy();
+      const targetHex = hexes[1];
+      const planet = createPlanet("p1", targetHex, false);
+
       const context = new TickContext(
         game,
         [player],
         [],
         [],
-        [],
+        [planet],
         [],
         ID_GENERATOR
       );
@@ -679,12 +683,16 @@ describe("TickProcessor Integration Tests", () => {
       // Player seen 23 hours ago
       player.lastSeenDate = new Date(Date.now() - 23 * 60 * 60 * 1000);
 
+      const hexes = createTinyGalaxy();
+      const targetHex = hexes[1];
+      const planet = createPlanet("p1", targetHex, false);
+
       const context = new TickContext(
         game,
         [player],
         [],
         [],
-        [],
+        [planet],
         [],
         ID_GENERATOR
       );
@@ -701,6 +709,7 @@ describe("TickProcessor Integration Tests", () => {
 
       const player = createPlayer("p1");
       player.status = PlayerStatus.DEFEATED;
+      player.isAIControlled = true;
       player.lastSeenDate = new Date(Date.now() - 48 * 60 * 60 * 1000);
 
       const context = new TickContext(
@@ -716,6 +725,80 @@ describe("TickProcessor Integration Tests", () => {
       TickProcessor.processTick(context);
 
       expect(player.status).toBe(PlayerStatus.DEFEATED);
+      expect(player.isAIControlled).toBe(true);
+    });
+  });
+
+  describe("Player Defeat", () => {
+    it("should mark active player as defeated if they do not own any planets or units", () => {
+      const game = createGame();
+      const player = createPlayer("p1");
+      player.status = PlayerStatus.ACTIVE;
+
+      const context = new TickContext(
+        game,
+        [player],
+        [],
+        [],
+        [],
+        [],
+        ID_GENERATOR
+      );
+
+      TickProcessor.processTick(context);
+
+      expect(player.status).toBe(PlayerStatus.DEFEATED);
+      expect(player.isAIControlled).toBe(true);
+    });
+
+    it("should NOT mark active player as defeated if they own a planet", () => {
+      const game = createGame();
+      const player = createPlayer("p1");
+      player.status = PlayerStatus.ACTIVE;
+
+      const hexes = createTinyGalaxy();
+      const targetHex = hexes[1];
+      const planet = createPlanet("p1", targetHex, false);
+
+      const context = new TickContext(
+        game,
+        [player],
+        [],
+        [],
+        [planet],
+        [],
+        ID_GENERATOR
+      );
+
+      TickProcessor.processTick(context);
+
+      expect(player.status).toBe(PlayerStatus.ACTIVE);
+      expect(player.isAIControlled).toBe(false);
+    });
+
+    it("should NOT mark active player as defeated if they own a unit", () => {
+      const game = createGame();
+      const player = createPlayer("p1");
+      player.status = PlayerStatus.ACTIVE;
+
+      const hexes = createTinyGalaxy();
+      const targetHex = hexes[1];
+      const unit = createUnit("u1", "p1", targetHex);
+
+      const context = new TickContext(
+        game,
+        [player],
+        [],
+        [unit],
+        [],
+        [],
+        ID_GENERATOR
+      );
+
+      TickProcessor.processTick(context);
+
+      expect(player.status).toBe(PlayerStatus.ACTIVE);
+      expect(player.isAIControlled).toBe(false);
     });
   });
 
@@ -874,7 +957,7 @@ describe("TickProcessor Integration Tests", () => {
       unit1.state.status = UnitStatus.MOVING;
       unit1.movement.path = [targetHex.location];
       unit1.state.mp = 10;
-      
+
       // Let's use steps to differentiate since both are frigates.
       // Unit 1: 3 steps
       const unit2 = createUnit("u2", "p2", startHex2);

@@ -173,9 +173,12 @@ export const TickProcessor = {
     TickProcessor.processHexZOC(context);
     TickProcessor.processUnitScoutsHexCapture(context);
     TickProcessor.processTickRegroupingUnitStatus(context);
+    TickProcessor.processPlayerDefeatedCheck(context);
     TickProcessor.processTickWinnerCheck(context);
 
-    AISystem.processAIPlayers(context);
+    if (context.winnerPlayerId == null) {
+      AISystem.processAIPlayers(context);
+    }
 
     return {
       gameEvents: context.gameEvents,
@@ -599,6 +602,33 @@ export const TickProcessor = {
     });
   },
 
+  processPlayerDefeatedCheck(context: TickContext) {
+    // Find players who do not have any planets or units, these
+    // players have been defeated by conquest.
+    const defeatedPlayers = context.players.filter((player) => {
+      if (player.status === PlayerStatus.DEFEATED) {
+        return false; // Already defeated.
+      }
+
+      const totalPlanets = context.planets.filter(
+        (p) => p.playerId && String(p.playerId) === String(player._id)
+      ).length;
+
+      const totalUnits = context.units.filter(
+        (u) =>
+          String(u.playerId) === String(player._id) &&
+          UnitManager.unitIsAlive(u)
+      ).length;
+
+      return totalPlanets === 0 && totalUnits === 0;
+    });
+
+    defeatedPlayers.forEach((p) => {
+      p.status = PlayerStatus.DEFEATED;
+      p.isAIControlled = true;
+    });
+  },
+
   processTickWinnerCheck(context: TickContext) {
     let winnerPlayer: Player | null = null;
 
@@ -613,7 +643,15 @@ export const TickProcessor = {
     }
 
     // --- VICTORY BY VP CHECK ---
-    if (winnerPlayer == null) {
+    // Note: If all players are defeated or afk then let's just end the game now.
+    const defeatedOrAFKPlayerCount = context.players.filter(
+      (p) => p.status === PlayerStatus.DEFEATED || p.status === PlayerStatus.AFK
+    ).length;
+    
+    const isAllPlayersDefeatedOrAFK =
+      defeatedOrAFKPlayerCount === context.game.settings.playerCount;
+
+    if (winnerPlayer == null || isAllPlayersDefeatedOrAFK) {
       winnerPlayer =
         GameLeaderboardUtils.getLeaderboard(
           context.players,
@@ -624,37 +662,6 @@ export const TickProcessor = {
             x.status === PlayerStatus.ACTIVE &&
             x.victoryPoints >= context.game.settings.victoryPointsToWin
         )[0] ?? null;
-    }
-
-    // --- VICTORY BY CONQUEST CHECK ---
-    if (winnerPlayer == null) {
-      // Check to see if there is a last player standing by total wipeout of
-      // all other players.
-      const playersInPlay = activePlayers.filter((player) => {
-        const totalPlanets = context.planets.filter(
-          (p) => p.playerId && String(p.playerId) === String(player._id)
-        ).length;
-
-        if (totalPlanets > 0) {
-          return true;
-        }
-
-        const totalUnits = context.units.filter(
-          (u) =>
-            String(u.playerId) === String(player._id) &&
-            UnitManager.unitIsAlive(u)
-        ).length;
-
-        if (totalUnits > 0) {
-          return true;
-        }
-
-        return false;
-      });
-
-      if (playersInPlay.length === 1) {
-        winnerPlayer = playersInPlay[0]!;
-      }
     }
 
     if (winnerPlayer) {

@@ -28,9 +28,7 @@ export const AISystem = {
     }
 
     // Filter AI players
-    const aiPlayers = context.players.filter(
-      (p) => p.isAIControlled && p.status !== PlayerStatus.DEFEATED
-    );
+    const aiPlayers = context.players.filter((p) => p.isAIControlled);
 
     if (aiPlayers.length === 0) return;
 

@@ -174,7 +174,10 @@ export class PlayerService {
         _id: playerId,
       },
       {
-        $set: { status: PlayerStatus.DEFEATED },
+        $set: {
+          status: PlayerStatus.DEFEATED,
+          isAIControlled: true,
+        },
       },
       { session }
     );
