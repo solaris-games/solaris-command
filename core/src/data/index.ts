@@ -6,3 +6,4 @@ export * from "./terrain";
 export * from "./units";
 export * from "./names";
 export * from "./maps";
+export * from "./player-colors";

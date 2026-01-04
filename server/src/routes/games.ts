@@ -75,6 +75,9 @@ router.post(
         }
       }
 
+      // TODO: Validate req.body.color choice. Must be one of the possible colors in `core/src/data/player-colors.ts`.
+      // TODO: ALso validate that the chosen color isn't already chosen by another player.
+
       const result = await executeInTransaction(async (session) => {
         const gameId = req.game._id;
         const userId = req.user._id;

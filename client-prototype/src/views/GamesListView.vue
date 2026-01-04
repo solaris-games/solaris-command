@@ -33,6 +33,7 @@
              <!-- Only render form if inputs initialized -->
              <div v-if="joinInputs[game._id]" class="join-form">
                <input v-model="joinInputs[game._id]!.alias" placeholder="Alias" />
+               <!-- TODO: This should be a select of color options in `core/src/data/player-colors.ts` -->
                <input v-model="joinInputs[game._id]!.color" type="color" />
                <button @click="handleJoin(game._id)">Join</button>
              </div>

@@ -8,6 +8,7 @@ export * from "./hex";
 export * from "./migration";
 export * from "./planet";
 export * from "./player";
+export * from "./player-colors";
 export * from "./station";
 export * from "./supply";
 export * from "./unified-id";
