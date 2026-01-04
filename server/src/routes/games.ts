@@ -17,6 +17,7 @@ import {
   JoinGameRequestSchema,
   GameEventFactory,
   GameEventTypes,
+  PLAYER_COLORS,
 } from "@solaris-command/core";
 import {
   GameService,
@@ -75,8 +76,22 @@ router.post(
         }
       }
 
-      // TODO: Validate req.body.color choice. Must be one of the possible colors in `core/src/data/player-colors.ts`.
-      // TODO: ALso validate that the chosen color isn't already chosen by another player.
+      // Validate color choice
+      const isValidColor = PLAYER_COLORS.some((group) =>
+        group.colours.some((c) => c.value === req.body.color)
+      );
+      if (!isValidColor) {
+        throw new Error(ERROR_CODES.REQUEST_VALIDATION_FAILED);
+      }
+
+      // Check if color is already taken
+      const existingPlayers = await PlayerService.getByGameId(req.game._id);
+      const isColorTaken = existingPlayers.some(
+        (p) => p.color === req.body.color
+      );
+      if (isColorTaken) {
+        throw new Error(ERROR_CODES.PLAYER_COLOR_ALREADY_TAKEN);
+      }
 
       const result = await executeInTransaction(async (session) => {
         const gameId = req.game._id;
@@ -264,6 +279,11 @@ router.post(
         return res
           .status(400)
           .json({ errorCode: ERROR_CODES.PLAYER_ALIAS_ALREADY_TAKEN });
+      }
+      if (error.message === ERROR_CODES.PLAYER_COLOR_ALREADY_TAKEN) {
+        return res
+          .status(400)
+          .json({ errorCode: ERROR_CODES.PLAYER_COLOR_ALREADY_TAKEN });
       }
       if (error.message === ERROR_CODES.GAME_IS_FULL) {
         return res.status(400).json({ errorCode: ERROR_CODES.GAME_IS_FULL });

@@ -33,8 +33,17 @@
              <!-- Only render form if inputs initialized -->
              <div v-if="joinInputs[game._id]" class="join-form">
                <input v-model="joinInputs[game._id]!.alias" placeholder="Alias" />
-               <!-- TODO: This should be a select of color options in `core/src/data/player-colors.ts` -->
-               <input v-model="joinInputs[game._id]!.color" type="color" />
+               <select v-model="joinInputs[game._id]!.color">
+                 <optgroup v-for="group in PLAYER_COLORS" :key="group.group" :label="group.group">
+                   <option
+                     v-for="color in group.colours"
+                     :key="color.value"
+                     :value="color.value"
+                   >
+                     {{ group.group }} - {{ color.alias }}
+                   </option>
+                 </optgroup>
+               </select>
                <button @click="handleJoin(game._id)">Join</button>
              </div>
           </div>
@@ -48,6 +57,7 @@
 import { onMounted, reactive } from 'vue';
 import { useGameStore } from '../stores/game';
 import NavBar from '../components/NavBar.vue';
+import { PLAYER_COLORS } from '@solaris-command/core/src/data/player-colors';
 
 const gameStore = useGameStore();
 const joinInputs = reactive<Record<string, { alias: string, color: string }>>({});
