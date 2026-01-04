@@ -220,9 +220,9 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
   );
 
   // 1. UNIT DECISIONS
-  myAliveUnits.forEach((unit) => {
+  for (const unit of myAliveUnits) {
     if (unit.state.status !== UnitStatus.IDLE) {
-      return;
+      continue;
     }
 
     const unitLocId = HexUtils.getCoordsID(unit.location);
@@ -240,6 +240,7 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
         bestObjectiveDistance = effectiveDist;
       }
     }
+
     // If no objectives found (rare), fallback to 0
     if (bestObjectiveDistance === Infinity) bestObjectiveDistance = 0;
 
@@ -265,7 +266,7 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
     // If we are pinning (adjacent to enemy), we hold.
     // If we are just sitting in rocks alone, we should move to the front.
     if (isPinning) {
-      waitScore = 25;
+      waitScore = 30;
     }
 
     if (isObjective) {
@@ -286,7 +287,7 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
     for (const nLoc of neighbors) {
       const nId = HexUtils.getCoordsID(nLoc);
       const nHex = context.hexLookup.get(nId);
-      if (!nHex) return;
+      if (!nHex) continue;
 
       const nInfluence = influenceMap.get(nId) || 0;
 
@@ -350,7 +351,7 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
           nHex.unitId || // Hex is occupied by any unit
           movementHexes.has(hexCoordsId) // Hex is going to be moved into by a friendly unit (avoid bounces)
         )
-          return;
+          continue;
 
         // --- Asymmetric "Bravery" Score (Target -5) ---
         const MAX_INFLUENCE = 20;
@@ -386,11 +387,14 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
             neighborBestObjDist = effectiveDist;
           }
         }
-        // Apply Formula A: (MapWidth - Distance) * Bias
-        // Using real distance (neighborBestObjDist includes bias, so add it back? No, effective distance is fine for comparison)
-        // Actually, let's use the raw distance for the linear pull, but determining which objective to pull to based on effective distance.
-        // Simplified: The score is based on reducing effective distance.
-        moveScore += (MAX_MAP_DISTANCE - neighborBestObjDist) * 0.5;
+
+        if (isFinite(neighborBestObjDist)) {
+          // Apply Formula A: (MapWidth - Distance) * Bias
+          // Using real distance (neighborBestObjDist includes bias, so add it back? No, effective distance is fine for comparison)
+          // Actually, let's use the raw distance for the linear pull, but determining which objective to pull to based on effective distance.
+          // Simplified: The score is based on reducing effective distance.
+          moveScore += (MAX_MAP_DISTANCE - neighborBestObjDist) * 5;
+        }
 
         // --- Shield Wall (Cohesion Bonus) ---
         // Note: Pass current unit ID to exclude it from count (we can't support ourselves from our previous position)
@@ -400,6 +404,7 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
           player._id,
           unit._id
         );
+
         // Diminishing returns: Cap at 2 neighbors
         moveScore += Math.min(friendlyNeighbors, 2) * 5;
 
@@ -408,7 +413,7 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
         const hasSupport = friendlyNeighbors > 0; // "Support" implies friendly adjacent units at destination
 
         if (inEnemyZOC && !hasSupport) {
-            moveScore -= 10; // We don't want to move units where they could easily be surrounded.
+          moveScore -= 10; // We don't want to move units where they could easily be surrounded.
         }
 
         // Bonus: Capture Planet/Station
@@ -465,7 +470,9 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
 
       movementHexes.add(HexUtils.getCoordsID(bestAction.data.path[0]));
     }
-  });
+  }
+
+  return;
 
   // 3. SPENDING DECISIONS (Prestige)
   // Randomness: Try to spend if we have lots of prestige.

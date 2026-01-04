@@ -4,16 +4,14 @@ import { UnitManager } from "./unit-manager";
 import { SupplyEngine } from "./supply-engine";
 import { MapUtils } from "./map-utils";
 import { GameLeaderboardUtils } from "./game-leaderboard";
-import { GameEventFactory } from "../factories";
 import { UnifiedId } from "../types/unified-id";
 import { GameEvent, GameEventTypes } from "../types/game-event";
-import { Game, GameStates } from "../types/game";
+import { GameStates } from "../types/game";
 import { Player, PlayerStatus } from "../types/player";
 import { Hex, HexZOCEntry, TerrainTypes } from "../types/hex";
 import { SpecialistStepTypes, Unit, UnitStatus, UnitStep } from "../types/unit";
 import { Planet } from "../types/planet";
-import { Station } from "../types/station";
-import { HexCoords, HexCoordsId } from "../types/geometry";
+import { HexCoordsId } from "../types/geometry";
 import { UNIT_CATALOG_ID_MAP } from "../data/units";
 import { SPECIALIST_STEP_ID_MAP } from "../data/specialists";
 import { CONSTANTS } from "../data/constants";
@@ -178,7 +176,7 @@ export const TickProcessor = {
     TickProcessor.processTickWinnerCheck(context);
 
     AISystem.processAIPlayers(context);
-    
+
     return {
       gameEvents: context.gameEvents,
       stationsToRemove: context.stationsToRemove,
@@ -626,6 +624,37 @@ export const TickProcessor = {
             x.status === PlayerStatus.ACTIVE &&
             x.victoryPoints >= context.game.settings.victoryPointsToWin
         )[0] ?? null;
+    }
+
+    // --- VICTORY FORCE CHECK ---
+    if (winnerPlayer == null) {
+      // Check to see if there is a last player standing by total wipeout of
+      // all other players.
+      const playersInPlay = activePlayers.filter((player) => {
+        const totalPlanets = context.planets.filter(
+          (p) => p.playerId && String(p.playerId) === String(player._id)
+        ).length;
+
+        if (totalPlanets > 0) {
+          return true;
+        }
+
+        const totalUnits = context.units.filter(
+          (u) =>
+            String(u.playerId) === String(player._id) &&
+            UnitManager.unitIsAlive(u)
+        ).length;
+
+        if (totalUnits > 0) {
+          return true;
+        }
+
+        return false;
+      });
+
+      if (playersInPlay.length === 1) {
+        winnerPlayer = playersInPlay[0]!;
+      }
     }
 
     if (winnerPlayer) {
