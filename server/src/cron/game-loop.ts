@@ -116,6 +116,9 @@ async function processActiveGames() {
     } catch (err) {
       console.error(`Failed to process game ${gameId._id}:`, err);
       // Continue to next game, don't crash the loop
+
+      // Unlock this game so it can run the tick again.
+      await GameService.unlockGame(gameModel._id);
     }
   }
 }
@@ -183,7 +186,8 @@ async function executeGameTick(game: Game) {
 
     // Units
     for (const unit of liveUnits) {
-      if (unit.save == null) { // This might be a unit created by AI.
+      if (unit.save == null) {
+        // This might be a unit created by AI.
         let newDBUnit = new UnitModel(unit);
         await newDBUnit.save({ session });
       } else {

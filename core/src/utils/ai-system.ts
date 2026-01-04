@@ -472,8 +472,6 @@ function processAIPlayerDecisions(player: Player, context: TickContext) {
     }
   }
 
-  return;
-
   // 3. SPENDING DECISIONS (Prestige)
   // Randomness: Try to spend if we have lots of prestige.
   if (player.prestigePoints > 20) {
