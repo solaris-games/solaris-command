@@ -60,6 +60,9 @@ router.post(
   loadGame,
   requirePendingGame,
   async (req, res) => {
+    const gameId = req.game._id;
+    const userId = req.user._id;
+
     try {
       const alias = req.body.alias;
 
@@ -93,20 +96,17 @@ router.post(
         throw new Error(ERROR_CODES.PLAYER_COLOR_ALREADY_TAKEN);
       }
 
+      // Check if already joined
+      const existingPlayer = await PlayerService.getByGameAndUserId(
+        gameId,
+        userId
+      );
+
+      if (existingPlayer) {
+        throw new Error(ERROR_CODES.USER_ALREADY_JOINED_GAME);
+      }
+
       const result = await executeInTransaction(async (session) => {
-        const gameId = req.game._id;
-        const userId = req.user._id;
-
-        // Check if already joined (Atomic check within transaction not strictly necessary if index unique, but good for logic)
-        const existingPlayer = await PlayerService.getByGameAndUserId(
-          gameId,
-          userId
-        );
-
-        if (existingPlayer) {
-          throw new Error(ERROR_CODES.USER_ALREADY_JOINED_GAME);
-        }
-
         // Create Player
         const newPlayer = await PlayerService.joinGame(
           gameId,
