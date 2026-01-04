@@ -1,4 +1,4 @@
-import { UNIT_CATALOG } from "../data";
+import { UNIT_CATALOG } from "../data/units";
 import { Player, PlayerStatus } from "../types/player";
 import { UnitStatus } from "../types/unit";
 import { UnifiedId } from "../types/unified-id";
@@ -14,26 +14,16 @@ import { HexCoordsId } from "../types/geometry";
 import { SupplyEngine } from "./supply-engine";
 import { CombatCalculator } from "./combat-calculator";
 import { Hex } from "../types/hex";
-
-const AI_EXECUTION_INTERVAL_TICKS = 1;
-
-// Weights for Influence Map
-const INFLUENCE_WEIGHTS = {
-  FRIENDLY_HEX: 1,
-  FRIENDLY_UNIT: 3,
-  FRIENDLY_STATION: 5,
-  FRIENDLY_PLANET: 10,
-  ENEMY_HEX: -1,
-  ENEMY_UNIT: -3,
-  ENEMY_STATION: -5,
-  ENEMY_PLANET: -10,
-  DECAY: 0.8, // Decay factor per hex distance
-};
+import { CONSTANTS } from "../data/constants";
 
 export const AISystem = {
   processAIPlayers(context: TickContext) {
     // Only execute periodically
-    if (context.game.state.tick % AI_EXECUTION_INTERVAL_TICKS !== 0) {
+    if (
+      context.game.state.tick %
+        CONSTANTS.AI_PLAYERS.AI_EXECUTION_INTERVAL_TICKS !==
+      0
+    ) {
       return;
     }
 
@@ -89,7 +79,7 @@ function getInfluenceMapForPlayer(
           visited.add(nId);
           queue.push({
             hex: nHex,
-            val: val * INFLUENCE_WEIGHTS.DECAY,
+            val: val * CONSTANTS.AI_PLAYERS.INFLUENCE_WEIGHTS.DECAY,
             dist: dist + 1,
           });
         }
@@ -107,8 +97,8 @@ function getInfluenceMapForPlayer(
     } else {
       const isFriendly = String(h.playerId) === String(playerId);
       val = isFriendly
-        ? INFLUENCE_WEIGHTS.FRIENDLY_HEX
-        : INFLUENCE_WEIGHTS.ENEMY_HEX;
+        ? CONSTANTS.AI_PLAYERS.INFLUENCE_WEIGHTS.FRIENDLY_HEX
+        : CONSTANTS.AI_PLAYERS.INFLUENCE_WEIGHTS.ENEMY_HEX;
     }
 
     addInfluence(HexUtils.getCoordsID(h.location), val);
@@ -119,8 +109,8 @@ function getInfluenceMapForPlayer(
     if (!UnitManager.unitIsAlive(u)) return;
     const isFriendly = String(u.playerId) === String(playerId);
     const val = isFriendly
-      ? INFLUENCE_WEIGHTS.FRIENDLY_UNIT
-      : INFLUENCE_WEIGHTS.ENEMY_UNIT;
+      ? CONSTANTS.AI_PLAYERS.INFLUENCE_WEIGHTS.FRIENDLY_UNIT
+      : CONSTANTS.AI_PLAYERS.INFLUENCE_WEIGHTS.ENEMY_UNIT;
     addInfluence(HexUtils.getCoordsID(u.location), val);
   });
 
@@ -128,8 +118,8 @@ function getInfluenceMapForPlayer(
   context.stations.forEach((s) => {
     const isFriendly = String(s.playerId) === String(playerId);
     const val = isFriendly
-      ? INFLUENCE_WEIGHTS.FRIENDLY_STATION
-      : INFLUENCE_WEIGHTS.ENEMY_STATION;
+      ? CONSTANTS.AI_PLAYERS.INFLUENCE_WEIGHTS.FRIENDLY_STATION
+      : CONSTANTS.AI_PLAYERS.INFLUENCE_WEIGHTS.ENEMY_STATION;
     addInfluence(HexUtils.getCoordsID(s.location), val);
   });
 
@@ -137,12 +127,12 @@ function getInfluenceMapForPlayer(
   context.planets.forEach((p) => {
     let val = 0;
     if (!p.playerId) {
-      val = INFLUENCE_WEIGHTS.ENEMY_PLANET; // Neutral planets are targets/dangerous enough to attract "Bravery"
+      val = CONSTANTS.AI_PLAYERS.INFLUENCE_WEIGHTS.ENEMY_PLANET; // Neutral planets are targets/dangerous enough to attract "Bravery"
     } else {
       const isFriendly = String(p.playerId) === String(playerId);
       val = isFriendly
-        ? INFLUENCE_WEIGHTS.FRIENDLY_PLANET
-        : INFLUENCE_WEIGHTS.ENEMY_PLANET;
+        ? CONSTANTS.AI_PLAYERS.INFLUENCE_WEIGHTS.FRIENDLY_PLANET
+        : CONSTANTS.AI_PLAYERS.INFLUENCE_WEIGHTS.ENEMY_PLANET;
     }
     addInfluence(HexUtils.getCoordsID(p.location), val);
   });

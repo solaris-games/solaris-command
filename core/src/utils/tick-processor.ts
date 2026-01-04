@@ -626,7 +626,7 @@ export const TickProcessor = {
         )[0] ?? null;
     }
 
-    // --- VICTORY FORCE CHECK ---
+    // --- VICTORY BY CONQUEST CHECK ---
     if (winnerPlayer == null) {
       // Check to see if there is a last player standing by total wipeout of
       // all other players.
