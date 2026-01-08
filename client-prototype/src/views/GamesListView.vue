@@ -1,51 +1,106 @@
 <template>
-  <div class="games-view">
-    <NavBar />
-    <div class="content">
-      <h1>Games Lobby</h1>
-      <p v-if="gameStore.error" class="error">{{ gameStore.error }}</p>
+  <NavBar />
 
-      <div class="section">
-        <h2>My Games</h2>
-        <div v-if="gameStore.myGames.length === 0">No active games.</div>
-        <div v-else class="game-grid">
-          <div v-for="game in gameStore.myGames" :key="game._id" class="game-card">
+  <div id="content" class="app-content">
+    <h1>Games Lobby</h1>
+    <p v-if="gameStore.error" class="text-danger">{{ gameStore.error }}</p>
+
+    <div class="mb-3">
+      <h2>My Games</h2>
+      <div v-if="gameStore.myGames.length === 0">No active games.</div>
+      <div
+        v-else
+        class="row g-3 row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4"
+      >
+        <div v-for="game in gameStore.myGames" :key="game._id" class="card">
+          <div class="card-body">
             <h3>{{ game.name }}</h3>
             <p>Status: {{ game.state.status }}</p>
             <p>Turn: {{ game.state.tick }}</p>
-            <div class="actions">
-               <button @click="$router.push(`/games/${game._id}`)" class="play-btn">Play</button>
-               <button v-if="game.state.status === 'PENDING'" @click="gameStore.leaveGame(game._id)" class="warn-btn">Leave</button>
-               <button v-if="game.state.status === 'ACTIVE'" @click="gameStore.concedeGame(game._id)" class="danger-btn">Concede</button>
+            <div class="mt-3 d-flex gap-2">
+              <button
+                @click="$router.push(`/games/${game._id}`)"
+                class="btn btn-success"
+              >
+                Play
+              </button>
+              <button
+                v-if="game.state.status === 'PENDING'"
+                @click="gameStore.leaveGame(game._id)"
+                class="btn btn-danger"
+              >
+                Leave
+              </button>
+              <button
+                v-if="game.state.status === 'ACTIVE'"
+                @click="gameStore.concedeGame(game._id)"
+                class="btn btn-danger"
+              >
+                Concede
+              </button>
             </div>
+          </div>
+
+          <!-- card-arrow -->
+          <div class="card-arrow">
+            <div class="card-arrow-top-left"></div>
+            <div class="card-arrow-top-right"></div>
+            <div class="card-arrow-bottom-left"></div>
+            <div class="card-arrow-bottom-right"></div>
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="section">
-        <h2>Open Games</h2>
-        <div v-if="gameStore.openGames.length === 0">No open games found.</div>
-        <div v-else class="game-grid">
-          <div v-for="game in gameStore.openGames" :key="game._id" class="game-card">
-             <h3>{{ game.name }}</h3>
-             <p>Players: {{ game.state.playerCount }} / {{ game.settings.playerCount }}</p>
+    <div class="mb-3">
+      <h2>Open Games</h2>
+      <div v-if="gameStore.openGames.length === 0">No open games found.</div>
+      <div
+        v-else
+        class="row g-3 row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4"
+      >
+        <div v-for="game in gameStore.openGames" :key="game._id" class="card">
+          <div class="card-body">
+            <h3>{{ game.name }}</h3>
+            <p>
+              Players: {{ game.state.playerCount }} /
+              {{ game.settings.playerCount }}
+            </p>
 
-             <!-- Only render form if inputs initialized -->
-             <div v-if="joinInputs[game._id]" class="join-form">
-               <input v-model="joinInputs[game._id]!.alias" placeholder="Alias" />
-               <select v-model="joinInputs[game._id]!.color">
-                 <optgroup v-for="group in PLAYER_COLORS" :key="group.group" :label="group.group">
-                   <option
-                     v-for="color in group.colours"
-                     :key="color.value"
-                     :value="color.value"
-                   >
-                     {{ group.group }} - {{ color.alias }}
-                   </option>
-                 </optgroup>
-               </select>
-               <button @click="handleJoin(game._id)">Join</button>
-             </div>
+            <!-- Only render form if inputs initialized -->
+            <div v-if="joinInputs[game._id]" class="mt-3 d-flex gap-2">
+              <input
+                v-model="joinInputs[game._id]!.alias"
+                placeholder="Alias"
+                class="form-control"
+              />
+              <select v-model="joinInputs[game._id]!.color" class="form-select">
+                <optgroup
+                  v-for="group in PLAYER_COLORS"
+                  :key="group.group"
+                  :label="group.group"
+                >
+                  <option
+                    v-for="color in group.colours"
+                    :key="color.value"
+                    :value="color.value"
+                  >
+                    {{ group.group }} - {{ color.alias }}
+                  </option>
+                </optgroup>
+              </select>
+              <button @click="handleJoin(game._id)" class="btn btn-success">
+                Join
+              </button>
+            </div>
+          </div>
+
+          <!-- card-arrow -->
+          <div class="card-arrow">
+            <div class="card-arrow-top-left"></div>
+            <div class="card-arrow-top-right"></div>
+            <div class="card-arrow-bottom-left"></div>
+            <div class="card-arrow-bottom-right"></div>
           </div>
         </div>
       </div>
@@ -54,20 +109,22 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive } from 'vue';
-import { useGameStore } from '../stores/game';
-import NavBar from '../components/NavBar.vue';
-import { PLAYER_COLORS } from '@solaris-command/core/src/data/player-colors';
+import { onMounted, reactive } from "vue";
+import { useGameStore } from "../stores/game";
+import { PLAYER_COLORS } from "@solaris-command/core/src/data/player-colors";
+import NavBar from "../components/NavBar.vue";
 
 const gameStore = useGameStore();
-const joinInputs = reactive<Record<string, { alias: string, color: string }>>({});
+const joinInputs = reactive<Record<string, { alias: string; color: string }>>(
+  {}
+);
 
 onMounted(async () => {
   await gameStore.fetchGames();
   // Init inputs
-  gameStore.openGames.forEach(g => {
+  gameStore.openGames.forEach((g) => {
     // Force reactivity update
-    joinInputs[g._id] = { alias: 'Commander', color: '#ff0000' };
+    joinInputs[g._id] = { alias: "Commander", color: "#ff0000" };
   });
 });
 
@@ -78,43 +135,3 @@ async function handleJoin(gameId: string) {
   await gameStore.joinGame(gameId, alias, color);
 }
 </script>
-
-<style scoped>
-.games-view {
-  min-height: 100vh;
-  background: #121212;
-}
-.content {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-.game-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
-}
-.game-card {
-  background: #1e1e1e;
-  padding: 1rem;
-  border-radius: 8px;
-  border: 1px solid #333;
-}
-.actions {
-  margin-top: 1rem;
-  display: flex;
-  gap: 0.5rem;
-}
-.play-btn { background: #4CAF50; border: none; padding: 0.5rem 1rem; color: white; cursor: pointer; }
-.warn-btn { background: #FF9800; border: none; padding: 0.5rem 1rem; color: white; cursor: pointer; }
-.danger-btn { background: #F44336; border: none; padding: 0.5rem 1rem; color: white; cursor: pointer; }
-
-.join-form {
-  margin-top: 1rem;
-  display: flex;
-  gap: 0.5rem;
-}
-.join-form input {
-  padding: 0.25rem;
-}
-</style>

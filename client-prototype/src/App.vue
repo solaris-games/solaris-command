@@ -3,8 +3,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
-import { useAuthStore } from './stores/auth';
+import { onMounted } from "vue";
+import { useAuthStore } from "./stores/auth";
+import NavBar from "./components/NavBar.vue";
 
 const authStore = useAuthStore();
 
@@ -13,11 +14,4 @@ onMounted(() => {
 });
 </script>
 
-<style>
-body {
-  margin: 0;
-  background: #121212;
-  color: #e0e0e0;
-  font-family: sans-serif;
-}
-</style>
+<style></style>

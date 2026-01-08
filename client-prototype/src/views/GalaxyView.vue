@@ -1,18 +1,26 @@
 <template>
-  <div class="galaxy-view">
-    <NavBar />
-    <div class="main-area">
-      <div v-if="galaxyStore.loading" class="loading">Loading Galaxy...</div>
-      <div v-else-if="galaxyStore.error" class="error">{{ galaxyStore.error }}</div>
+  <div class="d-flex flex-column vh-100">
+    <HeaderBar />
 
-      <div class="map-container" ref="container">
+    <div class="d-flex flex-grow-1 position-relative overflow-hidden">
+      <!-- Loading and Error indicators, positioned absolutely over the map area -->
+      <div v-if="galaxyStore.loading" class="position-absolute top-50 start-50 translate-middle text-white z-index-10">
+        Loading Galaxy...
+      </div>
+      <div v-else-if="galaxyStore.error" class="position-absolute top-50 start-50 translate-middle text-danger z-index-10">
+        {{ galaxyStore.error }}
+      </div>
+
+      <div class="flex-grow-1 overflow-hidden">
         <v-stage :config="configStage" @wheel="handleWheel" @dragend="handleDragEnd">
             <HexMap />
         </v-stage>
       </div>
 
-      <SelectionPanel class="sidebar" />
+      <RightSidebar />
     </div>
+
+    <BottomBar />
   </div>
 </template>
 
@@ -20,17 +28,22 @@
 import { onMounted, reactive, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useGalaxyStore } from '../stores/galaxy';
-import NavBar from '../components/NavBar.vue';
 import HexMap from '../components/HexMap.vue';
-import SelectionPanel from '../components/SelectionPanel.vue';
+import HeaderBar from '../components/layout/HeaderBar.vue';
+import RightSidebar from '../components/layout/RightSidebar.vue';
+import BottomBar from '../components/layout/BottomBar.vue';
 
 const route = useRoute();
 const galaxyStore = useGalaxyStore();
-const container = ref<HTMLDivElement | null>(null);
+
+// Placeholder values for component heights/widths
+const HEADER_HEIGHT = 60; 
+const SIDEBAR_WIDTH = 300;
+const BOTTOMBAR_HEIGHT = 200;
 
 const configStage = reactive({
-  width: window.innerWidth - 300,
-  height: window.innerHeight - 60, // approx navbar height
+  width: window.innerWidth - SIDEBAR_WIDTH,
+  height: window.innerHeight - HEADER_HEIGHT - BOTTOMBAR_HEIGHT,
   draggable: true,
   x: 0,
   y: 0,
@@ -52,8 +65,8 @@ onMounted(async () => {
 });
 
 function handleResize() {
-    configStage.width = window.innerWidth - 300;
-    configStage.height = window.innerHeight - 60;
+    configStage.width = window.innerWidth - SIDEBAR_WIDTH;
+    configStage.height = window.innerHeight - HEADER_HEIGHT - BOTTOMBAR_HEIGHT;
 }
 
 function handleWheel(e: any) {
@@ -83,34 +96,9 @@ function handleDragEnd(e: any) {
 </script>
 
 <style scoped>
-.galaxy-view {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
+/* Removed .sidebar, .loading-indicator, .error-indicator styles as they are now handled by Bootstrap classes or moved to new components */
+/* z-index-10 for the loading/error message needs to be explicitly defined if not available in bootstrap utilities */
+.z-index-10 {
+  z-index: 10;
 }
-.main-area {
-  flex-grow: 1;
-  display: flex;
-  overflow: hidden;
-  position: relative;
-}
-.map-container {
-  flex-grow: 1;
-  background: #000;
-  overflow: hidden;
-}
-.sidebar {
-    width: 300px;
-    background: #222;
-    z-index: 10;
-}
-.loading, .error {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    z-index: 20;
-}
-.error { color: red; }
 </style>

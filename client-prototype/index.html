@@ -1,13 +1,71 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1.0,maximum-scale=1.0"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta http-equiv="Cache-control" content="no-cache" />
+    <meta
+      name="description"
+      content="Solaris: A space strategy game filled with conquest, betrayal and subterfuge."
+    />
+    <meta name="theme-color" content="#ffffff" />
+    <link
+      rel="icon"
+      href="/favicon.ico"
+      media="(prefers-color-scheme: light)"
+    />
+    <link
+      rel="icon"
+      href="/favicon_dark.ico"
+      media="(prefers-color-scheme: dark)"
+    />
+    <link rel="apple-touch-icon" href="/solaris_icon-iphone.png" />
+    <link
+      rel="apple-touch-icon"
+      sizes="152x152"
+      href="/solaris_icon-ipad.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/solaris_icon-iphone.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="167x167"
+      href="/solaris_icon-ipad-r.png"
+    />
+    <link
+      rel="shortcut icon"
+      sizes="196x196"
+      href="/solaris_icon-android.png"
+    />
+
+    <link href="assets/css/vendor.min.css" rel="stylesheet" />
+    <link href="assets/css/app.min.css" rel="stylesheet" />
     <title>Solaris: Command</title>
   </head>
   <body>
-    <div id="app"></div>
+    <noscript>
+      <p>Solaris: Command</p>
+      <p>
+        <strong
+          >We're sorry but client doesn't work properly without JavaScript
+          enabled. Please enable it to continue.</strong
+        >
+      </p>
+    </noscript>
+    <div id="app" class="app app-with-top-nav app-without-sidebar" style="padding-top: 0"></div>
+
+    <script src="assets/js/vendor.min.js" type="text/javascript"></script>
+    <script src="assets/js/app.min.js" type="text/javascript"></script>
+    
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

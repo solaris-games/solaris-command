@@ -1,83 +1,70 @@
 <template>
-  <div class="login-container">
-    <div class="login-card">
-      <h1>Solaris: Command</h1>
-      <h2>Dev Prototype Login</h2>
-      <form @submit.prevent="handleLogin">
-        <div class="form-group">
-          <label for="username">Username</label>
-          <input id="username" v-model="username" type="text" required placeholder="Enter username" />
-        </div>
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input id="email" v-model="email" type="email" required placeholder="Enter email" />
-        </div>
-        <button type="submit">Login</button>
-      </form>
-      <p v-if="error" class="error">{{ error }}</p>
+  <NavBar />
+
+  <div id="content" class="app-content">
+    <div class="login">
+      <!-- BEGIN login-content -->
+      <div class="login-content">
+        <form @submit.prevent="handleLogin">
+          <h1 class="text-center">Dev Sign In</h1>
+          <div class="form-group mb-3">
+            <label class="form-label"
+              >Username <span class="text-danger">*</span></label
+            >
+            <input
+              id="username"
+              v-model="username"
+              type="text"
+              class="form-control form-control-lg bg-inverse bg-opacity-5"
+              placeholder=""
+            />
+          </div>
+          <div class="form-group mb-3">
+            <label class="form-label"
+              >Email <span class="text-danger">*</span></label
+            >
+            <input
+              id="email"
+              v-model="email"
+              type="text"
+              class="form-control form-control-lg bg-inverse bg-opacity-5"
+              placeholder=""
+            />
+          </div>
+          <button
+            type="submit"
+            class="btn btn-outline-theme btn-lg d-block w-100 fw-500 mb-3"
+          >
+            Sign In
+          </button>
+          <p v-if="error" class="text-danger">{{ error }}</p>
+        </form>
+      </div>
+      <!-- END login-content -->
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useAuthStore } from '../stores/auth';
-import { useRouter } from 'vue-router';
+import { ref } from "vue";
+import { useAuthStore } from "../stores/auth";
+import { useRouter } from "vue-router";
+import NavBar from "../components/NavBar.vue";
 
-const username = ref('');
-const email = ref('');
-const error = ref('');
+const username = ref("");
+const email = ref("");
+const error = ref("");
 const authStore = useAuthStore();
 const router = useRouter();
 
 async function handleLogin() {
   const success = await authStore.loginDev(username.value, email.value);
   if (success) {
-    router.push('/games');
+    router.push("/games");
   } else {
-    error.value = 'Login failed. Ensure dev auth is enabled server-side.';
+    error.value = "Login failed. Ensure dev auth is enabled server-side.";
   }
 }
 </script>
 
-<style scoped>
-.login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background-color: #1a1a1a;
-  color: #fff;
-}
-.login-card {
-  background: #333;
-  padding: 2rem;
-  border-radius: 8px;
-  width: 100%;
-  max-width: 400px;
-  text-align: center;
-}
-.form-group {
-  margin-bottom: 1rem;
-  text-align: left;
-}
-input {
-  width: 100%;
-  padding: 0.5rem;
-  margin-top: 0.25rem;
-  box-sizing: border-box;
-}
-button {
-  width: 100%;
-  padding: 0.75rem;
-  background: #4CAF50;
-  color: white;
-  border: none;
-  cursor: pointer;
-  margin-top: 1rem;
-}
-.error {
-  color: #ff6b6b;
-  margin-top: 1rem;
-}
-</style>
+<style scoped></style>

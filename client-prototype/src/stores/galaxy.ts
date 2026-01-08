@@ -21,7 +21,10 @@ export const useGalaxyStore = defineStore("galaxy", {
     galaxy: null as GameGalaxyResponseSchema | null,
     loading: false,
     error: null as string | null,
-    selected: null as SelectedItem | null,
+    selectedHex: null as APIHex | null,
+    selectedUnit: null as APIUnit | null,
+    selectedPlanet: null as APIPlanet | null,
+    selectedStation: null as APIStation | null,
     currentPlayerId: null as string | null,
     currentPlayer: null as Player | null,
     playerLookup: null as Map<string, Player> | null,
@@ -67,13 +70,13 @@ export const useGalaxyStore = defineStore("galaxy", {
     },
     selectHex(hex: APIHex) {
       // If we are in move mode and have a unit selected
-      if (this.isMoveMode && this.selected?.type === "UNIT") {
+      if (this.isMoveMode && this.selectedUnit) {
         this.handleMoveSelection(hex);
         return;
       }
 
       // If we are in attack mode and have a unit selected
-      if (this.isAttackMode && this.selected?.type === "UNIT") {
+      if (this.isAttackMode && this.selectedUnit) {
         // Find unit on this hex
         const unit = this.units.find(
           (u) =>
@@ -85,28 +88,19 @@ export const useGalaxyStore = defineStore("galaxy", {
         return;
       }
 
-      const unit = this.units.find(
+      this.selectedHex = hex;
+      this.selectedUnit = this.units.find(
         (u) =>
           u.location.q === hex.location.q && u.location.r === hex.location.r
-      );
-      const planet = this.planets.find(
+      ) ?? null;
+      this.selectedPlanet = this.planets.find(
         (p) =>
           p.location.q === hex.location.q && p.location.r === hex.location.r
-      );
-      const station = this.stations.find(
+      ) ?? null;
+      this.selectedStation = this.stations.find(
         (s) =>
           s.location.q === hex.location.q && s.location.r === hex.location.r
-      );
-
-      if (unit) {
-        this.selected = { type: "UNIT", id: unit._id, data: unit };
-      } else if (station) {
-        this.selected = { type: "STATION", id: station._id, data: station };
-      } else if (planet) {
-        this.selected = { type: "PLANET", id: planet._id, data: planet };
-      } else {
-        this.selected = { type: "HEX", id: hex._id, data: hex };
-      }
+      ) ?? null;
 
       // Reset modes
       this.isMoveMode = false;
@@ -114,13 +108,13 @@ export const useGalaxyStore = defineStore("galaxy", {
       this.movePath = [];
     },
     toggleMoveMode() {
-      if (this.selected?.type !== "UNIT") return;
+      if (!this.selectedUnit) return;
       this.isMoveMode = !this.isMoveMode;
       this.isAttackMode = false;
       this.movePath = [];
     },
     toggleAttackMove() {
-      if (this.selected?.type !== "UNIT") return;
+      if (!this.selectedUnit) return;
       this.isAttackMode = !this.isAttackMode;
       this.isMoveMode = false;
     },
@@ -131,8 +125,8 @@ export const useGalaxyStore = defineStore("galaxy", {
       this.showZOC = !this.showZOC;
     },
     async handleMoveSelection(targetHex: APIHex) {
-      if (!this.selected || this.selected.type !== "UNIT") return;
-      const unitId = this.selected.id;
+      if (!this.selectedUnit) return;
+      const unitId = this.selectedUnit._id;
       const path = [targetHex._id];
 
       try {
@@ -142,7 +136,10 @@ export const useGalaxyStore = defineStore("galaxy", {
         );
         await this.fetchGalaxy(this.galaxy!.game._id);
         this.isMoveMode = false;
-        this.selected = null;
+        this.selectedHex = null;
+        this.selectedUnit = null;
+        this.selectedPlanet = null;
+        this.selectedStation = null;
       } catch (err: any) {
         alert("Move failed: " + (err.response?.data?.errorCode || err.message));
       }
@@ -154,7 +151,10 @@ export const useGalaxyStore = defineStore("galaxy", {
           {}
         );
         await this.fetchGalaxy(this.galaxy!.game._id);
-        this.selected = null;
+        this.selectedHex = null;
+        this.selectedUnit = null;
+        this.selectedPlanet = null;
+        this.selectedStation = null;
       } catch (err: any) {
         alert(
           "Cancel move failed: " +
@@ -163,8 +163,8 @@ export const useGalaxyStore = defineStore("galaxy", {
       }
     },
     async handleAttackSelection(targetUnit: APIUnit) {
-      if (!this.selected || this.selected.type !== "UNIT") return;
-      const attackerId = this.selected.id;
+      if (!this.selectedUnit) return;
+      const attackerId = this.selectedUnit._id;
       try {
         await axios.post(
           `/api/v1/games/${this.galaxy?.game._id}/units/${attackerId}/attack`,
@@ -176,7 +176,10 @@ export const useGalaxyStore = defineStore("galaxy", {
         );
         await this.fetchGalaxy(this.galaxy!.game._id);
         this.isAttackMode = false;
-        this.selected = null;
+        this.selectedHex = null;
+        this.selectedUnit = null;
+        this.selectedPlanet = null;
+        this.selectedStation = null;
       } catch (err: any) {
         alert(
           "Attack failed: " + (err.response?.data?.errorCode || err.message)
@@ -190,7 +193,10 @@ export const useGalaxyStore = defineStore("galaxy", {
           {}
         );
         await this.fetchGalaxy(this.galaxy!.game._id);
-        this.selected = null;
+        this.selectedHex = null;
+        this.selectedUnit = null;
+        this.selectedPlanet = null;
+        this.selectedStation = null;
       } catch (err: any) {
         alert(
           "Cancel attack failed: " +
@@ -199,14 +205,17 @@ export const useGalaxyStore = defineStore("galaxy", {
       }
     },
     async buildStation() {
-      if (!this.selected || this.selected.type !== "HEX") return;
-      const hex = this.selected.data as APIHex;
+      if (!this.selectedHex) return;
+      const hex = this.selectedHex;
       try {
         await axios.post(`/api/v1/games/${this.galaxy?.game._id}/stations`, {
           hexId: hex._id,
         });
         await this.fetchGalaxy(this.galaxy!.game._id);
-        this.selected = null;
+        this.selectedHex = null;
+        this.selectedUnit = null;
+        this.selectedPlanet = null;
+        this.selectedStation = null;
       } catch (err: any) {
         alert(
           "Build failed: " + (err.response?.data?.errorCode || err.message)
@@ -214,14 +223,17 @@ export const useGalaxyStore = defineStore("galaxy", {
       }
     },
     async deleteStation() {
-      if (!this.selected || this.selected.type !== "STATION") return;
-      const station = this.selected.data as APIStation;
+      if (!this.selectedStation) return;
+      const station = this.selectedStation;
       try {
         await axios.delete(
           `/api/v1/games/${this.galaxy?.game._id}/stations/${station._id}`
         );
         await this.fetchGalaxy(this.galaxy!.game._id);
-        this.selected = null;
+        this.selectedHex = null;
+        this.selectedUnit = null;
+        this.selectedPlanet = null;
+        this.selectedStation = null;
       } catch (err: any) {
         alert(
           "Delete failed: " + (err.response?.data?.errorCode || err.message)
@@ -229,8 +241,8 @@ export const useGalaxyStore = defineStore("galaxy", {
       }
     },
     async deployUnit(catalogId: string) {
-      if (!this.selected || this.selected.type !== "HEX") return;
-      const hex = this.selected.data as APIHex;
+      if (!this.selectedHex) return;
+      const hex = this.selectedHex;
       try {
         await axios.post(
           `/api/v1/games/${this.galaxy?.game._id}/units/deploy`,
@@ -240,7 +252,10 @@ export const useGalaxyStore = defineStore("galaxy", {
           }
         );
         await this.fetchGalaxy(this.galaxy!.game._id);
-        this.selected = null;
+        this.selectedHex = null;
+        this.selectedUnit = null;
+        this.selectedPlanet = null;
+        this.selectedStation = null;
       } catch (err: any) {
         alert(
           "Deploy failed: " + (err.response?.data?.errorCode || err.message)
@@ -257,7 +272,10 @@ export const useGalaxyStore = defineStore("galaxy", {
           }
         );
         await this.fetchGalaxy(this.galaxy!.game._id);
-        this.selected = null;
+        this.selectedHex = null;
+        this.selectedUnit = null;
+        this.selectedPlanet = null;
+        this.selectedStation = null;
       } catch (err: any) {
         alert(
           "Upgrade unit step failed: " +
@@ -275,7 +293,10 @@ export const useGalaxyStore = defineStore("galaxy", {
           }
         );
         await this.fetchGalaxy(this.galaxy!.game._id);
-        this.selected = null;
+        this.selectedHex = null;
+        this.selectedUnit = null;
+        this.selectedPlanet = null;
+        this.selectedStation = null;
       } catch (err: any) {
         alert(
           "Upgrade unit step failed: " +
@@ -290,7 +311,10 @@ export const useGalaxyStore = defineStore("galaxy", {
           {}
         );
         await this.fetchGalaxy(this.galaxy!.game._id);
-        this.selected = null;
+        this.selectedHex = null;
+        this.selectedUnit = null;
+        this.selectedPlanet = null;
+        this.selectedStation = null;
       } catch (err: any) {
         alert(
           "Scrap unit step failed: " +

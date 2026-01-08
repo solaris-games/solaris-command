@@ -103,7 +103,7 @@ const supplySources = computed(() => {
     )!;
 
     const { x, y } = hexToPixel(hex.location.q, hex.location.r, HEX_SIZE);
-    sources.push({ id: `h-${hex._id}`, x, y, range: 0.3 });
+    sources.push({ id: `h-${hex._id}`, x, y, range: 0.2 });
   }
 
   return sources;
@@ -124,7 +124,7 @@ const zocSources = computed(() => {
   for (const hex of galaxyStore.hexes) {
     if (hex.zoc.length) {
       const { x, y } = hexToPixel(hex.location.q, hex.location.r, HEX_SIZE);
-      sources.push({ id: `h-${hex._id}`, x, y, range: 0.05 });
+      sources.push({ id: `h-${hex._id}`, x, y, range: 0.2 });
     }
   }
 
@@ -140,8 +140,7 @@ function getSupplyHexCircleConfig(source: {
     x: source.x,
     y: source.y,
     radius: source.range * HEX_WIDTH,
-    fill: "rgba(0, 255, 0, 0.1)",
-    stroke: "rgba(0, 255, 0, 0.3)",
+    fill: "rgba(255, 255, 255, 1)",
     strokeWidth: 2,
     listening: false, // Click through
   };
@@ -318,29 +317,15 @@ function getUnitHealthBarConfig(unit: APIUnit) {
 }
 
 function isSelected(hex: APIHex) {
-  if (!galaxyStore.selected) return false;
-
-  // Hex selection
-  if (
-    galaxyStore.selected.type === "HEX" &&
-    galaxyStore.selected.id === hex._id
-  )
-    return true;
-
-  // Unit selection on this hex
-  if (galaxyStore.selected.type === "UNIT") {
-    const u = getUnitAt(hex);
-    if (u && u._id === galaxyStore.selected.id) return true;
-  }
-
-  return false;
+  if (!galaxyStore.selectedHex) return false;
+  return galaxyStore.selectedHex._id === hex._id;
 }
 
 function getSelectionConfig() {
   return {
     sides: 6,
     radius: HEX_SIZE - 2,
-    stroke: "cyan",
+    stroke: "rgba(255, 255, 255, 1)",
     strokeWidth: 4,
     rotation: 60,
     listening: false,
