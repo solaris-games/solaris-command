@@ -13,7 +13,7 @@
       <v-rect :config="getUnitStepRectConfig(step, unit)" />
       <v-text
         v-if="step.specialistId"
-        :config="getUnitStepSpecialistConfig(step)"
+        :config="getUnitStepSpecialistConfig(step, unit)"
       />
     </v-group>
     <!-- mp -->
@@ -29,6 +29,7 @@ import { useGalaxyStore } from "@/stores/galaxy";
 import {
   UNIT_CATALOG_ID_MAP,
   SPECIALIST_STEP_ID_MAP,
+  PLAYER_COLOR_LOOKUP,
 } from "@solaris-command/core/src/data";
 
 type APIUnit = GameGalaxyResponseSchema["units"][0];
@@ -45,7 +46,9 @@ const COUNTER_HEIGHT = 72;
 
 function getPlayerColor(unit: APIUnit) {
   const player = galaxyStore.playerLookup?.get(String(unit.playerId));
-  return player?.color || "#FFFFFF";
+  if (!player) return { background: "#FFFFFF", foreground: "#000000" };
+  const color = PLAYER_COLOR_LOOKUP.get(player.color);
+  return color || { background: "#FFFFFF", foreground: "#000000" };
 }
 
 function getUnitCounterConfig(unit: APIUnit) {
@@ -56,23 +59,26 @@ function getUnitCounterConfig(unit: APIUnit) {
 }
 
 function getUnitCounterRectConfig(unit: APIUnit) {
+  const color = getPlayerColor(unit);
   return {
     width: COUNTER_WIDTH,
     height: COUNTER_HEIGHT,
-    fill: "#1a202c",
-    stroke: getPlayerColor(unit),
+    fill: color.background,
+    stroke: color.foreground,
     strokeWidth: 3,
     cornerRadius: 8,
+    dash: !unit.supply.isInSupply ? [10, 5] : undefined,
   };
 }
 
 function getUnitCounterNameConfig(unit: APIUnit) {
   const unitCatalog = UNIT_CATALOG_ID_MAP.get(unit.catalogId);
+  const color = getPlayerColor(unit);
   return {
     text: unitCatalog?.name.toUpperCase() || unit.catalogId.toUpperCase(),
     fontSize: 9,
     fontFamily: "Roboto, sans-serif",
-    fill: getPlayerColor(unit),
+    fill: color.foreground,
     width: COUNTER_WIDTH - 8,
     y: 4,
     align: "center",
@@ -107,24 +113,30 @@ function getUnitStepGroupConfig(index: number) {
 }
 
 function getUnitStepRectConfig(step: APIStep, unit: APIUnit) {
+  const color = getPlayerColor(unit);
   return {
     width: 12,
     height: 12,
-    fill: step.isSuppressed ? "transparent" : getPlayerColor(unit),
-    stroke: getPlayerColor(unit),
+    fill: step.isSuppressed ? "transparent" : color.foreground,
+    stroke: color.foreground,
     strokeWidth: 2,
     cornerRadius: 4,
   };
 }
 
-function getUnitStepSpecialistConfig(step: APIStep) {
+function getUnitStepSpecialistConfig(step: APIStep, unit: APIUnit) {
   const specialist = SPECIALIST_STEP_ID_MAP.get(step.specialistId!);
   const initial = specialist ? specialist.type.charAt(0) : "";
+  const color = getPlayerColor(unit);
+  // If the step box (foreground) is white, text should be black.
+  // If the step box (foreground) is black, text should be white.
+  const textColor = color.foreground === "#ffffff" ? "#000000" : "#ffffff";
+
   return {
     text: initial,
     fontSize: 7,
     fontFamily: "Roboto, sans-serif",
-    fill: "#1a202c",
+    fill: textColor,
     width: 12,
     height: 12,
     align: "center",
@@ -134,12 +146,12 @@ function getUnitStepSpecialistConfig(step: APIStep) {
 }
 
 function getUnitCounterMPConfig(unit: APIUnit) {
-  const unitCatalog = UNIT_CATALOG_ID_MAP.get(unit.catalogId);
+  const color = getPlayerColor(unit);
   return {
-    text: `${unit.state.mp}/${unitCatalog?.stats.maxMP}`,
+    text: `${unit.state.mp}`,
     fontSize: 10,
     fontFamily: "Roboto, sans-serif",
-    fill: getPlayerColor(unit),
+    fill: color.foreground,
     x: 5,
     y: COUNTER_HEIGHT - 15,
     fontStyle: "bold",
@@ -147,11 +159,12 @@ function getUnitCounterMPConfig(unit: APIUnit) {
 }
 
 function getUnitCounterAPConfig(unit: APIUnit) {
+  const color = getPlayerColor(unit);
   return {
     text: "⚡".repeat(unit.state.ap),
     fontSize: 10,
     fontFamily: "Roboto, sans-serif",
-    fill: getPlayerColor(unit),
+    fill: color.foreground,
     x: COUNTER_WIDTH - 20,
     y: COUNTER_HEIGHT - 15,
     fontStyle: "bold",

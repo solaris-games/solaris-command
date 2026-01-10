@@ -45,8 +45,8 @@ const lineConfig = computed(() => {
   return {
     points: pathPoints.value,
     stroke: "white",
-    strokeWidth: 4,
-    opacity: 0.7,
+    strokeWidth: 12,
+    opacity: 0.3,
     dash: [10, 5],
   };
 });
@@ -64,8 +64,8 @@ const arrowConfig = computed(() => {
     pointerWidth: 8,
     fill: "white",
     stroke: "white",
-    strokeWidth: 4,
-    opacity: 0.7,
+    strokeWidth: 12,
+    opacity: 0.3,
   };
 });
 </script>

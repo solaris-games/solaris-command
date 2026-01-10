@@ -8,6 +8,7 @@ import { useGalaxyStore } from "@/stores/galaxy";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
 import { hexToPixel } from "@/utils/hexUtils";
 import { HexUtils } from "@solaris-command/core/src/utils/hex-utils";
+import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
 
 type APIUnit = GameGalaxyResponseSchema["units"][0];
 
@@ -20,7 +21,8 @@ const galaxyStore = useGalaxyStore();
 
 const arrowConfig = computed(() => {
   const player = galaxyStore.playerLookup?.get(String(props.unit.playerId));
-  const color = player?.color || "#FFFFFF";
+  const playerColor = player ? PLAYER_COLOR_LOOKUP.get(player.color) : null;
+  const color = playerColor ? playerColor.background : "#FFFFFF";
 
   const startHex = galaxyStore.hexLookup?.get(
     String(HexUtils.getCoordsID(props.unit.location))
@@ -44,8 +46,8 @@ const arrowConfig = computed(() => {
   const unitDy = dy / length;
 
   const shorterEndPixel = {
-    x: endPixel.x - unitDx * (HEX_SIZE / 2),
-    y: endPixel.y - unitDy * (HEX_SIZE / 2),
+    x: endPixel.x - unitDx * (HEX_SIZE / 2 + 15), // Reduced length to be closer to edge
+    y: endPixel.y - unitDy * (HEX_SIZE / 2 + 15),
   };
 
   return {

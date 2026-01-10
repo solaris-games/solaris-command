@@ -15,6 +15,7 @@
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
 import { TerrainTypes } from "@solaris-command/core/src/types/hex";
 import { useGalaxyStore } from "@/stores/galaxy";
+import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
 
 type APIHex = GameGalaxyResponseSchema["hexes"][0];
 
@@ -32,8 +33,11 @@ function getPolygonConfig(hex: APIHex) {
   // Basic ownership visualization if any
   if (hex.playerId) {
     const player = galaxyStore.playerLookup!.get(String(hex.playerId))!;
-    fill = player.color;
-    stroke = player.color;
+    const playerColor = PLAYER_COLOR_LOOKUP.get(player.color);
+    if (playerColor) {
+      fill = playerColor.background;
+      stroke = playerColor.background;
+    }
   } else {
     // Terrain overrides
     switch (hex.terrain) {

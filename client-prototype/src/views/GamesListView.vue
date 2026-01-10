@@ -124,7 +124,7 @@ onMounted(async () => {
   // Init inputs
   gameStore.openGames.forEach((g) => {
     // Force reactivity update
-    joinInputs[g._id] = { alias: "Commander", color: "#ff0000" };
+    joinInputs[g._id] = { alias: "Commander", color: "red-red" };
   });
 });
 

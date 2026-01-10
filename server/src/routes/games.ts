@@ -17,7 +17,7 @@ import {
   JoinGameRequestSchema,
   GameEventFactory,
   GameEventTypes,
-  PLAYER_COLORS,
+  PLAYER_COLOR_LOOKUP,
 } from "@solaris-command/core";
 import {
   GameService,
@@ -80,9 +80,7 @@ router.post(
       }
 
       // Validate color choice
-      const isValidColor = PLAYER_COLORS.some((group) =>
-        group.colours.some((c) => c.value === req.body.color)
-      );
+      const isValidColor = PLAYER_COLOR_LOOKUP.has(req.body.color);
       if (!isValidColor) {
         throw new Error(ERROR_CODES.REQUEST_VALIDATION_FAILED);
       }
