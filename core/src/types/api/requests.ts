@@ -37,7 +37,7 @@ export const JoinGameRequestSchema = z.object({
     .trim()
     .min(3)
     .regex(/^[a-zA-Z0-9 _-]+$/, "Invalid characters in alias"),
-  color: z.string().length(7),
+  color: z.string(),
 });
 
 export const TradePrestigeRequestSchema = z.object({

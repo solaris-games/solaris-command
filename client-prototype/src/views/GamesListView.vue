@@ -82,8 +82,8 @@
                 >
                   <option
                     v-for="color in group.colours"
-                    :key="color.value"
-                    :value="color.value"
+                    :key="color.key"
+                    :value="color.key"
                   >
                     {{ group.group }} - {{ color.alias }}
                   </option>
@@ -124,7 +124,7 @@ onMounted(async () => {
   // Init inputs
   gameStore.openGames.forEach((g) => {
     // Force reactivity update
-    joinInputs[g._id] = { alias: "Commander", color: "#ff0000" };
+    joinInputs[g._id] = { alias: "Commander", color: "red-red" };
   });
 });
 

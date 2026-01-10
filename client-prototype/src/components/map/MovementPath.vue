@@ -31,7 +31,9 @@ const pathPoints = computed(() => {
   points.push(startPixel);
 
   props.unit.movement.path.forEach((pathHexCoords) => {
-    const hex = galaxyStore.hexLookup?.get(String(HexUtils.getCoordsID(pathHexCoords)));
+    const hex = galaxyStore.hexLookup?.get(
+      String(HexUtils.getCoordsID(pathHexCoords))
+    );
     if (hex) {
       const pixel = hexToPixel(hex.location.q, hex.location.r, HEX_SIZE);
       points.push(pixel);
@@ -43,10 +45,10 @@ const pathPoints = computed(() => {
 
 const lineConfig = computed(() => {
   return {
-    points: pathPoints.value,
+    points: pathPoints.value.slice(0, pathPoints.value.length - 4),
     stroke: "white",
-    strokeWidth: 4,
-    opacity: 0.7,
+    strokeWidth: 12,
+    opacity: 0.3,
     dash: [10, 5],
   };
 });
@@ -60,12 +62,13 @@ const arrowConfig = computed(() => {
 
   return {
     points: lastSegment,
-    pointerLength: 8,
-    pointerWidth: 8,
+    pointerLength: 5,
+    pointerWidth: 5,
     fill: "white",
     stroke: "white",
-    strokeWidth: 4,
-    opacity: 0.7,
+    strokeWidth: 12,
+    opacity: 0.3,
+    dash: [10, 5],
   };
 });
 </script>

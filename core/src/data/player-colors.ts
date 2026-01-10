@@ -1,24 +1,32 @@
-import { PlayerColors } from "../types/player-colors";
+import { PlayerColors, PlayerColor } from "../types/player-colors";
 
 export const PLAYER_COLORS: PlayerColors[] = [
   {
     group: "Red",
     colours: [
       {
+        key: "red-red",
         alias: "Red",
-        value: "#ff0000",
+        background: "#ff0000",
+        foreground: "#ffffff",
       },
       {
+        key: "red-scarlet",
         alias: "Scarlet",
-        value: "#ff200d",
+        background: "#ff200d",
+        foreground: "#ffffff",
       },
       {
+        key: "red-electric-red",
         alias: "Electric red",
-        value: "#e60000",
+        background: "#e60000",
+        foreground: "#ffffff",
       },
       {
+        key: "red-coral-red",
         alias: "Coral red",
-        value: "#ff4e2c",
+        background: "#ff4e2c",
+        foreground: "#ffffff",
       },
     ],
   },
@@ -26,20 +34,28 @@ export const PLAYER_COLORS: PlayerColors[] = [
     group: "Blue",
     colours: [
       {
+        key: "blue-blue",
         alias: "Blue",
-        value: "#0000ff",
+        background: "#0000ff",
+        foreground: "#ffffff",
       },
       {
+        key: "blue-ultramarine",
         alias: "Ultramarine",
-        value: "#2c13ff",
+        background: "#2c13ff",
+        foreground: "#ffffff",
       },
       {
+        key: "blue-rich-blue",
         alias: "Rich blue",
-        value: "#0000ea",
+        background: "#0000ea",
+        foreground: "#ffffff",
       },
       {
+        key: "blue-purplish-blue",
         alias: "Purplish blue",
-        value: "#6337ff",
+        background: "#6337ff",
+        foreground: "#ffffff",
       },
     ],
   },
@@ -47,20 +63,28 @@ export const PLAYER_COLORS: PlayerColors[] = [
     group: "Magenta",
     colours: [
       {
+        key: "magenta-magenta",
         alias: "Magenta",
-        value: "#ff00ff",
+        background: "#ff00ff",
+        foreground: "#ffffff",
       },
       {
+        key: "magenta-bright-magenta",
         alias: "Bright magenta",
-        value: "#ff25ff",
+        background: "#ff25ff",
+        foreground: "#ffffff",
       },
       {
+        key: "magenta-piercing-pink",
         alias: "Piercing pink",
-        value: "#e900ea",
+        background: "#e900ea",
+        foreground: "#ffffff",
       },
       {
+        key: "magenta-pink-flamingo",
         alias: "Pink flamingo",
-        value: "#ff56ff",
+        background: "#ff56ff",
+        foreground: "#000000",
       },
     ],
   },
@@ -68,20 +92,28 @@ export const PLAYER_COLORS: PlayerColors[] = [
     group: "Green",
     colours: [
       {
+        key: "green-green",
         alias: "Green",
-        value: "#008000",
+        background: "#008000",
+        foreground: "#ffffff",
       },
       {
+        key: "green-tree-green",
         alias: "Tree green",
-        value: "#198a10",
+        background: "#198a10",
+        foreground: "#ffffff",
       },
       {
+        key: "green-moth-green",
         alias: "Moth green",
-        value: "#007700",
+        background: "#007700",
+        foreground: "#ffffff",
       },
       {
+        key: "green-apple",
         alias: "Apple",
-        value: "#40a731",
+        background: "#40a731",
+        foreground: "#000000",
       },
     ],
   },
@@ -89,20 +121,28 @@ export const PLAYER_COLORS: PlayerColors[] = [
     group: "Aqua",
     colours: [
       {
+        key: "aqua-cyan",
         alias: "Cyan",
-        value: "#00ffff",
+        background: "#00ffff",
+        foreground: "#000000",
       },
       {
+        key: "aqua-aqua",
         alias: "Aqua",
-        value: "#2dffff",
+        background: "#2dffff",
+        foreground: "#000000",
       },
       {
+        key: "aqua-bright-turquoise",
         alias: "Bright turquoise",
-        value: "#00eaea",
+        background: "#00eaea",
+        foreground: "#000000",
       },
       {
+        key: "aqua-dark-turquoise",
         alias: "Dark turquoise",
-        value: "#00d5d6",
+        background: "#00d5d6",
+        foreground: "#000000",
       },
     ],
   },
@@ -110,20 +150,28 @@ export const PLAYER_COLORS: PlayerColors[] = [
     group: "Gray",
     colours: [
       {
+        key: "gray-gray",
         alias: "Gray",
-        value: "#808080",
+        background: "#808080",
+        foreground: "#000000",
       },
       {
+        key: "gray-gunsmoke",
         alias: "Gunsmoke",
-        value: "#898989",
+        background: "#898989",
+        foreground: "#000000",
       },
       {
+        key: "gray-steel-wool",
         alias: "Steel wool",
-        value: "#777777",
+        background: "#777777",
+        foreground: "#ffffff",
       },
       {
+        key: "gray-granite",
         alias: "Granite",
-        value: "#867e80",
+        background: "#867e80",
+        foreground: "#000000",
       },
     ],
   },
@@ -131,20 +179,28 @@ export const PLAYER_COLORS: PlayerColors[] = [
     group: "Lime",
     colours: [
       {
+        key: "lime-lime",
         alias: "Lime",
-        value: "#00ff00",
+        background: "#00ff00",
+        foreground: "#000000",
       },
       {
+        key: "lime-neon-green",
         alias: "Neon green",
-        value: "#2cff1e",
+        background: "#2cff1e",
+        foreground: "#000000",
       },
       {
+        key: "lime-electric-green",
         alias: "Electric green",
-        value: "#00ea00",
+        background: "#00ea00",
+        foreground: "#000000",
       },
       {
+        key: "lime-greenalicious",
         alias: "Greenalicious",
-        value: "#00d500",
+        background: "#00d500",
+        foreground: "#000000",
       },
     ],
   },
@@ -152,20 +208,28 @@ export const PLAYER_COLORS: PlayerColors[] = [
     group: "Maroon",
     colours: [
       {
+        key: "maroon-maroon",
         alias: "Maroon",
-        value: "#800000",
+        background: "#800000",
+        foreground: "#ffffff",
       },
       {
+        key: "maroon-dark-red",
         alias: "Dark red",
-        value: "#8b110a",
+        background: "#8b110a",
+        foreground: "#ffffff",
       },
       {
+        key: "maroon-rusty-red",
         alias: "Rusty red",
-        value: "#ab3322",
+        background: "#ab3322",
+        foreground: "#ffffff",
       },
       {
+        key: "maroon-chestnut-red",
         alias: "Chestnut red",
-        value: "#c24732",
+        background: "#c24732",
+        foreground: "#ffffff",
       },
     ],
   },
@@ -173,20 +237,28 @@ export const PLAYER_COLORS: PlayerColors[] = [
     group: "Dull blue",
     colours: [
       {
+        key: "dull-blue-submarine-blue",
         alias: "Submarine blue",
-        value: "#005080",
+        background: "#005080",
+        foreground: "#ffffff",
       },
       {
+        key: "dull-blue-dusk-blue",
         alias: "Dusk blue",
-        value: "#165889",
+        background: "#165889",
+        foreground: "#ffffff",
       },
       {
+        key: "dull-blue-regal-blue",
         alias: "Regal blue",
-        value: "#004877",
+        background: "#004877",
+        foreground: "#ffffff",
       },
       {
+        key: "dull-blue-dull-blue",
         alias: "Dull blue",
-        value: "#3c73a6",
+        background: "#3c73a6",
+        foreground: "#ffffff",
       },
     ],
   },
@@ -194,20 +266,28 @@ export const PLAYER_COLORS: PlayerColors[] = [
     group: "Purple",
     colours: [
       {
+        key: "purple-purple",
         alias: "Purple",
-        value: "#800080",
+        background: "#800080",
+        foreground: "#ffffff",
       },
       {
+        key: "purple-rich-purple",
         alias: "Rich purple",
-        value: "#760077",
+        background: "#760077",
+        foreground: "#ffffff",
       },
       {
+        key: "purple-medium-orchid",
         alias: "Medium orchid",
-        value: "#a838a6",
+        background: "#a838a6",
+        foreground: "#ffffff",
       },
       {
+        key: "purple-deep-fuchsia",
         alias: "Deep fuchsia",
-        value: "#bd4dba",
+        background: "#bd4dba",
+        foreground: "#ffffff",
       },
     ],
   },
@@ -215,20 +295,28 @@ export const PLAYER_COLORS: PlayerColors[] = [
     group: "Olive",
     colours: [
       {
+        key: "olive-olive",
         alias: "Olive",
-        value: "#808000",
+        background: "#808000",
+        foreground: "#ffffff",
       },
       {
+        key: "olive-reef-gold",
         alias: "Reef gold",
-        value: "#8a8911",
+        background: "#8a8911",
+        foreground: "#ffffff",
       },
       {
+        key: "olive-browny-green",
         alias: "Browny green",
-        value: "#767700",
+        background: "#767700",
+        foreground: "#ffffff",
       },
       {
+        key: "olive-brass",
         alias: "Brass",
-        value: "#a8a533",
+        background: "#a8a533",
+        foreground: "#ffffff",
       },
     ],
   },
@@ -236,20 +324,28 @@ export const PLAYER_COLORS: PlayerColors[] = [
     group: "Silver",
     colours: [
       {
+        key: "silver-silver",
         alias: "Silver",
-        value: "#e0e0e0",
+        background: "#e0e0e0",
+        foreground: "#000000",
       },
       {
+        key: "silver-white-smoke",
         alias: "White smoke",
-        value: "#f5f5f5",
+        background: "#f5f5f5",
+        foreground: "#000000",
       },
       {
+        key: "silver-platinum",
         alias: "Platinum",
-        value: "#e7dee0",
+        background: "#e7dee0",
+        foreground: "#000000",
       },
       {
+        key: "silver-pale-pink",
         alias: "Pale pink",
-        value: "#fcd7e1",
+        background: "#fcd7e1",
+        foreground: "#000000",
       },
     ],
   },
@@ -257,20 +353,28 @@ export const PLAYER_COLORS: PlayerColors[] = [
     group: "Teal",
     colours: [
       {
+        key: "teal-teal",
         alias: "Teal",
-        value: "#008080",
+        background: "#008080",
+        foreground: "#ffffff",
       },
       {
+        key: "teal-blue-chill",
         alias: "Blue chill",
-        value: "#198989",
+        background: "#198989",
+        foreground: "#ffffff",
       },
       {
+        key: "teal-deep-sea",
         alias: "Deep sea",
-        value: "#007777",
+        background: "#007777",
+        foreground: "#ffffff",
       },
       {
+        key: "teal-metallic-blue",
         alias: "Metallic blue",
-        value: "#377d7d",
+        background: "#377d7d",
+        foreground: "#ffffff",
       },
     ],
   },
@@ -278,20 +382,28 @@ export const PLAYER_COLORS: PlayerColors[] = [
     group: "Yellow",
     colours: [
       {
+        key: "yellow-yellow",
         alias: "Yellow",
-        value: "#ffff00",
+        background: "#ffff00",
+        foreground: "#000000",
       },
       {
+        key: "yellow-lemone",
         alias: "Lemone",
-        value: "#ffff20",
+        background: "#ffff20",
+        foreground: "#000000",
       },
       {
+        key: "yellow-golden-yellow",
         alias: "Golden yellow",
-        value: "#e9ea00",
+        background: "#e9ea00",
+        foreground: "#000000",
       },
       {
+        key: "yellow-citrine",
         alias: "Citrine",
-        value: "#d2d600",
+        background: "#d2d600",
+        foreground: "#000000",
       },
     ],
   },
@@ -299,20 +411,28 @@ export const PLAYER_COLORS: PlayerColors[] = [
     group: "Pink",
     colours: [
       {
+        key: "pink-light-pink",
         alias: "Light pink",
-        value: "#ffb6c1",
+        background: "#ffb6c1",
+        foreground: "#000000",
       },
       {
+        key: "pink-pale-rose",
         alias: "Pale rose",
-        value: "#ffc0cb",
+        background: "#ffc0cb",
+        foreground: "#000000",
       },
       {
+        key: "pink-rose",
         alias: "Rose",
-        value: "#f4acb7",
+        background: "#f4acb7",
+        foreground: "#000000",
       },
       {
+        key: "pink-dull-pink",
         alias: "Dull pink",
-        value: "#d58f9a",
+        background: "#d58f9a",
+        foreground: "#000000",
       },
     ],
   },
@@ -320,21 +440,37 @@ export const PLAYER_COLORS: PlayerColors[] = [
     group: "Orange",
     colours: [
       {
+        key: "orange-royal-orange",
         alias: "Royal orange",
-        value: "#ff7a2a",
+        background: "#ff7a2a",
+        foreground: "#000000",
       },
       {
+        key: "orange-mango-orange",
         alias: "Mango orange",
-        value: "#ff8434",
+        background: "#ff8434",
+        foreground: "#000000",
       },
       {
+        key: "orange-vivid-orange",
         alias: "Vivid orange",
-        value: "#f37020",
+        background: "#f37020",
+        foreground: "#000000",
       },
       {
+        key: "orange-tangerine",
         alias: "Tangerine",
-        value: "#ffa150",
+        background: "#ffa150",
+        foreground: "#000000",
       },
     ],
   },
 ];
+
+export const PLAYER_COLOR_LOOKUP = new Map<string, PlayerColor>();
+
+PLAYER_COLORS.forEach((group) => {
+  group.colours.forEach((color) => {
+    PLAYER_COLOR_LOOKUP.set(color.key, color);
+  });
+});
