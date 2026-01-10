@@ -7,51 +7,10 @@
       @click="handleClick(hex)"
       @tap="handleClick(hex)"
     >
-      <!-- Hex Shape -->
-      <v-regular-polygon :config="getPolygonConfig(hex)" />
-
-      <!-- Terrain/Planet Icon -->
-      <v-text :config="getTerrainTextConfig(hex)" />
-
-      <!-- Coordinates -->
-      <v-text :config="getCoordTextConfig(hex)" />
-
-      <!-- Unit Counter -->
-      <v-group
-        v-if="getUnitAt(hex)"
-        :config="getUnitCounterConfig(getUnitAt(hex)!)"
-      >
-        <!-- background and border -->
-        <v-rect :config="getUnitCounterRectConfig(getUnitAt(hex)!)" />
-        <!-- catalogId -->
-        <v-text :config="getUnitCounterNameConfig(getUnitAt(hex)!)" />
-        <!-- steps -->
-        <v-group
-          v-for="(step, index) in getUnitSteps(getUnitAt(hex)!)"
-          :key="index"
-          :config="getUnitStepGroupConfig(index)"
-        >
-          <v-rect :config="getUnitStepRectConfig(step, getUnitAt(hex)!)" />
-          <v-text
-            v-if="step.specialistId"
-            :config="getUnitStepSpecialistConfig(step, getUnitAt(hex)!)"
-          />
-        </v-group>
-        <!-- mp -->
-        <v-text :config="getUnitCounterMPConfig(getUnitAt(hex)!)" />
-        <!-- ap -->
-        <v-text :config="getUnitCounterAPConfig(getUnitAt(hex)!)" />
-      </v-group>
-
-      <!-- Station? -->
-      <v-group v-if="getStationAt(hex)" :config="{ x: -24, y: -24 }">
-        <v-text :config="{ text: '🏗️', fontSize: 26 }" />
-      </v-group>
-
-      <!-- Planet? -->
-      <v-group v-if="getPlanetAt(hex)" :config="{ x: 16, y: -24 }">
-        <v-text :config="{ text: '🪐', fontSize: 32 }" />
-      </v-group>
+      <Hexagon :hex="hex" />
+      <UnitCounter v-if="getUnitAt(hex)" :unit="getUnitAt(hex)!" />
+      <Station v-if="getStationAt(hex)" :station="getStationAt(hex)!" />
+      <Planet v-if="getPlanetAt(hex)" :planet="getPlanetAt(hex)!" />
 
       <!-- Selection Highlight -->
       <v-regular-polygon
@@ -84,24 +43,18 @@
 import { computed } from "vue";
 import { useGalaxyStore } from "../stores/galaxy";
 import { hexToPixel } from "../utils/hexUtils";
-import { TerrainTypes } from "@solaris-command/core/src/types/hex";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
 import { HexUtils } from "@solaris-command/core/src/utils/hex-utils";
 import { SupplyEngine } from "@solaris-command/core/src/utils/supply-engine";
-import {
-  UNIT_CATALOG_ID_MAP,
-  SPECIALIST_STEP_ID_MAP,
-} from "@solaris-command/core/src/data";
+import Hexagon from "./map/Hexagon.vue";
+import UnitCounter from "./map/UnitCounter.vue";
+import Station from "./map/Station.vue";
+import Planet from "./map/Planet.vue";
 
 type APIHex = GameGalaxyResponseSchema["hexes"][0];
-type APIUnit = GameGalaxyResponseSchema["units"][0];
-type APIStep = APIUnit["steps"][0];
 
 const HEX_SIZE = 64;
 const galaxyStore = useGalaxyStore();
-
-const COUNTER_WIDTH = 72;
-const COUNTER_HEIGHT = 72;
 
 function getUnitAt(hex: APIHex) {
   return galaxyStore.units.find(
@@ -109,119 +62,16 @@ function getUnitAt(hex: APIHex) {
   );
 }
 
-function getPlayerColor(unit: APIUnit) {
-  const player = galaxyStore.playerLookup?.get(String(unit.playerId));
-  return player?.color || "#FFFFFF";
+function getStationAt(hex: APIHex) {
+  return galaxyStore.stations.find(
+    (s) => s.location.q === hex.location.q && s.location.r === hex.location.r
+  );
 }
 
-function getUnitCounterConfig(unit: APIUnit) {
-  return {
-    x: -COUNTER_WIDTH / 2,
-    y: -COUNTER_HEIGHT / 2,
-  };
-}
-
-function getUnitCounterRectConfig(unit: APIUnit) {
-  return {
-    width: COUNTER_WIDTH,
-    height: COUNTER_HEIGHT,
-    fill: "#1a202c",
-    stroke: getPlayerColor(unit),
-    strokeWidth: 3,
-    cornerRadius: 8,
-  };
-}
-
-function getUnitCounterNameConfig(unit: APIUnit) {
-  const unitCatalog = UNIT_CATALOG_ID_MAP.get(unit.catalogId);
-  return {
-    text: unitCatalog?.name.toUpperCase() || unit.catalogId.toUpperCase(),
-    fontSize: 9,
-    fontFamily: "Roboto, sans-serif",
-    fill: getPlayerColor(unit),
-    width: COUNTER_WIDTH - 12,
-    y: 4,
-    align: "center",
-    fontStyle: "bold",
-  };
-}
-
-function getUnitSteps(unit: APIUnit) {
-  const unitCatalog = UNIT_CATALOG_ID_MAP.get(unit.catalogId);
-  if (!unitCatalog) return [];
-  const existingSteps = unit.steps;
-  const maxSteps = unitCatalog.stats.maxSteps;
-  const destroyedStepCount = maxSteps - existingSteps.length;
-  const destroyedSteps = Array.from({ length: destroyedStepCount }, () => ({
-    isSuppressed: true,
-    specialistId: null,
-  }));
-
-  return [...existingSteps, ...destroyedSteps];
-}
-
-function getUnitStepGroupConfig(index: number) {
-  const STEP_SIZE = 12;
-  const STEP_GAP = 4;
-  const stepsPerRow = 4;
-  const row = Math.floor(index / stepsPerRow);
-  const col = index % stepsPerRow;
-  const totalWidth = stepsPerRow * STEP_SIZE + (stepsPerRow - 1) * STEP_GAP;
-  const x = col * (STEP_SIZE + STEP_GAP) + (COUNTER_WIDTH - totalWidth) / 2;
-  const y = row * (STEP_SIZE + STEP_GAP) + 30;
-  return { x, y };
-}
-
-function getUnitStepRectConfig(step: APIStep, unit: APIUnit) {
-  return {
-    width: 12,
-    height: 12,
-    fill: step.isSuppressed ? "transparent" : getPlayerColor(unit),
-    stroke: getPlayerColor(unit),
-    strokeWidth: 2,
-    cornerRadius: 4,
-  };
-}
-
-function getUnitStepSpecialistConfig(step: APIStep, unit: APIUnit) {
-  const specialist = SPECIALIST_STEP_ID_MAP.get(step.specialistId!);
-  const initial = specialist ? specialist.type.charAt(0) : "";
-  return {
-    text: initial,
-    fontSize: 7,
-    fontFamily: "Roboto, sans-serif",
-    fill: "#1a202c",
-    width: 12,
-    height: 12,
-    align: "center",
-    verticalAlign: "middle",
-    fontStyle: "bold",
-  };
-}
-
-function getUnitCounterMPConfig(unit: APIUnit) {
-  const unitCatalog = UNIT_CATALOG_ID_MAP.get(unit.catalogId);
-  return {
-    text: `${unit.state.mp}/${unitCatalog?.stats.maxMP}`,
-    fontSize: 10,
-    fontFamily: "Roboto, sans-serif",
-    fill: getPlayerColor(unit),
-    x: 5,
-    y: COUNTER_HEIGHT - 15,
-    fontStyle: "bold",
-  };
-}
-
-function getUnitCounterAPConfig(unit: APIUnit) {
-  return {
-    text: "⚡".repeat(unit.state.ap),
-    fontSize: 10,
-    fontFamily: "Roboto, sans-serif",
-    fill: getPlayerColor(unit),
-    x: COUNTER_WIDTH - 20,
-    y: COUNTER_HEIGHT - 15,
-    fontStyle: "bold",
-  };
+function getPlanetAt(hex: APIHex) {
+  return galaxyStore.planets.find(
+    (p) => p.location.q === hex.location.q && p.location.r === hex.location.r
+  );
 }
 
 // Constants for prototype supply viz
@@ -313,111 +163,6 @@ function getZOCHexCircleConfig(source: {
 function getHexConfig(hex: APIHex) {
   const { x, y } = hexToPixel(hex.location.q, hex.location.r, HEX_SIZE);
   return { x, y };
-}
-
-function getPolygonConfig(hex: APIHex) {
-  let fill = "#1a1a1a";
-  let stroke = "#444";
-
-  // Basic ownership visualization if any
-  if (hex.playerId) {
-    const player = galaxyStore.playerLookup!.get(String(hex.playerId))!;
-    fill = player.color;
-    stroke = player.color;
-  } else {
-    // Terrain overrides
-    switch (hex.terrain) {
-      case TerrainTypes.ASTEROID_FIELD:
-        fill = "#3a3a3a";
-        break;
-      case TerrainTypes.DEBRIS_FIELD:
-        fill = "#4a2a2a";
-        break;
-      case TerrainTypes.NEBULA:
-        fill = "#2a1a3a";
-        break;
-      case TerrainTypes.GAS_CLOUD:
-        fill = "#1a3a2a";
-        break;
-      case TerrainTypes.GRAVITY_WELL:
-        fill = "#000000";
-        stroke = "#fff";
-        break;
-      case TerrainTypes.RADIATION_STORM:
-        fill = "#3a1a00";
-        break;
-      case TerrainTypes.INDUSTRIAL_ZONE:
-        fill = "#3a3a00";
-        break;
-    }
-  }
-
-  return {
-    sides: 6,
-    radius: HEX_SIZE - 2,
-    fill: fill,
-    stroke: stroke,
-    strokeWidth: 2,
-    rotation: 60,
-    opacity: 0.5,
-  };
-}
-
-function getTerrainTextConfig(hex: APIHex) {
-  let text = "";
-  switch (hex.terrain) {
-    case TerrainTypes.ASTEROID_FIELD:
-      text = "🪨";
-      break;
-    case TerrainTypes.DEBRIS_FIELD:
-      text = "🗑️";
-      break;
-    case TerrainTypes.NEBULA:
-      text = "🌫️";
-      break;
-    case TerrainTypes.GAS_CLOUD:
-      text = "☁️";
-      break;
-    case TerrainTypes.GRAVITY_WELL:
-      text = "⚫";
-      break;
-    case TerrainTypes.RADIATION_STORM:
-      text = "☢️";
-      break;
-    case TerrainTypes.INDUSTRIAL_ZONE:
-      text = "🏭";
-      break;
-  }
-  return {
-    text,
-    fontSize: 32,
-    offsetX: 16,
-    offsetY: 16,
-    listening: false,
-  };
-}
-
-function getCoordTextConfig(hex: APIHex) {
-  return {
-    text: `${hex.location.q},${hex.location.r}`,
-    fontSize: 12,
-    fill: "#888",
-    y: 32,
-    offsetX: 16,
-    listening: false,
-  };
-}
-
-function getStationAt(hex: APIHex) {
-  return galaxyStore.stations.find(
-    (s) => s.location.q === hex.location.q && s.location.r === hex.location.r
-  );
-}
-
-function getPlanetAt(hex: APIHex) {
-  return galaxyStore.planets.find(
-    (p) => p.location.q === hex.location.q && p.location.r === hex.location.r
-  );
 }
 
 function isSelected(hex: APIHex) {
