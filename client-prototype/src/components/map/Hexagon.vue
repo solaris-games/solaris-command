@@ -112,7 +112,7 @@ function getCoordTextConfig(hex: APIHex) {
     text: `${hex.location.q},${hex.location.r}`,
     fontSize: 12,
     fill: "#888",
-    y: 32,
+    y: 40,
     offsetX: 16,
     listening: false,
   };

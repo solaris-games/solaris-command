@@ -4,6 +4,7 @@ import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/a
 import type { HexCoords } from "@solaris-command/core/src/types/geometry";
 import { Player } from "@solaris-command/core/src/types/player";
 import { UnifiedId } from "@solaris-command/core/src/types/unified-id";
+import { HexUtils } from "@solaris-command/core/src/utils/hex-utils";
 
 interface SelectedItem {
   type: "HEX" | "UNIT" | "STATION" | "PLANET";
@@ -28,6 +29,7 @@ export const useGalaxyStore = defineStore("galaxy", {
     currentPlayerId: null as string | null,
     currentPlayer: null as Player | null,
     playerLookup: null as Map<string, Player> | null,
+    hexLookup: null as Map<string, APIHex> | null,
     movePath: [] as HexCoords[],
     isMoveMode: false,
     isAttackMode: false,
@@ -55,6 +57,11 @@ export const useGalaxyStore = defineStore("galaxy", {
         this.playerLookup = new Map<string, Player>()
         for (const player of this.galaxy!.players!) {
           this.playerLookup.set(String(player._id), player as any);
+        }
+
+        this.hexLookup = new Map<string, APIHex>();
+        for (const hex of this.galaxy!.hexes!) {
+          this.hexLookup.set(String(HexUtils.getCoordsID(hex.location)), hex);
         }
 
         this.currentPlayer =

@@ -1,25 +1,15 @@
 <template>
   <v-layer>
+    <!-- 1. Hexes -->
     <v-group
       v-for="hex in galaxyStore.hexes"
-      :key="`${hex.location.q},${hex.location.r}`"
+      :key="`hex-${hex.location.q},${hex.location.r}`"
       :config="getHexConfig(hex)"
-      @click="handleClick(hex)"
-      @tap="handleClick(hex)"
     >
       <Hexagon :hex="hex" />
-      <UnitCounter v-if="getUnitAt(hex)" :unit="getUnitAt(hex)!" />
-      <Station v-if="getStationAt(hex)" :station="getStationAt(hex)!" />
-      <Planet v-if="getPlanetAt(hex)" :planet="getPlanetAt(hex)!" />
-
-      <!-- Selection Highlight -->
-      <v-regular-polygon
-        v-if="isSelected(hex)"
-        :config="getSelectionConfig()"
-      />
     </v-group>
 
-    <!-- Supply Network Overlay -->
+    <!-- 2. Overlays -->
     <v-group v-if="galaxyStore.showSupply">
       <v-circle
         v-for="source in supplySources"
@@ -27,13 +17,49 @@
         :config="getSupplyHexCircleConfig(source)"
       />
     </v-group>
-
-    <!-- ZOC Overlay -->
     <v-group v-if="galaxyStore.showZOC">
       <v-circle
         v-for="source in zocSources"
         :key="source.id"
         :config="getZOCHexCircleConfig(source)"
+      />
+    </v-group>
+
+    <!-- 3. Arrows -->
+    <MovementPath
+      v-for="unit in movingUnits"
+      :key="unit._id.toString()"
+      :unit="unit"
+    />
+    <AttackArrow
+      v-for="unit in attackingUnits"
+      :key="unit._id.toString()"
+      :unit="unit"
+    />
+
+    <!-- 4. Counters -->
+    <v-group
+      v-for="hex in galaxyStore.hexes"
+      :key="`counter-${hex.location.q},${hex.location.r}`"
+      :config="getHexConfig(hex)"
+    >
+      <UnitCounter v-if="getUnitAt(hex)" :unit="getUnitAt(hex)!" />
+      <Station v-if="getStationAt(hex)" :station="getStationAt(hex)!" />
+      <Planet v-if="getPlanetAt(hex)" :planet="getPlanetAt(hex)!" />
+    </v-group>
+
+    <!-- 5. Selection and Interaction Layer -->
+    <v-group
+      v-for="hex in galaxyStore.hexes"
+      :key="`interaction-${hex.location.q},${hex.location.r}`"
+      :config="getHexConfig(hex)"
+      @click="handleClick(hex)"
+      @tap="handleClick(hex)"
+    >
+      <v-regular-polygon :config="getInteractionHexConfig()" />
+      <v-regular-polygon
+        v-if="isSelected(hex)"
+        :config="getSelectionConfig()"
       />
     </v-group>
   </v-layer>
@@ -46,15 +72,25 @@ import { hexToPixel } from "../utils/hexUtils";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
 import { HexUtils } from "@solaris-command/core/src/utils/hex-utils";
 import { SupplyEngine } from "@solaris-command/core/src/utils/supply-engine";
+import { UnitStatus } from "@solaris-command/core/src/types/unit";
 import Hexagon from "./map/Hexagon.vue";
 import UnitCounter from "./map/UnitCounter.vue";
 import Station from "./map/Station.vue";
 import Planet from "./map/Planet.vue";
+import AttackArrow from "./map/AttackArrow.vue";
+import MovementPath from "./map/MovementPath.vue";
 
 type APIHex = GameGalaxyResponseSchema["hexes"][0];
 
 const HEX_SIZE = 64;
 const galaxyStore = useGalaxyStore();
+
+const attackingUnits = computed(() =>
+  galaxyStore.units.filter((u) => u.state.status === UnitStatus.PREPARING)
+);
+const movingUnits = computed(() =>
+  galaxyStore.units.filter((u) => u.state.status === UnitStatus.MOVING)
+);
 
 function getUnitAt(hex: APIHex) {
   return galaxyStore.units.find(
@@ -163,6 +199,14 @@ function getZOCHexCircleConfig(source: {
 function getHexConfig(hex: APIHex) {
   const { x, y } = hexToPixel(hex.location.q, hex.location.r, HEX_SIZE);
   return { x, y };
+}
+
+function getInteractionHexConfig() {
+  return {
+    sides: 6,
+    radius: HEX_SIZE,
+    opacity: 0,
+  };
 }
 
 function isSelected(hex: APIHex) {
