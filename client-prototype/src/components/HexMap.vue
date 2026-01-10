@@ -174,7 +174,7 @@ function getPolygonConfig(hex: APIHex) {
   if (hex.playerId) {
     const player = galaxyStore.playerLookup!.get(String(hex.playerId))!;
     fill = player.color;
-    stroke = "#FFFFFF";
+    stroke = player.color;
   } else {
     // Terrain overrides
     switch (hex.terrain) {
