@@ -27,9 +27,8 @@
       </div>
 
       <RightSidebar />
+      <SelectionPanel />
     </div>
-
-    <BottomBar />
   </div>
 </template>
 
@@ -40,7 +39,7 @@ import { useGalaxyStore } from "../stores/galaxy";
 import HexMap from "../components/HexMap.vue";
 import HeaderBar from "../components/layout/HeaderBar.vue";
 import RightSidebar from "../components/layout/RightSidebar.vue";
-import BottomBar from "../components/layout/BottomBar.vue";
+import SelectionPanel from "../components/layout/SelectionPanel.vue";
 
 const route = useRoute();
 const galaxyStore = useGalaxyStore();
@@ -48,11 +47,10 @@ const galaxyStore = useGalaxyStore();
 // Placeholder values for component heights/widths
 const HEADER_HEIGHT = 60;
 const SIDEBAR_WIDTH = 300;
-const BOTTOMBAR_HEIGHT = 200;
 
 const configStage = reactive({
   width: window.innerWidth - SIDEBAR_WIDTH,
-  height: window.innerHeight - HEADER_HEIGHT - BOTTOMBAR_HEIGHT,
+  height: window.innerHeight - HEADER_HEIGHT,
   draggable: true,
   x: 0,
   y: 0,
@@ -75,7 +73,7 @@ onMounted(async () => {
 
 function handleResize() {
   configStage.width = window.innerWidth - SIDEBAR_WIDTH;
-  configStage.height = window.innerHeight - HEADER_HEIGHT - BOTTOMBAR_HEIGHT;
+  configStage.height = window.innerHeight - HEADER_HEIGHT;
 }
 
 function handleWheel(e: any) {
