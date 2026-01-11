@@ -11,11 +11,10 @@
 
     <!-- 2. Overlays -->
     <v-group v-if="galaxyStore.showSupply">
-      <v-circle
-        v-for="source in supplySources"
-        :key="source.id"
-        :config="getSupplyHexCircleConfig(source)"
-      />
+      <v-group v-for="source in supplySources" :key="source.id">
+        <v-circle :config="getSupplyHexCircleConfig(source)" />
+        <v-text :config="getSupplyTextConfig(source)" />
+      </v-group>
     </v-group>
     <v-group v-if="galaxyStore.showZOC">
       <v-circle
@@ -119,6 +118,7 @@ const supplySources = computed(() => {
     x: number;
     y: number;
     range: number;
+    remainingMP: number;
   }[] = [];
 
   if (galaxyStore.currentPlayerId == null) {
@@ -132,13 +132,19 @@ const supplySources = computed(() => {
     galaxyStore.stations
   );
 
-  for (const id of supplyNetwork) {
+  for (const [id, remainingMP] of supplyNetwork) {
     const hex = galaxyStore.hexes.find(
       (h) => HexUtils.getCoordsID(h.location) === id
     )!;
 
     const { x, y } = hexToPixel(hex.location.q, hex.location.r, HEX_SIZE);
-    sources.push({ id: `h-${hex._id}`, x, y, range: 0.2 });
+    sources.push({
+      id: `h-${hex._id}`,
+      x,
+      y,
+      range: 0.2,
+      remainingMP,
+    });
   }
 
   return sources;
@@ -178,6 +184,25 @@ function getSupplyHexCircleConfig(source: {
     fill: "rgba(255, 255, 255, 1)",
     strokeWidth: 2,
     listening: false, // Click through
+  };
+}
+
+function getSupplyTextConfig(source: {
+  x: number;
+  y: number;
+  remainingMP: number;
+}) {
+  return {
+    x: source.x - 10, // Approximate centering
+    y: source.y - 5,
+    text: source.remainingMP.toString(),
+    fontSize: 10,
+    fontFamily: "monospace",
+    fontStyle: "bold",
+    fill: "black",
+    listening: false,
+    align: "center",
+    width: 20,
   };
 }
 

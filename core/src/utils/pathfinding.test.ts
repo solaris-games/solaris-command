@@ -47,7 +47,9 @@ describe("Pathfinding", () => {
       // Center (0 cost) + 6 Neighbors (1 cost)
       expect(reachable.size).toBe(7);
       expect(reachable.has(HexUtils.getCoordsID(start))).toBe(true);
+      expect(reachable.get(HexUtils.getCoordsID(start))).toBe(0);
       expect(reachable.has("1,0,-1")).toBe(true);
+      expect(reachable.get("1,0,-1")).toBe(1);
     });
 
     it("should be blocked by Impassable terrain", () => {
@@ -73,6 +75,7 @@ describe("Pathfinding", () => {
       // With 2 MP, can enter
       const reachable2 = Pathfinding.getReachableHexes(start, 2, map, null);
       expect(reachable2.has(asteroidId)).toBe(true);
+      expect(reachable2.get(asteroidId)).toBe(2);
     });
 
     it("should double cost for ZOC", () => {

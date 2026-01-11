@@ -113,9 +113,11 @@ describe("SupplyEngine", () => {
       const capital = createPlanet(playerId, 0, 0, 0, true);
 
       // Mock Pathfinding to return specific hexes
-      vi.mocked(Pathfinding.getReachableHexes).mockReturnValue(
-        new Set(["0,0,0", "1,0,-1"])
-      );
+      const mockReachable = new Map([
+        ["0,0,0", 0],
+        ["1,0,-1", 1],
+      ]);
+      vi.mocked(Pathfinding.getReachableHexes).mockReturnValue(mockReachable);
 
       const result = SupplyEngine.calculatePlayerSupplyNetwork(
         playerId,
@@ -125,7 +127,13 @@ describe("SupplyEngine", () => {
       );
 
       expect(result.has("0,0,0")).toBe(true);
+      // Remaining MP = Range (25) - Cost (0) = 25
+      expect(result.get("0,0,0")).toBe(CONSTANTS.SUPPLY_RANGE_MP_ROOT);
+
       expect(result.has("1,0,-1")).toBe(true);
+      // Remaining MP = Range (25) - Cost (1) = 24
+      expect(result.get("1,0,-1")).toBe(CONSTANTS.SUPPLY_RANGE_MP_ROOT - 1);
+
       expect(result.size).toBe(2);
 
       // Verify Pathfinding was called correctly with correct args
@@ -161,9 +169,19 @@ describe("SupplyEngine", () => {
 
       // Mock behavior:
       // 1. Capital reaches station
+      const reachableFromCapital = new Map([
+        ["0,0,0", 0],
+        ["1,0,-1", 1],
+      ]);
+      // 2. Station reaches next hop
+      const reachableFromStation = new Map([
+        ["1,0,-1", 0],
+        ["2,0,-2", 1],
+      ]);
+
       vi.mocked(Pathfinding.getReachableHexes)
-        .mockReturnValueOnce(new Set(["0,0,0", "1,0,-1"])) // First call (Capital)
-        .mockReturnValueOnce(new Set(["1,0,-1", "2,0,-2"])); // Second call (Station)
+        .mockReturnValueOnce(reachableFromCapital) // First call (Capital)
+        .mockReturnValueOnce(reachableFromStation); // Second call (Station)
 
       const result = SupplyEngine.calculatePlayerSupplyNetwork(
         playerId,
@@ -174,7 +192,11 @@ describe("SupplyEngine", () => {
 
       expect(result.has("0,0,0")).toBe(true);
       expect(result.has("1,0,-1")).toBe(true); // Capital reached it
+      expect(result.get("1,0,-1")).toBe(CONSTANTS.SUPPLY_RANGE_MP_ROOT - 1); // Max of both (Root gives 24, Station gives 15) -> 24
+
       expect(result.has("2,0,-2")).toBe(true); // Station reached it
+      expect(result.get("2,0,-2")).toBe(CONSTANTS.SUPPLY_RANGE_MP_NODE - 1);
+
       expect(Pathfinding.getReachableHexes).toHaveBeenCalledTimes(2);
     });
 
@@ -186,7 +208,7 @@ describe("SupplyEngine", () => {
       const station = createStation(playerId, 5, 0, -5);
 
       vi.mocked(Pathfinding.getReachableHexes).mockReturnValueOnce(
-        new Set(["0,0,0"])
+        new Map([["0,0,0", 0]])
       ); // Capital range
 
       const result = SupplyEngine.calculatePlayerSupplyNetwork(
@@ -207,7 +229,7 @@ describe("SupplyEngine", () => {
       const unit = createUnit(playerId, 0, 0, 0);
       unit.supply.ticksOutOfSupply = 5;
 
-      const network = new Set(["0,0,0"]);
+      const network = new Map([["0,0,0", 10]]);
 
       const supply = SupplyEngine.processTickSupplyTarget(
         unit.supply,
@@ -223,7 +245,7 @@ describe("SupplyEngine", () => {
       const unit = createUnit(playerId, 5, 5, -10); // Far away
       unit.supply.ticksOutOfSupply = 5;
 
-      const network = new Set(["0,0,0"]);
+      const network = new Map([["0,0,0", 10]]);
 
       const supply = SupplyEngine.processTickSupplyTarget(
         unit.supply,

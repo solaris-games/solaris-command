@@ -18,8 +18,8 @@ export const SupplyEngine = {
     hexes: Hex[],
     planets: Planet[],
     stations: Station[]
-  ): Set<HexCoordsId> {
-    const suppliedHexIds = new Set<HexCoordsId>();
+  ): Map<HexCoordsId, number> {
+    const suppliedHexIds = new Map<HexCoordsId, number>();
 
     // Optimization: Create a Map for O(1) Hex Lookup by ID
     const playerHexMap = new Map<HexCoordsId, Hex>();
@@ -62,7 +62,8 @@ export const SupplyEngine = {
       const currentSource = sourceQueue.shift()!;
 
       // A. Calculate reachable hexes using MP Costs (Dijkstra Flood Fill)
-      const reachableHexIDs = Pathfinding.getReachableHexes(
+      // Returns Map<HexID, Cost>
+      const reachableHexes = Pathfinding.getReachableHexes(
         currentSource.location,
         currentSource.rangeMP,
         playerHexMap,
@@ -70,8 +71,13 @@ export const SupplyEngine = {
       );
 
       // B. Add to the master list of supplied hexes
-      for (const hexId of reachableHexIDs) {
-        suppliedHexIds.add(hexId);
+      for (const [hexId, cost] of reachableHexes) {
+        const remainingMP = currentSource.rangeMP - cost;
+        const currentRemaining = suppliedHexIds.get(hexId) ?? -Infinity;
+
+        if (remainingMP > currentRemaining) {
+          suppliedHexIds.set(hexId, remainingMP);
+        }
       }
 
       // C. Check if this source activated any "Dark" Stations/Planets
@@ -105,7 +111,7 @@ export const SupplyEngine = {
   processTickSupplyTarget(
     supply: SupplyTarget,
     location: HexCoords,
-    suppliedHexIds: Set<HexCoordsId>
+    suppliedHexIds: Map<HexCoordsId, number>
   ): SupplyTarget {
     const currentHexId = HexUtils.getCoordsID(location);
     const isSupplied = suppliedHexIds.has(currentHexId);

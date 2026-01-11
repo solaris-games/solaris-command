@@ -16,17 +16,15 @@ export const Pathfinding = {
     maxCost: number,
     hexMap: Map<HexCoordsId, Hex>,
     playerId: UnifiedId | null // If from the perspective of a player
-  ): Set<HexCoordsId> {
+  ): Map<HexCoordsId, number> {
     const visited = new Map<HexCoordsId, number>(); // HexID -> Cost to reach
     const queue: { coord: HexCoords; cost: number }[] = [];
-    const results = new Set<HexCoordsId>();
 
     const startId = HexUtils.getCoordsID(start);
 
     // Init
     queue.push({ coord: start, cost: 0 });
     visited.set(startId, 0);
-    results.add(startId);
 
     while (queue.length > 0) {
       // Sort by lowest cost (Simple Priority Queue)
@@ -55,12 +53,11 @@ export const Pathfinding = {
         if (existingCost === undefined || newCost < existingCost) {
           visited.set(neighborId, newCost);
           queue.push({ coord: neighbor, cost: newCost });
-          results.add(neighborId);
         }
       }
     }
 
-    return results;
+    return visited;
   },
 
   validatePath(
