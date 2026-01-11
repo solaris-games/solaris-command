@@ -1,6 +1,6 @@
 <template>
   <v-layer>
-    <!-- 1. Hexes -->
+    <!-- Hexes -->
     <v-group
       v-for="hex in galaxyStore.hexes"
       :key="`hex-${hex.location.q},${hex.location.r}`"
@@ -9,7 +9,30 @@
       <Hexagon :hex="hex" />
     </v-group>
 
-    <!-- 2. Overlays -->
+    <!-- Arrows -->
+    <MovementPath
+      v-for="unit in movingUnits"
+      :key="unit._id.toString()"
+      :unit="unit"
+    />
+    <AttackArrow
+      v-for="unit in attackingUnits"
+      :key="unit._id.toString()"
+      :unit="unit"
+    />
+
+    <!-- Counters -->
+    <v-group
+      v-for="hex in galaxyStore.hexes"
+      :key="`counter-${hex.location.q},${hex.location.r}`"
+      :config="getHexConfig(hex)"
+    >
+      <UnitCounter v-if="getUnitAt(hex)" :unit="getUnitAt(hex)!" />
+      <Station v-if="getStationAt(hex)" :station="getStationAt(hex)!" />
+      <Planet v-if="getPlanetAt(hex)" :planet="getPlanetAt(hex)!" />
+    </v-group>
+
+    <!-- Overlays -->
     <v-group v-if="galaxyStore.showSupply">
       <v-group v-for="source in supplySources" :key="source.id">
         <v-circle :config="getSupplyHexCircleConfig(source)" />
@@ -24,30 +47,7 @@
       />
     </v-group>
 
-    <!-- 3. Arrows -->
-    <MovementPath
-      v-for="unit in movingUnits"
-      :key="unit._id.toString()"
-      :unit="unit"
-    />
-    <AttackArrow
-      v-for="unit in attackingUnits"
-      :key="unit._id.toString()"
-      :unit="unit"
-    />
-
-    <!-- 4. Counters -->
-    <v-group
-      v-for="hex in galaxyStore.hexes"
-      :key="`counter-${hex.location.q},${hex.location.r}`"
-      :config="getHexConfig(hex)"
-    >
-      <UnitCounter v-if="getUnitAt(hex)" :unit="getUnitAt(hex)!" />
-      <Station v-if="getStationAt(hex)" :station="getStationAt(hex)!" />
-      <Planet v-if="getPlanetAt(hex)" :planet="getPlanetAt(hex)!" />
-    </v-group>
-
-    <!-- 5. Selection and Interaction Layer -->
+    <!-- Selection and Interaction Layer -->
     <v-group
       v-for="hex in galaxyStore.hexes"
       :key="`interaction-${hex.location.q},${hex.location.r}`"
@@ -182,8 +182,10 @@ function getSupplyHexCircleConfig(source: {
     y: source.y,
     radius: source.range * HEX_WIDTH,
     fill: "rgba(255, 255, 255, 1)",
-    strokeWidth: 2,
+    stroke: "rgba(0, 0, 0, 1)",
+    strokeWidth: 6,
     listening: false, // Click through
+    dash: [10, 5],
   };
 }
 
@@ -194,9 +196,9 @@ function getSupplyTextConfig(source: {
 }) {
   return {
     x: source.x - 10, // Approximate centering
-    y: source.y - 5,
+    y: source.y - 8,
     text: source.remainingMP.toString(),
-    fontSize: 10,
+    fontSize: 16,
     fontFamily: "monospace",
     fontStyle: "bold",
     fill: "black",
@@ -214,9 +216,10 @@ function getZOCHexCircleConfig(source: {
   return {
     x: source.x,
     y: source.y,
-    radius: source.range * HEX_WIDTH,
+    radius: source.range * HEX_WIDTH / 2,
     fill: "rgba(255, 255, 255, 1)",
-    strokeWidth: 2,
+    stroke: "rgba(0, 0, 0, 1)",
+    strokeWidth: 6,
     listening: false, // Click through
   };
 }

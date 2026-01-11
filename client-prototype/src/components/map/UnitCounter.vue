@@ -77,7 +77,7 @@ function getUnitCounterNameConfig(unit: APIUnit) {
   return {
     text: unitCatalog?.name.toUpperCase() || unit.catalogId.toUpperCase(),
     fontSize: 9,
-    fontFamily: "Roboto, sans-serif",
+    fontFamily: "monospace",
     fill: color.foreground,
     width: COUNTER_WIDTH - 12,
     x: 0,
@@ -120,7 +120,7 @@ function getUnitStepSpecialistConfig(step: APIStep, unit: APIUnit) {
   return {
     text: initial,
     fontSize: 12,
-    fontFamily: "Roboto, sans-serif",
+    fontFamily: "monospace",
     fill: textColor,
     width: 12,
     height: 12,
@@ -135,7 +135,7 @@ function getUnitCounterMPConfig(unit: APIUnit) {
   return {
     text: `${unit.state.mp}`,
     fontSize: 10,
-    fontFamily: "Roboto, sans-serif",
+    fontFamily: "monospace",
     fill: color.foreground,
     x: 5,
     y: COUNTER_HEIGHT - 15,
@@ -148,7 +148,7 @@ function getUnitCounterAPConfig(unit: APIUnit) {
   return {
     text: "⚡".repeat(unit.state.ap),
     fontSize: 10,
-    fontFamily: "Roboto, sans-serif",
+    fontFamily: "monospace",
     fill: color.foreground,
     x: COUNTER_WIDTH - (unit.state.ap > 1 ? 20 : 14),
     y: COUNTER_HEIGHT - 15,
