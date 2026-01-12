@@ -30,11 +30,11 @@ export const useGalaxyStore = defineStore("galaxy", {
     currentPlayer: null as Player | null,
     playerLookup: null as Map<string, Player> | null,
     hexLookup: null as Map<string, APIHex> | null,
+    planetLookup: null as Map<string, APIPlanet> | null,
+    stationLookup: null as Map<string, APIStation> | null,
     movePath: [] as HexCoords[],
     isMoveMode: false,
     isAttackMode: false,
-    showSupply: false, // Toggle state
-    showZOC: false, // Toggle state
   }),
   getters: {
     hexes: (state): APIHex[] => state.galaxy?.hexes || [],
@@ -54,7 +54,7 @@ export const useGalaxyStore = defineStore("galaxy", {
       try {
         const response = await axios.get(`/api/v1/games/${gameId}`);
         this.galaxy = response.data;
-        this.playerLookup = new Map<string, Player>()
+        this.playerLookup = new Map<string, Player>();
         for (const player of this.galaxy!.players!) {
           this.playerLookup.set(String(player._id), player as any);
         }
@@ -64,11 +64,27 @@ export const useGalaxyStore = defineStore("galaxy", {
           this.hexLookup.set(String(HexUtils.getCoordsID(hex.location)), hex);
         }
 
+        this.planetLookup = new Map<string, APIPlanet>();
+        for (const planet of this.galaxy!.planets!) {
+          this.planetLookup.set(
+            String(HexUtils.getCoordsID(planet.location)),
+            planet
+          );
+        }
+
+        this.stationLookup = new Map<string, APIStation>();
+        for (const station of this.galaxy!.stations!) {
+          this.stationLookup.set(
+            String(HexUtils.getCoordsID(station.location)),
+            station
+          );
+        }
+
         this.currentPlayer =
           response.data.players.find((p: any) => p.userId != null) ?? null;
         this.currentPlayerId =
-          response.data.players.find((p: any) => p.userId != null)?._id ?? null;
-
+          response.data.players.find((p: any) => p.userId != null)?._id ??
+          null;
       } catch (err: any) {
         this.error = err.message || "Failed to fetch galaxy";
       } finally {
@@ -124,12 +140,6 @@ export const useGalaxyStore = defineStore("galaxy", {
       if (!this.selectedUnit) return;
       this.isAttackMode = !this.isAttackMode;
       this.isMoveMode = false;
-    },
-    toggleSupply() {
-      this.showSupply = !this.showSupply;
-    },
-    toggleZOC() {
-      this.showZOC = !this.showZOC;
     },
     async handleMoveSelection(targetHex: APIHex) {
       if (!this.selectedUnit) return;
@@ -290,13 +300,13 @@ export const useGalaxyStore = defineStore("galaxy", {
         );
       }
     },
-    async upgradeUnitStepScout(unit: APIUnit) {
+    async hireSpecialist(unit: APIUnit, specialistId: string) {
       try {
         await axios.post(
           `/api/v1/games/${this.galaxy?.game._id}/units/${unit._id}/upgrade`,
           {
             type: "SPECIALIST",
-            specialistId: 'spec_scouts_01',
+            specialistId: specialistId,
           }
         );
         await this.fetchGalaxy(this.galaxy!.game._id);
@@ -306,7 +316,7 @@ export const useGalaxyStore = defineStore("galaxy", {
         this.selectedStation = null;
       } catch (err: any) {
         alert(
-          "Upgrade unit step failed: " +
+          "Hire specialist failed: " +
             (err.response?.data?.errorCode || err.message)
         );
       }

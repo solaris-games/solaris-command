@@ -16,8 +16,9 @@
       >
         {{ galaxyStore.error }}
       </div>
-      <div class="flex-grow-1 overflow-hidden">
+      <div class="flex-grow-1 overflow-hidden" ref="stageContainer">
         <v-stage
+          v-if="configStage.width && configStage.height"
           :config="configStage"
           @wheel="handleWheel"
           @dragend="handleDragEnd"
@@ -28,29 +29,28 @@
 
       <RightSidebar />
       <SelectionPanel />
+      <MapOverlayButtons />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive } from "vue";
+import { onMounted, onUnmounted, reactive, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useGalaxyStore } from "../stores/galaxy";
 import HexMap from "../components/HexMap.vue";
 import HeaderBar from "../components/layout/HeaderBar.vue";
 import RightSidebar from "../components/layout/RightSidebar.vue";
 import SelectionPanel from "../components/layout/SelectionPanel.vue";
+import MapOverlayButtons from "../components/layout/MapOverlayButtons.vue";
 
 const route = useRoute();
 const galaxyStore = useGalaxyStore();
-
-// Placeholder values for component heights/widths
-const HEADER_HEIGHT = 60;
-const SIDEBAR_WIDTH = 300;
+const stageContainer = ref<HTMLDivElement | null>(null);
 
 const configStage = reactive({
-  width: window.innerWidth - SIDEBAR_WIDTH,
-  height: window.innerHeight - HEADER_HEIGHT,
+  width: 0,
+  height: 0,
   draggable: true,
   x: 0,
   y: 0,
@@ -58,8 +58,25 @@ const configStage = reactive({
   scaleY: 1,
 });
 
+let resizeObserver: ResizeObserver;
+
 onMounted(async () => {
   const gameId = route.params.id as string;
+  
+  if (stageContainer.value) {
+    configStage.width = stageContainer.value.offsetWidth;
+    configStage.height = stageContainer.value.offsetHeight;
+
+    resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        configStage.width = entry.contentRect.width;
+        configStage.height = entry.contentRect.height;
+      }
+    });
+
+    resizeObserver.observe(stageContainer.value);
+  }
+
   await galaxyStore.fetchGalaxy(gameId as any);
 
   // Center map roughly
@@ -67,14 +84,13 @@ onMounted(async () => {
     configStage.x = configStage.width / 2;
     configStage.y = configStage.height / 2;
   }
-
-  window.addEventListener("resize", handleResize);
 });
 
-function handleResize() {
-  configStage.width = window.innerWidth - SIDEBAR_WIDTH;
-  configStage.height = window.innerHeight - HEADER_HEIGHT;
-}
+onUnmounted(() => {
+  if (resizeObserver && stageContainer.value) {
+    resizeObserver.unobserve(stageContainer.value);
+  }
+});
 
 function handleWheel(e: any) {
   e.evt.preventDefault();
