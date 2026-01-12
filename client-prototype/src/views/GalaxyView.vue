@@ -62,12 +62,12 @@ let resizeObserver: ResizeObserver;
 
 onMounted(async () => {
   const gameId = route.params.id as string;
-  
+
   if (stageContainer.value) {
     configStage.width = stageContainer.value.offsetWidth;
     configStage.height = stageContainer.value.offsetHeight;
 
-    resizeObserver = new ResizeObserver(entries => {
+    resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         configStage.width = entry.contentRect.width;
         configStage.height = entry.contentRect.height;

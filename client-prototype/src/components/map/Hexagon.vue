@@ -187,6 +187,18 @@ onMounted(() => {
       );
       break;
     }
+    case TerrainTypes.NEBULA: {
+      const images = 84;
+      const index = Math.floor(rng() * images) + 1;
+      loadImage(
+        `/assets/spaceland/terrain/nebulae/hk-nebula_${String(index).padStart(
+          3,
+          "0"
+        )}.png`,
+        "middleground"
+      );
+      break;
+    }
     case TerrainTypes.GAS_CLOUD: {
       const images = 17;
       const index = Math.floor(rng() * images) + 1;
