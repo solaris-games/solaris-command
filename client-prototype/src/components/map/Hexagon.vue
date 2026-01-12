@@ -149,15 +149,35 @@ onMounted(() => {
     String(HexUtils.getCoordsID(props.hex.location))
   );
 
+  // TODO: Planet assets kinda suck so have decided
+  // to use the star assets since they basically look like
+  // planets anyway and we can use the system assets as well.
+  // if (planet) {
+  //   const planetImages = 54;
+  //   const planetIndex = Math.floor(rng() * planetImages) + 1;
+  //   loadImage(
+  //     `/assets/spaceland/planets/large/hk-planet_${String(planetIndex).padStart(
+  //       3,
+  //       "0"
+  //     )}.png`,
+  //     "middleground"
+  //   );
+  //   return;
+  // }
+
   if (planet) {
-    const planetImages = 54;
-    const planetIndex = Math.floor(rng() * planetImages) + 1;
+    const starImages = 27;
+    const starIndex = Math.floor(rng() * starImages) + 1;
     loadImage(
-      `/assets/spaceland/planets/large/hk-planet_${String(planetIndex).padStart(
-        3,
-        "0"
-      )}.png`,
+      `/assets/spaceland/stars/sun${String(starIndex).padStart(3, "0")}.png`,
       "middleground"
+    );
+
+    const systemImages = 10;
+    const systemIndex = Math.floor(rng() * systemImages) + 1;
+    loadImage(
+      `/assets/spaceland/system/sys${String(systemIndex).padStart(3, "0")}.png`,
+      "foreground"
     );
     return;
   }
@@ -295,9 +315,9 @@ onUpdated(() => {
     <v-image v-show="foregroundImage" :config="getForegroundImageConfig" />
   </v-group>
 
-  <v-regular-polygon
+  <!-- <v-regular-polygon
     v-if="mapSettingsStore.showPlayerColors"
     :config="getPolygonConfig"
   />
-  <v-text :config="getCoordTextConfig" />
+  <v-text :config="getCoordTextConfig" /> -->
 </template>

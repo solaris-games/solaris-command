@@ -6,6 +6,7 @@
       :config="getHexConfig(hex)"
     >
       <Hexagon :hex="hex" />
+      <HexagonOverlay :hex="hex"/>
     </v-group>
   </v-layer>
 </template>
@@ -15,6 +16,7 @@ import { useGalaxyStore } from "../../stores/galaxy";
 import { hexToPixel } from "../../utils/hexUtils";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
 import Hexagon from "./Hexagon.vue";
+import HexagonOverlay from "./HexagonOverlay.vue";
 
 type APIHex = GameGalaxyResponseSchema["hexes"][0];
 

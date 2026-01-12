@@ -1,24 +1,33 @@
 <template>
   <div class="map-overlay-buttons">
     <button
-      class="btn btn-secondary mb-2"
-      :class="{ 'btn-success': mapSettingsStore.showSupply }"
+      class="btn mb-2"
+      :class="{
+        'btn-dark': !mapSettingsStore.showSupply,
+        'btn-primary': mapSettingsStore.showSupply,
+      }"
       @click="mapSettingsStore.toggleSupply()"
       title="Toggle Supply Network"
     >
       <i class="bi bi-share-fill"></i>
     </button>
     <button
-      class="btn btn-secondary mb-2"
-      :class="{ 'btn-success': mapSettingsStore.showZOC }"
+      class="btn mb-2"
+      :class="{
+        'btn-dark': !mapSettingsStore.showZOC,
+        'btn-primary': mapSettingsStore.showZOC,
+      }"
       @click="mapSettingsStore.toggleZOC()"
       title="Toggle Zone of Control"
     >
       <i class="bi bi-circle-fill"></i>
     </button>
     <button
-      class="btn btn-secondary"
-      :class="{ 'btn-success': mapSettingsStore.showPlayerColors }"
+      class="btn"
+      :class="{
+        'btn-dark': !mapSettingsStore.showPlayerColors,
+        'btn-primary': mapSettingsStore.showPlayerColors,
+      }"
       @click="mapSettingsStore.togglePlayerColors()"
       title="Toggle Player Colors"
     >
