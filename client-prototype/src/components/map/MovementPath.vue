@@ -48,8 +48,7 @@ const lineConfig = computed(() => {
     points: pathPoints.value.slice(0, pathPoints.value.length - 4),
     stroke: "white",
     strokeWidth: 12,
-    opacity: 0.5,
-    dash: [10, 5],
+    opacity: 0.7
   };
 });
 
@@ -59,16 +58,24 @@ const arrowConfig = computed(() => {
   }
 
   const lastSegment = pathPoints.value.slice(-4);
+  const x1 = lastSegment[0];
+  const y1 = lastSegment[1];
+  const x2 = lastSegment[2];
+  const y2 = lastSegment[3];
+
+  // Shorten the arrow to 70% of the original length to prevent overlaps.
+  const factor = 0.7; 
+  const newX2 = x1 + (x2 - x1) * factor;
+  const newY2 = y1 + (y2 - y1) * factor;
 
   return {
-    points: lastSegment,
+    points: [x1, y1, newX2, newY2],
     pointerLength: 5,
     pointerWidth: 5,
     fill: "white",
     stroke: "white",
     strokeWidth: 12,
-    opacity: 0.5,
-    dash: [10, 5],
+    opacity: 0.7
   };
 });
 </script>

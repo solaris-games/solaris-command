@@ -229,3 +229,17 @@ export const SPECIALIST_STEP_ID_MAP = new Map<
   string,
   UnitSpecialistStepCatalogItem
 >(SPECIALIST_STEP_CATALOG.map((s) => [s.id, s]));
+
+export const SPECIALIST_STEP_SYMBOL_MAP = new Map<SpecialistStepTypes, string>([
+  [SpecialistStepTypes.ARTILLERY, "⊡"],
+  [SpecialistStepTypes.ENGINEERS, "⚒"],
+  [SpecialistStepTypes.RECON, "⌕"],
+  [SpecialistStepTypes.SCOUTS, "⧖"],
+  [SpecialistStepTypes.TORPEDO, "⤇"],
+  [SpecialistStepTypes.ARMOR, "▨"],
+  [SpecialistStepTypes.HEAVY_WEAPONS, "⌁"],
+  [SpecialistStepTypes.SHIELDS, "⛨"],
+  [SpecialistStepTypes.PROPULSION, "→"],
+  [SpecialistStepTypes.COMMAND, "★"],
+  [SpecialistStepTypes.LOGISTICS, "○"],
+]);

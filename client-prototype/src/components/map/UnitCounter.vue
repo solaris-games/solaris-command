@@ -30,6 +30,7 @@ import {
   UNIT_CATALOG_ID_MAP,
   SPECIALIST_STEP_ID_MAP,
   PLAYER_COLOR_LOOKUP,
+  SPECIALIST_STEP_SYMBOL_MAP,
 } from "@solaris-command/core/src/data";
 
 type APIUnit = GameGalaxyResponseSchema["units"][0];
@@ -75,14 +76,14 @@ function getUnitCounterNameConfig(unit: APIUnit) {
   const unitCatalog = UNIT_CATALOG_ID_MAP.get(unit.catalogId);
   const color = getPlayerColor(unit);
   return {
-    text: unitCatalog?.name.toUpperCase() || unit.catalogId.toUpperCase(),
+    text: unitCatalog?.class.toUpperCase().replaceAll('_', ' ') || unit.catalogId.toUpperCase(),
     fontSize: 9,
     fontFamily: "monospace",
     fill: color.foreground,
     width: COUNTER_WIDTH - 12,
-    x: 0,
+    x: 4,
     y: 4,
-    align: "center",
+    align: "left",
     fontStyle: "bold",
   };
 }
@@ -113,12 +114,14 @@ function getUnitStepRectConfig(step: APIStep, unit: APIUnit) {
 
 function getUnitStepSpecialistConfig(step: APIStep, unit: APIUnit) {
   const specialist = SPECIALIST_STEP_ID_MAP.get(step.specialistId!);
-  const initial = specialist ? specialist.type.charAt(0) : "";
+  const symbol = specialist
+    ? SPECIALIST_STEP_SYMBOL_MAP.get(specialist.type)
+    : "";
   const color = getPlayerColor(unit);
   const textColor = step.isSuppressed ? color.foreground : color.background;
 
   return {
-    text: initial,
+    text: symbol,
     fontSize: 12,
     fontFamily: "monospace",
     fill: textColor,
@@ -147,11 +150,11 @@ function getUnitCounterAPConfig(unit: APIUnit) {
   const color = getPlayerColor(unit);
   return {
     text: "⚡".repeat(unit.state.ap),
-    fontSize: 10,
+    fontSize: 14,
     fontFamily: "monospace",
     fill: color.foreground,
     x: COUNTER_WIDTH - (unit.state.ap > 1 ? 20 : 14),
-    y: COUNTER_HEIGHT - 15,
+    y: COUNTER_HEIGHT - 18,
     fontStyle: "bold",
   };
 }

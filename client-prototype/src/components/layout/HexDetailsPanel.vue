@@ -36,7 +36,7 @@
           class="btn btn-primary w-100"
           @click="galaxyStore.buildStation()"
         >
-          <i class="bi bi-gear"></i> Build Station
+          <i class="bi bi-gear"></i> Build Station (${{ CONSTANTS.STATION_PRESTIGE_COST }})
         </button>
       </div>
       <div v-else-if="selectedStation && selectedStation.playerId === galaxyStore.currentPlayerId" class="mt-3">
@@ -62,6 +62,7 @@
 import { computed } from "vue";
 import { useGalaxyStore } from "../../stores/galaxy";
 import { TerrainTypes } from "@solaris-command/core/src/types/hex";
+import { CONSTANTS } from "@solaris-command/core/src/data/constants";
 
 const galaxyStore = useGalaxyStore();
 const selectedHex = computed(() => galaxyStore.selectedHex);

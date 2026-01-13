@@ -4,7 +4,6 @@ import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/a
 import { TerrainTypes } from "@solaris-command/core/src/types/hex";
 import { HexUtils } from "@solaris-command/core/src/utils/hex-utils";
 import { useGalaxyStore } from "@/stores/galaxy";
-import { useMapSettingsStore } from "@/stores/mapSettings";
 import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
 import seedrandom from "seedrandom";
 
@@ -16,7 +15,6 @@ const props = defineProps<{
 
 const HEX_SIZE = 64;
 const galaxyStore = useGalaxyStore();
-const mapSettingsStore = useMapSettingsStore();
 const groupRef = ref(null);
 const backgroundImage = ref<HTMLImageElement | null>(null);
 const middlegroundImage = ref<HTMLImageElement | null>(null);
@@ -42,7 +40,7 @@ const getPolygonConfig = computed(() => {
     stroke: stroke,
     strokeWidth: 4,
     rotation: 60,
-    opacity: 0.3,
+    opacity: 1,
   };
 });
 
@@ -75,17 +73,6 @@ const getForegroundImageConfig = computed(() => {
     height: HEX_SIZE * 2,
     offsetX: HEX_SIZE,
     offsetY: HEX_SIZE,
-    listening: false,
-  };
-});
-
-const getCoordTextConfig = computed(() => {
-  return {
-    text: `${props.hex.location.q},${props.hex.location.r}`,
-    fontSize: 12,
-    fill: "#FFF",
-    y: 40,
-    offsetX: 12,
     listening: false,
   };
 });
@@ -310,14 +297,9 @@ onUpdated(() => {
     ref="groupRef"
     :config="{ perfectDrawEnabled: false, listening: false }"
   >
+    <v-regular-polygon :config="getPolygonConfig" />
     <v-image v-show="backgroundImage" :config="getBackgroundImageConfig" />
     <v-image v-show="middlegroundImage" :config="getMiddlegroundImageConfig" />
     <v-image v-show="foregroundImage" :config="getForegroundImageConfig" />
   </v-group>
-
-  <!-- <v-regular-polygon
-    v-if="mapSettingsStore.showPlayerColors"
-    :config="getPolygonConfig"
-  />
-  <v-text :config="getCoordTextConfig" /> -->
 </template>

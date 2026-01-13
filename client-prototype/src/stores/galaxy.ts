@@ -6,16 +6,11 @@ import { Player } from "@solaris-command/core/src/types/player";
 import { UnifiedId } from "@solaris-command/core/src/types/unified-id";
 import { HexUtils } from "@solaris-command/core/src/utils/hex-utils";
 
-interface SelectedItem {
-  type: "HEX" | "UNIT" | "STATION" | "PLANET";
-  id?: UnifiedId;
-  data: any;
-}
-
 type APIHex = GameGalaxyResponseSchema["hexes"][0];
 type APIUnit = GameGalaxyResponseSchema["units"][0];
 type APIPlanet = GameGalaxyResponseSchema["planets"][0];
 type APIStation = GameGalaxyResponseSchema["stations"][0];
+type APIPlayer = GameGalaxyResponseSchema["players"][0];
 
 export const useGalaxyStore = defineStore("galaxy", {
   state: () => ({
@@ -37,6 +32,7 @@ export const useGalaxyStore = defineStore("galaxy", {
     isAttackMode: false,
   }),
   getters: {
+    players: (state): APIPlayer[] => state.galaxy?.players || [],
     hexes: (state): APIHex[] => state.galaxy?.hexes || [],
     units: (state): APIUnit[] => state.galaxy?.units || [],
     planets: (state): APIPlanet[] => state.galaxy?.planets || [],

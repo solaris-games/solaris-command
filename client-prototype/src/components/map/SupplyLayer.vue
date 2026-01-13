@@ -6,13 +6,6 @@
         <v-text :config="getSupplyTextConfig(source)" />
       </v-group>
     </v-group>
-    <v-group v-if="mapSettingsStore.showZOC">
-      <v-circle
-        v-for="source in zocSources"
-        :key="source.id"
-        :config="getZOCHexCircleConfig(source)"
-      />
-    </v-group>
   </v-layer>
 </template>
 
@@ -23,6 +16,7 @@ import { useMapSettingsStore } from "../../stores/mapSettings";
 import { hexToPixel } from "../../utils/hexUtils";
 import { HexUtils } from "@solaris-command/core/src/utils/hex-utils";
 import { SupplyEngine } from "@solaris-command/core/src/utils/supply-engine";
+import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data";
 
 const HEX_SIZE = 64;
 const galaxyStore = useGalaxyStore();
@@ -38,71 +32,62 @@ const supplySources = computed(() => {
     y: number;
     range: number;
     remainingMP: number;
+    playerId: string;
   }[] = [];
 
-  if (galaxyStore.currentPlayerId == null) {
+  if (!galaxyStore.players) {
     return sources;
   }
 
-  const supplyNetwork = SupplyEngine.calculatePlayerSupplyNetwork(
-    galaxyStore.currentPlayerId,
-    galaxyStore.hexes,
-    galaxyStore.planets,
-    galaxyStore.stations
-  );
+  for (const player of galaxyStore.players) {
+    const supplyNetwork = SupplyEngine.calculatePlayerSupplyNetwork(
+      player._id,
+      galaxyStore.hexes,
+      galaxyStore.planets,
+      galaxyStore.stations
+    );
 
-  for (const [id, remainingMP] of supplyNetwork) {
-    const hex = galaxyStore.hexes.find(
-      (h) => HexUtils.getCoordsID(h.location) === id
-    )!;
+    for (const [id, remainingMP] of supplyNetwork) {
+      const hex = galaxyStore.hexes.find(
+        (h) => HexUtils.getCoordsID(h.location) === id
+      )!;
 
-    const { x, y } = hexToPixel(hex.location.q, hex.location.r, HEX_SIZE);
-    sources.push({
-      id: `h-${hex._id}`,
-      x,
-      y,
-      range: 0.2,
-      remainingMP,
-    });
-  }
-
-  return sources;
-});
-
-const zocSources = computed(() => {
-  const sources: {
-    id: string;
-    x: number;
-    y: number;
-    range: number;
-  }[] = [];
-
-  if (galaxyStore.currentPlayerId == null) {
-    return sources;
-  }
-
-  for (const hex of galaxyStore.hexes) {
-    if (hex.zoc.length) {
       const { x, y } = hexToPixel(hex.location.q, hex.location.r, HEX_SIZE);
-      sources.push({ id: `h-${hex._id}`, x, y, range: 0.2 });
+      sources.push({
+        id: `p-${player._id}-h-${hex._id}`,
+        x,
+        y,
+        range: 0.2,
+        remainingMP,
+        playerId: String(player._id),
+      });
     }
   }
 
   return sources;
 });
 
+function getPlayerColor(playerId: string) {
+  const player = galaxyStore.playerLookup?.get(playerId);
+  if (!player) return { background: "#FFFFFF", foreground: "#000000" };
+  const color = PLAYER_COLOR_LOOKUP.get(player.color);
+  return color || { background: "#FFFFFF", foreground: "#000000" };
+}
+
 function getSupplyHexCircleConfig(source: {
   x: number;
   y: number;
   range: number;
+  playerId: string;
 }) {
+  const color = getPlayerColor(source.playerId);
   return {
     x: source.x,
     y: source.y,
     radius: source.range * HEX_WIDTH,
-    fill: "rgba(255, 255, 255, 1)",
-    stroke: "rgba(0, 0, 0, 1)",
-    strokeWidth: 6,
+    fill: color.background,
+    stroke: color.foreground,
+    strokeWidth: 4,
     listening: false, // Click through
     dash: [10, 5],
   };
@@ -112,34 +97,20 @@ function getSupplyTextConfig(source: {
   x: number;
   y: number;
   remainingMP: number;
+  playerId: string;
 }) {
+  const color = getPlayerColor(source.playerId);
   return {
     x: source.x - 10, // Approximate centering
-    y: source.y - 8,
+    y: source.y - 12,
     text: source.remainingMP.toString(),
-    fontSize: 16,
+    fontSize: 24,
     fontFamily: "monospace",
     fontStyle: "bold",
-    fill: "black",
+    fill: color.foreground,
     listening: false,
     align: "center",
     width: 20,
-  };
-}
-
-function getZOCHexCircleConfig(source: {
-  x: number;
-  y: number;
-  range: number;
-}) {
-  return {
-    x: source.x,
-    y: source.y,
-    radius: (source.range * HEX_WIDTH) / 2,
-    fill: "rgba(255, 255, 255, 1)",
-    stroke: "rgba(0, 0, 0, 1)",
-    strokeWidth: 6,
-    listening: false, // Click through
   };
 }
 </script>

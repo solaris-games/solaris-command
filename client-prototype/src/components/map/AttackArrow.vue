@@ -1,5 +1,7 @@
 <template>
-  <v-arrow :config="arrowConfig" />
+  <v-group>
+    <v-arrow v-for="(config, index) in arrowConfigs" :key="index" :config="config" />
+  </v-group>
 </template>
 
 <script setup lang="ts">
@@ -19,7 +21,7 @@ const props = defineProps<{
 const HEX_SIZE = 64;
 const galaxyStore = useGalaxyStore();
 
-const arrowConfig = computed(() => {
+const arrowConfigs = computed(() => {
   const player = galaxyStore.playerLookup?.get(String(props.unit.playerId))!;
   const playerColor = PLAYER_COLOR_LOOKUP.get(player.color)!;
 
@@ -31,32 +33,62 @@ const arrowConfig = computed(() => {
   );
 
   if (!startHex || !endHex) {
-    return { points: [], visible: false };
+    return [];
   }
 
   const startPixel = hexToPixel(startHex.location.q, startHex.location.r, HEX_SIZE);
   const endPixel = hexToPixel(endHex.location.q, endHex.location.r, HEX_SIZE);
 
-  // Shorten the arrow
+  // Vector from start to end
   const dx = endPixel.x - startPixel.x;
   const dy = endPixel.y - startPixel.y;
   const length = Math.sqrt(dx * dx + dy * dy);
   const unitDx = dx / length;
   const unitDy = dy / length;
 
+  // Shorten the arrow to not go into the center of the hex
   const shorterEndPixel = {
-    x: endPixel.x - unitDx * (HEX_SIZE / 2 + 5), // Reduced length to be closer to edge
-    y: endPixel.y - unitDy * (HEX_SIZE / 2 + 5),
+    x: endPixel.x - unitDx * (HEX_SIZE / 2 + 15), // Adjusted for slightly shorter arrows
+    y: endPixel.y - unitDy * (HEX_SIZE / 2 + 15), // Adjusted for slightly shorter arrows
   };
 
-  return {
-    points: [startPixel.x, startPixel.y, shorterEndPixel.x, shorterEndPixel.y],
-    pointerLength: 10,
-    pointerWidth: 20,
+  // Perpendicular vector for offset
+  const pdx = -unitDy;
+  const pdy = unitDx;
+
+  const offset = 15; // Increased spacing between arrows
+
+  const baseConfig = {
+    pointerLength: 5,
+    pointerWidth: 5,
     fill: playerColor.background,
     stroke: playerColor.background,
-    width: 10,
-    strokeWidth: 20
+    strokeWidth: 6, // Increased thickness
   };
+
+  return [
+    { // Center arrow
+      ...baseConfig,
+      points: [startPixel.x, startPixel.y, shorterEndPixel.x, shorterEndPixel.y],
+    },
+    { // Left arrow
+      ...baseConfig,
+      points: [
+        startPixel.x - pdx * offset,
+        startPixel.y - pdy * offset,
+        shorterEndPixel.x - pdx * offset,
+        shorterEndPixel.y - pdy * offset,
+      ],
+    },
+    { // Right arrow
+      ...baseConfig,
+      points: [
+        startPixel.x + pdx * offset,
+        startPixel.y + pdy * offset,
+        shorterEndPixel.x + pdx * offset,
+        shorterEndPixel.y + pdy * offset,
+      ],
+    },
+  ];
 });
 </script>

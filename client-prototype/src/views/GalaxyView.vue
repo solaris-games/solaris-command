@@ -16,7 +16,7 @@
       >
         {{ galaxyStore.error }}
       </div>
-      <div class="flex-grow-1 overflow-hidden" ref="stageContainer">
+      <div class="flex-grow-1 overflow-hidden" ref="stageContainer" style="background-color: black;">
         <v-stage
           v-if="configStage.width && configStage.height"
           :config="configStage"

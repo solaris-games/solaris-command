@@ -7,16 +7,16 @@
           <p class="unit-type">{{ unitCatalog?.class }}</p>
         </div>
         <div class="unit-steps">
-            <div
-              v-for="(step, index) in selectedUnit.steps"
-              :key="index"
-              class="step-square"
-              :class="{ suppressed: step.isSuppressed }"
-            >
-              <span v-if="step.specialistId" class="specialist-initial">{{
-                getSpecialistInitial(step.specialistId)
-              }}</span>
-            </div>
+          <div
+            v-for="(step, index) in selectedUnit.steps"
+            :key="index"
+            class="step-square"
+            :class="{ suppressed: step.isSuppressed }"
+          >
+            <span v-if="step.specialistId" class="specialist-symbol">{{
+              getSpecialistSymbol(step.specialistId)
+            }}</span>
+          </div>
         </div>
         <hr />
         <div class="unit-stats">
@@ -44,7 +44,9 @@
             <div class="card bg-dark text-white flex-grow-1">
               <div class="card-body p-2">
                 <div class="stat-column labels">
-                  <div class="stat-row" style="font-weight: bold;">Specialist Stats</div>
+                  <div class="stat-row" style="font-weight: bold">
+                    Specialist Stats
+                  </div>
                   <div class="stat-row">Attack</div>
                   <div class="stat-row">Defense</div>
                   <div class="stat-row">Armor</div>
@@ -74,8 +76,8 @@
                     >
                       <span
                         v-if="step.specialistId"
-                        class="specialist-initial-small"
-                        >{{ getSpecialistInitial(step.specialistId) }}</span
+                        class="specialist-symbol-small"
+                        >{{ getSpecialistSymbol(step.specialistId) }}</span
                       >
                     </div>
                   </div>
@@ -85,7 +87,9 @@
                   <div class="stat-row">
                     {{ step.specialist?.stats.defense }}
                   </div>
-                  <div class="stat-row">{{ step.specialist?.stats.armor }}</div>
+                  <div class="stat-row">
+                    {{ step.specialist?.stats.armor }}
+                  </div>
                   <div class="stat-row">
                     {{ step.specialist?.stats.artillery }}
                   </div>
@@ -177,7 +181,7 @@
                 :key="spec.id"
                 :value="spec.id"
               >
-                {{ spec.name }}
+                {{ SPECIALIST_STEP_SYMBOL_MAP.get(spec.type) }} {{ spec.name }} (${{ spec.cost }})
               </option>
             </select>
             <button
@@ -205,10 +209,10 @@
 import { computed, ref } from "vue";
 import { useGalaxyStore } from "../../stores/galaxy";
 import {
-  UNIT_CATALOG,
   UNIT_CATALOG_ID_MAP,
   SPECIALIST_STEP_ID_MAP,
   SPECIALIST_STEP_CATALOG,
+  SPECIALIST_STEP_SYMBOL_MAP,
 } from "@solaris-command/core/src/data";
 
 const galaxyStore = useGalaxyStore();
@@ -231,9 +235,10 @@ const unitCatalog = computed(() => {
   return UNIT_CATALOG_ID_MAP.get(selectedUnit.value.catalogId);
 });
 
-const getSpecialistInitial = (specialistId: string) => {
+const getSpecialistSymbol = (specialistId: string) => {
   const specialist = SPECIALIST_STEP_ID_MAP.get(specialistId);
-  return specialist ? specialist.type.charAt(0).toUpperCase() : "";
+  if (!specialist) return "";
+  return SPECIALIST_STEP_SYMBOL_MAP.get(specialist.type);
 };
 
 const specialistStepsWithStats = computed(() => {
@@ -302,7 +307,7 @@ hr {
   justify-content: center;
   font-weight: bold;
 }
-.step-square .specialist-initial {
+.step-square .specialist-symbol {
   font-size: 1rem;
   color: #000;
 }
@@ -310,7 +315,7 @@ hr {
   background-color: transparent;
   border: 1px solid #fff;
 }
-.step-square.suppressed .specialist-initial {
+.step-square.suppressed .specialist-symbol {
   color: #fff;
 }
 .specialist-stats {
@@ -356,7 +361,7 @@ hr {
   justify-content: center;
   font-weight: bold;
 }
-.step-square-small .specialist-initial-small {
+.step-square-small .specialist-symbol-small {
   font-size: 0.8rem;
   color: #000;
 }
@@ -364,7 +369,7 @@ hr {
   background-color: transparent;
   border: 1px solid #fff;
 }
-.step-square-small.suppressed .specialist-initial-small {
+.step-square-small.suppressed .specialist-symbol-small {
   color: #fff;
 }
 .supply-status {

@@ -2,13 +2,17 @@ import { defineStore } from "pinia";
 
 export const useMapSettingsStore = defineStore("mapSettings", {
   state: () => ({
-    showPlayerColors: true,
+    showHexGraphics: false,
+    showHexCoordinates: false,
     showSupply: false,
     showZOC: false,
   }),
   actions: {
-    togglePlayerColors() {
-      this.showPlayerColors = !this.showPlayerColors;
+    toggleHexGraphics() {
+      this.showHexGraphics = !this.showHexGraphics;
+    },
+    toggleHexCoordinates() {
+      this.showHexCoordinates = !this.showHexCoordinates;
     },
     toggleSupply() {
       this.showSupply = !this.showSupply;
