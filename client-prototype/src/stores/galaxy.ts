@@ -5,6 +5,7 @@ import type { HexCoords } from "@solaris-command/core/src/types/geometry";
 import { Player } from "@solaris-command/core/src/types/player";
 import { UnifiedId } from "@solaris-command/core/src/types/unified-id";
 import { HexUtils } from "@solaris-command/core/src/utils/hex-utils";
+import { GameStates } from "@solaris-command/core/src/types";
 
 type APIHex = GameGalaxyResponseSchema["hexes"][0];
 type APIUnit = GameGalaxyResponseSchema["units"][0];
@@ -30,6 +31,8 @@ export const useGalaxyStore = defineStore("galaxy", {
     movePath: [] as HexCoords[],
     isMoveMode: false,
     isAttackMode: false,
+    isGameInPlay: false,
+    isGameClockRunning: false
   }),
   getters: {
     players: (state): APIPlayer[] => state.galaxy?.players || [],
@@ -79,8 +82,16 @@ export const useGalaxyStore = defineStore("galaxy", {
         this.currentPlayer =
           response.data.players.find((p: any) => p.userId != null) ?? null;
         this.currentPlayerId =
-          response.data.players.find((p: any) => p.userId != null)?._id ??
-          null;
+          response.data.players.find((p: any) => p.userId != null)?._id ?? null;
+
+        this.isGameInPlay =
+          this.galaxy!.game.state.status === GameStates.ACTIVE ||
+          this.galaxy!.game.state.status === GameStates.PENDING ||
+          this.galaxy!.game.state.status === GameStates.STARTING;
+
+        this.isGameClockRunning =
+          this.galaxy!.game.state.status === GameStates.ACTIVE ||
+          this.galaxy!.game.state.status === GameStates.STARTING;
       } catch (err: any) {
         this.error = err.message || "Failed to fetch galaxy";
       } finally {
@@ -108,18 +119,21 @@ export const useGalaxyStore = defineStore("galaxy", {
       }
 
       this.selectedHex = hex;
-      this.selectedUnit = this.units.find(
-        (u) =>
-          u.location.q === hex.location.q && u.location.r === hex.location.r
-      ) ?? null;
-      this.selectedPlanet = this.planets.find(
-        (p) =>
-          p.location.q === hex.location.q && p.location.r === hex.location.r
-      ) ?? null;
-      this.selectedStation = this.stations.find(
-        (s) =>
-          s.location.q === hex.location.q && s.location.r === hex.location.r
-      ) ?? null;
+      this.selectedUnit =
+        this.units.find(
+          (u) =>
+            u.location.q === hex.location.q && u.location.r === hex.location.r
+        ) ?? null;
+      this.selectedPlanet =
+        this.planets.find(
+          (p) =>
+            p.location.q === hex.location.q && p.location.r === hex.location.r
+        ) ?? null;
+      this.selectedStation =
+        this.stations.find(
+          (s) =>
+            s.location.q === hex.location.q && s.location.r === hex.location.r
+        ) ?? null;
 
       // Reset modes
       this.isMoveMode = false;

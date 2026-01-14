@@ -12,7 +12,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
     stats: {
       attack: 1,
       defense: 1,
-      armor: 0,
+      armour: 0,
       maxAP: 1,
       maxMP: 24, // Very high mobility
       defaultSteps: 1,
@@ -32,7 +32,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
     stats: {
       attack: 2,
       defense: 2,
-      armor: 0,
+      armour: 0,
       maxAP: 1,
       maxMP: 18,
       defaultSteps: 2,
@@ -54,7 +54,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
     stats: {
       attack: 4,
       defense: 3,
-      armor: 1, // Light armor
+      armour: 1, // Light armour
       maxAP: 1,
       maxMP: 14,
       defaultSteps: 2,
@@ -69,12 +69,12 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
     class: UnitClasses.LIGHT_CRUISER,
     name: "Interdictor Cruiser",
     description:
-      "A 'Glass Cannon' designed for raiding. High firepower and speed, but sacrifices armor for mobility.",
+      "A 'Glass Cannon' designed for raiding. High firepower and speed, but sacrifices armour for mobility.",
     cost: 250,
     stats: {
       attack: 5, // High threat
       defense: 2, // Weak defense
-      armor: 0, // No heavy armor
+      armour: 0, // No heavy armour
       maxAP: 1,
       maxMP: 16, // Fast
       defaultSteps: 3,
@@ -89,14 +89,14 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
   {
     id: "unit_cruiser_heavy_01",
     class: UnitClasses.HEAVY_CRUISER,
-    name: "Armored Cruiser",
+    name: "Armoured Cruiser",
     description:
       "A durable line combatant. Trades the range of light cruisers for heavy plating and sustained combat endurance.",
     cost: 300,
     stats: {
       attack: 5,
       defense: 4,
-      armor: 2, // Good armor
+      armour: 2, // Good armour
       maxAP: 1,
       maxMP: 12,
       defaultSteps: 3,
@@ -116,7 +116,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
     stats: {
       attack: 7, // Battleship guns
       defense: 3, // Cruiser hull
-      armor: 1, // Weak armor for a capital
+      armour: 1, // Weak armour for a capital
       maxAP: 1,
       maxMP: 12, // Fast for a capital
       defaultSteps: 4,
@@ -133,12 +133,12 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
     class: UnitClasses.BATTLESHIP,
     name: "Capital Battleship",
     description:
-      "Heavily armored behemoth. Short range, but possesses devastating firepower and the armor to shrug off lighter attacks.",
+      "Heavily armoured behemoth. Short range, but possesses devastating firepower and the armour to shrug off lighter attacks.",
     cost: 400,
     stats: {
       attack: 6,
       defense: 6,
-      armor: 3, // Heavy Armor
+      armour: 3, // Heavy Armour
       maxAP: 1,
       maxMP: 10,
       defaultSteps: 4,
@@ -158,7 +158,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
     stats: {
       attack: 9,
       defense: 8,
-      armor: 4, // Super Heavy Armor (Requires Torpedoes to scratch)
+      armour: 4, // Super Heavy Armour (Requires Torpedoes to scratch)
       maxAP: 1,
       maxMP: 6, // Crawls
       defaultSteps: 5,

@@ -38,7 +38,7 @@ const zocSources = computed(() => {
   for (const hex of galaxyStore.hexes) {
     if (hex.zoc.length) {
       const { x, y } = hexToPixel(hex.location.q, hex.location.r, HEX_SIZE);
-      sources.push({ id: `h-${hex._id}`, x, y, range: 0.2 });
+      sources.push({ id: `h-${hex._id}`, x, y, range: 0.4 });
     }
   }
 

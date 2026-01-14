@@ -57,7 +57,7 @@ const supplySources = computed(() => {
         id: `p-${player._id}-h-${hex._id}`,
         x,
         y,
-        range: 0.2,
+        range: 0.3,
         remainingMP,
         playerId: String(player._id),
       });
@@ -102,9 +102,9 @@ function getSupplyTextConfig(source: {
   const color = getPlayerColor(source.playerId);
   return {
     x: source.x - 10, // Approximate centering
-    y: source.y - 12,
+    y: source.y - 16,
     text: source.remainingMP.toString(),
-    fontSize: 24,
+    fontSize: 32,
     fontFamily: "monospace",
     fontStyle: "bold",
     fill: color.foreground,

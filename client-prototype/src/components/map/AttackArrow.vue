@@ -1,6 +1,10 @@
 <template>
   <v-group>
-    <v-arrow v-for="(config, index) in arrowConfigs" :key="index" :config="config" />
+    <v-arrow
+      v-for="(config, index) in arrowConfigs"
+      :key="index"
+      :config="config"
+    />
   </v-group>
 </template>
 
@@ -10,7 +14,6 @@ import { useGalaxyStore } from "@/stores/galaxy";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
 import { hexToPixel } from "@/utils/hexUtils";
 import { HexUtils } from "@solaris-command/core/src/utils/hex-utils";
-import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
 
 type APIUnit = GameGalaxyResponseSchema["units"][0];
 
@@ -22,9 +25,6 @@ const HEX_SIZE = 64;
 const galaxyStore = useGalaxyStore();
 
 const arrowConfigs = computed(() => {
-  const player = galaxyStore.playerLookup?.get(String(props.unit.playerId))!;
-  const playerColor = PLAYER_COLOR_LOOKUP.get(player.color)!;
-
   const startHex = galaxyStore.hexLookup?.get(
     String(HexUtils.getCoordsID(props.unit.location))
   );
@@ -36,7 +36,11 @@ const arrowConfigs = computed(() => {
     return [];
   }
 
-  const startPixel = hexToPixel(startHex.location.q, startHex.location.r, HEX_SIZE);
+  const startPixel = hexToPixel(
+    startHex.location.q,
+    startHex.location.r,
+    HEX_SIZE
+  );
   const endPixel = hexToPixel(endHex.location.q, endHex.location.r, HEX_SIZE);
 
   // Vector from start to end
@@ -61,17 +65,24 @@ const arrowConfigs = computed(() => {
   const baseConfig = {
     pointerLength: 5,
     pointerWidth: 5,
-    fill: playerColor.background,
-    stroke: playerColor.background,
+    fill: "#FFF",
+    stroke: "#FFF",
     strokeWidth: 6, // Increased thickness
   };
 
   return [
-    { // Center arrow
+    {
+      // Center arrow
       ...baseConfig,
-      points: [startPixel.x, startPixel.y, shorterEndPixel.x, shorterEndPixel.y],
+      points: [
+        startPixel.x,
+        startPixel.y,
+        shorterEndPixel.x,
+        shorterEndPixel.y,
+      ],
     },
-    { // Left arrow
+    {
+      // Left arrow
       ...baseConfig,
       points: [
         startPixel.x - pdx * offset,
@@ -80,7 +91,8 @@ const arrowConfigs = computed(() => {
         shorterEndPixel.y - pdy * offset,
       ],
     },
-    { // Right arrow
+    {
+      // Right arrow
       ...baseConfig,
       points: [
         startPixel.x + pdx * offset,

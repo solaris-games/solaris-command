@@ -25,7 +25,7 @@ export interface UnitCatalogItem {
     // Combat Stats
     attack: number;
     defense: number;
-    armor: number;
+    armour: number;
 
     // Movement & Logistics
     maxAP: number;
@@ -50,8 +50,8 @@ export enum SpecialistStepTypes {
   RECON = "RECON", // Vision range
   SCOUTS = "SCOUTS", // Captures adjacent hexes
   LOGISTICS = "LOGISTICS", // OOS Survival
-  TORPEDO = "TORPEDO", // Anti-Capital Ship (Armor Piercing)
-  ARMOR = "ARMOR", // Defensive / Anti-Specialist
+  TORPEDO = "TORPEDO", // Anti-Capital Ship (Armour Piercing)
+  ARMOUR = "ARMOUR", // Defensive / Anti-Specialist
   HEAVY_WEAPONS = "HEAVY_WEAPONS", // High Attack
   SHIELDS = "SHIELDS", // High Defense
   PROPULSION = "PROPULSION", // MP
@@ -67,7 +67,7 @@ export interface UnitSpecialistStepCatalogItem {
   stats: {
     attack: number;
     defense: number;
-    armor: number; // Armor shift for attackers, negated vs. high defense hexes and torpedo specialists.
+    armour: number; // Armour shift for attackers, negated vs. high defense hexes and torpedo specialists.
     artillery: number; // Artillery shift
     siege: number; // Siege shift vs. high defense hexes.
   };

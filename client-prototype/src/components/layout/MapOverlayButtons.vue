@@ -5,19 +5,8 @@
     <button
       class="btn"
       :class="{
-        'btn-outline-theme': !mapSettingsStore.showHexGraphics,
-        'btn-theme': mapSettingsStore.showHexGraphics,
-      }"
-      @click="mapSettingsStore.toggleHexGraphics()"
-      title="Toggle Hex Graphics"
-    >
-      <i class="bi bi-map"></i>
-    </button>
-    <button
-      class="btn"
-      :class="{
-        'btn-outline-theme': !mapSettingsStore.showHexCoordinates,
-        'btn-theme': mapSettingsStore.showHexCoordinates,
+        'btn-dark': !mapSettingsStore.showHexCoordinates,
+        'btn-yellow': mapSettingsStore.showHexCoordinates,
       }"
       @click="mapSettingsStore.toggleHexCoordinates()"
       title="Toggle Hex Coordinates"
@@ -27,8 +16,8 @@
     <button
       class="btn"
       :class="{
-        'btn-outline-theme': !mapSettingsStore.showSupply,
-        'btn-theme': mapSettingsStore.showSupply,
+        'btn-dark': !mapSettingsStore.showSupply,
+        'btn-yellow': mapSettingsStore.showSupply,
       }"
       @click="mapSettingsStore.toggleSupply()"
       title="Toggle Supply Network"
@@ -38,13 +27,24 @@
     <button
       class="btn"
       :class="{
-        'btn-outline-theme': !mapSettingsStore.showZOC,
-        'btn-theme': mapSettingsStore.showZOC,
+        'btn-dark': !mapSettingsStore.showZOC,
+        'btn-yellow': mapSettingsStore.showZOC,
       }"
       @click="mapSettingsStore.toggleZOC()"
       title="Toggle Zone of Control"
     >
       <i class="bi bi-circle-fill"></i>
+    </button>
+    <button
+      class="btn"
+      :class="{
+        'btn-dark': !mapSettingsStore.showHexGraphics,
+        'btn-yellow': mapSettingsStore.showHexGraphics,
+      }"
+      @click="mapSettingsStore.toggleHexGraphics()"
+      title="Toggle Hex Graphics"
+    >
+      <i class="bi bi-map"></i>
     </button>
     </div>
   </div>
@@ -59,7 +59,7 @@ const mapSettingsStore = useMapSettingsStore();
 <style scoped>
 .map-overlay-buttons {
   position: absolute;
-  top: 16px; /* Adjust as needed */
+  top: 16px;
   right: 324px; /* Width of right sidebar (300px) + right padding (16px) + additional margin (8px) */
   z-index: 10;
   display: flex;

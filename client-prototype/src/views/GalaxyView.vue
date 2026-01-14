@@ -26,14 +26,21 @@
           <HexMap />
         </v-stage>
       </div>
+      
+      <MapOverlayButtons />
 
-      <LeftSidebar @toggle-join-game="toggleJoinGame" @toggle-leaderboard="toggleLeaderboard" />
+      <LeftSidebar
+        @toggle-join-game="toggleJoinGame"
+        @toggle-leaderboard="toggleLeaderboard"
+      />
       <JoinGameModal v-if="showJoinGame" @close="showJoinGame = false" />
-      <LeaderboardModal v-if="showLeaderboard" @close="showLeaderboard = false" />
+      <LeaderboardModal
+        v-if="showLeaderboard"
+        @close="showLeaderboard = false"
+      />
 
       <RightSidebar />
       <SelectionPanel />
-      <MapOverlayButtons />
     </div>
   </div>
 </template>
@@ -107,8 +114,11 @@ onMounted(async () => {
   }
 
   // Auto-open the join game modal if there is no player and the game is pending.
-  if (galaxyStore.galaxy?.game.state.status === GameStates.PENDING && galaxyStore.currentPlayer == null) {
-    showJoinGame.value = true
+  if (
+    galaxyStore.galaxy?.game.state.status === GameStates.PENDING &&
+    galaxyStore.currentPlayer == null
+  ) {
+    showJoinGame.value = true;
   }
 });
 

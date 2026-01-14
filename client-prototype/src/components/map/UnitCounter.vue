@@ -8,7 +8,7 @@
     <v-group
       v-for="(step, index) in unit.steps"
       :key="index"
-      :config="getUnitStepGroupConfig(index)"
+      :config="getUnitStepGroupConfig(unit, index)"
     >
       <v-rect :config="getUnitStepRectConfig(step, unit)" />
       <v-text
@@ -88,7 +88,7 @@ function getUnitCounterNameConfig(unit: APIUnit) {
   };
 }
 
-function getUnitStepGroupConfig(index: number) {
+function getUnitStepGroupConfig(unit: APIUnit, index: number) {
   const STEP_SIZE = 12;
   const STEP_GAP = 4;
   const stepsPerRow = 4;
@@ -96,7 +96,7 @@ function getUnitStepGroupConfig(index: number) {
   const col = index % stepsPerRow;
   const totalWidth = stepsPerRow * STEP_SIZE + (stepsPerRow - 1) * STEP_GAP;
   const x = col * (STEP_SIZE + STEP_GAP) + (COUNTER_WIDTH - totalWidth) / 2;
-  const y = row * (STEP_SIZE + STEP_GAP) + (row === 0 ? 42 : 24);
+  const y = row * (STEP_SIZE + STEP_GAP) + (unit.steps.length < 5 ? 28 : 24);
   return { x, y };
 }
 

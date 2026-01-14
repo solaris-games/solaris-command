@@ -10,7 +10,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     stats: {
       attack: 2,
       defense: 0,
-      armor: 0,
+      armour: 0,
       artillery: 1,
       siege: 0,
     },
@@ -30,7 +30,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     stats: {
       attack: 1,
       defense: 1,
-      armor: 0,
+      armour: 0,
       artillery: 0,
       siege: 2,
     },
@@ -50,7 +50,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     stats: {
       attack: 0,
       defense: 1,
-      armor: 0,
+      armour: 0,
       artillery: 0,
       siege: 0,
     },
@@ -70,7 +70,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     stats: {
       attack: 0,
       defense: 0,
-      armor: 0,
+      armour: 0,
       artillery: 0,
       siege: 0,
     },
@@ -85,12 +85,12 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     type: SpecialistStepTypes.TORPEDO,
     name: "Torpedo",
     description:
-      "Dedicated anti-capital ship munitions. Negates the Armor Shift of heavy targets.",
+      "Dedicated anti-capital ship munitions. Negates the Armour Shift of heavy targets.",
     cost: 50,
     stats: {
       attack: 3,
       defense: 0,
-      armor: 0,
+      armour: 0,
       artillery: 0,
       siege: 0,
     },
@@ -101,16 +101,16 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     },
   },
   {
-    id: "spec_armor_01",
-    type: SpecialistStepTypes.ARMOR,
-    name: "Armor",
+    id: "spec_armour_01",
+    type: SpecialistStepTypes.ARMOUR,
+    name: "Armour",
     description:
-      "Reinforced hull plating. Provides high defense and armor shift.",
+      "Reinforced hull plating. Provides high defense and armour shift.",
     cost: 50,
     stats: {
       attack: 1,
       defense: 3,
-      armor: 1,
+      armour: 1,
       artillery: 0,
       siege: 0,
     },
@@ -129,7 +129,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     stats: {
       attack: 5,
       defense: 0,
-      armor: 0,
+      armour: 0,
       artillery: 0,
       siege: 0,
     },
@@ -148,7 +148,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     stats: {
       attack: 0,
       defense: 5,
-      armor: 0,
+      armour: 0,
       artillery: 0,
       siege: 0,
     },
@@ -167,7 +167,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     stats: {
       attack: 0,
       defense: 0,
-      armor: 0,
+      armour: 0,
       artillery: 0,
       siege: 0,
     },
@@ -186,7 +186,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     stats: {
       attack: 0,
       defense: 0,
-      armor: 0,
+      armour: 0,
       artillery: 0,
       siege: 0,
     },
@@ -206,7 +206,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
     stats: {
       attack: 0,
       defense: 0,
-      armor: 0,
+      armour: 0,
       artillery: 0,
       siege: 0,
     },
@@ -236,7 +236,7 @@ export const SPECIALIST_STEP_SYMBOL_MAP = new Map<SpecialistStepTypes, string>([
   [SpecialistStepTypes.RECON, "⌕"],
   [SpecialistStepTypes.SCOUTS, "⧖"],
   [SpecialistStepTypes.TORPEDO, "⤇"],
-  [SpecialistStepTypes.ARMOR, "▨"],
+  [SpecialistStepTypes.ARMOUR, "▨"],
   [SpecialistStepTypes.HEAVY_WEAPONS, "⌁"],
   [SpecialistStepTypes.SHIELDS, "⛨"],
   [SpecialistStepTypes.PROPULSION, "→"],

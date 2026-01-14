@@ -1,8 +1,8 @@
 <template>
-  <div class="join-game-modal bg-dark">
+  <div class="join-game-modal">
     <div class="modal-content">
-      <div class="card bg-dark">
-        <div class="card-header fw-bold">
+      <div class="card p-1">
+        <div class="card-header bg-dark fw-bold">
           {{ galaxyStore.galaxy?.game.name }}
           <button
             type="button"
@@ -10,14 +10,16 @@
             @click="$emit('close')"
           ></button>
         </div>
-        <div class="card-body">
+        <div class="card-body bg-dark">
           <p class="text-muted mb-0">
             {{ galaxyStore.galaxy?.game.description }}
           </p>
           <hr />
           <form @submit.prevent="joinGame">
-            <div class="mb-3">
-              <label for="alias" class="form-label">Alias</label>
+            <div class="form-group mb-3">
+              <label for="alias" class="form-label"
+                ><strong>Alias</strong></label
+              >
               <input
                 type="text"
                 class="form-control"
@@ -27,8 +29,8 @@
                 placeholder="Enter your alias here"
               />
             </div>
-            <div class="mb-3">
-              <label for="color" class="form-label">Colour</label>
+            <div class="form-group mb-3">
+              <label for="color" class="form-label"><strong>Colour</strong></label>
               <select class="form-select" id="color" v-model="color" required>
                 <option
                   v-for="c in availableColors"

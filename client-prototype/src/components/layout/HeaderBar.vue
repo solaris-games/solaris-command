@@ -1,16 +1,24 @@
 <template>
-  <div
-    class="d-flex align-items-center text-white p-2"
-    style="height: 60px; background-color: #212529;"
-  >
-    <!-- Brand/Logo -->
-    <div class="fs-5 fw-bold text-success me-3">SOLARIS: COMMAND</div>
+  <div id="header" class="app-header">
+    <!-- BEGIN brand -->
+    <div class="brand">
+      <router-link to="/games" class="brand-logo">
+        <span class="brand-img" style="margin-right: 8px;">
+          <img src="/favicon_dark.ico" style="margin-left:12px;" />
+        </span>
+        <span class="brand-text text-success">SOLARIS: COMMAND</span>
+      </router-link>
+    </div>
+    <!-- END brand -->
 
     <!-- Game Time -->
     <div v-if="galaxyStore.galaxy" class="d-flex align-items-center me-auto">
-      <span class="fw-bold">
+      <span class="fw-bold" v-if="galaxyStore.isGameClockRunning">
         [Cycle {{ galaxyStore.galaxy.game.state.cycle }} - Tick
         {{ galaxyStore.galaxy.game.state.tick }}] {{ nextCycleCountdown }}
+      </span>
+      <span class="fw-bold" v-else>
+        {{ galaxyStore.galaxy.game.state.status }}
       </span>
     </div>
 
@@ -124,6 +132,7 @@ function formatMillisecondsToHMS(ms: number) {
 </script>
 
 <style scoped>
-/* Scoped styles for HeaderBar if needed, but Bootstrap utilities should handle most */
-/* z-index can be added if it overlaps with anything */
+  .app-header {
+    position: relative;
+  }
 </style>

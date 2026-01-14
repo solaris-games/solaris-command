@@ -45,4 +45,9 @@ const onCancel = () => {
 .modal {
   background-color: rgba(0, 0, 0, 0.5);
 }
+
+.modal {
+  padding-top: 50px;
+  z-index: 20;
+}
 </style>

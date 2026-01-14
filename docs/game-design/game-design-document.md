@@ -30,7 +30,7 @@ Units are the primary method of projecting power.
 - **Unit Classes:**
   - **Screening Ships:** Corvettes and Frigates - High MP, low cost.
   - **Escort & Raiding:** Destroyers and Light Cruisers - The backbone of the fleet. Balanced stats.
-  - **Capital Ships:** Heavy Cruisers and Battlecruisers - Heavy armor, high firepower, low MP.
+  - **Capital Ships:** Heavy Cruisers and Battlecruisers - Heavy armour, high firepower, low MP.
   - **Super Capitals:** Battleships and Dreadnaughts - The ultimate projection of power.
 
 ### B. Structures
@@ -98,7 +98,7 @@ Combat is deterministic, relying on preparation, positioning and coordination.
 1.  **Declaration:** Attacker targets an adjacent enemy and spends **1 AP**.
     - _Setting:_ The Player toggles **"Advance on Victory"**.
 2.  **Preparation (The Timer):** The attacking unit enters `PREPARING` state.
-3.  **Resolution:** Combat resolves at the end of the tick (Hits, Suppression, Armor Saves).
+3.  **Resolution:** Combat resolves at the end of the tick (Hits, Suppression, Armour Saves).
 4.  **Advance on Victory (Blitz):**
     - If the Defender is destroyed or retreats, AND the Attacker has `Advance on Victory` enabled, AND the Attacker has enough MP to move:
     - The Attacker **instantly moves** into the captured hex as part of the combat resolution.
@@ -129,7 +129,7 @@ Because Combat resolves before standard Movement, a "Crash" can occur if a third
 
 Combat results are modified by "Shifts" (moving the result column up or down).
 
-- **Armor Shift:** Heavy units reduce damage from light units.
+- **Armour Shift:** Heavy units reduce damage from light units.
 - **Terrain Shift:** Defenders in cover force worse die rolls for attackers.
 
 #### Simultaneous Attack Resolution (Sequential 1v1)

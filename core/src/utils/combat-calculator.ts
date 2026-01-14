@@ -142,10 +142,10 @@ export const CombatCalculator = {
       shifts.push({ type: CombatShiftType.ARTILLERY, value: artilleryVal });
     }
 
-    // --- Armor vs Torpedoes ---
-    const armorShifts = this.getArmorShifts(attacker, defender, terrainShift);
+    // --- Armour vs Torpedoes ---
+    const armourShifts = this.getArmourShifts(attacker, defender, terrainShift);
 
-    shifts = shifts.concat(armorShifts);
+    shifts = shifts.concat(armourShifts);
 
     return shifts;
   },
@@ -155,7 +155,7 @@ export const CombatCalculator = {
    */
   getSpecialistShiftSum(
     unit: Unit,
-    stat: "artillery" | "siege" | "armor"
+    stat: "artillery" | "siege" | "armour"
   ): number {
     return unit.steps.reduce((sum, step) => {
       if (!step.isSuppressed && step.specialistId) {
@@ -167,7 +167,7 @@ export const CombatCalculator = {
     }, 0);
   },
 
-  getArmorShifts(
+  getArmourShifts(
     attacker: Unit,
     defender: Unit,
     terrainShift: CombatShift | null
@@ -175,37 +175,37 @@ export const CombatCalculator = {
     const attackerUnitCtlg = UNIT_CATALOG_ID_MAP.get(attacker.catalogId)!;
     const defenderUnitCtlg = UNIT_CATALOG_ID_MAP.get(defender.catalogId)!;
 
-    const attackerSpecialistArmor = this.getSpecialistShiftSum(
+    const attackerSpecialistArmour = this.getSpecialistShiftSum(
       attacker,
-      "armor"
+      "armour"
     );
-    const defenderSpecialistArmor = this.getSpecialistShiftSum(
+    const defenderSpecialistArmour = this.getSpecialistShiftSum(
       defender,
-      "armor"
+      "armour"
     );
 
-    const attackerArmor =
-      attackerUnitCtlg.stats.armor + attackerSpecialistArmor;
-    const defenderArmor =
-      defenderUnitCtlg.stats.armor + defenderSpecialistArmor;
+    const attackerArmour =
+      attackerUnitCtlg.stats.armour + attackerSpecialistArmour;
+    const defenderArmour =
+      defenderUnitCtlg.stats.armour + defenderSpecialistArmour;
 
     const shifts: CombatShift[] = [];
 
-    // Armor shifts are for attackers only (including armor penalties)
-    if (attackerArmor <= 0) {
+    // Armour shifts are for attackers only (including armour penalties)
+    if (attackerArmour <= 0) {
       return shifts;
     }
 
-    // When armored units attack into hexes with defender shift
+    // When armoured units attack into hexes with defender shift
     if (terrainShift && terrainShift.value < 0) {
       shifts.push({
-        type: CombatShiftType.ARMOR_TERRAIN_PENALTY,
-        value: CONSTANTS.COMBAT_SHIFT_ARMOR_TERRAIN_PENALTY,
+        type: CombatShiftType.ARMOUR_TERRAIN_PENALTY,
+        value: CONSTANTS.COMBAT_SHIFT_ARMOUR_TERRAIN_PENALTY,
       });
     }
 
-    // Rule: Armor Shift applies if Attacker Armor > Defender Armor.
-    // Exception: If Defender has Active Torpedoes, Armor Shift is negated.
+    // Rule: Armour Shift applies if Attacker Armour > Defender Armour.
+    // Exception: If Defender has Active Torpedoes, Armour Shift is negated.
     const defenderHasTorpedo = defender.steps.some((s) => {
       const hasTorpedoSpec = s.specialistId
         ? SPECIALIST_STEP_ID_MAP.get(s.specialistId)!.type ===
@@ -217,20 +217,20 @@ export const CombatCalculator = {
 
     if (defenderHasTorpedo) {
       shifts.push({
-        type: CombatShiftType.ARMOR_TORPEDO_PENALTY,
-        value: attackerArmor,
+        type: CombatShiftType.ARMOUR_TORPEDO_PENALTY,
+        value: attackerArmour,
       });
     }
 
-    const armorDiff = attackerArmor - defenderArmor;
+    const armourDiff = attackerArmour - defenderArmour;
 
-    // Only Attacker gets armor bonus in offensive combat (Heavy ships crushing light ships)
-    // If defender has better armor, it usually just reflects in their high Defense stat,
+    // Only Attacker gets armour bonus in offensive combat (Heavy ships crushing light ships)
+    // If defender has better armour, it usually just reflects in their high Defense stat,
     // preventing a high Ratio score, so we don't apply negative shifts here typically.
-    if (armorDiff > 0) {
+    if (armourDiff > 0) {
       shifts.push({
-        type: CombatShiftType.ARMOR,
-        value: Math.min(CONSTANTS.COMBAT_SHIFT_MAX_ARMOR, armorDiff),
+        type: CombatShiftType.ARMOUR,
+        value: Math.min(CONSTANTS.COMBAT_SHIFT_MAX_ARMOUR, armourDiff),
       });
     }
 

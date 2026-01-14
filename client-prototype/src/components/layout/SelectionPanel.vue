@@ -1,11 +1,11 @@
 <template>
   <div v-if="selectedUnit" class="selection-panel">
-    <div class="card bg-dark">
-      <div class="card-header fw-bold" :style="panelStyle">
+    <div class="card p-1">
+      <div class="card-header fw-bold" :style="panelStyle" style="border-radius: 0;">
         <i class="bi bi-person-fill me-1"></i>
         <span>{{ owner?.alias }}</span>
       </div>
-      <div class="card-body p-2">
+      <div class="card-body bg-dark p-2">
         <div class="unit-header row">
           <div class="col">
             <h5 class="mb-0">
@@ -13,24 +13,45 @@
             </h5>
           </div>
           <div class="col-auto">
-            <span class="badge" :class="statusBadgeClass(selectedUnit.state.status)">{{
-              selectedUnit.state.status
-            }}</span>
+            <span
+              class="badge"
+              :class="statusBadgeClass(selectedUnit.state.status)"
+              >{{ selectedUnit.state.status }}</span
+            >
           </div>
         </div>
-          <p class="text-muted mb-2">
-            {{ unitCatalog?.class.replaceAll("_", " ") }}
-          </p>
-        <div class="unit-steps">
-          <div
-            v-for="(step, index) in selectedUnit.steps"
-            :key="index"
-            class="step-square"
-            :class="{ suppressed: step.isSuppressed }"
-          >
-            <span v-if="step.specialistId" class="specialist-symbol">{{
-              getSpecialistSymbol(step.specialistId)
-            }}</span>
+        <p class="text-muted mb-2">
+          {{ unitCatalog?.class.replaceAll("_", " ") }}
+        </p>
+        <div class="row">
+          <div class="col">
+            <div class="unit-steps">
+              <div
+                v-for="(step, index) in selectedUnit.steps"
+                :key="index"
+                class="step-square"
+                :class="{ suppressed: step.isSuppressed }"
+              >
+                <span v-if="step.specialistId" class="specialist-symbol">{{
+                  getSpecialistSymbol(step.specialistId)
+                }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-auto unit-steps">
+            <div
+              class="step-square step-square-ap"
+              v-for="(i, index) in selectedUnit.state.ap"
+              :key="index"
+            >
+              <span class="text-warning"><i class="bi bi-lightning"></i></span>
+            </div>
+            <div class="step-square step-square-zoc" v-if="unitHasZOCInfluence">
+              <span class="text-info"><i class="bi bi-circle"></i></span>
+            </div>
+            <div class="step-square step-square-initiative">
+              <span class="text-success">{{ unitCatalog?.stats.initiative }}</span>
+            </div>
           </div>
         </div>
         <hr />
@@ -44,10 +65,8 @@
             <span class="stat-value">{{ unitCatalog?.stats.defense }}</span>
           </div>
           <div>
-            <span class="stat-label">AP</span>
-            <span class="stat-value"
-              >{{ selectedUnit.state.ap }}</span
-            >
+            <span class="stat-label">Armour</span>
+            <span class="stat-value">{{ unitCatalog?.stats.armour }}</span>
           </div>
           <div>
             <span class="stat-label">MP</span>
@@ -61,8 +80,8 @@
           v-if="specialistStepsWithStats.length > 0"
           class="specialist-stats"
         >
-          <table class="table table-sm text-white">
-            <tbody>
+          <table class="table table-sm table-striped">
+            <thead class="table-dark">
               <tr>
                 <th scope="col">Bonuses</th>
                 <th
@@ -83,6 +102,9 @@
                   </div>
                 </th>
               </tr>
+            </thead>
+            <tbody>
+              <tr></tr>
               <tr>
                 <th scope="row">Atk.</th>
                 <td
@@ -104,13 +126,13 @@
                 </td>
               </tr>
               <tr>
-                <th scope="row">Armor</th>
+                <th scope="row">Armour</th>
                 <td
                   v-for="(step, index) in specialistStepsWithStats"
                   :key="index"
                   class="text-end"
                 >
-                  {{ step.specialist?.stats.armor }}
+                  {{ step.specialist?.stats.armour }}
                 </td>
               </tr>
               <tr>
@@ -147,14 +169,17 @@
         </div>
         <hr />
         <!-- Unit Actions -->
-        <div class="unit-actions">
+        <div class="unit-actions" v-if="canOrderUnit">
           <div class="row g-2">
             <div class="col-6">
               <button
                 v-if="selectedUnit.state.status !== 'MOVING'"
                 class="btn w-100"
                 @click="galaxyStore.toggleMoveMode()"
-                :class="{ 'btn-yellow': galaxyStore.isMoveMode, 'btn-success': !galaxyStore.isMoveMode }"
+                :class="{
+                  'btn-yellow': galaxyStore.isMoveMode,
+                  'btn-success': !galaxyStore.isMoveMode,
+                }"
               >
                 <i class="bi bi-arrows-move"></i> Move
               </button>
@@ -171,7 +196,10 @@
                 v-if="selectedUnit.state.status !== 'PREPARING'"
                 class="btn w-100"
                 @click="galaxyStore.toggleAttackMove()"
-                :class="{ 'btn-yellow': galaxyStore.isAttackMode, 'btn-warning': !galaxyStore.isAttackMode }"
+                :class="{
+                  'btn-yellow': galaxyStore.isAttackMode,
+                  'btn-warning': !galaxyStore.isAttackMode,
+                }"
               >
                 <i class="bi bi-lightning"></i> Attack
               </button>
@@ -192,7 +220,10 @@
               </button>
             </div>
             <div class="col-6">
-              <button class="btn btn-outline-danger w-100" @click="handleScrapUnitStep">
+              <button
+                class="btn btn-outline-danger w-100"
+                @click="handleScrapUnitStep"
+              >
                 <i class="bi bi-trash"></i> Scrap Step
               </button>
             </div>
@@ -235,8 +266,11 @@
       @cancel="cancelUpgrade"
     >
       <p>
-        This will add 1 suppressed step to the unit at a cost of
-        {{ CONSTANTS.UNIT_STEP_BASE_COST }} prestige.
+        This will add <strong class="text-info">1 suppressed step</strong> to
+        the unit at a cost of
+        <span class="text-warning"
+          >{{ CONSTANTS.UNIT_STEP_BASE_COST }} prestige</span
+        >.
       </p>
     </ConfirmationModal>
     <ConfirmationModal
@@ -246,12 +280,20 @@
       @cancel="cancelScrap"
     >
       <p v-if="isLastStep">
-        This will scrap the entire unit and you will be refunded
-        {{ CONSTANTS.UNIT_STEP_SCRAP_PRESTIGE_REWARD }} prestige.
+        This will <strong class="text-danger">scrap the entire unit</strong> and
+        you will be
+        <span class="text-warning"
+          >refunded
+          {{ CONSTANTS.UNIT_STEP_SCRAP_PRESTIGE_REWARD }} prestige</span
+        >.
       </p>
       <p v-else>
-        This will scrap the first step of the unit and you will be refunded
-        {{ CONSTANTS.UNIT_STEP_SCRAP_PRESTIGE_REWARD }} prestige.
+        This will <strong class="test-danger">scrap the first step</strong> of
+        the unit and you will be
+        <span class="text-warning"
+          >refunded
+          {{ CONSTANTS.UNIT_STEP_SCRAP_PRESTIGE_REWARD }} prestige</span
+        >.
       </p>
     </ConfirmationModal>
     <ConfirmationModal
@@ -263,8 +305,10 @@
     >
       <p>
         Are you sure you want to hire
-        <strong>{{ selectedSpecialistData.name }}</strong> for
-        {{ selectedSpecialistData.cost }} prestige?
+        <strong class="text-info">{{ selectedSpecialistData.name }}</strong> for
+        <span class="text-warning"
+          >{{ selectedSpecialistData.cost }} prestige</span
+        >?
       </p>
       <p>
         <em>{{ selectedSpecialistData.description }}</em>
@@ -275,7 +319,7 @@
       <ul>
         <li>Attack: {{ selectedSpecialistData.stats.attack }}</li>
         <li>Defense: {{ selectedSpecialistData.stats.defense }}</li>
-        <li>Armor: {{ selectedSpecialistData.stats.armor }}</li>
+        <li>Armour: {{ selectedSpecialistData.stats.armour }}</li>
         <li>Artillery: {{ selectedSpecialistData.stats.artillery }}</li>
         <li>Siege: {{ selectedSpecialistData.stats.siege }}</li>
       </ul>
@@ -376,6 +420,15 @@ const owner = computed(() => {
   return galaxyStore.playerLookup.get(String(selectedUnit.value.playerId))!;
 });
 
+const canOrderUnit = computed(() => {
+  return (
+    owner &&
+    galaxyStore.currentPlayer &&
+    String(owner.value?._id) === String(galaxyStore.currentPlayerId) &&
+    galaxyStore.isGameInPlay
+  );
+});
+
 const unitCatalog = computed(() => {
   if (!selectedUnit.value) return null;
   return UNIT_CATALOG_ID_MAP.get(selectedUnit.value.catalogId);
@@ -389,6 +442,14 @@ const unitOOSCycles = computed(() => {
     galaxyStore.galaxy!.game.settings.ticksPerCycle
   );
 });
+
+const unitHasZOCInfluence = computed(() => {
+  if (!selectedUnit.value) return false;
+
+  return UnitManager.unitHasZOCInfluence(
+    selectedUnit.value as any
+  );
+})
 
 const getSpecialistSymbol = (specialistId: string) => {
   const specialist = SPECIALIST_STEP_ID_MAP.get(specialistId);
@@ -447,9 +508,9 @@ hr {
   margin: 0.5rem 0;
 }
 .selection-panel {
-  position: fixed;
+  position: absolute;
   left: 76px;
-  top: 76px;
+  top: 16px;
   width: 300px;
   z-index: 10;
   color: #fff;
@@ -501,6 +562,18 @@ hr {
 }
 .step-square.suppressed .specialist-symbol {
   color: #fff;
+}
+.step-square-ap {
+  border: 1px solid #ff9f0c;
+  background-color: transparent;
+}
+.step-square-zoc {
+  border: 1px solid #30beff;
+  background-color: transparent;
+}
+.step-square-initiative {
+  border: 1px solid #3cd2a5;
+  background-color: transparent;
 }
 .specialist-stats {
   font-size: 0.9rem;

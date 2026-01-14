@@ -2,7 +2,7 @@
   <NavBar />
 
   <div id="content" class="app-content">
-    <div class="card">
+    <div class="card p-1">
       <div class="card-body">
         <h1>User Profile</h1>
         <div v-if="authStore.user">

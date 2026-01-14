@@ -1,8 +1,8 @@
 <template>
   <div class="leaderboard-modal">
     <div class="modal-content">
-      <div class="card bg-dark">
-        <div class="card-header fw-bold">
+      <div class="card p-1">
+        <div class="card-header bg-dark fw-bold">
           {{ galaxyStore.galaxy?.game.name }}
 
           <button
@@ -11,7 +11,7 @@
             @click="$emit('close')"
           ></button>
         </div>
-        <div class="card-body">
+        <div class="card-body bg-dark">
           <div v-if="galaxyStore.galaxy?.game && !winner">
             <div class="game-status">
               <p class="text-muted mb-0">
@@ -54,7 +54,6 @@
               v-for="player in leaderboard"
               :key="player._id.toString()"
               class="player-entry p-2 mb-2 rounded"
-              :class="{ 'opacity-50': player.status !== 'ACTIVE' }"
               :style="{
                 backgroundColor: getPlayerColor(player.color)?.background,
                 color: getPlayerColor(player.color)?.foreground,

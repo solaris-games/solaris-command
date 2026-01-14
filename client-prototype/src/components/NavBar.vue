@@ -4,7 +4,7 @@
     <div class="brand">
       <router-link to="/games" class="brand-logo">
         <span class="brand-img" style="margin-right: 8px;">
-          <img src="/favicon_dark.ico" />
+          <img src="/favicon_dark.ico" style="margin-left:12px;" />
         </span>
         <span class="brand-text text-success">SOLARIS: COMMAND</span>
       </router-link>

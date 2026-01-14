@@ -1,12 +1,16 @@
 <template>
   <div v-if="selectedHex">
-    <div class="card" :style="panelStyle">
-      <div class="card-body">
+    <div class="card p-1">
+      <div class="card-body" :style="panelStyle">
         <div class="row">
           <div class="col">
             <p class="mb-0" v-if="owner">
               <i class="bi bi-person-fill"></i>
-              {{ owner?.alias }}
+              <strong>{{ owner?.alias }}</strong>
+            </p>
+            <p class="mb-0" v-else>
+              <i class="bi bi-person-fill"></i>
+              <i>Unowned</i>
             </p>
           </div>
           <div class="col-auto">
@@ -29,7 +33,7 @@
           </div>
           <div class="col-auto">
             <p class="mb-0">
-              <i class="bi bi-grid-3x3"></i> Q:{{ selectedHex.location.q }} R:{{
+              <i class="bi bi-grid-3x3"></i> {{ selectedHex.location.q }}, {{
                 selectedHex.location.r
               }}
             </p>
@@ -46,9 +50,9 @@
     </div>
   </div>
   <div v-else>
-    <div class="card bg-dark">
-      <div class="card-body">
-        No hex selected.
+    <div class="card p-1">
+      <div class="card-body bg-dark">
+        <p class="mb-0 text-muted">No hex selected.</p>
       </div>
       <!-- card-arrow -->
       <div class="card-arrow">

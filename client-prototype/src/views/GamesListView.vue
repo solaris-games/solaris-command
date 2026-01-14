@@ -12,7 +12,7 @@
         v-else
         class="row g-3 row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4"
       >
-        <div v-for="game in gameStore.myGames" :key="game._id" class="card">
+        <div v-for="game in gameStore.myGames" :key="game._id" class="card p-1">
           <div class="card-body">
             <h3>{{ game.name }}</h3>
             <p>Status: {{ game.state.status }}</p>
@@ -45,7 +45,7 @@
         v-else
         class="row g-3 row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4"
       >
-        <div v-for="game in gameStore.openGames" :key="game._id" class="card">
+        <div v-for="game in gameStore.openGames" :key="game._id" class="card p-1">
           <div class="card-body">
             <h3>{{ game.name }}</h3>
             <p>

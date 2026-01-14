@@ -1,5 +1,5 @@
 <template>
-  <div class="left-sidebar d-flex flex-column p-2">
+  <div class="left-sidebar d-flex flex-column p-2" style="background: var(--bs-app-header-bg);">
     <button
       class="btn btn-outline-theme mb-2"
       @click="toggleJoinGame"
