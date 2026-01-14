@@ -12,7 +12,7 @@
 
           <button @click="handleLogout" class="btn btn-success">Logout</button>
           <hr />
-          <button @click="handleDelete" class="btn btn-danger">
+          <button @click="handleDelete" class="btn btn-outline-danger">
             Delete Account
           </button>
         </div>

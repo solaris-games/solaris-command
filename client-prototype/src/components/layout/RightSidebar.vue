@@ -1,14 +1,17 @@
 <template>
   <div class="right-sidebar">
     <HexDetailsPanel />
-
+    <BuildStationPanel />
     <DeployUnitPanel />
 
-    <div class="card bg-dark mb-3">
-      <div class="card-body">
-        <div v-if="sortedPlayerUnits.length === 0">
-          <p>No units owned.</p>
+    <div class="card bg-dark mt-3">
+       <div class="card-header fw-bold small">
+          FLEET
         </div>
+      <div class="card-body">
+        <p v-if="!sortedPlayerUnits.length" class="text-muted mb-0">
+          No units.
+        </p>
         <div v-else class="units-list">
           <div class="list-group">
             <a
@@ -85,6 +88,7 @@ import {
 } from "@solaris-command/core/src/data";
 import HexDetailsPanel from "./HexDetailsPanel.vue";
 import DeployUnitPanel from "./DeployUnitPanel.vue";
+import BuildStationPanel from "./BuildStationPanel.vue";
 
 type APIUnit = GameGalaxyResponseSchema["units"][0];
 
@@ -140,6 +144,7 @@ const getSpecialistSymbol = (specialistId: string) => {
   return SPECIALIST_STEP_SYMBOL_MAP.get(specialist.type);
 };
 
+// TODO: Move into a helper
 const statusBadgeClass = (status: UnitStatus) => {
   switch (status) {
     case UnitStatus.IDLE:
@@ -175,8 +180,8 @@ const statusBadgeClass = (status: UnitStatus) => {
   gap: 2px;
 }
 .step-square {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   background-color: #fff;
   border-radius: 3px;
   display: flex;

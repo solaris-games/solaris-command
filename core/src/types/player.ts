@@ -12,7 +12,7 @@ export interface Player {
   userId: UnifiedId;
 
   alias: string;
-  color: string; // Hex code e.g., "#FF0000"
+  color: string; // Colour key, e.g olive-reef-gold
 
   status: PlayerStatus
   prestigePoints: number; // Used to purchase units

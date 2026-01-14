@@ -24,20 +24,6 @@
               >
                 Play
               </button>
-              <button
-                v-if="game.state.status === 'PENDING'"
-                @click="gameStore.leaveGame(game._id)"
-                class="btn btn-danger"
-              >
-                Leave
-              </button>
-              <button
-                v-if="game.state.status === 'ACTIVE'"
-                @click="gameStore.concedeGame(game._id)"
-                class="btn btn-danger"
-              >
-                Concede
-              </button>
             </div>
           </div>
 
@@ -67,30 +53,12 @@
               {{ game.settings.playerCount }}
             </p>
 
-            <!-- Only render form if inputs initialized -->
-            <div v-if="joinInputs[game._id]" class="mt-3 d-flex gap-2">
-              <input
-                v-model="joinInputs[game._id]!.alias"
-                placeholder="Alias"
-                class="form-control"
-              />
-              <select v-model="joinInputs[game._id]!.color" class="form-select">
-                <optgroup
-                  v-for="group in PLAYER_COLORS"
-                  :key="group.group"
-                  :label="group.group"
-                >
-                  <option
-                    v-for="color in group.colours"
-                    :key="color.key"
-                    :value="color.key"
-                  >
-                    {{ group.group }} - {{ color.alias }}
-                  </option>
-                </optgroup>
-              </select>
-              <button @click="handleJoin(game._id)" class="btn btn-success">
-                Join
+            <div class="mt-3">
+              <button
+                @click="$router.push(`/games/${game._id}`)"
+                class="btn btn-primary"
+              >
+                View
               </button>
             </div>
           </div>
@@ -109,29 +77,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive } from "vue";
+import { onMounted } from "vue";
 import { useGameStore } from "../stores/game";
-import { PLAYER_COLORS } from "@solaris-command/core/src/data/player-colors";
 import NavBar from "../components/NavBar.vue";
 
 const gameStore = useGameStore();
-const joinInputs = reactive<Record<string, { alias: string; color: string }>>(
-  {}
-);
 
 onMounted(async () => {
   await gameStore.fetchGames();
-  // Init inputs
-  gameStore.openGames.forEach((g) => {
-    // Force reactivity update
-    joinInputs[g._id] = { alias: "Commander", color: "red-red" };
-  });
 });
-
-async function handleJoin(gameId: string) {
-  const input = joinInputs[gameId];
-  if (!input) return;
-  const { alias, color } = input;
-  await gameStore.joinGame(gameId, alias, color);
-}
 </script>

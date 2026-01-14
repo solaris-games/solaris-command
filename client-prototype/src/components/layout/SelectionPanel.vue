@@ -1,11 +1,26 @@
 <template>
   <div v-if="selectedUnit" class="selection-panel">
     <div class="card bg-dark">
+      <div class="card-header fw-bold" :style="panelStyle">
+        <i class="bi bi-person-fill me-1"></i>
+        <span>{{ owner?.alias }}</span>
+      </div>
       <div class="card-body p-2">
-        <div class="unit-header">
-          <h4 class="unit-name">{{ unitCatalog?.name }}</h4>
-          <p class="unit-type">{{ unitCatalog?.class }}</p>
+        <div class="unit-header row">
+          <div class="col">
+            <h5 class="mb-0">
+              {{ unitCatalog?.name }}
+            </h5>
+          </div>
+          <div class="col-auto">
+            <span class="badge" :class="statusBadgeClass(selectedUnit.state.status)">{{
+              selectedUnit.state.status
+            }}</span>
+          </div>
         </div>
+          <p class="text-muted mb-2">
+            {{ unitCatalog?.class.replaceAll("_", " ") }}
+          </p>
         <div class="unit-steps">
           <div
             v-for="(step, index) in selectedUnit.steps"
@@ -29,6 +44,12 @@
             <span class="stat-value">{{ unitCatalog?.stats.defense }}</span>
           </div>
           <div>
+            <span class="stat-label">AP</span>
+            <span class="stat-value"
+              >{{ selectedUnit.state.ap }}</span
+            >
+          </div>
+          <div>
             <span class="stat-label">MP</span>
             <span class="stat-value"
               >{{ selectedUnit.state.mp }}/{{ unitCatalog?.stats.maxMP }}</span
@@ -40,80 +61,87 @@
           v-if="specialistStepsWithStats.length > 0"
           class="specialist-stats"
         >
-          <div class="d-flex gap-2">
-            <div class="card bg-dark text-white flex-grow-1">
-              <div class="card-body p-2">
-                <div class="stat-column labels">
-                  <div class="stat-row" style="font-weight: bold">
-                    Specialist Stats
-                  </div>
-                  <div class="stat-row">Attack</div>
-                  <div class="stat-row">Defense</div>
-                  <div class="stat-row">Armor</div>
-                  <div class="stat-row">Artillery</div>
-                  <div class="stat-row">Siege</div>
-                </div>
-              </div>
-              <!-- card-arrow -->
-              <div class="card-arrow">
-                <div class="card-arrow-top-left"></div>
-                <div class="card-arrow-top-right"></div>
-                <div class="card-arrow-bottom-left"></div>
-                <div class="card-arrow-bottom-right"></div>
-              </div>
-            </div>
-            <div
-              v-for="(step, index) in specialistStepsWithStats"
-              :key="index"
-              class="card bg-dark text-white specialist-stat-card"
-            >
-              <div class="card-body p-2">
-                <div class="stat-column">
-                  <div class="stat-row header-row">
+          <table class="table table-sm text-white">
+            <tbody>
+              <tr>
+                <th scope="col">Bonuses</th>
+                <th
+                  v-for="(step, index) in specialistStepsWithStats"
+                  :key="index"
+                >
+                  <div class="d-flex justify-content-end">
                     <div
                       class="step-square-small"
                       :class="{ suppressed: step.isSuppressed }"
                     >
                       <span
                         v-if="step.specialistId"
-                        class="specialist-symbol-small"
+                        class="specialist-symbol-small flex-shrink-0"
                         >{{ getSpecialistSymbol(step.specialistId) }}</span
                       >
                     </div>
                   </div>
-                  <div class="stat-row">
-                    {{ step.specialist?.stats.attack }}
-                  </div>
-                  <div class="stat-row">
-                    {{ step.specialist?.stats.defense }}
-                  </div>
-                  <div class="stat-row">
-                    {{ step.specialist?.stats.armor }}
-                  </div>
-                  <div class="stat-row">
-                    {{ step.specialist?.stats.artillery }}
-                  </div>
-                  <div class="stat-row">{{ step.specialist?.stats.siege }}</div>
-                </div>
-              </div>
-              <!-- card-arrow -->
-              <div class="card-arrow">
-                <div class="card-arrow-top-left"></div>
-                <div class="card-arrow-top-right"></div>
-                <div class="card-arrow-bottom-left"></div>
-                <div class="card-arrow-bottom-right"></div>
-              </div>
-            </div>
-          </div>
+                </th>
+              </tr>
+              <tr>
+                <th scope="row">Atk.</th>
+                <td
+                  v-for="(step, index) in specialistStepsWithStats"
+                  :key="index"
+                  class="text-end"
+                >
+                  {{ step.specialist?.stats.attack }}
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Def.</th>
+                <td
+                  v-for="(step, index) in specialistStepsWithStats"
+                  :key="index"
+                  class="text-end"
+                >
+                  {{ step.specialist?.stats.defense }}
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Armor</th>
+                <td
+                  v-for="(step, index) in specialistStepsWithStats"
+                  :key="index"
+                  class="text-end"
+                >
+                  {{ step.specialist?.stats.armor }}
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Arty.</th>
+                <td
+                  v-for="(step, index) in specialistStepsWithStats"
+                  :key="index"
+                  class="text-end"
+                >
+                  {{ step.specialist?.stats.artillery }}
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Siege</th>
+                <td
+                  v-for="(step, index) in specialistStepsWithStats"
+                  :key="index"
+                  class="text-end"
+                >
+                  {{ step.specialist?.stats.siege }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
         <div v-if="!selectedUnit.supply.isInSupply">
           <hr />
           <div class="supply-status">
             <span v-if="!selectedUnit.supply.isInSupply" class="text-danger">
-              Out of Supply ({{
-                Math.floor(selectedUnit.supply.ticksLastSupply / 10)
-              }}
-              cycles)
+              Out of Supply
+              <span v-if="unitOOSCycles > 0">({{ unitOOSCycles }} cycles)</span>
             </span>
           </div>
         </div>
@@ -124,15 +152,15 @@
             <div class="col-6">
               <button
                 v-if="selectedUnit.state.status !== 'MOVING'"
-                class="btn btn-secondary w-100"
+                class="btn w-100"
                 @click="galaxyStore.toggleMoveMode()"
-                :class="{ 'btn-success': galaxyStore.isMoveMode }"
+                :class="{ 'btn-yellow': galaxyStore.isMoveMode, 'btn-success': !galaxyStore.isMoveMode }"
               >
                 <i class="bi bi-arrows-move"></i> Move
               </button>
               <button
                 v-else
-                class="btn btn-danger w-100"
+                class="btn btn-outline-success w-100"
                 @click="galaxyStore.cancelMovement(selectedUnit)"
               >
                 <i class="bi bi-x-circle"></i> Cancel Move
@@ -141,15 +169,15 @@
             <div class="col-6">
               <button
                 v-if="selectedUnit.state.status !== 'PREPARING'"
-                class="btn btn-secondary w-100"
+                class="btn w-100"
                 @click="galaxyStore.toggleAttackMove()"
-                :class="{ 'btn-success': galaxyStore.isAttackMode }"
+                :class="{ 'btn-yellow': galaxyStore.isAttackMode, 'btn-warning': !galaxyStore.isAttackMode }"
               >
-                <i class="bi bi-shield-shaded"></i> Attack
+                <i class="bi bi-lightning"></i> Attack
               </button>
               <button
                 v-else
-                class="btn btn-danger w-100"
+                class="btn btn-outline-warning w-100"
                 @click="galaxyStore.cancelAttack(selectedUnit)"
               >
                 <i class="bi bi-x-circle"></i> Cancel Attack
@@ -158,16 +186,13 @@
             <div class="col-6">
               <button
                 class="btn btn-primary w-100"
-                @click="galaxyStore.upgradeUnitStep(selectedUnit)"
+                @click="handleUpgradeUnitStep"
               >
                 <i class="bi bi-arrow-up-circle"></i> Upgrade Step
               </button>
             </div>
             <div class="col-6">
-              <button
-                class="btn btn-danger w-100"
-                @click="galaxyStore.scrapUnitStep(selectedUnit)"
-              >
+              <button class="btn btn-outline-danger w-100" @click="handleScrapUnitStep">
                 <i class="bi bi-trash"></i> Scrap Step
               </button>
             </div>
@@ -181,11 +206,12 @@
                 :key="spec.id"
                 :value="spec.id"
               >
-                {{ SPECIALIST_STEP_SYMBOL_MAP.get(spec.type) }} {{ spec.name }} (${{ spec.cost }})
+                {{ SPECIALIST_STEP_SYMBOL_MAP.get(spec.type) }}
+                {{ spec.name }} (${{ spec.cost }})
               </option>
             </select>
             <button
-              class="btn btn-primary"
+              class="btn btn-success"
               @click="handleHireSpecialist"
               :disabled="!selectedSpecialist"
             >
@@ -202,37 +228,166 @@
         <div class="card-arrow-bottom-right"></div>
       </div>
     </div>
+    <ConfirmationModal
+      :show="showUpgradeConfirmation"
+      title="Upgrade Unit"
+      @confirm="confirmUpgrade"
+      @cancel="cancelUpgrade"
+    >
+      <p>
+        This will add 1 suppressed step to the unit at a cost of
+        {{ CONSTANTS.UNIT_STEP_BASE_COST }} prestige.
+      </p>
+    </ConfirmationModal>
+    <ConfirmationModal
+      :show="showScrapConfirmation"
+      title="Scrap Unit Step"
+      @confirm="confirmScrap"
+      @cancel="cancelScrap"
+    >
+      <p v-if="isLastStep">
+        This will scrap the entire unit and you will be refunded
+        {{ CONSTANTS.UNIT_STEP_SCRAP_PRESTIGE_REWARD }} prestige.
+      </p>
+      <p v-else>
+        This will scrap the first step of the unit and you will be refunded
+        {{ CONSTANTS.UNIT_STEP_SCRAP_PRESTIGE_REWARD }} prestige.
+      </p>
+    </ConfirmationModal>
+    <ConfirmationModal
+      v-if="selectedSpecialistData"
+      :show="showHireSpecialistConfirmation"
+      title="Hire Specialist"
+      @confirm="confirmHireSpecialist"
+      @cancel="cancelHireSpecialist"
+    >
+      <p>
+        Are you sure you want to hire
+        <strong>{{ selectedSpecialistData.name }}</strong> for
+        {{ selectedSpecialistData.cost }} prestige?
+      </p>
+      <p>
+        <em>{{ selectedSpecialistData.description }}</em>
+      </p>
+      <p>
+        <strong>Bonuses:</strong>
+      </p>
+      <ul>
+        <li>Attack: {{ selectedSpecialistData.stats.attack }}</li>
+        <li>Defense: {{ selectedSpecialistData.stats.defense }}</li>
+        <li>Armor: {{ selectedSpecialistData.stats.armor }}</li>
+        <li>Artillery: {{ selectedSpecialistData.stats.artillery }}</li>
+        <li>Siege: {{ selectedSpecialistData.stats.siege }}</li>
+      </ul>
+    </ConfirmationModal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import ConfirmationModal from "../modals/ConfirmationModal.vue";
 import { useGalaxyStore } from "../../stores/galaxy";
 import {
   UNIT_CATALOG_ID_MAP,
   SPECIALIST_STEP_ID_MAP,
   SPECIALIST_STEP_CATALOG,
   SPECIALIST_STEP_SYMBOL_MAP,
+  CONSTANTS,
 } from "@solaris-command/core/src/data";
+import { UnitManager } from "@solaris-command/core/src/utils/unit-manager";
+import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
+import { UnitStatus } from "@solaris-command/core/src/types/unit";
 
 const galaxyStore = useGalaxyStore();
 const selectedUnit = computed(() => galaxyStore.selectedUnit);
 
 const selectedSpecialist = ref("");
-const availableSpecialists = computed(() => {
-  return SPECIALIST_STEP_CATALOG;
+const showUpgradeConfirmation = ref(false);
+const showScrapConfirmation = ref(false);
+
+const isLastStep = computed(
+  () => selectedUnit.value && selectedUnit.value.steps.length === 1
+);
+
+const handleUpgradeUnitStep = () => {
+  showUpgradeConfirmation.value = true;
+};
+
+const confirmUpgrade = () => {
+  if (selectedUnit.value) {
+    galaxyStore.upgradeUnitStep(selectedUnit.value);
+  }
+  showUpgradeConfirmation.value = false;
+};
+
+const cancelUpgrade = () => {
+  showUpgradeConfirmation.value = false;
+};
+
+const handleScrapUnitStep = () => {
+  showScrapConfirmation.value = true;
+};
+
+const confirmScrap = () => {
+  if (selectedUnit.value) {
+    galaxyStore.scrapUnitStep(selectedUnit.value);
+  }
+  showScrapConfirmation.value = false;
+};
+
+const cancelScrap = () => {
+  showScrapConfirmation.value = false;
+};
+
+const showHireSpecialistConfirmation = ref(false);
+
+const selectedSpecialistData = computed(() => {
+  if (!selectedSpecialist.value) return null;
+  return SPECIALIST_STEP_CATALOG.find(
+    (spec) => spec.id === selectedSpecialist.value
+  );
 });
 
-function handleHireSpecialist() {
+const handleHireSpecialist = () => {
+  if (selectedSpecialist.value) {
+    showHireSpecialistConfirmation.value = true;
+  }
+};
+
+const confirmHireSpecialist = () => {
   if (selectedSpecialist.value && selectedUnit.value) {
     galaxyStore.hireSpecialist(selectedUnit.value, selectedSpecialist.value);
     selectedSpecialist.value = "";
   }
-}
+  showHireSpecialistConfirmation.value = false;
+};
+
+const cancelHireSpecialist = () => {
+  showHireSpecialistConfirmation.value = false;
+};
+
+const availableSpecialists = computed(() => {
+  return SPECIALIST_STEP_CATALOG;
+});
+
+const owner = computed(() => {
+  if (!selectedUnit.value || !galaxyStore.playerLookup) return null;
+
+  return galaxyStore.playerLookup.get(String(selectedUnit.value.playerId))!;
+});
 
 const unitCatalog = computed(() => {
   if (!selectedUnit.value) return null;
   return UNIT_CATALOG_ID_MAP.get(selectedUnit.value.catalogId);
+});
+
+const unitOOSCycles = computed(() => {
+  if (!selectedUnit.value) return 0;
+
+  return UnitManager.getUnitOOSCycles(
+    selectedUnit.value as any,
+    galaxyStore.galaxy!.game.settings.ticksPerCycle
+  );
 });
 
 const getSpecialistSymbol = (specialistId: string) => {
@@ -253,6 +408,38 @@ const specialistStepsWithStats = computed(() => {
       };
     });
 });
+
+const panelStyle = computed(() => {
+  if (owner.value) {
+    const color = PLAYER_COLOR_LOOKUP.get(owner.value.color);
+    if (color) {
+      return {
+        backgroundColor: color.background,
+        color: color.foreground,
+      };
+    }
+  }
+  return {
+    backgroundColor: "#212529",
+    color: "#fff",
+  };
+});
+
+// TODO: Move into a helper
+const statusBadgeClass = (status: UnitStatus) => {
+  switch (status) {
+    case UnitStatus.IDLE:
+      return "bg-warning";
+    case UnitStatus.MOVING:
+      return "bg-info";
+    case UnitStatus.PREPARING:
+      return "bg-danger";
+    case UnitStatus.REGROUPING:
+      return "bg-secondary";
+    default:
+      return "bg-secondary";
+  }
+};
 </script>
 
 <style scoped>
@@ -261,7 +448,7 @@ hr {
 }
 .selection-panel {
   position: fixed;
-  left: 16px;
+  left: 76px;
   top: 76px;
   width: 300px;
   z-index: 10;
@@ -269,9 +456,6 @@ hr {
 }
 .unit-header {
   text-align: left;
-}
-.unit-name {
-  margin-bottom: 0;
 }
 .unit-type {
   margin-bottom: 0;
@@ -298,8 +482,8 @@ hr {
   gap: 4px;
 }
 .step-square {
-  width: 24px;
-  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
   background-color: #fff;
   border-radius: 4px;
   display: flex;
@@ -321,39 +505,9 @@ hr {
 .specialist-stats {
   font-size: 0.9rem;
 }
-.stat-column {
-  display: flex;
-  flex-direction: column;
-  text-align: right;
-  padding: 0 4px;
-}
-.stat-column.labels {
-  flex-grow: 1;
-  text-align: left;
-}
-.stat-row {
-  padding: 2px 0;
-  height: 24px; /* Ensure consistent height for rows */
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-}
-.labels .stat-row {
-  justify-content: flex-start;
-}
-.stat-row.header-row {
-  justify-content: flex-end;
-  height: 24px;
-}
-.specialist-stat-card {
-  flex-grow: 0; /* Don't grow */
-  flex-shrink: 0; /* Don't shrink */
-  width: 50px; /* Fixed width for specialist columns */
-  text-align: center;
-}
 .step-square-small {
-  width: 20px;
-  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
   background-color: #fff;
   border-radius: 3px;
   display: flex;

@@ -16,7 +16,7 @@
       >
         {{ galaxyStore.error }}
       </div>
-      <div class="flex-grow-1 overflow-hidden" ref="stageContainer" style="background-color: black;">
+      <div class="flex-grow-1 overflow-hidden" ref="stageContainer">
         <v-stage
           v-if="configStage.width && configStage.height"
           :config="configStage"
@@ -26,6 +26,10 @@
           <HexMap />
         </v-stage>
       </div>
+
+      <LeftSidebar @toggle-join-game="toggleJoinGame" @toggle-leaderboard="toggleLeaderboard" />
+      <JoinGameModal v-if="showJoinGame" @close="showJoinGame = false" />
+      <LeaderboardModal v-if="showLeaderboard" @close="showLeaderboard = false" />
 
       <RightSidebar />
       <SelectionPanel />
@@ -40,13 +44,30 @@ import { useRoute } from "vue-router";
 import { useGalaxyStore } from "../stores/galaxy";
 import HexMap from "../components/HexMap.vue";
 import HeaderBar from "../components/layout/HeaderBar.vue";
+import LeftSidebar from "../components/layout/LeftSidebar.vue";
+import JoinGameModal from "../components/modals/JoinGameModal.vue";
+import LeaderboardModal from "../components/modals/LeaderboardModal.vue";
 import RightSidebar from "../components/layout/RightSidebar.vue";
 import SelectionPanel from "../components/layout/SelectionPanel.vue";
 import MapOverlayButtons from "../components/layout/MapOverlayButtons.vue";
+import { GameStates } from "@solaris-command/core/src/types/game";
 
 const route = useRoute();
 const galaxyStore = useGalaxyStore();
 const stageContainer = ref<HTMLDivElement | null>(null);
+
+const showJoinGame = ref(false);
+const showLeaderboard = ref(false);
+
+const toggleJoinGame = () => {
+  showLeaderboard.value = false;
+  showJoinGame.value = !showJoinGame.value;
+};
+
+const toggleLeaderboard = () => {
+  showJoinGame.value = false;
+  showLeaderboard.value = !showLeaderboard.value;
+};
 
 const configStage = reactive({
   width: 0,
@@ -83,6 +104,11 @@ onMounted(async () => {
   if (galaxyStore.galaxy) {
     configStage.x = configStage.width / 2;
     configStage.y = configStage.height / 2;
+  }
+
+  // Auto-open the join game modal if there is no player and the game is pending.
+  if (galaxyStore.galaxy?.game.state.status === GameStates.PENDING && galaxyStore.currentPlayer == null) {
+    showJoinGame.value = true
   }
 });
 

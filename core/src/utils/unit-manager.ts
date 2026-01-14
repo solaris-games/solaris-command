@@ -5,7 +5,12 @@ import { UNIT_CATALOG_ID_MAP } from "../data/units";
 import { HexCoordsId } from "../types/geometry";
 import { Hex } from "../types/hex";
 import { Planet } from "../types/planet";
-import { SpecialistStepTypes, Unit, UnitSpecialistStepCatalogItem, UnitStep } from "../types/unit";
+import {
+  SpecialistStepTypes,
+  Unit,
+  UnitSpecialistStepCatalogItem,
+  UnitStep,
+} from "../types/unit";
 import { HexUtils } from "./hex-utils";
 import { MapUtils } from "./map-utils";
 
@@ -52,7 +57,7 @@ export const UnitManager = {
 
     if (!isInSupply) {
       // Calculate the number of cycles since the unit was last supplied.
-      let cyclesOOS = Math.floor(unit.supply.ticksLastSupply / ticksPerCycle);
+      let cyclesOOS = UnitManager.getUnitOOSCycles(unit, ticksPerCycle);
 
       // If the unit has an active logistics specialist, then this "out of supply" value is deducted by 1.
       // This effectively allows the unit to be out of supply for 1 cycle longer than normal units.
@@ -387,5 +392,10 @@ export const UnitManager = {
       }
       return step;
     });
+  },
+
+  getUnitOOSCycles(unit: Unit, ticksPerCycle: number): number {
+    // Calculate the number of cycles since the unit was last supplied.
+    return Math.floor(unit.supply.ticksLastSupply / ticksPerCycle);
   },
 };

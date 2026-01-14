@@ -4,6 +4,7 @@ import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/a
 import { useGalaxyStore } from "@/stores/galaxy";
 import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
 import { TerrainTypes } from "@solaris-command/core/src/types/hex";
+import { HexUtils } from "@solaris-command/core/src/utils/hex-utils";
 
 type APIHex = GameGalaxyResponseSchema["hexes"][0];
 
@@ -83,7 +84,10 @@ const getBackgroundTextConfig = computed(() => {
   }
 
   if (props.hex.planetId != null) {
-    text = "⦲";
+    console.log(String(props.hex.planetId))
+    const isCapital = galaxyStore.planetLookup!.get(String(HexUtils.getCoordsID(props.hex.location)))!.isCapital
+
+    text = isCapital ? "✫" : "⦲";
   }
 
   const width = Math.sqrt(3) * (HEX_SIZE - 2);

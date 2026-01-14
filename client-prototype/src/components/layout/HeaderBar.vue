@@ -1,17 +1,21 @@
 <template>
-  <div class="d-flex align-items-center bg-dark text-white p-2" style="height: 60px;">
+  <div
+    class="d-flex align-items-center text-white p-2"
+    style="height: 60px; background-color: #212529;"
+  >
     <!-- Brand/Logo -->
     <div class="fs-5 fw-bold text-success me-3">SOLARIS: COMMAND</div>
 
     <!-- Game Time -->
     <div v-if="galaxyStore.galaxy" class="d-flex align-items-center me-auto">
       <span class="fw-bold">
-        [Cycle {{ galaxyStore.galaxy.game.state.cycle }} - Tick {{ galaxyStore.galaxy.game.state.tick }}] {{ nextCycleCountdown }}
+        [Cycle {{ galaxyStore.galaxy.game.state.cycle }} - Tick
+        {{ galaxyStore.galaxy.game.state.tick }}] {{ nextCycleCountdown }}
       </span>
     </div>
 
     <!-- Resources -->
-    <div class="d-flex align-items-center mx-3">
+    <div class="d-flex align-items-center mx-3" v-if="hasUserPlayer">
       <i class="bi bi-currency-dollar fs-5 me-1 text-warning"></i>
       <span class="fw-bold">{{ prestigePoints }}</span>
       <span class="ms-3 me-1">VP:</span>
@@ -19,7 +23,7 @@
     </div>
 
     <!-- Territory -->
-    <div class="d-flex align-items-center mx-3">
+    <div class="d-flex align-items-center mx-3" v-if="hasUserPlayer">
       <i class="bi bi-globe fs-5 me-1 text-info"></i>
       <span class="fw-bold">Planets: {{ planetCount }}</span>
       <i class="bi bi-cpu fs-5 ms-3 me-1 text-info"></i>
@@ -29,13 +33,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue';
-import { useGalaxyStore } from '../../stores/galaxy';
+import { computed, ref, onMounted, onUnmounted } from "vue";
+import { useGalaxyStore } from "../../stores/galaxy";
 
 const galaxyStore = useGalaxyStore();
 
 const nextCycleCountdown = ref("Calculating...");
 let countdownInterval: ReturnType<typeof setInterval>;
+
+const hasUserPlayer = computed(() => {
+  return galaxyStore.currentPlayer != null;
+});
 
 const prestigePoints = computed(() => {
   return galaxyStore.currentPlayer?.prestigePoints ?? 0;
@@ -46,19 +54,21 @@ const victoryPoints = computed(() => {
 });
 
 const maxVictoryPoints = computed(() => {
-    return galaxyStore.galaxy?.game?.settings?.victoryPointsToWin ?? 0;
+  return galaxyStore.galaxy?.game?.settings?.victoryPointsToWin ?? 0;
 });
 
 const planetCount = computed(() => {
   const currentPlayerId = galaxyStore.currentPlayerId;
   if (!currentPlayerId || !galaxyStore.planets) return 0;
-  return galaxyStore.planets.filter(p => p.playerId === currentPlayerId).length;
+  return galaxyStore.planets.filter((p) => p.playerId === currentPlayerId)
+    .length;
 });
 
 const stationCount = computed(() => {
   const currentPlayerId = galaxyStore.currentPlayerId;
   if (!currentPlayerId || !galaxyStore.stations) return 0;
-  return galaxyStore.stations.filter(s => s.playerId === currentPlayerId).length;
+  return galaxyStore.stations.filter((s) => s.playerId === currentPlayerId)
+    .length;
 });
 
 onMounted(() => {
