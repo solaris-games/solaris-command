@@ -3,20 +3,21 @@
     <button
       class="btn btn-outline-theme mb-2"
       @click="toggleJoinGame"
+      data-bs-toggle="tooltip"
       title="Join Game"
       v-if="!galaxyStore.currentPlayer && galaxyStore.galaxy?.game.state.status === GameStates.PENDING"
     >
       <i class="fas fa-handshake"></i>
     </button>
-    <button class="btn btn-outline-theme mb-2" @click="toggleLeaderboard" title="Leaderboard">
+    <button class="btn btn-outline-theme mb-2" @click="toggleLeaderboard" data-bs-toggle="tooltip" title="Leaderboard">
       <i class="fas fa-trophy"></i>
     </button>
 
     <div class="mt-auto d-flex flex-column">
-      <button class="btn btn-outline-theme mb-2" @click="goToProfile" title="Profile">
+      <button class="btn btn-outline-theme mb-2" @click="goToProfile" data-bs-toggle="tooltip" title="Profile">
         <i class="fas fa-user"></i>
       </button>
-      <button class="btn btn-outline-theme" @click="goToMainMenu" title="Main Menu">
+      <button class="btn btn-outline-theme" @click="goToMainMenu" data-bs-toggle="tooltip" title="Main Menu">
         <i class="fas fa-chevron-left"></i>
       </button>
     </div>

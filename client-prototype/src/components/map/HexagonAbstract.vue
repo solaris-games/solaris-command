@@ -84,7 +84,6 @@ const getBackgroundTextConfig = computed(() => {
   }
 
   if (props.hex.planetId != null) {
-    console.log(String(props.hex.planetId))
     const isCapital = galaxyStore.planetLookup!.get(String(HexUtils.getCoordsID(props.hex.location)))!.isCapital
 
     text = isCapital ? "✫" : "⦲";

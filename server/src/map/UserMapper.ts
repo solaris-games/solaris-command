@@ -5,6 +5,7 @@ export class UserMapper {
     return {
       _id: String(user._id),
       username: user.username,
+      email: user.email,
       lastSeenDate: user.lastSeenDate.toISOString(),
       achievements: {
         victories: user.achievements.victories,

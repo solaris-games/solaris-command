@@ -34,6 +34,8 @@
           <button
             type="submit"
             class="btn btn-outline-theme btn-lg d-block w-100 fw-500 mb-3"
+            data-bs-toggle="tooltip"
+            title="Sign in with a development account"
           >
             Sign In
           </button>
@@ -67,4 +69,8 @@ async function handleLogin() {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+  .login {
+    min-height: 50vh;
+  }
+</style>

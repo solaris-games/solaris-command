@@ -9,6 +9,7 @@
         'btn-yellow': mapSettingsStore.showHexCoordinates,
       }"
       @click="mapSettingsStore.toggleHexCoordinates()"
+      data-bs-toggle="tooltip"
       title="Toggle Hex Coordinates"
     >
       <i class="bi bi-grid-3x3"></i>
@@ -20,6 +21,7 @@
         'btn-yellow': mapSettingsStore.showSupply,
       }"
       @click="mapSettingsStore.toggleSupply()"
+      data-bs-toggle="tooltip"
       title="Toggle Supply Network"
     >
       <i class="bi bi-share-fill"></i>
@@ -31,6 +33,7 @@
         'btn-yellow': mapSettingsStore.showZOC,
       }"
       @click="mapSettingsStore.toggleZOC()"
+      data-bs-toggle="tooltip"
       title="Toggle Zone of Control"
     >
       <i class="bi bi-circle-fill"></i>
@@ -42,6 +45,7 @@
         'btn-yellow': mapSettingsStore.showHexGraphics,
       }"
       @click="mapSettingsStore.toggleHexGraphics()"
+      data-bs-toggle="tooltip"
       title="Toggle Hex Graphics"
     >
       <i class="bi bi-map"></i>

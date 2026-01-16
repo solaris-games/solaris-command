@@ -1,0 +1,216 @@
+<template>
+  <div class="unit-header row">
+    <div class="col">
+      <h5 class="mb-0">
+        {{ unitCatalog?.name }}
+      </h5>
+    </div>
+    <div class="col-auto">
+      <span class="badge" :class="statusBadgeClass(unit.state.status)">{{
+        unit.state.status
+      }}</span>
+    </div>
+  </div>
+  <p class="text-muted mb-2">
+    {{ unitCatalog?.class.replaceAll("_", " ") }}
+  </p>
+  <div class="row">
+    <div class="col">
+      <div class="unit-steps">
+        <div
+          v-for="(step, index) in unit.steps"
+          :key="index"
+          class="step-square"
+          :class="{ suppressed: step.isSuppressed }"
+          data-bs-toggle="tooltip"
+          :title="
+            step.specialistId
+              ? `${SPECIALIST_STEP_ID_MAP.get(step.specialistId)?.name}: ${
+                  SPECIALIST_STEP_ID_MAP.get(step.specialistId)?.description
+                }`
+              : ''
+          "
+        >
+          <span v-if="step.specialistId" class="specialist-symbol">{{
+            getSpecialistSymbol(step.specialistId)
+          }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-auto unit-steps">
+      <div
+        class="step-square step-square-ap"
+        v-for="(i, index) in unit.state.ap"
+        :key="index"
+        data-bs-toggle="tooltip"
+        title="Remaining Action Points"
+      >
+        <span class="text-warning"><i class="bi bi-lightning"></i></span>
+      </div>
+      <div
+        class="step-square step-square-zoc"
+        v-if="unitHasZOCInfluence"
+        data-bs-toggle="tooltip"
+        title="Unit exerts a Zone of Control"
+      >
+        <span class="text-info"><i class="bi bi-circle"></i></span>
+      </div>
+      <div
+        class="step-square step-square-initiative"
+        data-bs-toggle="tooltip"
+        title="Unit's initiative value"
+      >
+        <span class="text-success">{{ unitCatalog?.stats.initiative }}</span>
+      </div>
+    </div>
+  </div>
+  <hr />
+  <div class="unit-stats">
+    <div data-bs-toggle="tooltip" title="The unit's attack strength">
+      <span class="stat-label">Attack</span>
+      <span class="stat-value">{{ unitCatalog?.stats.attack }}</span>
+    </div>
+    <div data-bs-toggle="tooltip" title="The unit's defensive strength">
+      <span class="stat-label">Defense</span>
+      <span class="stat-value">{{ unitCatalog?.stats.defense }}</span>
+    </div>
+    <div data-bs-toggle="tooltip" title="The unit's armour value">
+      <span class="stat-label">Armour</span>
+      <span class="stat-value">{{ unitCatalog?.stats.armour }}</span>
+    </div>
+    <div data-bs-toggle="tooltip" title="Remaining Movement Points">
+      <span class="stat-label">MP</span>
+      <span class="stat-value"
+        >{{ unit.state.mp }}/{{ unitCatalog?.stats.maxMP }}</span
+      >
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed } from "vue";
+import { Unit } from "@solaris-command/core";
+import {
+  UNIT_CATALOG_ID_MAP,
+  SPECIALIST_STEP_ID_MAP,
+  SPECIALIST_STEP_SYMBOL_MAP,
+} from "@solaris-command/core/src/data";
+import { UnitManager } from "@solaris-command/core/src/utils/unit-manager";
+import { UnitStatus } from "@solaris-command/core/src/types/unit";
+import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
+
+type APIUnit = GameGalaxyResponseSchema["units"][0];
+
+const props = defineProps<{
+  unit: APIUnit;
+}>();
+
+const unitCatalog = computed(() => {
+  if (!props.unit) return null;
+  return UNIT_CATALOG_ID_MAP.get(props.unit.catalogId);
+});
+
+const unitHasZOCInfluence = computed(() => {
+  if (!props.unit) return false;
+  return UnitManager.unitHasZOCInfluence(props.unit as any);
+});
+
+const getSpecialistSymbol = (specialistId: string) => {
+  const specialist = SPECIALIST_STEP_ID_MAP.get(specialistId);
+  if (!specialist) return "";
+  return SPECIALIST_STEP_SYMBOL_MAP.get(specialist.type);
+};
+
+const statusBadgeClass = (status: UnitStatus) => {
+  switch (status) {
+    case UnitStatus.IDLE:
+      return "bg-warning";
+    case UnitStatus.MOVING:
+      return "bg-info";
+    case UnitStatus.PREPARING:
+      return "bg-danger";
+    case UnitStatus.REGROUPING:
+      return "bg-secondary";
+    default:
+      return "bg-secondary";
+  }
+};
+</script>
+
+<style scoped>
+hr {
+  margin: 0.5rem 0;
+}
+.selection-panel {
+  position: absolute;
+  left: 76px;
+  top: 16px;
+  width: 300px;
+  z-index: 10;
+  color: #fff;
+}
+.unit-header {
+  text-align: left;
+}
+.unit-type {
+  margin-bottom: 0;
+  font-size: 0.9rem;
+  color: #aaa;
+}
+.unit-stats {
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+}
+.stat-label {
+  display: block;
+  font-size: 0.8rem;
+  color: #aaa;
+}
+.stat-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+.unit-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.step-square {
+  min-width: 24px;
+  min-height: 24px;
+  background-color: #fff;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+.step-square .specialist-symbol {
+  font-size: 1rem;
+  color: #000;
+}
+.step-square.suppressed {
+  background-color: transparent;
+  border: 1px solid #fff;
+}
+.step-square.suppressed .specialist-symbol {
+  color: #fff;
+}
+.step-square-ap {
+  border: 1px solid #ff9f0c;
+  background-color: transparent;
+}
+.step-square-zoc {
+  border: 1px solid #30beff;
+  background-color: transparent;
+}
+.step-square-initiative {
+  border: 1px solid #3cd2a5;
+  background-color: transparent;
+}
+.supply-status {
+  text-align: center;
+  font-weight: bold;
+}
+</style>

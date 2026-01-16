@@ -9,6 +9,8 @@
             type="button"
             class="btn-close"
             @click="$emit('close')"
+            data-bs-toggle="tooltip"
+            title="Close this dialog"
           ></button>
         </div>
         <div class="card-body bg-dark">
@@ -108,6 +110,8 @@
               v-if="
                 galaxyStore.galaxy?.game.state.status === GameStates.PENDING
               "
+              data-bs-toggle="tooltip"
+              title="Quit the game"
             >
               Quit Game
             </button>
@@ -120,6 +124,8 @@
                 onConfirmAction = handleConcedeGame;
               "
               v-if="galaxyStore.galaxy?.game.state.status === GameStates.ACTIVE"
+              data-bs-toggle="tooltip"
+              title="Concede the game"
             >
               Concede
             </button>

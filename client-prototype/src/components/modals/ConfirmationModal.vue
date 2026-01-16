@@ -4,14 +4,14 @@
       <div class="modal-content bg-dark text-white">
         <div class="modal-header">
           <h5 class="modal-title">{{ title }}</h5>
-          <button type="button" class="btn-close" @click="onCancel"></button>
+          <button type="button" class="btn-close" @click="onCancel" data-bs-toggle="tooltip" title="Close this dialog"></button>
         </div>
         <div class="modal-body">
           <slot></slot>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline-danger" @click="onCancel">Cancel</button>
-          <button type="button" class="btn btn-success" @click="onConfirm">Confirm</button>
+          <button type="button" class="btn btn-outline-danger" @click="onCancel" data-bs-toggle="tooltip" title="Cancel this action">Cancel</button>
+          <button type="button" class="btn btn-success" @click="onConfirm" data-bs-toggle="tooltip" title="Confirm this action">Confirm</button>
         </div>
       </div>
     </div>

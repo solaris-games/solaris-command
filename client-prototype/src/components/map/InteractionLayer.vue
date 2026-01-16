@@ -18,6 +18,7 @@
 
 <script setup lang="ts">
 import { useGalaxyStore } from "../../stores/galaxy";
+import { useMovementStore } from "../../stores/movement";
 import { hexToPixel } from "../../utils/hexUtils";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
 
@@ -25,6 +26,7 @@ type APIHex = GameGalaxyResponseSchema["hexes"][0];
 
 const HEX_SIZE = 64;
 const galaxyStore = useGalaxyStore();
+const movementStore = useMovementStore();
 
 function getHexConfig(hex: APIHex) {
   const { x, y } = hexToPixel(hex.location.q, hex.location.r, HEX_SIZE);
@@ -56,6 +58,10 @@ function getSelectionConfig() {
 }
 
 function handleClick(hex: APIHex) {
-  galaxyStore.selectHex(hex);
+  if (movementStore.isMoveMode) {
+    movementStore.addHexToPath(hex);
+  } else {
+    galaxyStore.selectHex(hex);
+  }
 }
 </script>

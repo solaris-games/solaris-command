@@ -8,6 +8,8 @@
             type="button"
             class="btn-close"
             @click="$emit('close')"
+            data-bs-toggle="tooltip"
+            title="Close this dialog"
           ></button>
         </div>
         <div class="card-body bg-dark">
@@ -41,7 +43,7 @@
                 </option>
               </select>
             </div>
-            <button type="submit" class="btn btn-primary w-100">
+            <button type="submit" class="btn btn-primary w-100" data-bs-toggle="tooltip" title="Join the game with your chosen alias and color">
               Join Game
             </button>
           </form>

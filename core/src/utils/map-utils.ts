@@ -62,7 +62,11 @@ export const MapUtils = {
   },
 
   isHexImpassable(hex: Hex): boolean {
-    return hex.terrain === TerrainTypes.GRAVITY_WELL;
+    return MapUtils.isTerrainImpassable(hex.terrain);
+  },
+
+  isTerrainImpassable(terrain: TerrainTypes): boolean {
+    return terrain === TerrainTypes.GRAVITY_WELL;
   },
 
   findPlayerPlanets(planets: Planet[], playerId: UnifiedId): Planet[] {

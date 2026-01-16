@@ -4,6 +4,7 @@
   <UnitLayer />
   <SupplyLayer />
   <ZOCLayer />
+  <MovementDrawLayer />
   <InteractionLayer />
 </template>
 
@@ -13,5 +14,6 @@ import EffectLayer from "./map/EffectLayer.vue";
 import UnitLayer from "./map/UnitLayer.vue";
 import SupplyLayer from "./map/SupplyLayer.vue";
 import ZOCLayer from "./map/ZOCLayer.vue";
+import MovementDrawLayer from "./map/MovementDrawLayer.vue";
 import InteractionLayer from "./map/InteractionLayer.vue";
 </script>

@@ -1,163 +1,17 @@
 <template>
   <div v-if="selectedUnit" class="selection-panel">
     <div class="card p-1">
-      <div class="card-header fw-bold" :style="panelStyle" style="border-radius: 0;">
+      <div
+        class="card-header fw-bold"
+        :style="panelStyle"
+        style="border-radius: 0"
+      >
         <i class="bi bi-person-fill me-1"></i>
         <span>{{ owner?.alias }}</span>
       </div>
       <div class="card-body bg-dark p-2">
-        <div class="unit-header row">
-          <div class="col">
-            <h5 class="mb-0">
-              {{ unitCatalog?.name }}
-            </h5>
-          </div>
-          <div class="col-auto">
-            <span
-              class="badge"
-              :class="statusBadgeClass(selectedUnit.state.status)"
-              >{{ selectedUnit.state.status }}</span
-            >
-          </div>
-        </div>
-        <p class="text-muted mb-2">
-          {{ unitCatalog?.class.replaceAll("_", " ") }}
-        </p>
-        <div class="row">
-          <div class="col">
-            <div class="unit-steps">
-              <div
-                v-for="(step, index) in selectedUnit.steps"
-                :key="index"
-                class="step-square"
-                :class="{ suppressed: step.isSuppressed }"
-              >
-                <span v-if="step.specialistId" class="specialist-symbol">{{
-                  getSpecialistSymbol(step.specialistId)
-                }}</span>
-              </div>
-            </div>
-          </div>
-          <div class="col-auto unit-steps">
-            <div
-              class="step-square step-square-ap"
-              v-for="(i, index) in selectedUnit.state.ap"
-              :key="index"
-            >
-              <span class="text-warning"><i class="bi bi-lightning"></i></span>
-            </div>
-            <div class="step-square step-square-zoc" v-if="unitHasZOCInfluence">
-              <span class="text-info"><i class="bi bi-circle"></i></span>
-            </div>
-            <div class="step-square step-square-initiative">
-              <span class="text-success">{{ unitCatalog?.stats.initiative }}</span>
-            </div>
-          </div>
-        </div>
-        <hr />
-        <div class="unit-stats">
-          <div>
-            <span class="stat-label">Attack</span>
-            <span class="stat-value">{{ unitCatalog?.stats.attack }}</span>
-          </div>
-          <div>
-            <span class="stat-label">Defense</span>
-            <span class="stat-value">{{ unitCatalog?.stats.defense }}</span>
-          </div>
-          <div>
-            <span class="stat-label">Armour</span>
-            <span class="stat-value">{{ unitCatalog?.stats.armour }}</span>
-          </div>
-          <div>
-            <span class="stat-label">MP</span>
-            <span class="stat-value"
-              >{{ selectedUnit.state.mp }}/{{ unitCatalog?.stats.maxMP }}</span
-            >
-          </div>
-        </div>
-        <hr v-if="specialistStepsWithStats.length > 0" />
-        <div
-          v-if="specialistStepsWithStats.length > 0"
-          class="specialist-stats"
-        >
-          <table class="table table-sm table-striped">
-            <thead class="table-dark">
-              <tr>
-                <th scope="col">Bonuses</th>
-                <th
-                  v-for="(step, index) in specialistStepsWithStats"
-                  :key="index"
-                >
-                  <div class="d-flex justify-content-end">
-                    <div
-                      class="step-square-small"
-                      :class="{ suppressed: step.isSuppressed }"
-                    >
-                      <span
-                        v-if="step.specialistId"
-                        class="specialist-symbol-small flex-shrink-0"
-                        >{{ getSpecialistSymbol(step.specialistId) }}</span
-                      >
-                    </div>
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr></tr>
-              <tr>
-                <th scope="row">Atk.</th>
-                <td
-                  v-for="(step, index) in specialistStepsWithStats"
-                  :key="index"
-                  class="text-end"
-                >
-                  {{ step.specialist?.stats.attack }}
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">Def.</th>
-                <td
-                  v-for="(step, index) in specialistStepsWithStats"
-                  :key="index"
-                  class="text-end"
-                >
-                  {{ step.specialist?.stats.defense }}
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">Armour</th>
-                <td
-                  v-for="(step, index) in specialistStepsWithStats"
-                  :key="index"
-                  class="text-end"
-                >
-                  {{ step.specialist?.stats.armour }}
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">Arty.</th>
-                <td
-                  v-for="(step, index) in specialistStepsWithStats"
-                  :key="index"
-                  class="text-end"
-                >
-                  {{ step.specialist?.stats.artillery }}
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">Siege</th>
-                <td
-                  v-for="(step, index) in specialistStepsWithStats"
-                  :key="index"
-                  class="text-end"
-                >
-                  {{ step.specialist?.stats.siege }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <UnitDetails :unit="selectedUnit" />
+        <UnitSpecialists :unit="selectedUnit" />
         <div v-if="!selectedUnit.supply.isInSupply">
           <hr />
           <div class="supply-status">
@@ -174,12 +28,10 @@
             <div class="col-6">
               <button
                 v-if="selectedUnit.state.status !== 'MOVING'"
-                class="btn w-100"
-                @click="galaxyStore.toggleMoveMode()"
-                :class="{
-                  'btn-yellow': galaxyStore.isMoveMode,
-                  'btn-success': !galaxyStore.isMoveMode,
-                }"
+                class="btn w-100 btn-success"
+                @click="movementStore.startMove(selectedUnit)"
+                data-bs-toggle="tooltip"
+                title="Set a move destination for this unit"
               >
                 <i class="bi bi-arrows-move"></i> Move
               </button>
@@ -187,6 +39,8 @@
                 v-else
                 class="btn btn-outline-success w-100"
                 @click="galaxyStore.cancelMovement(selectedUnit)"
+                data-bs-toggle="tooltip"
+                title="Cancel the current move order"
               >
                 <i class="bi bi-x-circle"></i> Cancel Move
               </button>
@@ -200,6 +54,8 @@
                   'btn-yellow': galaxyStore.isAttackMode,
                   'btn-warning': !galaxyStore.isAttackMode,
                 }"
+                data-bs-toggle="tooltip"
+                title="Set an attack target for this unit"
               >
                 <i class="bi bi-lightning"></i> Attack
               </button>
@@ -207,6 +63,8 @@
                 v-else
                 class="btn btn-outline-warning w-100"
                 @click="galaxyStore.cancelAttack(selectedUnit)"
+                data-bs-toggle="tooltip"
+                title="Cancel the current attack order"
               >
                 <i class="bi bi-x-circle"></i> Cancel Attack
               </button>
@@ -215,6 +73,8 @@
               <button
                 class="btn btn-primary w-100"
                 @click="handleUpgradeUnitStep"
+                data-bs-toggle="tooltip"
+                title="Add a new, suppressed step to this unit"
               >
                 <i class="bi bi-arrow-up-circle"></i> Upgrade Step
               </button>
@@ -223,6 +83,8 @@
               <button
                 class="btn btn-outline-danger w-100"
                 @click="handleScrapUnitStep"
+                data-bs-toggle="tooltip"
+                title="Remove a step from this unit"
               >
                 <i class="bi bi-trash"></i> Scrap Step
               </button>
@@ -245,6 +107,8 @@
               class="btn btn-success"
               @click="handleHireSpecialist"
               :disabled="!selectedSpecialist"
+              data-bs-toggle="tooltip"
+              title="Hire the selected specialist"
             >
               <i class="bi bi-person-plus"></i> Hire
             </button>
@@ -314,7 +178,7 @@
         <em>{{ selectedSpecialistData.description }}</em>
       </p>
       <p>
-        <strong>Bonuses:</strong>
+        <strong>Specialist Step Bonuses:</strong>
       </p>
       <ul>
         <li>Attack: {{ selectedSpecialistData.stats.attack }}</li>
@@ -331,18 +195,19 @@
 import { computed, ref } from "vue";
 import ConfirmationModal from "../modals/ConfirmationModal.vue";
 import { useGalaxyStore } from "../../stores/galaxy";
+import { useMovementStore } from "../../stores/movement";
 import {
-  UNIT_CATALOG_ID_MAP,
-  SPECIALIST_STEP_ID_MAP,
   SPECIALIST_STEP_CATALOG,
   SPECIALIST_STEP_SYMBOL_MAP,
   CONSTANTS,
 } from "@solaris-command/core/src/data";
 import { UnitManager } from "@solaris-command/core/src/utils/unit-manager";
 import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
-import { UnitStatus } from "@solaris-command/core/src/types/unit";
+import UnitDetails from "./UnitDetails.vue";
+import UnitSpecialists from "./UnitSpecialists.vue";
 
 const galaxyStore = useGalaxyStore();
+const movementStore = useMovementStore();
 const selectedUnit = computed(() => galaxyStore.selectedUnit);
 
 const selectedSpecialist = ref("");
@@ -350,7 +215,7 @@ const showUpgradeConfirmation = ref(false);
 const showScrapConfirmation = ref(false);
 
 const isLastStep = computed(
-  () => selectedUnit.value && selectedUnit.value.steps.length === 1
+  () => selectedUnit.value && selectedUnit.value.steps.length === 1,
 );
 
 const handleUpgradeUnitStep = () => {
@@ -388,7 +253,7 @@ const showHireSpecialistConfirmation = ref(false);
 const selectedSpecialistData = computed(() => {
   if (!selectedSpecialist.value) return null;
   return SPECIALIST_STEP_CATALOG.find(
-    (spec) => spec.id === selectedSpecialist.value
+    (spec) => spec.id === selectedSpecialist.value,
   );
 });
 
@@ -429,45 +294,13 @@ const canOrderUnit = computed(() => {
   );
 });
 
-const unitCatalog = computed(() => {
-  if (!selectedUnit.value) return null;
-  return UNIT_CATALOG_ID_MAP.get(selectedUnit.value.catalogId);
-});
-
 const unitOOSCycles = computed(() => {
   if (!selectedUnit.value) return 0;
 
   return UnitManager.getUnitOOSCycles(
     selectedUnit.value as any,
-    galaxyStore.galaxy!.game.settings.ticksPerCycle
+    galaxyStore.galaxy!.game.settings.ticksPerCycle,
   );
-});
-
-const unitHasZOCInfluence = computed(() => {
-  if (!selectedUnit.value) return false;
-
-  return UnitManager.unitHasZOCInfluence(
-    selectedUnit.value as any
-  );
-})
-
-const getSpecialistSymbol = (specialistId: string) => {
-  const specialist = SPECIALIST_STEP_ID_MAP.get(specialistId);
-  if (!specialist) return "";
-  return SPECIALIST_STEP_SYMBOL_MAP.get(specialist.type);
-};
-
-const specialistStepsWithStats = computed(() => {
-  if (!selectedUnit.value) return [];
-  return selectedUnit.value.steps
-    .filter((step) => step.specialistId)
-    .map((step) => {
-      const specialist = SPECIALIST_STEP_ID_MAP.get(step.specialistId!);
-      return {
-        ...step,
-        specialist,
-      };
-    });
 });
 
 const panelStyle = computed(() => {
@@ -485,22 +318,6 @@ const panelStyle = computed(() => {
     color: "#fff",
   };
 });
-
-// TODO: Move into a helper
-const statusBadgeClass = (status: UnitStatus) => {
-  switch (status) {
-    case UnitStatus.IDLE:
-      return "bg-warning";
-    case UnitStatus.MOVING:
-      return "bg-info";
-    case UnitStatus.PREPARING:
-      return "bg-danger";
-    case UnitStatus.REGROUPING:
-      return "bg-secondary";
-    default:
-      return "bg-secondary";
-  }
-};
 </script>
 
 <style scoped>

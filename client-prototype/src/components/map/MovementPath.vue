@@ -26,13 +26,13 @@ const pathPoints = computed(() => {
   const startPixel = hexToPixel(
     props.unit.location.q,
     props.unit.location.r,
-    HEX_SIZE
+    HEX_SIZE,
   );
   points.push(startPixel);
 
   props.unit.movement.path.forEach((pathHexCoords) => {
     const hex = galaxyStore.hexLookup?.get(
-      String(HexUtils.getCoordsID(pathHexCoords))
+      String(HexUtils.getCoordsID(pathHexCoords)),
     );
     if (hex) {
       const pixel = hexToPixel(hex.location.q, hex.location.r, HEX_SIZE);
@@ -45,10 +45,12 @@ const pathPoints = computed(() => {
 
 const lineConfig = computed(() => {
   return {
-    points: pathPoints.value.slice(0, pathPoints.value.length - 4),
+    points: pathPoints.value.slice(0, pathPoints.value.length - 2),
     stroke: "white",
     strokeWidth: 12,
-    opacity: 1
+    opacity: 1,
+    lineJoin: "round",
+    lineCap: "round",
   };
 });
 
@@ -64,7 +66,7 @@ const arrowConfig = computed(() => {
   const y2 = lastSegment[3];
 
   // Shorten the arrow to 70% of the original length to prevent overlaps.
-  const factor = 0.7; 
+  const factor = 0.7;
   const newX2 = x1 + (x2 - x1) * factor;
   const newY2 = y1 + (y2 - y1) * factor;
 
@@ -75,7 +77,8 @@ const arrowConfig = computed(() => {
     fill: "white",
     stroke: "white",
     strokeWidth: 12,
-    opacity: 1
+    opacity: 1,
+    lineCap: "round",
   };
 });
 </script>

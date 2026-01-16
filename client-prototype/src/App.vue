@@ -14,4 +14,12 @@ onMounted(() => {
 });
 </script>
 
-<style></style>
+<style>
+body {
+  min-height: unset;
+}
+
+.app-content {
+  margin-top: 3.25rem !important; /* Fixes a weird top bar padding issue */
+}
+</style>

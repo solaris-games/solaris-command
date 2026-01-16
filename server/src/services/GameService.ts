@@ -21,9 +21,21 @@ export class GameService {
         { _id: { $in: myGameIds } as any },
         { "state.status": GameStates.PENDING },
       ],
-    })
-      .sort({ "state.startDate": -1 })
-      .limit(50);
+    }).limit(50);
+
+    games.sort((a, b) => {
+      if (a.state.startDate === null && b.state.startDate !== null) {
+        return -1; // a (null) comes before b (non-null)
+      }
+      if (a.state.startDate !== null && b.state.startDate === null) {
+        return 1; // b (null) comes before a (non-null)
+      }
+      if (a.state.startDate === null && b.state.startDate === null) {
+        return 0; // Both null, maintain relative order
+      }
+      // Both non-null, sort descending
+      return (b.state.startDate as Date).getTime() - (a.state.startDate as Date).getTime();
+    });
 
     return { games, myGameIds };
   }

@@ -24,6 +24,8 @@
           class="btn btn-success"
           @click="handleDeployUnit"
           :disabled="!selectedUnitToDeploy"
+          data-bs-toggle="tooltip"
+          title="Deploy the selected unit"
         >
           <i class="bi bi-plus-circle"></i> Deploy
         </button>
@@ -59,7 +61,7 @@
     </p>
     <div class="row">
       <div class="col">
-        <table class="table table-sm table-striped">
+        <table class="table table-sm table-striped table-hover">
           <tbody>
             <tr>
               <td>Attack</td>
@@ -85,7 +87,7 @@
         </table>
       </div>
       <div class="col">
-        <table class="table table-sm table-striped">
+        <table class="table table-sm table-striped table-hover">
           <tbody>
             <tr>
               <td>Steps</td>

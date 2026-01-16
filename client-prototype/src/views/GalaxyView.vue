@@ -8,7 +8,9 @@
         v-if="galaxyStore.loading"
         class="position-absolute top-50 start-50 translate-middle text-white z-index-10"
       >
-        Loading Galaxy...
+        <div class="spinner-border" role="status">
+          <span class="sr-only"> Loading Galaxy...</span>
+        </div>
       </div>
       <div
         v-else-if="galaxyStore.error"
@@ -26,7 +28,7 @@
           <HexMap />
         </v-stage>
       </div>
-      
+
       <MapOverlayButtons />
 
       <LeftSidebar
@@ -40,7 +42,9 @@
       />
 
       <RightSidebar />
-      <SelectionPanel />
+      
+      <SelectionPanel v-if="!movementStore.isMoveMode" />
+      <MovementPanel v-if="movementStore.isMoveMode" />
     </div>
   </div>
 </template>
@@ -49,6 +53,7 @@
 import { onMounted, onUnmounted, reactive, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useGalaxyStore } from "../stores/galaxy";
+import { useMovementStore } from "../stores/movement";
 import HexMap from "../components/HexMap.vue";
 import HeaderBar from "../components/layout/HeaderBar.vue";
 import LeftSidebar from "../components/layout/LeftSidebar.vue";
@@ -56,11 +61,13 @@ import JoinGameModal from "../components/modals/JoinGameModal.vue";
 import LeaderboardModal from "../components/modals/LeaderboardModal.vue";
 import RightSidebar from "../components/layout/RightSidebar.vue";
 import SelectionPanel from "../components/layout/SelectionPanel.vue";
+import MovementPanel from "../components/layout/MovementPanel.vue";
 import MapOverlayButtons from "../components/layout/MapOverlayButtons.vue";
 import { GameStates } from "@solaris-command/core/src/types/game";
 
 const route = useRoute();
 const galaxyStore = useGalaxyStore();
+const movementStore = useMovementStore();
 const stageContainer = ref<HTMLDivElement | null>(null);
 
 const showJoinGame = ref(false);

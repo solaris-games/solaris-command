@@ -9,7 +9,12 @@
     "
   >
     <div class="card-body bg-dark">
-      <button class="btn btn-sm btn-primary w-100" @click="handleBuildStation">
+      <button
+        class="btn btn-sm btn-primary w-100"
+        @click="handleBuildStation"
+        data-bs-toggle="tooltip"
+        title="Build a new station on this hex"
+      >
         <i class="bi bi-gear"></i> Build Station (${{
           CONSTANTS.STATION_PRESTIGE_COST
         }})
@@ -45,7 +50,12 @@
     "
   >
     <div class="card-body bg-dark">
-      <button class="btn btn-sm btn-outline-danger w-100" @click="handleScuttleStation">
+      <button
+        class="btn btn-sm btn-outline-danger w-100"
+        @click="handleScuttleStation"
+        data-bs-toggle="tooltip"
+        title="Destroy this station"
+      >
         <i class="bi bi-trash"></i> Scuttle Station
       </button>
     </div>

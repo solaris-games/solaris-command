@@ -17,26 +17,27 @@
             }"
             @click="selectUnit(unit)"
           >
-            <div class="d-flex w-100 justify-content-between">
-              <h6 class="mb-1">{{ getUnitName(unit.catalogId) }}</h6>
-              <div>
+            <div class="row">
+              <div class="col">
+                <h6 class="mb-1">{{ getUnitName(unit.catalogId) }}</h6>
+              </div>
+              <div class="col-auto">
+                <span
+                  v-if="!unit.supply.isInSupply"
+                  class="badge bg-danger me-1"
+                  >OOS</span
+                >
                 <span
                   class="badge"
                   :class="statusBadgeClass(unit.state.status)"
                   >{{ unit.state.status }}</span
                 >
-                <span
-                  v-if="!unit.supply.isInSupply"
-                  class="badge bg-danger ms-1"
-                  >OOS</span
-                >
               </div>
             </div>
             <div class="d-flex w-100 justify-content-between pt-1">
               <p class="mb-1 small">
-                <i class="bi bi-grid-3x3"></i> {{ unit.location.q }}, {{
-                  unit.location.r
-                }}
+                <i class="bi bi-grid-3x3"></i> {{ unit.location.q }},
+                {{ unit.location.r }}
               </p>
               <div class="unit-steps">
                 <div
@@ -44,6 +45,8 @@
                   :key="index"
                   class="step-square"
                   :class="{ suppressed: step.isSuppressed }"
+                  data-bs-toggle="tooltip"
+                  :title="getSpecialistTooltip(step)"
                 >
                   <span v-if="step.specialistId" class="specialist-symbol">{{
                     getSpecialistSymbol(step.specialistId)
@@ -84,7 +87,7 @@ const sortedPlayerUnits = computed(() => {
   if (!currentPlayerId || !galaxyStore.units) return [];
 
   const playerUnits = galaxyStore.units.filter(
-    (u) => u.playerId === currentPlayerId
+    (u) => u.playerId === currentPlayerId,
   );
 
   // Sort by out of supply first, then idle, then everything else
@@ -112,7 +115,7 @@ const sortedPlayerUnits = computed(() => {
 
 function selectUnit(unit: APIUnit) {
   const hex = galaxyStore.hexes.find(
-    (h) => h.location.q === unit.location.q && h.location.r === unit.location.r
+    (h) => h.location.q === unit.location.q && h.location.r === unit.location.r,
   );
   if (hex) {
     galaxyStore.selectHex(hex);
@@ -127,6 +130,16 @@ const getSpecialistSymbol = (specialistId: string) => {
   const specialist = SPECIALIST_STEP_ID_MAP.get(specialistId);
   if (!specialist) return "";
   return SPECIALIST_STEP_SYMBOL_MAP.get(specialist.type);
+};
+
+const getSpecialistTooltip = (step: any) => {
+  if (!step.specialistId) {
+    return undefined;
+  }
+
+  const specialist = SPECIALIST_STEP_ID_MAP.get(step.specialistId);
+  if (!specialist) return "";
+  return `${specialist.name}: ${specialist.description}`;
 };
 
 // TODO: Move into a helper

@@ -12,6 +12,7 @@ import { Station } from "../station";
 export interface UserDetailsResponseSchema {
   _id: string;
   username: string;
+  email: string;
   lastSeenDate: string;
   achievements: {
     victories: number;

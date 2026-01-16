@@ -13,11 +13,11 @@
 
     <!-- BEGIN menu -->
     <div class="menu">
-      <div class="menu-item">
+      <!-- <div class="menu-item">
         <router-link to="/games" class="menu-link">
           <span class="menu-text">Games</span>
         </router-link>
-      </div>
+      </div> -->
 
       <div class="menu-item dropdown dropdown-mobile-full">
         <a
@@ -48,26 +48,33 @@
             ></i>
           </router-link>
 
-          <router-link
-            to="/settings"
-            class="dropdown-item d-flex align-items-center"
-          >
-            <span>SETTINGS</span>
-            <i class="bi bi-gear ms-auto text-theme fs-16px my-n1"></i>
-          </router-link>
-
           <div class="dropdown-divider"></div>
 
-          <router-link
-            to="/settings"
+          <a
+            @click="handleLogout"
             class="dropdown-item d-flex align-items-center"
           >
             <span>LOGOUT</span>
             <i class="bi bi-toggle-off ms-auto text-theme fs-16px my-n1"></i>
-          </router-link>
+        </a>
         </div>
       </div>
     </div>
     <!-- END menu -->
   </div>
 </template>
+
+<script setup lang="ts">
+import { useRouter } from "vue-router";
+import { useAuthStore } from "../stores/auth";
+
+
+const authStore = useAuthStore();
+const router = useRouter();
+
+function handleLogout() {
+  authStore.logout();
+  router.push("/login");
+}
+
+</script>

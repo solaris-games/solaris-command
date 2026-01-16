@@ -87,7 +87,7 @@ router.post(
         req.player._id,
         req.planets,
         req.hexes,
-        req.units
+        req.units,
       );
 
       if (validSpawnLocations.find((h) => String(h._id) === hexId) == null) {
@@ -105,7 +105,7 @@ router.post(
       // Generate initial steps. All but one should be suppressed.
       const initialSteps = UnitManager.addSteps(
         [],
-        unitCtlg.stats.defaultSteps
+        unitCtlg.stats.defaultSteps,
       );
 
       initialSteps[0].isSuppressed = false; // The first step should not be suppressed.
@@ -116,7 +116,7 @@ router.post(
         req.game._id,
         hex._id,
         hex.location,
-        () => new Types.ObjectId()
+        () => new Types.ObjectId(),
       );
 
       // Manual override for deploy stats
@@ -132,7 +132,7 @@ router.post(
           req.game._id,
           hex._id,
           unit._id,
-          session
+          session,
         );
 
         // Note: All units spawn with all steps suppressed, therefore this unit will not exert a ZOC
@@ -141,7 +141,7 @@ router.post(
           req.game._id,
           req.player._id,
           unitCtlg.cost,
-          session
+          session,
         );
 
         await GameService.createGameEvent(
@@ -153,9 +153,9 @@ router.post(
             {
               unit,
             },
-            () => new Types.ObjectId()
+            () => new Types.ObjectId(),
           ),
-          session
+          session,
         );
 
         // TODO: Unit deployed websocket is tricky since we need to send only
@@ -172,7 +172,7 @@ router.post(
         errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
     }
-  }
+  },
 );
 
 // POST /api/v1/games/:id/units/:unitId/move
@@ -210,7 +210,9 @@ router.post(
       hexMap.set(HexUtils.getCoordsID(hex.location), hex);
     });
 
-    const hexPath = req.hexes.map((h) => h.location);
+    const hexPath = hexIdPath
+      .map((id) => req.hexes.find((h) => String(h._id) === String(id)))
+      .map((h) => h.location);
 
     try {
       const validationResult = Pathfinding.validatePath(
@@ -218,7 +220,7 @@ router.post(
         hexPath,
         req.unit.state.mp,
         hexMap,
-        req.player._id
+        req.player._id,
       );
 
       if (!validationResult.valid) {
@@ -240,7 +242,7 @@ router.post(
     }
 
     res.json({});
-  }
+  },
 );
 
 // POST /api/v1/games/:id/units/:unitId/cancel-move
@@ -271,7 +273,7 @@ router.post(
     }
 
     res.json({});
-  }
+  },
 );
 
 // POST /api/v1/games/:id/units/:unitId/attack
@@ -374,7 +376,7 @@ router.post(
     }
 
     res.json({});
-  }
+  },
 );
 
 // POST /api/v1/games/:id/units/:unitId/cancel-attack
@@ -410,7 +412,7 @@ router.post(
     }
 
     res.json({});
-  }
+  },
 );
 
 // POST /api/v1/games/:id/units/:unitId/upgrade
@@ -513,7 +515,7 @@ router.post(
           req.game._id,
           req.unit._id,
           newSteps,
-          session
+          session,
         );
 
         // Deduct Cost
@@ -521,7 +523,7 @@ router.post(
           req.game._id,
           req.player._id,
           cost,
-          session
+          session,
         );
       });
     } catch (error: any) {
@@ -533,7 +535,7 @@ router.post(
     }
 
     res.json({});
-  }
+  },
 );
 
 // POST /api/v1/games/:id/units/:unitId/scrap
@@ -564,7 +566,7 @@ router.post(
             req.game._id,
             req.unit._id,
             newSteps,
-            session
+            session,
           );
 
           // Give player back some prestige.
@@ -572,12 +574,12 @@ router.post(
             req.game._id,
             req.unit.playerId,
             CONSTANTS.UNIT_STEP_SCRAP_PRESTIGE_REWARD,
-            session
+            session,
           );
         } else {
           const hex = await HexService.getByGameAndId(
             req.game._id,
-            req.unit.hexId
+            req.unit.hexId,
           );
 
           // Delete unit
@@ -588,7 +590,7 @@ router.post(
             req.game._id,
             hex!,
             req.unit,
-            session
+            session,
           );
 
           // Any units that are attempting to attack this hex should be cancelled.
@@ -608,7 +610,7 @@ router.post(
     }
 
     res.json({});
-  }
+  },
 );
 
 export default router;
