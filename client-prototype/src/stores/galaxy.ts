@@ -6,6 +6,7 @@ import { UnifiedId } from "@solaris-command/core/src/types/unified-id";
 import { HexUtils } from "@solaris-command/core/src/utils/hex-utils";
 import { GameStates } from "@solaris-command/core/src/types/game";
 import { CombatOperation } from "@solaris-command/core/src/types/combat";
+import { UnitManager } from "@solaris-command/core/src/utils/unit-manager";
 
 type APIHex = GameGalaxyResponseSchema["hexes"][0];
 type APIUnit = GameGalaxyResponseSchema["units"][0];
@@ -29,6 +30,7 @@ export const useGalaxyStore = defineStore("galaxy", {
     unitLookup: null as Map<string, APIUnit> | null,
     planetLookup: null as Map<string, APIPlanet> | null,
     stationLookup: null as Map<string, APIStation> | null,
+    validSpawnLocations: null as Map<string, APIHex> | null,
     isGameInPlay: false,
     isGameClockRunning: false,
   }),
@@ -89,6 +91,24 @@ export const useGalaxyStore = defineStore("galaxy", {
           response.data.players.find((p: any) => p.userId != null) ?? null;
         this.currentPlayerId =
           response.data.players.find((p: any) => p.userId != null)?._id ?? null;
+
+        // Build valid spawn location map
+        this.validSpawnLocations = new Map<string, APIHex>();
+        if (this.currentPlayerId) {
+          const validHexes = UnitManager.getValidSpawnLocations(
+            this.currentPlayerId as any,
+            this.planets,
+            this.hexes,
+            this.units as any,
+          );
+
+          for (const validHex of validHexes) {
+            this.validSpawnLocations!.set(
+              String(HexUtils.getCoordsID(validHex.location)),
+              validHex as APIHex,
+            );
+          }
+        }
 
         this.isGameInPlay =
           this.galaxy!.game.state.status === GameStates.ACTIVE ||
@@ -169,7 +189,7 @@ export const useGalaxyStore = defineStore("galaxy", {
     async handleAttackSelection(
       targetUnit: APIUnit,
       operation: CombatOperation,
-      advanceOnVictory: boolean
+      advanceOnVictory: boolean,
     ) {
       if (!this.selectedUnit) return;
 

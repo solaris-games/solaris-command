@@ -2,6 +2,7 @@ import { CONSTANTS } from "../data/constants";
 import { ERROR_CODES } from "../data/error-codes";
 import { SPECIALIST_STEP_ID_MAP } from "../data/specialists";
 import { UNIT_CATALOG_ID_MAP } from "../data/units";
+import { UnifiedId } from "../types";
 import { HexCoordsId } from "../types/geometry";
 import { Hex } from "../types/hex";
 import { Planet } from "../types/planet";
@@ -139,8 +140,9 @@ export const UnitManager = {
    * Finds valid spawn locations for a new unit
    * Rules: Adjacent to any player owned planet, Empty Hex, No Unit.
    */
+  // TODO: This should return hex coords instead of filtered hexes?
   getValidSpawnLocations(
-    playerId: any,
+    playerId: UnifiedId,
     planets: Planet[],
     hexes: Hex[],
     allUnits: Unit[]
