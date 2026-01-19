@@ -23,6 +23,14 @@
     >
       <i class="fas fa-trophy"></i>
     </button>
+    <button
+      class="btn btn-outline-theme mb-2"
+      @click="toggleReferenceModal"
+      data-bs-toggle="tooltip"
+      title="Reference"
+    >
+      <i class="fas fa-book"></i>
+    </button>
 
     <div class="mt-auto d-flex flex-column">
       <button
@@ -51,7 +59,7 @@ import { GameStates } from "../../../../core/src/types/game";
 
 const galaxyStore = useGalaxyStore();
 
-const emit = defineEmits(["toggle-join-game", "toggle-leaderboard"]);
+const emit = defineEmits(["toggle-join-game", "toggle-leaderboard", "toggle-reference-modal"]);
 
 const toggleJoinGame = () => {
   emit("toggle-join-game");
@@ -59,6 +67,10 @@ const toggleJoinGame = () => {
 
 const toggleLeaderboard = () => {
   emit("toggle-leaderboard");
+};
+
+const toggleReferenceModal = () => {
+  emit("toggle-reference-modal");
 };
 
 const goToMainMenu = () => {

@@ -44,6 +44,7 @@
             <LeftSidebar
               @toggle-join-game="toggleJoinGame"
               @toggle-leaderboard="toggleLeaderboard"
+              @toggle-reference-modal="toggleReferenceModal"
             />
           </div>
 
@@ -71,6 +72,18 @@
             <RightSidebar />
           </div>
         </div>
+
+        <div id="referenceOverlayContainer" class="row position-absolute top-0 start-0 w-100 h-100">
+
+
+          <!-- Center -->
+          <div id="referenceOverlayCenter" class="col mt-3 d-flex justify-content-center">
+            <ReferenceModal
+              v-if="showReferenceModal"
+              @close="showReferenceModal = false"
+            />
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -87,6 +100,7 @@ import HeaderBar from "../components/layout/HeaderBar.vue";
 import LeftSidebar from "../components/layout/LeftSidebar.vue";
 import JoinGameModal from "../components/modals/JoinGameModal.vue";
 import LeaderboardModal from "../components/modals/LeaderboardModal.vue";
+import ReferenceModal from "../components/modals/ReferenceModal.vue";
 import RightSidebar from "../components/layout/RightSidebar.vue";
 import SelectionPanel from "../components/layout/SelectionPanel.vue";
 import MovementPanel from "../components/layout/MovementPanel.vue";
@@ -102,15 +116,24 @@ const stageContainer = ref<HTMLDivElement | null>(null);
 
 const showJoinGame = ref(false);
 const showLeaderboard = ref(false);
+const showReferenceModal = ref(false);
 
 const toggleJoinGame = () => {
   showLeaderboard.value = false;
+  showReferenceModal.value = false;
   showJoinGame.value = !showJoinGame.value;
 };
 
 const toggleLeaderboard = () => {
   showJoinGame.value = false;
+  showReferenceModal.value = false;
   showLeaderboard.value = !showLeaderboard.value;
+};
+
+const toggleReferenceModal = () => {
+  showJoinGame.value = false;
+  showLeaderboard.value = false;
+  showReferenceModal.value = !showReferenceModal.value;
 };
 
 const configStage = reactive({
@@ -194,7 +217,7 @@ function handleDragEnd(e: any) {
 </script>
 
 <style scoped>
-#mapOverlayContainer {
+#mapOverlayContainer, #referenceOverlayContainer {
   pointer-events: none; /* Allow clicks to pass through the overlay */
 }
 
@@ -202,7 +225,8 @@ function handleDragEnd(e: any) {
 #mapOverlayLeftSidebar > *,
 #mapOverlayLeft > *,
 #mapOverlayCenter > *,
-#mapOverlayRight > * {
+#mapOverlayRight > *,
+#referenceOverlayCenter > * {
   pointer-events: auto;
 }
 
