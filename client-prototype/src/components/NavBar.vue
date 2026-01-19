@@ -33,8 +33,8 @@
               <i class="bi bi-person-fill fs-32px mb-n3"></i>
             </div>
           </div>
-          <div class="menu-text d-sm-block d-none w-170px">
-            username@account.com
+          <div class="menu-text d-sm-block d-none">
+            {{ authStore.user?.username ?? '' }}
           </div>
         </a>
         <div class="dropdown-menu dropdown-menu-end me-lg-3 fs-11px mt-1">
