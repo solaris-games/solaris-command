@@ -1,12 +1,12 @@
 <template>
-  <HexLayer />
-  <EffectLayer />
-  <UnitLayer />
-  <SupplyLayer />
-  <ZOCLayer />
-  <MovementDrawLayer />
-  <CombatDrawLayer />
-  <InteractionLayer />
+    <HexLayer />
+    <EffectLayer />
+    <UnitLayer />
+    <SupplyLayer />
+    <ZOCLayer />
+    <MovementDrawLayer />
+    <CombatDrawLayer />
+    <InteractionLayer />
 </template>
 
 <script setup lang="ts">

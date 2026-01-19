@@ -31,7 +31,7 @@
         <!-- Unit Actions -->
         <div class="unit-actions" v-if="canOrderUnit">
           <div class="row g-2">
-            <div class="col-6">
+            <div class="col-12 col-md-6">
               <button
                 v-if="selectedUnit.state.status !== UnitStatus.MOVING"
                 class="btn w-100 btn-success"
@@ -55,7 +55,7 @@
                 <i class="fas fa-ban"></i> Cancel Move
               </button>
             </div>
-            <div class="col-6">
+            <div class="col-12 col-md-6">
               <button
                 v-if="selectedUnit.state.status !== UnitStatus.PREPARING"
                 class="btn w-100"
@@ -83,7 +83,7 @@
                 <i class="fas fa-ban"></i> Cancel Attack
               </button>
             </div>
-            <div class="col-6">
+            <div class="col-12 col-md-6">
               <button
                 class="btn btn-primary w-100"
                 @click="handleUpgradeUnitStep"
@@ -93,7 +93,7 @@
                 <i class="fas fa-arrow-up-from-bracket"></i> Upgrade Step
               </button>
             </div>
-            <div class="col-6">
+            <div class="col-12 col-md-6">
               <button
                 class="btn btn-outline-danger w-100"
                 @click="handleScrapUnitStep"
@@ -341,14 +341,6 @@ const panelStyle = computed(() => {
 <style scoped>
 hr {
   margin: 0.5rem 0;
-}
-.selection-panel {
-  position: absolute;
-  left: 76px;
-  top: 16px;
-  width: 350px;
-  z-index: 10;
-  color: #fff;
 }
 .unit-header {
   text-align: left;

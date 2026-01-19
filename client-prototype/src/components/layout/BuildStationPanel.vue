@@ -1,6 +1,6 @@
 <template>
   <div
-    class="card p-1"
+    class="card p-1 mb-1"
     v-if="
       selectedHex &&
       selectedHex.playerId === galaxyStore.currentPlayerId &&
@@ -124,9 +124,6 @@ const cancelScuttleStation = () => {
 </script>
 
 <style scoped>
-.card {
-  color: #fff;
-}
 .row p {
   font-size: 0.9rem;
 }

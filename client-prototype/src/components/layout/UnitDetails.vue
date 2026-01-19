@@ -65,20 +65,20 @@
     </div>
   </div>
   <hr />
-  <div class="unit-stats">
-    <div data-bs-toggle="tooltip" title="The unit's attack strength">
+  <div class="unit-stats row no-gutters">
+    <div class="col-12 col-md-3 p-0" data-bs-toggle="tooltip" title="The unit's attack strength">
       <span class="stat-label">Attack</span>
       <span class="stat-value">{{ unitCatalog?.stats.attack }}</span>
     </div>
-    <div data-bs-toggle="tooltip" title="The unit's defensive strength">
+    <div class="col-12 col-md-3 p-0" data-bs-toggle="tooltip" title="The unit's defensive strength">
       <span class="stat-label">Defense</span>
       <span class="stat-value">{{ unitCatalog?.stats.defense }}</span>
     </div>
-    <div data-bs-toggle="tooltip" title="The unit's armour value">
+    <div class="col-12 col-md-3 p-0" data-bs-toggle="tooltip" title="The unit's armour value">
       <span class="stat-label">Armour</span>
       <span class="stat-value">{{ unitCatalog?.stats.armour }}</span>
     </div>
-    <div data-bs-toggle="tooltip" title="Remaining Movement Points">
+    <div class="col-12 col-md-3 p-0" data-bs-toggle="tooltip" title="Remaining Movement Points">
       <span class="stat-label">MP</span>
       <span class="stat-value"
         >{{ unit.state.mp }}/{{ unitCatalog?.stats.maxMP }}</span
@@ -139,14 +139,6 @@ const statusBadgeClass = (status: UnitStatus) => {
 <style scoped>
 hr {
   margin: 0.5rem 0;
-}
-.selection-panel {
-  position: absolute;
-  left: 76px;
-  top: 16px;
-  width: 300px;
-  z-index: 10;
-  color: #fff;
 }
 .unit-header {
   text-align: left;

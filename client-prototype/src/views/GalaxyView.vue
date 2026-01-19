@@ -18,36 +18,60 @@
       >
         {{ galaxyStore.error }}
       </div>
-      <div class="flex-grow-1 overflow-hidden" ref="stageContainer">
-        <v-stage
-          v-if="configStage.width && configStage.height"
-          :config="configStage"
-          @wheel="handleWheel"
-          @dragend="handleDragEnd"
+      <!-- Map and Overlay Container -->
+      <div class="flex-grow-1 position-relative">
+        <div
+          class="position-absolute top-0 start-0 w-100 h-100"
+          id="stageContainer"
+          ref="stageContainer"
         >
-          <HexMap />
-        </v-stage>
+          <v-stage
+            v-if="configStage.width && configStage.height"
+            :config="configStage"
+            @wheel="handleWheel"
+            @dragend="handleDragEnd"
+          >
+            <HexMap />
+          </v-stage>
+        </div>
+
+        <div
+          id="mapOverlayContainer"
+          class="row position-absolute top-0 start-0 w-100 h-100"
+        >
+          <!-- Left sidebar -->
+          <div id="mapOverlayLeftSidebar" class="col-auto">
+            <LeftSidebar
+              @toggle-join-game="toggleJoinGame"
+              @toggle-leaderboard="toggleLeaderboard"
+            />
+          </div>
+
+          <!-- Left map -->
+          <div id="mapOverlayLeft" class="col-4 col-lg-3 mt-3">
+            <SelectionPanel
+              v-if="!movementStore.isMoveMode && !combatStore.isAttackMode"
+            />
+            <MovementPanel v-if="movementStore.isMoveMode" />
+            <AttackPanel v-if="combatStore.isAttackMode" />
+          </div>
+
+          <!-- Center map -->
+          <div id="mapOverlayCenter" class="col mt-3 d-flex justify-content-center">
+            <JoinGameModal v-if="showJoinGame" @close="showJoinGame = false" />
+            <LeaderboardModal
+              v-if="showLeaderboard"
+              @close="showLeaderboard = false"
+            />
+          </div>
+
+          <!-- Right map -->
+          <div id="mapOverlayRight" class="col-4 col-lg-3 mt-3">
+            <MapOverlayButtons />
+            <RightSidebar />
+          </div>
+        </div>
       </div>
-
-      <MapOverlayButtons />
-
-      <LeftSidebar
-        @toggle-join-game="toggleJoinGame"
-        @toggle-leaderboard="toggleLeaderboard"
-      />
-      <JoinGameModal v-if="showJoinGame" @close="showJoinGame = false" />
-      <LeaderboardModal
-        v-if="showLeaderboard"
-        @close="showLeaderboard = false"
-      />
-
-      <RightSidebar />
-
-      <SelectionPanel
-        v-if="!movementStore.isMoveMode && !combatStore.isAttackMode"
-      />
-      <MovementPanel v-if="movementStore.isMoveMode" />
-      <AttackPanel v-if="combatStore.isAttackMode" />
     </div>
   </div>
 </template>
@@ -170,7 +194,18 @@ function handleDragEnd(e: any) {
 </script>
 
 <style scoped>
-/* Removed .sidebar, .loading-indicator, .error-indicator styles as they are now handled by Bootstrap classes or moved to new components */
+#mapOverlayContainer {
+  pointer-events: none; /* Allow clicks to pass through the overlay */
+}
+
+/* Re-enable pointer events for the content inside the columns */
+#mapOverlayLeftSidebar > *,
+#mapOverlayLeft > *,
+#mapOverlayCenter > *,
+#mapOverlayRight > * {
+  pointer-events: auto;
+}
+
 /* z-index-10 for the loading/error message needs to be explicitly defined if not available in bootstrap utilities */
 .z-index-10 {
   z-index: 10;

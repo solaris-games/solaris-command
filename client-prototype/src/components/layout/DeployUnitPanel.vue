@@ -6,7 +6,7 @@
       selectedHex.unitId == null &&
       selectedHex.planetId == null // TODO: More rules
     "
-    class="card p-1"
+    class="card p-1 mb-1"
   >
     <div class="card-body bg-dark">
       <div class="input-group">
@@ -160,8 +160,3 @@ const cancelDeployUnit = () => {
 };
 </script>
 
-<style scoped>
-.card {
-  color: #fff;
-}
-</style>

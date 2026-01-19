@@ -230,12 +230,6 @@ const handleConcedeGame = async () => {
 
 <style scoped>
 .leaderboard-modal {
-  position: absolute;
-  top: 70px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 400px;
-  z-index: 20;
   display: flex;
   flex-direction: column;
 }

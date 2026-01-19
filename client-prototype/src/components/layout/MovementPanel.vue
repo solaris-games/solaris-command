@@ -127,12 +127,4 @@ const panelStyle = computed(() => {
 hr {
   margin: 0.5rem 0;
 }
-.movement-panel {
-  position: absolute;
-  left: 76px;
-  top: 16px;
-  width: 350px;
-  z-index: 10;
-  color: #fff;
-}
 </style>

@@ -19,12 +19,6 @@ const galaxyStore = useGalaxyStore();
 
 <style scoped>
 .right-sidebar {
-  position: absolute;
-  right: 16px;
-  top: 16px;
-  width: 300px;
-  z-index: 10;
-  color: #fff;
   max-height: calc(100vh - 100px);
   display: flex;
   flex-direction: column;

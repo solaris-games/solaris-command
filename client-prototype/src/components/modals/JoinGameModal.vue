@@ -113,14 +113,6 @@ const joinGame = async () => {
 </script>
 
 <style scoped>
-.join-game-modal {
-  position: absolute;
-  top: 70px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 300px;
-  z-index: 20;
-}
 .btn-close {
   position: absolute;
   top: 8px;

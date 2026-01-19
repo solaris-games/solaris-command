@@ -320,12 +320,6 @@ const defenderColor = computed(() => {
 
 <style scoped>
 .attack-panel {
-  position: absolute;
-  left: 76px;
-  top: 16px;
-  width: 350px;
-  z-index: 10;
-  color: #fff;
   max-height: 90vh;
   overflow-y: auto;
 }

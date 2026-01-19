@@ -1,66 +1,55 @@
 <template>
-  <div v-if="selectedHex">
-    <div class="card p-1">
-      <div class="card-body" :style="panelStyle">
-        <div class="row">
-          <div class="col">
-            <p class="mb-0" v-if="owner">
-              <i class="fas me-1" :class="{'fa-user': !owner?.isAIControlled, 'fa-robot': owner?.isAIControlled}"></i>
-              <strong>{{ owner?.alias }}</strong>
-            </p>
-            <p class="mb-0" v-else>
-              <i class="fas fa-user"></i>
-              <i>Unowned</i>
-            </p>
-          </div>
-          <div class="col-auto">
-            <div v-if="selectedPlanet">
-              <p class="mb-0">
-                <i class="fas fa-globe"></i> {{ selectedPlanet.name }}
-              </p>
-            </div>
-            <div v-else-if="selectedStation">
-              <p class="mb-0"><i class="fas fa-satellite"></i> Station</p>
-            </div>
-          </div>
+  <div class="card p-1 mb-1" v-if="selectedHex">
+    <div class="card-body" :style="panelStyle">
+      <div class="row">
+        <div class="col">
+          <p class="mb-0" v-if="owner">
+            <i
+              class="fas me-1"
+              :class="{
+                'fa-user': !owner?.isAIControlled,
+                'fa-robot': owner?.isAIControlled,
+              }"
+            ></i>
+            <strong>{{ owner?.alias }}</strong>
+          </p>
+          <p class="mb-0" v-else>
+            <i class="fas fa-user"></i>
+            <i>Unowned</i>
+          </p>
         </div>
-        <div class="row">
-          <div class="col">
+        <div class="col-auto">
+          <div v-if="selectedPlanet">
             <p class="mb-0">
-              <i class="fas fa-hexagon"></i>
-              {{ terrainFriendlyNames[selectedHex.terrain] }}
+              <i class="fas fa-globe"></i> {{ selectedPlanet.name }}
             </p>
           </div>
-          <div class="col-auto">
-            <p class="mb-0">
-              <i class="fas fa-table-cells-large"></i> {{ selectedHex.location.q }}, {{
-                selectedHex.location.r
-              }}
-            </p>
+          <div v-else-if="selectedStation">
+            <p class="mb-0"><i class="fas fa-satellite"></i> Station</p>
           </div>
         </div>
       </div>
-      <!-- card-arrow -->
-      <div class="card-arrow">
-        <div class="card-arrow-top-left"></div>
-        <div class="card-arrow-top-right"></div>
-        <div class="card-arrow-bottom-left"></div>
-        <div class="card-arrow-bottom-right"></div>
+      <div class="row">
+        <div class="col">
+          <p class="mb-0">
+            <i class="fas fa-hexagon"></i>
+            {{ terrainFriendlyNames[selectedHex.terrain] }}
+          </p>
+        </div>
+        <div class="col-auto">
+          <p class="mb-0">
+            <i class="fas fa-table-cells-large"></i>
+            {{ selectedHex.location.q }}, {{ selectedHex.location.r }}
+          </p>
+        </div>
       </div>
     </div>
-  </div>
-  <div v-else>
-    <div class="card p-1">
-      <div class="card-body bg-dark">
-        <p class="mb-0 text-muted">No hex selected.</p>
-      </div>
-      <!-- card-arrow -->
-      <div class="card-arrow">
-        <div class="card-arrow-top-left"></div>
-        <div class="card-arrow-top-right"></div>
-        <div class="card-arrow-bottom-left"></div>
-        <div class="card-arrow-bottom-right"></div>
-      </div>
+    <!-- card-arrow -->
+    <div class="card-arrow">
+      <div class="card-arrow-top-left"></div>
+      <div class="card-arrow-top-right"></div>
+      <div class="card-arrow-bottom-left"></div>
+      <div class="card-arrow-bottom-right"></div>
     </div>
   </div>
 </template>
@@ -110,9 +99,6 @@ const panelStyle = computed(() => {
 </script>
 
 <style scoped>
-.card {
-  color: #fff;
-}
 .row p {
   font-size: 0.9rem;
 }
