@@ -46,7 +46,7 @@
           </div>
           </div>
           <div v-else>
-            <p>Select a destination hex to start drawing a path.</p>
+            <p class="mb-0">Select a destination hex to start drawing a path.</p>
           </div>
         </div>
         <hr />
@@ -64,7 +64,7 @@
             <button
               class="btn btn-success w-100"
               @click="movementStore.confirmMove()"
-              :disabled="movementStore.movementPath.length <= 1"
+              :disabled="movementStore.movementPath.length === 0"
             >
               <i class="bi bi-check-circle"></i> Confirm
             </button>
@@ -123,7 +123,7 @@ hr {
   position: absolute;
   left: 76px;
   top: 16px;
-  width: 300px;
+  width: 350px;
   z-index: 10;
   color: #fff;
 }

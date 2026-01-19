@@ -4,7 +4,8 @@ import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/a
 import { Player } from "@solaris-command/core/src/types/player";
 import { UnifiedId } from "@solaris-command/core/src/types/unified-id";
 import { HexUtils } from "@solaris-command/core/src/utils/hex-utils";
-import { GameStates } from "@solaris-command/core/src/types";
+import { GameStates } from "@solaris-command/core/src/types/game";
+import { CombatOperation } from "@solaris-command/core/src/types/combat";
 
 type APIHex = GameGalaxyResponseSchema["hexes"][0];
 type APIUnit = GameGalaxyResponseSchema["units"][0];
@@ -28,7 +29,6 @@ export const useGalaxyStore = defineStore("galaxy", {
     unitLookup: null as Map<string, APIUnit> | null,
     planetLookup: null as Map<string, APIPlanet> | null,
     stationLookup: null as Map<string, APIStation> | null,
-    isAttackMode: false,
     isGameInPlay: false,
     isGameClockRunning: false,
   }),
@@ -130,19 +130,6 @@ export const useGalaxyStore = defineStore("galaxy", {
       }
     },
     selectHex(hex: APIHex) {
-      // If we are in attack mode and have a unit selected
-      if (this.isAttackMode && this.selectedUnit) {
-        // Find unit on this hex
-        const unit = this.units.find(
-          (u) =>
-            u.location.q === hex.location.q && u.location.r === hex.location.r,
-        );
-        if (unit) {
-          this.handleAttackSelection(unit);
-        }
-        return;
-      }
-
       this.selectedHex = hex;
       this.selectedUnit =
         this.units.find(
@@ -159,13 +146,6 @@ export const useGalaxyStore = defineStore("galaxy", {
           (s) =>
             s.location.q === hex.location.q && s.location.r === hex.location.r,
         ) ?? null;
-
-      // Reset modes
-      this.isAttackMode = false;
-    },
-    toggleAttackMove() {
-      if (!this.selectedUnit) return;
-      this.isAttackMode = !this.isAttackMode;
     },
     async cancelMovement(unit: APIUnit) {
       if (!this.selectedUnit) {
@@ -186,7 +166,11 @@ export const useGalaxyStore = defineStore("galaxy", {
         );
       }
     },
-    async handleAttackSelection(targetUnit: APIUnit) {
+    async handleAttackSelection(
+      targetUnit: APIUnit,
+      operation: CombatOperation,
+      advanceOnVictory: boolean
+    ) {
       if (!this.selectedUnit) return;
 
       const attackerId = this.selectedUnit._id;
@@ -196,14 +180,12 @@ export const useGalaxyStore = defineStore("galaxy", {
           `/api/v1/games/${this.galaxy?.game._id}/units/${attackerId}/attack`,
           {
             location: targetUnit.location,
-            operation: "STANDARD",
-            advanceOnVictory: false,
+            operation,
+            advanceOnVictory,
           },
         );
 
         await this.fetchGalaxy(this.galaxy!.game._id);
-
-        this.isAttackMode = false;
       } catch (err: any) {
         alert(
           "Attack failed: " + (err.response?.data?.errorCode || err.message),

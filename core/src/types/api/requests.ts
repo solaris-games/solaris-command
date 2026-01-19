@@ -18,7 +18,7 @@ export const MoveUnitRequestSchema = z.object({
 
 export const AttackUnitRequestSchema = z.object({
   location: HexRequestSchema,
-  operation: z.enum(["STANDARD", "FEINT", "SUPPRESSIVE"]), // Match core types
+  operation: z.enum(["STANDARD", "FEINT", "SUPPRESSIVE_FIRE"]), // Match core types
   advanceOnVictory: z.boolean(),
 });
 

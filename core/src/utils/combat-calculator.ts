@@ -65,7 +65,7 @@ export const CombatCalculator = {
     return {
       attackPower: att,
       defensePower: def,
-      oddsRatio: parseFloat(ratio.toFixed(2)),
+      oddsRatio: parseFloat(ratio.toFixed(0)),
       oddsScore,
       shifts,
       finalScore,

@@ -14,6 +14,7 @@ import { useGalaxyStore } from "@/stores/galaxy";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
 import { hexToPixel } from "@/utils/hexUtils";
 import { HexUtils } from "@solaris-command/core/src/utils/hex-utils";
+import { CombatOperation } from "@solaris-command/core/src/types/combat";
 
 type APIUnit = GameGalaxyResponseSchema["units"][0];
 
@@ -26,10 +27,10 @@ const galaxyStore = useGalaxyStore();
 
 const arrowConfigs = computed(() => {
   const startHex = galaxyStore.hexLookup?.get(
-    String(HexUtils.getCoordsID(props.unit.location))
+    String(HexUtils.getCoordsID(props.unit.location)),
   );
   const endHex = galaxyStore.hexLookup?.get(
-    String(HexUtils.getCoordsID(props.unit.combat.location!))
+    String(HexUtils.getCoordsID(props.unit.combat.location!)),
   );
 
   if (!startHex || !endHex) {
@@ -39,7 +40,7 @@ const arrowConfigs = computed(() => {
   const startPixel = hexToPixel(
     startHex.location.q,
     startHex.location.r,
-    HEX_SIZE
+    HEX_SIZE,
   );
   const endPixel = hexToPixel(endHex.location.q, endHex.location.r, HEX_SIZE);
 
@@ -70,37 +71,41 @@ const arrowConfigs = computed(() => {
     strokeWidth: 6, // Increased thickness
   };
 
-  return [
-    {
-      // Center arrow
-      ...baseConfig,
-      points: [
-        startPixel.x,
-        startPixel.y,
-        shorterEndPixel.x,
-        shorterEndPixel.y,
-      ],
-    },
-    {
-      // Left arrow
-      ...baseConfig,
-      points: [
-        startPixel.x - pdx * offset,
-        startPixel.y - pdy * offset,
-        shorterEndPixel.x - pdx * offset,
-        shorterEndPixel.y - pdy * offset,
-      ],
-    },
-    {
-      // Right arrow
-      ...baseConfig,
-      points: [
-        startPixel.x + pdx * offset,
-        startPixel.y + pdy * offset,
-        shorterEndPixel.x + pdx * offset,
-        shorterEndPixel.y + pdy * offset,
-      ],
-    },
-  ];
+  const centerArrow = {
+    // Center arrow
+    ...baseConfig,
+    points: [startPixel.x, startPixel.y, shorterEndPixel.x, shorterEndPixel.y],
+  };
+
+  const leftArrow = {
+    // Left arrow
+    ...baseConfig,
+    points: [
+      startPixel.x - pdx * offset,
+      startPixel.y - pdy * offset,
+      shorterEndPixel.x - pdx * offset,
+      shorterEndPixel.y - pdy * offset,
+    ],
+  };
+
+  const rightArrow = {
+    // Right arrow
+    ...baseConfig,
+    points: [
+      startPixel.x + pdx * offset,
+      startPixel.y + pdy * offset,
+      shorterEndPixel.x + pdx * offset,
+      shorterEndPixel.y + pdy * offset,
+    ],
+  };
+
+  // 1 arrow for feint
+  if (props.unit.combat.operation === CombatOperation.FEINT) {
+    return [centerArrow];
+  } else if (props.unit.combat.operation === CombatOperation.SUPPRESSIVE_FIRE) {
+    return [leftArrow, rightArrow];
+  }
+
+  return [centerArrow, leftArrow, rightArrow];
 });
 </script>

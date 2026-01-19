@@ -136,7 +136,7 @@ import { useRouter } from "vue-router";
 import NavBar from "../components/NavBar.vue";
 import axios from "axios";
 import { onMounted, ref } from "vue";
-import { UserAchievements } from "@solaris-command/core";
+import { UserAchievements } from "@solaris-command/core/src/types/user";
 
 const authStore = useAuthStore();
 const router = useRouter();

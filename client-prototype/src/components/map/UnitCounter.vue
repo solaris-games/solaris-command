@@ -26,12 +26,12 @@
 <script setup lang="ts">
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
 import { useGalaxyStore } from "@/stores/galaxy";
+import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
 import {
-  UNIT_CATALOG_ID_MAP,
   SPECIALIST_STEP_ID_MAP,
-  PLAYER_COLOR_LOOKUP,
   SPECIALIST_STEP_SYMBOL_MAP,
-} from "@solaris-command/core/src/data";
+} from "@solaris-command/core/src/data/specialists";
+import { UNIT_CATALOG_ID_MAP } from "@solaris-command/core/src/data/units";
 
 type APIUnit = GameGalaxyResponseSchema["units"][0];
 type APIStep = APIUnit["steps"][0];
@@ -76,7 +76,9 @@ function getUnitCounterNameConfig(unit: APIUnit) {
   const unitCatalog = UNIT_CATALOG_ID_MAP.get(unit.catalogId);
   const color = getPlayerColor(unit);
   return {
-    text: unitCatalog?.class.toUpperCase().replaceAll('_', ' ') || unit.catalogId.toUpperCase(),
+    text:
+      unitCatalog?.class.toUpperCase().replaceAll("_", " ") ||
+      unit.catalogId.toUpperCase(),
     fontSize: 9,
     fontFamily: "monospace",
     fill: color.foreground,

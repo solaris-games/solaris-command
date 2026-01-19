@@ -155,10 +155,10 @@
 import { computed, ref } from "vue";
 import { useGameStore } from "../../stores/game";
 import { useGalaxyStore } from "../../stores/galaxy";
-import { GameLeaderboardUtils } from "../../../../core/src/utils/game-leaderboard";
-import { PLAYER_COLOR_LOOKUP } from "../../../../core/src/data/player-colors";
-import { GameStates } from "../../../../core/src/types";
 import ConfirmationModal from "./ConfirmationModal.vue";
+import { GameLeaderboardUtils } from "@solaris-command/core/src/utils/game-leaderboard";
+import { GameStates } from "@solaris-command/core/src/types/game";
+import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
 
 const emit = defineEmits(["close"]);
 const gameStore = useGameStore();

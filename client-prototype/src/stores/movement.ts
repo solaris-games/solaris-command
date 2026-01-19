@@ -29,9 +29,8 @@ export const useMovementStore = defineStore("movement", () => {
 
     // Recalculate reachable hexes from the new last hex
     reachableHexes.value = HexUtils.neighbors(lastHex.location)
-      .map(
-        (id) => galaxyStore.hexLookup!.get(String(HexUtils.getCoordsID(id)))!,
-      )
+      .map((id) => galaxyStore.hexLookup!.get(String(HexUtils.getCoordsID(id))))
+      .filter((hex) => hex != null)
       .filter((hex) => !MapUtils.isTerrainImpassable(hex.terrain));
   }
 

@@ -196,7 +196,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useGameStore } from "../stores/game";
 import NavBar from "../components/NavBar.vue";
-import { GameStates } from "@solaris-command/core";
+import { GameStates } from "@solaris-command/core/src/types/game";
 
 const gameStore = useGameStore();
 const activeTab = ref("my-games");

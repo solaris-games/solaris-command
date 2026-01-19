@@ -43,8 +43,9 @@
 
       <RightSidebar />
       
-      <SelectionPanel v-if="!movementStore.isMoveMode" />
+      <SelectionPanel v-if="!movementStore.isMoveMode && !combatStore.isAttackMode" />
       <MovementPanel v-if="movementStore.isMoveMode" />
+      <AttackPanel v-if="combatStore.isAttackMode" />
     </div>
   </div>
 </template>
@@ -54,6 +55,7 @@ import { onMounted, onUnmounted, reactive, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useGalaxyStore } from "../stores/galaxy";
 import { useMovementStore } from "../stores/movement";
+import { useCombatStore } from "../stores/combat";
 import HexMap from "../components/HexMap.vue";
 import HeaderBar from "../components/layout/HeaderBar.vue";
 import LeftSidebar from "../components/layout/LeftSidebar.vue";
@@ -62,12 +64,14 @@ import LeaderboardModal from "../components/modals/LeaderboardModal.vue";
 import RightSidebar from "../components/layout/RightSidebar.vue";
 import SelectionPanel from "../components/layout/SelectionPanel.vue";
 import MovementPanel from "../components/layout/MovementPanel.vue";
+import AttackPanel from "../components/layout/AttackPanel.vue";
 import MapOverlayButtons from "../components/layout/MapOverlayButtons.vue";
 import { GameStates } from "@solaris-command/core/src/types/game";
 
 const route = useRoute();
 const galaxyStore = useGalaxyStore();
 const movementStore = useMovementStore();
+const combatStore = useCombatStore();
 const stageContainer = ref<HTMLDivElement | null>(null);
 
 const showJoinGame = ref(false);

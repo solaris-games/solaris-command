@@ -90,11 +90,10 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { Unit } from "@solaris-command/core";
 import {
   SPECIALIST_STEP_ID_MAP,
   SPECIALIST_STEP_SYMBOL_MAP,
-} from "@solaris-command/core/src/data";
+} from "@solaris-command/core/src/data/specialists";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
 
 type APIUnit = GameGalaxyResponseSchema["units"][0];

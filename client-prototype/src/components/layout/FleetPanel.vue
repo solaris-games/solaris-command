@@ -73,10 +73,10 @@ import { useGalaxyStore } from "../../stores/galaxy";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api";
 import { UnitStatus } from "@solaris-command/core/src/types/unit";
 import {
-  UNIT_CATALOG_ID_MAP,
   SPECIALIST_STEP_ID_MAP,
   SPECIALIST_STEP_SYMBOL_MAP,
-} from "@solaris-command/core/src/data";
+} from "@solaris-command/core/src/data/specialists";
+import { UNIT_CATALOG_ID_MAP } from "@solaris-command/core/src/data/units";
 
 type APIUnit = GameGalaxyResponseSchema["units"][0];
 

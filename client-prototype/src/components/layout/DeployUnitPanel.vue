@@ -124,7 +124,7 @@
 import { computed, ref } from "vue";
 import ConfirmationModal from "../modals/ConfirmationModal.vue";
 import { useGalaxyStore } from "../../stores/galaxy";
-import { UNIT_CATALOG } from "@solaris-command/core/src/data";
+import { UNIT_CATALOG } from "@solaris-command/core/src/data/units";
 
 const galaxyStore = useGalaxyStore();
 const selectedHex = computed(() => galaxyStore.selectedHex);

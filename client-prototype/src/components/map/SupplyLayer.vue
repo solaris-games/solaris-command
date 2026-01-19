@@ -16,7 +16,7 @@ import { useMapSettingsStore } from "../../stores/mapSettings";
 import { hexToPixel } from "../../utils/hexUtils";
 import { HexUtils } from "@solaris-command/core/src/utils/hex-utils";
 import { SupplyEngine } from "@solaris-command/core/src/utils/supply-engine";
-import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data";
+import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
 
 const HEX_SIZE = 64;
 const galaxyStore = useGalaxyStore();

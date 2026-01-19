@@ -27,11 +27,15 @@
           <div class="row g-2">
             <div class="col-6">
               <button
-                v-if="selectedUnit.state.status !== 'MOVING'"
+                v-if="selectedUnit.state.status !== UnitStatus.MOVING"
                 class="btn w-100 btn-success"
                 @click="movementStore.startMove(selectedUnit)"
                 data-bs-toggle="tooltip"
                 title="Set a move destination for this unit"
+                :disabled="
+                  selectedUnit.state.mp === 0 ||
+                  selectedUnit.state.status !== UnitStatus.IDLE
+                "
               >
                 <i class="bi bi-arrows-move"></i> Move
               </button>
@@ -47,15 +51,19 @@
             </div>
             <div class="col-6">
               <button
-                v-if="selectedUnit.state.status !== 'PREPARING'"
+                v-if="selectedUnit.state.status !== UnitStatus.PREPARING"
                 class="btn w-100"
-                @click="galaxyStore.toggleAttackMove()"
+                @click="combatStore.toggleAttackMode()"
                 :class="{
-                  'btn-yellow': galaxyStore.isAttackMode,
-                  'btn-warning': !galaxyStore.isAttackMode,
+                  'btn-yellow': combatStore.isAttackMode,
+                  'btn-warning': !combatStore.isAttackMode,
                 }"
                 data-bs-toggle="tooltip"
                 title="Set an attack target for this unit"
+                :disabled="
+                  selectedUnit.state.ap === 0 ||
+                  selectedUnit.state.status !== UnitStatus.IDLE
+                "
               >
                 <i class="bi bi-lightning"></i> Attack
               </button>
@@ -196,18 +204,21 @@ import { computed, ref } from "vue";
 import ConfirmationModal from "../modals/ConfirmationModal.vue";
 import { useGalaxyStore } from "../../stores/galaxy";
 import { useMovementStore } from "../../stores/movement";
+import { useCombatStore } from "../../stores/combat";
+import { CONSTANTS } from "@solaris-command/core/src/data/constants";
 import {
   SPECIALIST_STEP_CATALOG,
   SPECIALIST_STEP_SYMBOL_MAP,
-  CONSTANTS,
-} from "@solaris-command/core/src/data";
+} from "@solaris-command/core/src/data/specialists";
 import { UnitManager } from "@solaris-command/core/src/utils/unit-manager";
 import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
 import UnitDetails from "./UnitDetails.vue";
 import UnitSpecialists from "./UnitSpecialists.vue";
+import { UnitStatus } from "@solaris-command/core/src/types/unit";
 
 const galaxyStore = useGalaxyStore();
 const movementStore = useMovementStore();
+const combatStore = useCombatStore();
 const selectedUnit = computed(() => galaxyStore.selectedUnit);
 
 const selectedSpecialist = ref("");
@@ -328,7 +339,7 @@ hr {
   position: absolute;
   left: 76px;
   top: 16px;
-  width: 300px;
+  width: 350px;
   z-index: 10;
   color: #fff;
 }
