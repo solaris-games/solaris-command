@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex flex-column vh-100">
-    <HeaderBar />
+    <HeaderBar @toggle-leaderboard="toggleLeaderboard" />
 
     <div class="d-flex flex-grow-1 position-relative overflow-hidden">
       <!-- Loading and Error indicators, positioned absolutely over the map area -->
@@ -42,8 +42,10 @@
       />
 
       <RightSidebar />
-      
-      <SelectionPanel v-if="!movementStore.isMoveMode && !combatStore.isAttackMode" />
+
+      <SelectionPanel
+        v-if="!movementStore.isMoveMode && !combatStore.isAttackMode"
+      />
       <MovementPanel v-if="movementStore.isMoveMode" />
       <AttackPanel v-if="combatStore.isAttackMode" />
     </div>

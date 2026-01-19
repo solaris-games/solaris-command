@@ -2,7 +2,7 @@
   <div class="attack-panel">
     <div class="card p-1">
       <div class="card-header fw-bold bg-danger" style="border-radius: 0">
-        <i class="bi bi-lightning-fill me-1"></i>
+        <i class="fas fa-bolt-lightning me-1"></i>
         <span class="text-white">DECLARE ATTACK</span>
       </div>
       <div class="card-body bg-dark p-2">
@@ -21,7 +21,7 @@
             v-if="!defender"
             class="text-center py-4 text-muted border border-secondary border-dashed rounded"
           >
-            <i class="bi bi-crosshair display-4"></i>
+            <i class="fas fa-crosshairs display-4"></i>
             <p class="mt-2 mb-0">Select an adjacent enemy unit</p>
           </div>
           <div v-else>
@@ -29,14 +29,20 @@
               class="defender-header mb-2 d-flex justify-content-between align-items-center"
             >
               <span :style="{ color: defenderColor }">
-                <i class="bi bi-person-fill me-1"></i
-                >{{ defenderOwner?.alias || "Unknown" }}</span
+                <i
+                  class="fas me-1"
+                  :class="{
+                    'fa-user': !defenderOwner?.isAIControlled,
+                    'fa-robot': defenderOwner?.isAIControlled,
+                  }"
+                ></i>
+                {{ defenderOwner?.alias || "Unknown" }}</span
               >
               <button
                 class="btn btn-sm btn-danger"
                 @click="combatStore.clearTarget"
               >
-                <i class="bi bi-x-lg"></i>
+                <i class="fas fa-xmark"></i>
               </button>
             </div>
             <UnitDetails :unit="defender" />
@@ -162,9 +168,12 @@
                   v-for="(step, index) in attacker.steps"
                   :key="index"
                   class="step-dot"
-                  :class="{'active': !step.isSuppressed, 'suppressed': step.isSuppressed}"
+                  :class="{
+                    active: !step.isSuppressed,
+                    suppressed: step.isSuppressed,
+                  }"
                 ></span>
-                <i class="bi bi-arrow-right mx-1"></i>
+                <i class="fas fa-arrow-right mx-1"></i>
                 <!-- Simplified visualization for predicted steps -->
                 <span
                   v-for="i in Math.min(
@@ -205,9 +214,12 @@
                   v-for="(step, index) in defender.steps"
                   :key="index"
                   class="step-dot"
-                  :class="{'active': !step.isSuppressed, 'suppressed': step.isSuppressed}"
+                  :class="{
+                    active: !step.isSuppressed,
+                    suppressed: step.isSuppressed,
+                  }"
                 ></span>
-                <i class="bi bi-arrow-right mx-1"></i>
+                <i class="fas fa-arrow-right mx-1"></i>
                 <span
                   v-for="i in Math.min(
                     defender.steps.length,
@@ -244,14 +256,14 @@
                 v-if="prediction.outcome.defender.retreat"
                 class="text-warning mt-1"
               >
-                <i class="bi bi-arrow-return-left"></i> Retreat
+                <i class="fas fa-rotate-left"></i> Retreat
               </div>
             </div>
           </div>
 
           <div class="d-grid gap-2 mb-1">
             <button class="btn btn-warning" @click="combatStore.confirmAttack">
-              <i class="bi bi-crosshair"></i> Confirm Attack
+              <i class="fas fa-crosshairs"></i> Confirm Attack
             </button>
           </div>
         </div>

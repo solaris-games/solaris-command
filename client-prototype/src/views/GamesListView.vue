@@ -42,7 +42,7 @@
           <div>
             <div>
               <div v-if="myActiveGames.length === 0" class="text-center p-4">
-                <p>You have not joined any games yet.</p>
+                <p>You do not have any games in progress yet.</p>
                 <p>
                   Why not
                   <a href="#" @click.prevent="activeTab = 'open-games'"

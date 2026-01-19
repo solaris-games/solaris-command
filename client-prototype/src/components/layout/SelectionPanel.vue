@@ -6,7 +6,13 @@
         :style="panelStyle"
         style="border-radius: 0"
       >
-        <i class="bi bi-person-fill me-1"></i>
+        <i
+          class="fas me-1"
+          :class="{
+            'fa-user': !owner?.isAIControlled,
+            'fa-robot': owner?.isAIControlled,
+          }"
+        ></i>
         <span>{{ owner?.alias }}</span>
       </div>
       <div class="card-body bg-dark p-2">
@@ -37,7 +43,7 @@
                   selectedUnit.state.status !== UnitStatus.IDLE
                 "
               >
-                <i class="bi bi-arrows-move"></i> Move
+                <i class="fas fa-arrows-up-down-left-right"></i> Move
               </button>
               <button
                 v-else
@@ -46,7 +52,7 @@
                 data-bs-toggle="tooltip"
                 title="Cancel the current move order"
               >
-                <i class="bi bi-x-circle"></i> Cancel Move
+                <i class="fas fa-ban"></i> Cancel Move
               </button>
             </div>
             <div class="col-6">
@@ -65,7 +71,7 @@
                   selectedUnit.state.status !== UnitStatus.IDLE
                 "
               >
-                <i class="bi bi-lightning"></i> Attack
+                <i class="fas fa-bolt-lightning"></i> Attack
               </button>
               <button
                 v-else
@@ -74,7 +80,7 @@
                 data-bs-toggle="tooltip"
                 title="Cancel the current attack order"
               >
-                <i class="bi bi-x-circle"></i> Cancel Attack
+                <i class="fas fa-ban"></i> Cancel Attack
               </button>
             </div>
             <div class="col-6">
@@ -84,7 +90,7 @@
                 data-bs-toggle="tooltip"
                 title="Add a new, suppressed step to this unit"
               >
-                <i class="bi bi-arrow-up-circle"></i> Upgrade Step
+                <i class="fas fa-arrow-up-from-bracket"></i> Upgrade Step
               </button>
             </div>
             <div class="col-6">
@@ -94,7 +100,7 @@
                 data-bs-toggle="tooltip"
                 title="Remove a step from this unit"
               >
-                <i class="bi bi-trash"></i> Scrap Step
+                <i class="fas fa-trash"></i> Scrap Step
               </button>
             </div>
           </div>
@@ -118,7 +124,7 @@
               data-bs-toggle="tooltip"
               title="Hire the selected specialist"
             >
-              <i class="bi bi-person-plus"></i> Hire
+              <i class="fas fa-user-astronaut"></i> Hire
             </button>
           </div>
         </div>
@@ -152,16 +158,17 @@
       @cancel="cancelScrap"
     >
       <p v-if="isLastStep">
-        This will <strong class="text-danger">scrap the entire unit</strong> and
-        you will be
+        This will scrap the <span class="text-danger">entire unit</span> and you
+        will be
         <span class="text-warning"
           >refunded
           {{ CONSTANTS.UNIT_STEP_SCRAP_PRESTIGE_REWARD }} prestige</span
         >.
       </p>
       <p v-else>
-        This will <strong class="test-danger">scrap the first step</strong> of
-        the unit and you will be
+        This will scrap the
+        <span class="text-danger">first step</span>
+        of the unit and you will be
         <span class="text-warning"
           >refunded
           {{ CONSTANTS.UNIT_STEP_SCRAP_PRESTIGE_REWARD }} prestige</span

@@ -34,7 +34,7 @@
       <tbody>
         <tr></tr>
         <tr>
-          <th scope="row">Atk.</th>
+          <th scope="row" data-bs-toggle="tooltip" title="Attack">Atk.</th>
           <td
             v-for="(step, index) in specialistStepsWithStats"
             :key="index"
@@ -44,7 +44,7 @@
           </td>
         </tr>
         <tr>
-          <th scope="row">Def.</th>
+          <th scope="row" data-bs-toggle="tooltip" title="Defense">Def.</th>
           <td
             v-for="(step, index) in specialistStepsWithStats"
             :key="index"
@@ -54,7 +54,7 @@
           </td>
         </tr>
         <tr>
-          <th scope="row">Armour</th>
+          <th scope="row" data-bs-toggle="tooltip" title="Armour">Arm.</th>
           <td
             v-for="(step, index) in specialistStepsWithStats"
             :key="index"
@@ -64,7 +64,7 @@
           </td>
         </tr>
         <tr>
-          <th scope="row">Arty.</th>
+          <th scope="row" data-bs-toggle="tooltip" title="Artillery">Art.</th>
           <td
             v-for="(step, index) in specialistStepsWithStats"
             :key="index"
@@ -74,7 +74,7 @@
           </td>
         </tr>
         <tr>
-          <th scope="row">Siege</th>
+          <th scope="row" data-bs-toggle="tooltip" title="Siege">Sge.</th>
           <td
             v-for="(step, index) in specialistStepsWithStats"
             :key="index"

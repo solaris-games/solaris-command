@@ -11,7 +11,7 @@
     <div class="card-body bg-dark">
       <div class="input-group">
         <select class="form-select" v-model="selectedUnitToDeploy">
-          <option disabled value="">Select Unit</option>
+          <option disabled value="">Deploy New Unit</option>
           <option
             v-for="unit in availableUnits"
             :key="unit.id"
@@ -27,7 +27,7 @@
           data-bs-toggle="tooltip"
           title="Deploy the selected unit"
         >
-          <i class="bi bi-plus-circle"></i> Deploy
+          <i class="fas fa-rocket"></i> Deploy
         </button>
       </div>
     </div>

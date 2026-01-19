@@ -15,9 +15,36 @@
         data-bs-toggle="tooltip"
         title="Build a new station on this hex"
       >
-        <i class="bi bi-gear"></i> Build Station (${{
+        <i class="fas fa-satellite"></i> Build Station (${{
           CONSTANTS.STATION_PRESTIGE_COST
         }})
+      </button>
+    </div>
+    <!-- card-arrow -->
+    <div class="card-arrow">
+      <div class="card-arrow-top-left"></div>
+      <div class="card-arrow-top-right"></div>
+      <div class="card-arrow-bottom-left"></div>
+      <div class="card-arrow-bottom-right"></div>
+    </div>
+  </div>
+
+  <div
+    class="card p-1"
+    v-if="
+      selectedHex &&
+      selectedStation &&
+      selectedStation.playerId === galaxyStore.currentPlayerId
+    "
+  >
+    <div class="card-body bg-dark">
+      <button
+        class="btn btn-sm btn-outline-danger w-100"
+        @click="handleScuttleStation"
+        data-bs-toggle="tooltip"
+        title="Destroy this station"
+      >
+        <i class="fas fa-trash"></i> Scuttle Station
       </button>
     </div>
     <!-- card-arrow -->
@@ -39,34 +66,10 @@
       Are you sure you want to build a <strong class="text-info">Station</strong> at this location for
       <span class="text-warning">{{ CONSTANTS.STATION_PRESTIGE_COST }} prestige</span>?
     </p>
+    <p>
+      <i>Stations extend the supply range but make sure that you build them <span class="text-warning">inside your current supply network</span> otherwise they will not have supply to extend.</i>
+    </p>
   </ConfirmationModal>
-
-  <div
-    class="card p-1"
-    v-if="
-      selectedHex &&
-      selectedStation &&
-      selectedStation.playerId === galaxyStore.currentPlayerId
-    "
-  >
-    <div class="card-body bg-dark">
-      <button
-        class="btn btn-sm btn-outline-danger w-100"
-        @click="handleScuttleStation"
-        data-bs-toggle="tooltip"
-        title="Destroy this station"
-      >
-        <i class="bi bi-trash"></i> Scuttle Station
-      </button>
-    </div>
-    <!-- card-arrow -->
-    <div class="card-arrow">
-      <div class="card-arrow-top-left"></div>
-      <div class="card-arrow-top-right"></div>
-      <div class="card-arrow-bottom-left"></div>
-      <div class="card-arrow-bottom-right"></div>
-    </div>
-  </div>
 
   <ConfirmationModal
     :show="showScuttleStationConfirmation"

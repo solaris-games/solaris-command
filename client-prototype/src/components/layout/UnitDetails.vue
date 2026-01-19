@@ -45,7 +45,7 @@
         data-bs-toggle="tooltip"
         title="Remaining Action Points"
       >
-        <span class="text-warning"><i class="bi bi-lightning"></i></span>
+        <span class="text-warning"><i class="fas fa-bolt-lightning"></i></span>
       </div>
       <div
         class="step-square step-square-zoc"
@@ -53,7 +53,7 @@
         data-bs-toggle="tooltip"
         title="Unit exerts a Zone of Control"
       >
-        <span class="text-info"><i class="bi bi-circle"></i></span>
+        <span class="text-info"><i class="fas fa-circle-dot"></i></span>
       </div>
       <div
         class="step-square step-square-initiative"

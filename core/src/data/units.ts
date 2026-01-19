@@ -17,7 +17,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxMP: 24, // Very high mobility
       defaultSteps: 1,
       maxSteps: 3,
-      initiative: 0,
+      initiative: 1,
       zoc: false, // Cannot block movement
       los: 3
     },
@@ -37,7 +37,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxMP: 18,
       defaultSteps: 2,
       maxSteps: 4,
-      initiative: 0,
+      initiative: 1,
       zoc: false, // Too small to block effectively
       los: 3
     },
@@ -59,7 +59,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxMP: 14,
       defaultSteps: 2,
       maxSteps: 4,
-      initiative: 1,
+      initiative: 2,
       zoc: true,
       los: 2
     },
@@ -79,7 +79,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxMP: 16, // Fast
       defaultSteps: 3,
       maxSteps: 5,
-      initiative: 1,
+      initiative: 2,
       zoc: true,
       los: 2
     },
@@ -101,7 +101,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxMP: 12,
       defaultSteps: 3,
       maxSteps: 5,
-      initiative: 2,
+      initiative: 3,
       zoc: true,
       los: 2
     },
@@ -121,7 +121,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxMP: 12, // Fast for a capital
       defaultSteps: 4,
       maxSteps: 6,
-      initiative: 2,
+      initiative: 3,
       zoc: true,
       los: 2
     },
@@ -143,7 +143,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxMP: 10,
       defaultSteps: 4,
       maxSteps: 6,
-      initiative: 3, // Acts late
+      initiative: 4, // Acts late
       zoc: true,
       los: 1
     },
@@ -163,7 +163,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxMP: 6, // Crawls
       defaultSteps: 5,
       maxSteps: 7, // Huge HP pool
-      initiative: 3,
+      initiative: 4,
       zoc: true, // Zone of control
       los: 1 // Line of sight (hex range)
     },

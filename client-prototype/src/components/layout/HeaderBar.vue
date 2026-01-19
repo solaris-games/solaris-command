@@ -12,7 +12,7 @@
     <!-- END brand -->
 
     <!-- Game Time -->
-    <div v-if="galaxyStore.galaxy" class="d-flex align-items-center me-auto">
+    <div v-if="galaxyStore.galaxy" class="section-countdown d-flex align-items-center me-auto" @click="toggleLeaderboard">
       <span class="fw-bold" v-if="galaxyStore.isGameClockRunning">
         [Cycle {{ galaxyStore.galaxy.game.state.cycle }} - Tick
         {{ galaxyStore.galaxy.game.state.tick }}] {{ nextCycleCountdown }}
@@ -23,18 +23,18 @@
     </div>
 
     <!-- Resources -->
-    <div class="d-flex align-items-center mx-3" v-if="hasUserPlayer">
-      <i class="bi bi-currency-dollar fs-5 me-1 text-warning" data-bs-toggle="tooltip" title="Your current prestige points"></i>
+    <div class="section-resources d-flex align-items-center mx-3" v-if="hasUserPlayer" @click="toggleLeaderboard">
+      <i class="fas fa-coins fs-5 me-1 text-warning" data-bs-toggle="tooltip" title="Your current prestige points"></i>
       <span class="fw-bold">{{ prestigePoints }}</span>
       <span class="ms-3 me-1" data-bs-toggle="tooltip" title="Your current victory points">VP:</span>
       <span class="fw-bold">{{ victoryPoints }} / {{ maxVictoryPoints }}</span>
     </div>
 
     <!-- Territory -->
-    <div class="d-flex align-items-center mx-3" v-if="hasUserPlayer">
-      <i class="bi bi-globe fs-5 me-1 text-info" data-bs-toggle="tooltip" title="The number of planets you control"></i>
+    <div class="section-territory d-flex align-items-center mx-3" v-if="hasUserPlayer" @click="toggleLeaderboard">
+      <i class="fas fa-globe fs-5 me-1 text-info" data-bs-toggle="tooltip" title="The number of planets you control"></i>
       <span class="fw-bold">Planets: {{ planetCount }}</span>
-      <i class="bi bi-cpu fs-5 ms-3 me-1 text-info" data-bs-toggle="tooltip" title="The number of stations you control"></i>
+      <i class="fas fa-satellite fs-5 ms-3 me-1 text-info" data-bs-toggle="tooltip" title="The number of stations you control"></i>
       <span class="fw-bold">Stations: {{ stationCount }}</span>
     </div>
   </div>
@@ -45,6 +45,12 @@ import { computed, ref, onMounted, onUnmounted } from "vue";
 import { useGalaxyStore } from "../../stores/galaxy";
 
 const galaxyStore = useGalaxyStore();
+
+const emit = defineEmits(['toggle-leaderboard']);
+
+const toggleLeaderboard = () => {
+  emit('toggle-leaderboard');
+};
 
 const nextCycleCountdown = ref("Calculating...");
 let countdownInterval: ReturnType<typeof setInterval>;
@@ -134,5 +140,8 @@ function formatMillisecondsToHMS(ms: number) {
 <style scoped>
   .app-header {
     position: relative;
+  }
+  .section-countdown, .section-resources, .section-territory {
+    cursor: pointer;
   }
 </style>

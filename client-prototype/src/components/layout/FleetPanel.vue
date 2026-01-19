@@ -36,7 +36,7 @@
             </div>
             <div class="d-flex w-100 justify-content-between pt-1">
               <p class="mb-1 small">
-                <i class="bi bi-grid-3x3"></i> {{ unit.location.q }},
+                <i class="fas fa-table-cells-large"></i> {{ unit.location.q }},
                 {{ unit.location.r }}
               </p>
               <div class="unit-steps">

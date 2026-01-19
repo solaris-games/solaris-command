@@ -12,7 +12,7 @@
       data-bs-toggle="tooltip"
       title="Toggle Hex Coordinates"
     >
-      <i class="bi bi-grid-3x3"></i>
+      <i class="fas fa-table-cells-large"></i>
     </button>
     <button
       class="btn"
@@ -24,7 +24,7 @@
       data-bs-toggle="tooltip"
       title="Toggle Supply Network"
     >
-      <i class="bi bi-share-fill"></i>
+      <i class="fas fa-circle-nodes"></i>
     </button>
     <button
       class="btn"
@@ -36,7 +36,7 @@
       data-bs-toggle="tooltip"
       title="Toggle Zone of Control"
     >
-      <i class="bi bi-circle-fill"></i>
+      <i class="fas fa-circle-dot"></i>
     </button>
     <button
       class="btn"
@@ -48,7 +48,7 @@
       data-bs-toggle="tooltip"
       title="Toggle Hex Graphics"
     >
-      <i class="bi bi-map"></i>
+      <i class="fas fa-map"></i>
     </button>
     </div>
   </div>

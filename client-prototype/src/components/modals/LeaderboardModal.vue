@@ -63,6 +63,7 @@
             >
               <div class="row">
                 <div class="col">
+              <i class="fas me-1" :class="{'fa-user': !player.isAIControlled, 'fa-robot': player.isAIControlled}"></i>
                   <strong>{{ player.alias }}</strong>
                 </div>
                 <div class="col-auto">

@@ -5,35 +5,35 @@
         <div class="row">
           <div class="col">
             <p class="mb-0" v-if="owner">
-              <i class="bi bi-person-fill"></i>
+              <i class="fas me-1" :class="{'fa-user': !owner?.isAIControlled, 'fa-robot': owner?.isAIControlled}"></i>
               <strong>{{ owner?.alias }}</strong>
             </p>
             <p class="mb-0" v-else>
-              <i class="bi bi-person-fill"></i>
+              <i class="fas fa-user"></i>
               <i>Unowned</i>
             </p>
           </div>
           <div class="col-auto">
             <div v-if="selectedPlanet">
               <p class="mb-0">
-                <i class="bi bi-globe"></i> {{ selectedPlanet.name }}
+                <i class="fas fa-globe"></i> {{ selectedPlanet.name }}
               </p>
             </div>
             <div v-else-if="selectedStation">
-              <p class="mb-0"><i class="bi bi-cpu"></i> Station</p>
+              <p class="mb-0"><i class="fas fa-satellite"></i> Station</p>
             </div>
           </div>
         </div>
         <div class="row">
           <div class="col">
             <p class="mb-0">
-              <i class="bi bi-hexagon"></i>
+              <i class="fas fa-hexagon"></i>
               {{ terrainFriendlyNames[selectedHex.terrain] }}
             </p>
           </div>
           <div class="col-auto">
             <p class="mb-0">
-              <i class="bi bi-grid-3x3"></i> {{ selectedHex.location.q }}, {{
+              <i class="fas fa-table-cells-large"></i> {{ selectedHex.location.q }}, {{
                 selectedHex.location.r
               }}
             </p>

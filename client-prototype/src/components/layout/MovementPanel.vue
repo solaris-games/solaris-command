@@ -6,7 +6,13 @@
         :style="panelStyle"
         style="border-radius: 0"
       >
-        <i class="bi bi-person-fill me-1"></i>
+        <i
+          class="fas me-1"
+          :class="{
+            'fa-user': !owner?.isAIControlled,
+            'fa-robot': owner?.isAIControlled,
+          }"
+        ></i>
         <span>{{ owner?.alias }}</span>
       </div>
       <div class="card-body bg-dark p-2">
@@ -36,17 +42,19 @@
               }})
             </p>
 
-          <div class="col-4">
-            <button
-              class="btn btn-outline-warning"
-              @click="movementStore.undoMove()"
-            >
-              <i class="fas fa-undo"></i> Undo
-            </button>
-          </div>
+            <div class="col-4">
+              <button
+                class="btn btn-outline-warning"
+                @click="movementStore.undoMove()"
+              >
+                <i class="fas fa-undo"></i> Undo
+              </button>
+            </div>
           </div>
           <div v-else>
-            <p class="mb-0">Select a destination hex to start drawing a path.</p>
+            <p class="mb-0">
+              Select a destination hex to start drawing a path.
+            </p>
           </div>
         </div>
         <hr />
@@ -57,7 +65,7 @@
               class="btn btn-outline-danger w-100"
               @click="movementStore.cancelMove()"
             >
-              <i class="bi bi-x-circle"></i> Cancel
+              <i class="fas fa-ban"></i> Cancel
             </button>
           </div>
           <div class="col-6">
@@ -66,7 +74,7 @@
               @click="movementStore.confirmMove()"
               :disabled="movementStore.movementPath.length === 0"
             >
-              <i class="bi bi-check-circle"></i> Confirm
+              <i class="fas fa-check"></i> Confirm
             </button>
           </div>
         </div>
