@@ -60,6 +60,7 @@ export class GameGalaxyMapper {
       game: {
         _id: String(galaxy.game._id),
         mapId: galaxy.game.mapId,
+        mapName: galaxy.game.mapName,
         name: galaxy.game.name,
         description: galaxy.game.description,
         state: {

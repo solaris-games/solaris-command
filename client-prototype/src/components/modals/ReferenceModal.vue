@@ -179,7 +179,7 @@
                   <tr>
                     <th>Name</th>
                     <th>Class</th>
-                    <th>Cost</th>
+                    <th>Prestige Cost</th>
                     <th>Attack</th>
                     <th>Defense</th>
                     <th>Armour</th>
@@ -194,7 +194,7 @@
                 <tbody>
                   <tr v-for="unit in UNIT_CATALOG" :key="unit.id">
                     <td>{{ unit.name }}</td>
-                    <td>{{ unit.class }}</td>
+                    <td>{{ unit.class.replaceAll('_', ' ') }}</td>
                     <td class="text-end">{{ unit.cost }}</td>
                     <td class="text-end">{{ unit.stats.attack }}</td>
                     <td class="text-end">{{ unit.stats.defense }}</td>
@@ -226,7 +226,7 @@
                     <th>Symbol</th>
                     <th>Name</th>
                     <th>Description</th>
-                    <th>Cost</th>
+                    <th>Prestige Cost</th>
                     <th>Attack</th>
                     <th>Defense</th>
                     <th>Armour</th>
@@ -283,9 +283,9 @@
                 </thead>
                 <tbody>
                   <tr v-for="(cost, type) in TERRAIN_MP_COSTS" :key="type">
-                    <td>{{ type }}</td>
+                    <td>{{ type.replaceAll('_', ' ') }}</td>
                     <td class="text-end">{{ cost }}</td>
-                    <td>{{ COMBAT_SHIFTS_TERRAIN[type]?.type || "N/A" }}</td>
+                    <td>{{ COMBAT_SHIFTS_TERRAIN[type]?.type.replaceAll('_', ' ') || "N/A" }}</td>
                     <td class="text-end">
                       {{ COMBAT_SHIFTS_TERRAIN[type]?.value || "N/A" }}
                     </td>
@@ -307,12 +307,12 @@
                 <tbody>
                   <tr>
                     <td>Planet</td>
-                    <td>{{ COMBAT_SHIFT_PLANETS.type }}</td>
+                    <td>{{ COMBAT_SHIFT_PLANETS.type.replaceAll('_', ' ') }}</td>
                     <td class="text-end">{{ COMBAT_SHIFT_PLANETS.value }}</td>
                   </tr>
                   <tr>
-                    <td>Defender Disorganised</td>
-                    <td>{{ COMBAT_SHIFT_DEFENDER_DISORGANISED.type }}</td>
+                    <td>Defender Regrouping</td>
+                    <td>{{ COMBAT_SHIFT_DEFENDER_DISORGANISED.type.replaceAll('_', ' ') }}</td>
                     <td class="text-end">
                       {{ COMBAT_SHIFT_DEFENDER_DISORGANISED.value }}
                     </td>
@@ -351,7 +351,6 @@ import {
   COMBAT_SHIFT_PLANETS,
   COMBAT_SHIFT_DEFENDER_DISORGANISED,
 } from "@solaris-command/core/src/data/terrain";
-import { TerrainTypes } from "@solaris-command/core/src/types/hex";
 
 defineEmits(["close"]);
 
@@ -367,6 +366,9 @@ const sortedCombatResults = computed(() => {
   position: absolute;
   top: 8px;
   right: 8px;
+}
+.reference-modal {
+  margin-bottom: auto;
 }
 .tab-content {
   margin-top: 1rem;

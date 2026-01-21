@@ -72,7 +72,7 @@
                 "
               >
                 <option v-for="op in CombatOperation" :key="op" :value="op">
-                  {{ op.replace("_", " ") }}
+                  {{ op.replaceAll("_", " ") }}
                 </option>
               </select>
             </div>
@@ -144,7 +144,7 @@
                 :key="i"
                 class="text-success"
               >
-                {{ shift.type.replace("_", " ") }} (+{{ shift.value }})
+                {{ shift.type.replaceAll("_", " ") }} (+{{ shift.value }})
               </div>
             </div>
             <div class="col-6">
@@ -155,7 +155,7 @@
                 :key="i"
                 class="text-danger"
               >
-                {{ shift.type.replace("_", " ") }} ({{ shift.value }})
+                {{ shift.type.replaceAll("_", " ") }} ({{ shift.value }})
               </div>
             </div>
           </div>

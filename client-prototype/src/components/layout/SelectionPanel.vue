@@ -1,11 +1,7 @@
 <template>
   <div v-if="selectedUnit" class="selection-panel">
     <div class="card p-1">
-      <div
-        class="card-header fw-bold"
-        :style="panelStyle"
-        style="border-radius: 0"
-      >
+      <div class="card-header fw-bold" :style="panelStyle">
         <i
           class="fas me-1"
           :class="{
@@ -14,6 +10,13 @@
           }"
         ></i>
         <span>{{ owner?.alias }}</span>
+        <button
+          type="button"
+          class="btn-close"
+          @click="handleClose"
+          data-bs-toggle="tooltip"
+          title="Close this dialog"
+        ></button>
       </div>
       <div class="card-body bg-dark p-2">
         <UnitDetails :unit="selectedUnit" />
@@ -114,7 +117,7 @@
                 :value="spec.id"
               >
                 {{ SPECIALIST_STEP_SYMBOL_MAP.get(spec.type) }}
-                {{ spec.name }} (${{ spec.cost }})
+                {{ spec.name }} ({{ spec.cost }} P)
               </option>
             </select>
             <button
@@ -336,9 +339,18 @@ const panelStyle = computed(() => {
     color: "#fff",
   };
 });
+
+const handleClose = () => {
+  galaxyStore.selectedUnit = null
+}
 </script>
 
 <style scoped>
+.btn-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
 hr {
   margin: 0.5rem 0;
 }

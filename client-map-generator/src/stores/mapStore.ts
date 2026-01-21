@@ -19,6 +19,7 @@ interface MapState {
   radius: number;
   playerCount: number;
   mapId: string;
+  mapName: string;
   victoryPointsToWin: number;
   hexes: Map<string, EditorHex>; // Key is "q,r,s"
 
@@ -29,6 +30,7 @@ export const mapStore = reactive<MapState>({
   radius: 5,
   playerCount: 2,
   mapId: 'new-map',
+  mapName: 'New Map',
   hexes: new Map(),
   victoryPointsToWin: CONSTANTS.GAME_DEFAULT_VICTORY_POINTS_TO_WIN,
   selectedTerrain: TerrainTypes.EMPTY

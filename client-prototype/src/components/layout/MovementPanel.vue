@@ -26,11 +26,14 @@
               Segments: {{ movementStore.movementPath.length }}
             </p>
             <p class="mb-0">
-              From: ({{ movementStore.startHex.location.q }},
-              {{ movementStore.startHex.location.r }})
+              MP Cost: {{ movementStore.movementPathMPCost }}
+            </p>
+            <p class="mb-0">
+              From: <strong>({{ movementStore.startHex.location.q }},
+              {{ movementStore.startHex.location.r }})</strong>
             </p>
             <p class="mb-2">
-              To: ({{
+              To: <strong>({{
                 movementStore.movementPath[
                   movementStore.movementPath.length - 1
                 ].location.q
@@ -39,7 +42,7 @@
                 movementStore.movementPath[
                   movementStore.movementPath.length - 1
                 ].location.r
-              }})
+              }})</strong>
             </p>
 
             <div class="col-4">

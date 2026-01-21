@@ -99,7 +99,7 @@ export const Pathfinding = {
       }
 
       // 4. Calculate Cost
-      const moveCost = MapUtils.getHexMPCost(hexData, playerId);
+      const moveCost = MapUtils.getHexMPCost(hexData, playerId, false);
 
       // Impassable terrain has high cost defined in data, but double check logic
       if (moveCost >= 999) {

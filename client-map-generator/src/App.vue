@@ -49,6 +49,7 @@ function handleSave() {
 
   const output = {
     id: mapStore.mapId,
+    name: mapStore.mapName,
     radius: mapStore.radius,
     playerCount: mapStore.playerCount,
     victoryPointsToWin: mapStore.victoryPointsToWin,

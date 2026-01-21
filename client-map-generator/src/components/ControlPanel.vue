@@ -31,6 +31,14 @@
     </div>
 
     <div class="form-group">
+      <label>Map Name</label>
+      <input
+        type="text"
+        v-model="mapStore.mapName"
+      />
+    </div>
+
+    <div class="form-group">
       <label>Victory Points to Win</label>
       <input
         type="number"

@@ -62,6 +62,7 @@ async function checkAndCreateGames() {
     const newGameData: Game = {
       _id: gameId,
       mapId: randomMap.id,
+      mapName: randomMap.name,
       name: gameName,
       description: "Official Server Game",
       settings: {

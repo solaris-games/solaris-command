@@ -58,7 +58,10 @@
           </div>
 
           <!-- Center map -->
-          <div id="mapOverlayCenter" class="col mt-3 d-flex justify-content-center">
+          <div
+            id="mapOverlayCenter"
+            class="col mt-3 d-flex justify-content-center"
+          >
             <JoinGameModal v-if="showJoinGame" @close="showJoinGame = false" />
             <LeaderboardModal
               v-if="showLeaderboard"
@@ -73,11 +76,15 @@
           </div>
         </div>
 
-        <div id="referenceOverlayContainer" class="row position-absolute top-0 start-0 w-100 h-100">
-
-
+        <div
+          id="referenceOverlayContainer"
+          class="row position-absolute top-0 start-0 w-100 h-100"
+        >
           <!-- Center -->
-          <div id="referenceOverlayCenter" class="col mt-3 d-flex justify-content-center">
+          <div
+            id="referenceOverlayCenter"
+            class="col mt-3 d-flex justify-content-center"
+          >
             <ReferenceModal
               v-if="showReferenceModal"
               @close="showReferenceModal = false"
@@ -217,7 +224,8 @@ function handleDragEnd(e: any) {
 </script>
 
 <style scoped>
-#mapOverlayContainer, #referenceOverlayContainer {
+#mapOverlayContainer,
+#referenceOverlayContainer {
   pointer-events: none; /* Allow clicks to pass through the overlay */
 }
 

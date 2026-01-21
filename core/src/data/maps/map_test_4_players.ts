@@ -3,6 +3,7 @@ import { CONSTANTS } from "../constants";
 
 export const GAME_MAP_TEST_4_PLAYERS: GameMap = {
   id: "test_4_players",
+  name: "Test 4 Player FFA",
   playerCount: 4,
   victoryPointsToWin: CONSTANTS.GAME_DEFAULT_VICTORY_POINTS_TO_WIN,
   hexes: [

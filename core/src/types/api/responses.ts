@@ -31,6 +31,7 @@ export interface LoginResponseSchema {
 export interface GameListItemResponseSchema {
   _id: string;
   name: string;
+  mapName: string;
   description: string;
   state: {
     status: GameStates;
@@ -50,6 +51,7 @@ export interface GameGalaxyResponseSchema {
   game: {
     _id: UnifiedId;
     mapId: string;
+    mapName: string;
     name: string;
     description: string;
     state: {

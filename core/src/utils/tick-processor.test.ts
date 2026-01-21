@@ -20,6 +20,7 @@ function createGame(overrides: Partial<Game> = {}): Game {
   return {
     _id: new MockUnifiedId(),
     mapId: "test-map",
+    mapName: "Test Map",
     name: "Test Game",
     description: "Test Description",
     state: {

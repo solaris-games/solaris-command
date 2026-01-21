@@ -40,6 +40,18 @@
       <button
         class="btn"
         :class="{
+          'btn-dark': !mapSettingsStore.showMPCosts,
+          'btn-yellow': mapSettingsStore.showMPCosts,
+        }"
+        @click="mapSettingsStore.toggleMPCosts()"
+        data-bs-toggle="tooltip"
+        title="Toggle Hex MP Costs"
+      >
+        <i class="fas fa-gas-pump"></i>
+      </button>
+      <button
+        class="btn"
+        :class="{
           'btn-dark': !mapSettingsStore.showHexGraphics,
           'btn-yellow': mapSettingsStore.showHexGraphics,
         }"

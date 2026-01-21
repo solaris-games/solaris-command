@@ -6,6 +6,7 @@ export const useMapSettingsStore = defineStore("mapSettings", {
     showHexCoordinates: false,
     showSupply: false,
     showZOC: false,
+    showMPCosts: false
   }),
   actions: {
     toggleHexGraphics() {
@@ -19,6 +20,9 @@ export const useMapSettingsStore = defineStore("mapSettings", {
     },
     toggleZOC() {
       this.showZOC = !this.showZOC;
+    },
+    toggleMPCosts() {
+      this.showMPCosts = !this.showMPCosts;
     },
   },
 });

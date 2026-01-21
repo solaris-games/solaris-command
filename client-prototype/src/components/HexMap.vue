@@ -4,6 +4,7 @@
     <UnitLayer />
     <SupplyLayer />
     <ZOCLayer />
+    <MovementCostsLayer />
     <MovementDrawLayer />
     <CombatDrawLayer />
     <InteractionLayer />
@@ -18,4 +19,5 @@ import ZOCLayer from "./map/ZOCLayer.vue";
 import MovementDrawLayer from "./map/MovementDrawLayer.vue";
 import CombatDrawLayer from "./map/CombatDrawLayer.vue";
 import InteractionLayer from "./map/InteractionLayer.vue";
+import MovementCostsLayer from "./map/MovementCostsLayer.vue";
 </script>

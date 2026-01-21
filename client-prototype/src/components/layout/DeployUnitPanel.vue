@@ -17,7 +17,7 @@
             :key="unit.id"
             :value="unit.id"
           >
-            {{ unit.name }} (${{ unit.cost }})
+            {{ unit.name }} ({{ unit.cost }} P)
           </option>
         </select>
         <button

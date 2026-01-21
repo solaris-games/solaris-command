@@ -40,6 +40,7 @@ const GameSettingsSchema = new Schema<GameSettings>(
 
 const GameSchema = new Schema<Game>({
   mapId: { type: String, required: true },
+  mapName: { type: String, required: true },
   name: { type: String, required: true },
   description: { type: String, required: true },
   state: { type: GameStateSchema, required: true },

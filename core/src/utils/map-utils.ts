@@ -13,14 +13,14 @@ export const MapUtils = {
   /**
    * Calculates the MP cost for the player to move a unit into a hex. Accounts for ZOC influence.
    */
-  getHexMPCost(hex: Hex, playerId: UnifiedId | null) {
+  getHexMPCost(hex: Hex, playerId: UnifiedId | null, includeZOC: boolean = true) {
     let mpCost = TERRAIN_MP_COSTS[hex.terrain];
 
     if (mpCost == null) {
       throw new Error(ERROR_CODES.HEX_TERRAIN_UNKNOWN);
     }
 
-    if (playerId && MapUtils.isHexInEnemyZOC(hex, playerId)) {
+    if (includeZOC && playerId && MapUtils.isHexInEnemyZOC(hex, playerId)) {
       mpCost *= CONSTANTS.TERRAIN_MP_COST_ZOC_MULTIPLIER;
     }
 

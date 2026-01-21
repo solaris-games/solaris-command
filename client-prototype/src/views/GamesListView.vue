@@ -55,6 +55,7 @@
                   <thead class="table-dark">
                     <tr>
                       <th scope="col">Name</th>
+                      <th scope="col">Map</th>
                       <th scope="col">Cycle</th>
                       <th scope="col" class="d-none d-md-table-cell">Status</th>
                       <th scope="col"></th>
@@ -68,6 +69,7 @@
                       class="clickable"
                     >
                       <td>{{ game.name }}</td>
+                      <td>{{ game.mapName }}</td>
                       <td>{{ game.state.cycle }}</td>
                       <td class="d-none d-md-table-cell">
                         {{ game.state.status }}
@@ -107,6 +109,7 @@
                   <thead class="table-dark">
                     <tr>
                       <th scope="col">Name</th>
+                      <th scope="col">Map</th>
                       <th scope="col">Players</th>
                       <th scope="col"></th>
                     </tr>
@@ -119,6 +122,7 @@
                       class="clickable"
                     >
                       <td>{{ game.name }}</td>
+                      <td>{{ game.mapName }}</td>
                       <td>
                         {{ game.state.playerCount }} /
                         {{ game.settings.playerCount }}
@@ -147,13 +151,14 @@
           <div>
             <div>
               <div v-if="myCompletedGames.length === 0" class="text-center p-4">
-                No completed games found.
+                <p>You have not completed any games yet.</p>
               </div>
               <div v-else class="table-responsive">
                 <table class="table table-striped table-hover">
                   <thead class="table-dark">
                     <tr>
                       <th scope="col">Name</th>
+                      <th scope="col">Map</th>
                       <th scope="col">Cycle</th>
                       <th scope="col" class="d-none d-md-table-cell">Status</th>
                       <th scope="col"></th>
@@ -167,6 +172,7 @@
                       class="clickable"
                     >
                       <td>{{ game.name }}</td>
+                      <td>{{ game.mapName }}</td>
                       <td>{{ game.state.cycle }}</td>
                       <td class="d-none d-md-table-cell">
                         {{ game.state.status }}

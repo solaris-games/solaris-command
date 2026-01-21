@@ -32,7 +32,9 @@
               />
             </div>
             <div class="form-group mb-3">
-              <label for="color" class="form-label"><strong>Colour</strong></label>
+              <label for="color" class="form-label"
+                ><strong>Colour</strong></label
+              >
               <select class="form-select" id="color" v-model="color" required>
                 <option
                   v-for="c in availableColors"
@@ -43,7 +45,12 @@
                 </option>
               </select>
             </div>
-            <button type="submit" class="btn btn-primary w-100" data-bs-toggle="tooltip" title="Join the game with your chosen alias and color">
+            <button
+              type="submit"
+              class="btn btn-primary w-100"
+              data-bs-toggle="tooltip"
+              title="Join the game with your chosen alias and color"
+            >
               Join Game
             </button>
           </form>
@@ -81,12 +88,14 @@ import { ref, computed } from "vue";
 import { useGalaxyStore } from "../../stores/galaxy";
 import { useGameStore } from "../../stores/game";
 import { PLAYER_COLOR_LOOKUP } from "../../../../core/src/data/player-colors";
+import { useAuthStore } from "../..//stores/auth";
 
 const emit = defineEmits(["close"]);
 const galaxyStore = useGalaxyStore();
 const gameStore = useGameStore();
+const authStore = useAuthStore();
 
-const alias = ref("");
+const alias = ref(authStore.user?.username ?? "");
 const color = ref("");
 
 const availableColors = computed(() => {
@@ -94,7 +103,7 @@ const availableColors = computed(() => {
   if (!game) return [];
   const usedColors = galaxyStore.players.map((p) => p.color);
   return Array.from(PLAYER_COLOR_LOOKUP.values()).filter(
-    (c) => !usedColors.includes(c.key)
+    (c) => !usedColors.includes(c.key),
   );
 });
 

@@ -15,7 +15,7 @@
         data-bs-toggle="tooltip"
         title="Build a new station on this hex"
       >
-        <i class="fas fa-satellite"></i> Build Station (${{
+        <i class="fas fa-satellite"></i> Build Station (<i class="fas fa-coins me-1"></i>{{
           CONSTANTS.STATION_PRESTIGE_COST
         }})
       </button>

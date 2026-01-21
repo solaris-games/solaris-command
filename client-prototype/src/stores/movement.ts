@@ -13,6 +13,7 @@ export const useMovementStore = defineStore("movement", () => {
   const isMoveMode = ref(false);
   const startHex = ref<APIHex | null>(null);
   const movementPath = ref<APIHex[]>([]);
+  const movementPathMPCost = ref<number>(0);
   const reachableHexes = ref<APIHex[]>([]);
 
   function toggleMoveMode() {
@@ -50,6 +51,7 @@ export const useMovementStore = defineStore("movement", () => {
     }
 
     movementPath.value = [];
+    movementPathMPCost.value = 0;
     isMoveMode.value = true;
     recalculateReachableHexes();
   }
@@ -66,6 +68,7 @@ export const useMovementStore = defineStore("movement", () => {
     if (reachableHexes.value.some((h) => h._id === hex._id)) {
       // If the hex is reachable, add it to the path
       movementPath.value.push(hex);
+    movementPathMPCost.value += MapUtils.getHexMPCost(hex, galaxyStore.currentPlayerId, false);
     } else {
       // If not reachable, don't add
       return;
@@ -75,8 +78,12 @@ export const useMovementStore = defineStore("movement", () => {
   }
 
   function undoMove() {
+    const galaxyStore = useGalaxyStore();
+    if (!galaxyStore.galaxy || !galaxyStore.selectedUnit) return;
+
     if (movementPath.value.length) {
-      movementPath.value.pop();
+      const hex = movementPath.value.pop();
+    movementPathMPCost.value -= MapUtils.getHexMPCost(hex as any, galaxyStore.currentPlayerId, false);
       recalculateReachableHexes();
     }
   }
@@ -84,6 +91,7 @@ export const useMovementStore = defineStore("movement", () => {
   function cancelMove() {
     isMoveMode.value = false;
     movementPath.value = [];
+    movementPathMPCost.value = 0;
     reachableHexes.value = [];
     useGalaxyStore().selectedUnit = null;
     useGalaxyStore().selectedHex = null;
@@ -109,6 +117,7 @@ export const useMovementStore = defineStore("movement", () => {
 
       isMoveMode.value = false;
       movementPath.value = [];
+    movementPathMPCost.value = 0;
       reachableHexes.value = [];
     } catch (err: any) {
       alert("Move failed: " + (err.response?.data?.errorCode || err.message));
@@ -119,6 +128,7 @@ export const useMovementStore = defineStore("movement", () => {
     isMoveMode,
     startHex,
     movementPath,
+    movementPathMPCost,
     reachableHexes,
     toggleMoveMode,
     startMove,

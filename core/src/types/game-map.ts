@@ -3,6 +3,7 @@ import { HexCoords } from "./geometry";
 
 export interface GameMap {
   id: string;
+  name: string;
   playerCount: number;
   victoryPointsToWin: number;
   hexes: {

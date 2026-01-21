@@ -16,6 +16,7 @@ export class GameMapper {
     return games.map((g) => ({
       _id: String(g._id),
       name: g.name,
+      mapName: g.mapName,
       description: g.description,
       state: {
         status: g.state.status,

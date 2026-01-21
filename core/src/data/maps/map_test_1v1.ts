@@ -3,6 +3,7 @@ import { CONSTANTS } from "../constants";
 
 export const GAME_MAP_TEST_1V1: GameMap = {
   id: "test_1v1",
+  name: "Test 1 vs. 1",
   playerCount: 2,
   victoryPointsToWin: CONSTANTS.GAME_DEFAULT_VICTORY_POINTS_TO_WIN,
   hexes: [
