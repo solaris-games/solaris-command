@@ -21,7 +21,7 @@
             v-if="!defender"
             class="text-center py-4 text-muted border border-secondary border-dashed rounded"
           >
-            <i class="fas fa-crosshairs display-4"></i>
+            <h1><i class="fas fa-crosshairs"></i></h1>
             <p class="mt-2 mb-0">Select an adjacent enemy unit</p>
           </div>
           <div v-else>

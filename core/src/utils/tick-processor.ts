@@ -351,13 +351,13 @@ export const TickProcessor = {
 
         // One for the attacker and another for the defender.
         context.appendGameEvent(
-          battleResult.report.attackerUnitId,
+          battleResult.report.attackerPlayerId,
           GameEventTypes.COMBAT_REPORT,
           battleResult.report
         );
 
         context.appendGameEvent(
-          battleResult.report.defenderUnitId,
+          battleResult.report.defenderPlayerId,
           GameEventTypes.COMBAT_REPORT,
           battleResult.report
         );

@@ -46,7 +46,9 @@
                   color: getPlayerColor(winner.color)?.foreground,
                 }"
               >
-                <h5 class="mb-0"><strong>{{ winner.alias }}</strong></h5>
+                <h5 class="mb-0">
+                  <strong>{{ winner.alias }}</strong>
+                </h5>
               </div>
               <hr />
             </div>
@@ -63,7 +65,13 @@
             >
               <div class="row">
                 <div class="col">
-              <i class="fas me-1" :class="{'fa-user': !player.isAIControlled, 'fa-robot': player.isAIControlled}"></i>
+                  <i
+                    class="fas me-1"
+                    :class="{
+                      'fa-user': !player.isAIControlled,
+                      'fa-robot': player.isAIControlled,
+                    }"
+                  ></i>
                   <strong>{{ player.alias }}</strong>
                 </div>
                 <div class="col-auto">
@@ -174,7 +182,7 @@ const leaderboard = computed(() => {
   return GameLeaderboardUtils.getLeaderboard(
     galaxyStore.galaxy.players as any,
     galaxyStore.galaxy.planets,
-    galaxyStore.galaxy.units as any
+    galaxyStore.galaxy.units as any,
   );
 });
 
@@ -191,7 +199,7 @@ const getPlayerColor = (colorKey: string) => {
 const getPlanetCount = (playerId: string) => {
   if (!galaxyStore.galaxy) return 0;
   return galaxyStore.galaxy.planets.filter(
-    (p) => p.playerId?.toString() === playerId
+    (p) => p.playerId?.toString() === playerId,
   ).length;
 };
 

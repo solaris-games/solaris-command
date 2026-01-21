@@ -45,6 +45,7 @@
               @toggle-join-game="toggleJoinGame"
               @toggle-leaderboard="toggleLeaderboard"
               @toggle-reference-modal="toggleReferenceModal"
+              @toggle-event-log-modal="toggleEventLogModal"
             />
           </div>
 
@@ -89,6 +90,10 @@
               v-if="showReferenceModal"
               @close="showReferenceModal = false"
             />
+            <EventLogModal
+              v-if="showEventLogModal"
+              @close="showEventLogModal = false"
+            />
           </div>
         </div>
       </div>
@@ -108,6 +113,7 @@ import LeftSidebar from "../components/layout/LeftSidebar.vue";
 import JoinGameModal from "../components/modals/JoinGameModal.vue";
 import LeaderboardModal from "../components/modals/LeaderboardModal.vue";
 import ReferenceModal from "../components/modals/ReferenceModal.vue";
+import EventLogModal from "../components/modals/EventLogModal.vue";
 import RightSidebar from "../components/layout/RightSidebar.vue";
 import SelectionPanel from "../components/layout/SelectionPanel.vue";
 import MovementPanel from "../components/layout/MovementPanel.vue";
@@ -124,23 +130,34 @@ const stageContainer = ref<HTMLDivElement | null>(null);
 const showJoinGame = ref(false);
 const showLeaderboard = ref(false);
 const showReferenceModal = ref(false);
+const showEventLogModal = ref(false);
 
 const toggleJoinGame = () => {
   showLeaderboard.value = false;
   showReferenceModal.value = false;
+  showEventLogModal.value = false;
   showJoinGame.value = !showJoinGame.value;
 };
 
 const toggleLeaderboard = () => {
   showJoinGame.value = false;
   showReferenceModal.value = false;
+  showEventLogModal.value = false;
   showLeaderboard.value = !showLeaderboard.value;
 };
 
 const toggleReferenceModal = () => {
   showJoinGame.value = false;
   showLeaderboard.value = false;
+  showEventLogModal.value = false;
   showReferenceModal.value = !showReferenceModal.value;
+};
+
+const toggleEventLogModal = () => {
+  showJoinGame.value = false;
+  showLeaderboard.value = false;
+  showReferenceModal.value = false;
+  showEventLogModal.value = !showEventLogModal.value;
 };
 
 const configStage = reactive({

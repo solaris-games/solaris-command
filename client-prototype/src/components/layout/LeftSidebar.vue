@@ -31,6 +31,14 @@
     >
       <i class="fas fa-book"></i>
     </button>
+    <button
+      class="btn btn-outline-theme mb-2"
+      @click="toggleEventLogModal"
+      data-bs-toggle="tooltip"
+      title="Event Log"
+    >
+      <i class="fas fa-list-ul"></i>
+    </button>
 
     <div class="mt-auto d-flex flex-column">
       <button
@@ -59,7 +67,12 @@ import { GameStates } from "../../../../core/src/types/game";
 
 const galaxyStore = useGalaxyStore();
 
-const emit = defineEmits(["toggle-join-game", "toggle-leaderboard", "toggle-reference-modal"]);
+const emit = defineEmits([
+  "toggle-join-game",
+  "toggle-leaderboard",
+  "toggle-reference-modal",
+  "toggle-event-log-modal",
+]);
 
 const toggleJoinGame = () => {
   emit("toggle-join-game");
@@ -71,6 +84,10 @@ const toggleLeaderboard = () => {
 
 const toggleReferenceModal = () => {
   emit("toggle-reference-modal");
+};
+
+const toggleEventLogModal = () => {
+  emit("toggle-event-log-modal");
 };
 
 const goToMainMenu = () => {
