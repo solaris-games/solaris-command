@@ -1,6 +1,6 @@
 <template>
   <div class="card p-1 mb-1" v-if="selectedHex">
-    <div class="card-body" :style="panelStyle">
+    <div class="card-body p-2" :style="panelStyle">
       <div class="row">
         <div class="col">
           <p class="mb-0" v-if="owner">
@@ -32,7 +32,7 @@
       <div class="row">
         <div class="col">
           <p class="mb-0">
-            <i class="fas fa-hexagon"></i>
+            <i class="fas fa-layer-group"></i>
             {{ terrainFriendlyNames[selectedHex.terrain] }}
           </p>
         </div>

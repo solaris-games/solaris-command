@@ -131,7 +131,8 @@
                         <button
                           @click.stop="$router.push(`/games/${game._id}`)"
                           class="btn btn-primary btn-sm"
-                          v-tooltip="'View this game\'s details'"
+                          data-bs-toggle="tooltip"
+                          title="'View this game\'s details'"
                         >
                           View
                         </button>
@@ -181,7 +182,8 @@
                         <button
                           @click.stop="$router.push(`/games/${game._id}`)"
                           class="btn btn-info btn-sm"
-                          v-tooltip="'View game'"
+                          data-bs-toggle="tooltip"
+                          title="'View game'"
                         >
                           View
                         </button>

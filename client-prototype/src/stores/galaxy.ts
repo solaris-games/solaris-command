@@ -7,6 +7,7 @@ import { HexUtils } from "@solaris-command/core/src/utils/hex-utils";
 import { GameStates } from "@solaris-command/core/src/types/game";
 import { CombatOperation } from "@solaris-command/core/src/types/combat";
 import { UnitManager } from "@solaris-command/core/src/utils/unit-manager";
+import { getValidAttackTargetHexes } from "@/utils/combatUtils";
 
 type APIHex = GameGalaxyResponseSchema["hexes"][0];
 type APIUnit = GameGalaxyResponseSchema["units"][0];
@@ -31,6 +32,9 @@ export const useGalaxyStore = defineStore("galaxy", {
     planetLookup: null as Map<string, APIPlanet> | null,
     stationLookup: null as Map<string, APIStation> | null,
     validSpawnLocations: null as Map<string, APIHex> | null,
+    selectedHexIsValidSpawnLocation: null as boolean | null,
+    selectedHexIsValidStationSpawnLocation: null as boolean | null,
+    selectedUnitHasValidAttackTargets: null as boolean | null,
     isGameInPlay: false,
     isGameClockRunning: false,
   }),
@@ -166,6 +170,27 @@ export const useGalaxyStore = defineStore("galaxy", {
           (s) =>
             s.location.q === hex.location.q && s.location.r === hex.location.r,
         ) ?? null;
+
+      this.selectedHexIsValidSpawnLocation =
+        this.selectedHex &&
+        String(this.selectedHex.playerId) === String(this.currentPlayerId) &&
+        this.selectedHex.unitId == null &&
+        this.selectedHex.planetId == null &&
+        this.validSpawnLocations &&
+        this.validSpawnLocations.has(
+          String(HexUtils.getCoordsID(this.selectedHex.location)),
+        );
+
+      this.selectedHexIsValidStationSpawnLocation =
+        this.currentPlayer &&
+        this.selectedHex &&
+        this.selectedHex.playerId != null &&
+        String(this.selectedHex.playerId) === String(this.currentPlayerId) &&
+        this.selectedHex.planetId == null &&
+        this.selectedHex.stationId == null;
+
+      this.selectedUnitHasValidAttackTargets =
+        getValidAttackTargetHexes().length > 0;
     },
     async cancelMovement(unit: APIUnit) {
       if (!this.selectedUnit) {

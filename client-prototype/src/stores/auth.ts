@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia'
-import axios from 'axios'
+import { defineStore } from "pinia";
+import axios from "axios";
 
 interface User {
   _id: string;
@@ -7,10 +7,12 @@ interface User {
   email: string;
 }
 
-export const useAuthStore = defineStore('auth', {
+export const useAuthStore = defineStore("auth", {
   state: () => ({
-    token: localStorage.getItem('auth_token') || null as string | null,
-    user: JSON.parse(localStorage.getItem('auth_user') || 'null') as User | null,
+    token: localStorage.getItem("auth_token") || (null as string | null),
+    user: JSON.parse(
+      localStorage.getItem("auth_user") || "null",
+    ) as User | null,
   }),
   getters: {
     isAuthenticated: (state) => !!state.token,
@@ -18,35 +20,38 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async loginDev(username: string, email: string) {
       try {
-        const response = await axios.post('/api/v1/auth/dev', { username, email });
+        const response = await axios.post("/api/v1/auth/dev", {
+          username,
+          email,
+        });
         const { token, user } = response.data;
 
         this.token = token;
         this.user = user;
 
-        localStorage.setItem('auth_token', token);
-        localStorage.setItem('auth_user', JSON.stringify(user));
+        localStorage.setItem("auth_token", token);
+        localStorage.setItem("auth_user", JSON.stringify(user));
 
         // Set default header
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
         return true;
       } catch (error) {
-        console.error('Login failed', error);
+        console.error("Login failed", error);
         return false;
       }
     },
     logout() {
       this.token = null;
       this.user = null;
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('auth_user');
-      delete axios.defaults.headers.common['Authorization'];
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("auth_user");
+      delete axios.defaults.headers.common["Authorization"];
     },
     initialize() {
-        if (this.token) {
-             axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
-        }
-    }
-  }
-})
+      if (this.token) {
+        axios.defaults.headers.common["Authorization"] = `Bearer ${this.token}`;
+      }
+    },
+  },
+});

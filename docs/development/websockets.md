@@ -21,7 +21,7 @@ Socket.IO uses "rooms" to broadcast messages to specific subsets of clients.
 | Room Name | Description | Subscription |
 | :--- | :--- | :--- |
 | `user:{userId}` | Private channel for a specific user. | Joined automatically upon connection based on JWT. |
-| `game:{gameId}` | Channel for a specific game instance. | Client must explicitly emit `join_game` event. |
+| `game:{gameId}` | Channel for a specific game instance. | Client must explicitly emit `JOIN_GAME` event. |
 
 ## Client Integration Guide
 
@@ -59,16 +59,16 @@ socket.on("connect_error", (err) => {
 
 ### 3. Join a Game Room
 
-To receive updates for a specific game, you must emit the `join_game` event with the Game ID.
+To receive updates for a specific game, you must emit the `JOIN_GAME` event with the Game ID.
 
 ```javascript
 const gameId = "65abcdef1234567890abcdef";
 
 // Join the game room
-socket.emit("join_game", gameId);
+socket.emit("JOIN_GAME", gameId);
 
 // Listen for confirmation
-socket.on("game_joined", (data) => {
+socket.on("GAME_JOINED", (data) => {
   console.log(`Joined game room: ${data.gameId}`);
 });
 ```
@@ -175,7 +175,7 @@ Here is a standalone example you can run in a browser (served via a simple HTTP 
                 log("Connection Error: " + err.message);
             });
 
-            socket.on("game_joined", (data) => {
+            socket.on("GAME_JOINED", (data) => {
                 log("Joined Game Room:", data);
             });
 
@@ -195,7 +195,7 @@ Here is a standalone example you can run in a browser (served via a simple HTTP 
             if (!gameId) return alert("Enter Game ID");
 
             log("Requesting to join game: " + gameId);
-            socket.emit("join_game", gameId);
+            socket.emit("JOIN_GAME", gameId);
         }
 
         function leaveGame() {
@@ -204,7 +204,7 @@ Here is a standalone example you can run in a browser (served via a simple HTTP 
              if (!gameId) return alert("Enter Game ID");
 
              log("Requesting to leave game: " + gameId);
-             socket.emit("leave_game", gameId);
+             socket.emit("LEAVE_GAME", gameId);
         }
     </script>
 </body>

@@ -1,9 +1,8 @@
 <template>
-  <div class="card mb-1 p-1">
+  <div class="card mb-1 p-1" v-if="sortedPlayerUnits.length">
     <div class="card-header bg-dark fw-bold small">FLEET</div>
     <div class="card-body bg-dark p-2">
-      <p v-if="!sortedPlayerUnits.length" class="text-muted mb-0">No units.</p>
-      <div v-else class="units-list">
+      <div class="units-list">
         <div class="list-group">
           <a
             href="#"

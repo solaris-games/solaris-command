@@ -1,5 +1,5 @@
 <template>
-  <div class="reference-modal">
+  <div class="event-log-modal">
     <div class="modal-content">
       <div class="card p-1">
         <div class="card-header bg-dark fw-bold">
@@ -107,13 +107,13 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.event-log-modal {
+  margin-bottom: auto;
+}
 .btn-close {
   position: absolute;
   top: 8px;
   right: 8px;
-}
-.reference-modal {
-  margin-bottom: auto;
 }
 .scrollable-list {
   max-height: 80vh;

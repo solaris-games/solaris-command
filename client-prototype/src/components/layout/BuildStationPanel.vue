@@ -1,23 +1,24 @@
 <template>
   <div
     class="card p-1 mb-1"
-    v-if="
-      selectedHex &&
-      selectedHex.playerId === galaxyStore.currentPlayerId &&
-      selectedHex.planetId == null &&
-      !selectedStation
-    "
+    v-if="galaxyStore.selectedHexIsValidStationSpawnLocation"
   >
-    <div class="card-body bg-dark">
+    <div class="card-body bg-dark p-2">
       <button
         class="btn btn-sm btn-primary w-100"
         @click="handleBuildStation"
         data-bs-toggle="tooltip"
         title="Build a new station on this hex"
+        :disabled="
+          !galaxyStore.currentPlayer ||
+          galaxyStore.currentPlayer.prestigePoints <
+            CONSTANTS.STATION_PRESTIGE_COST
+        "
       >
-        <i class="fas fa-satellite"></i> Build Station (<i class="fas fa-coins me-1"></i>{{
-          CONSTANTS.STATION_PRESTIGE_COST
-        }})
+        <i class="fas fa-satellite"></i> Build Station (<i
+          class="fas fa-coins me-1"
+        ></i
+        >{{ CONSTANTS.STATION_PRESTIGE_COST }})
       </button>
     </div>
     <!-- card-arrow -->
@@ -34,10 +35,10 @@
     v-if="
       selectedHex &&
       selectedStation &&
-      selectedStation.playerId === galaxyStore.currentPlayerId
+      String(selectedStation.playerId) === String(galaxyStore.currentPlayerId)
     "
   >
-    <div class="card-body bg-dark">
+    <div class="card-body bg-dark p-2">
       <button
         class="btn btn-sm btn-outline-danger w-100"
         @click="handleScuttleStation"
@@ -63,11 +64,18 @@
     @cancel="cancelBuildStation"
   >
     <p>
-      Are you sure you want to build a <strong class="text-info">Station</strong> at this location for
-      <span class="text-warning">{{ CONSTANTS.STATION_PRESTIGE_COST }} prestige</span>?
+      Are you sure you want to build a
+      <strong class="text-info">Station</strong> at this location for
+      <span class="text-warning"
+        >{{ CONSTANTS.STATION_PRESTIGE_COST }} prestige</span
+      >?
     </p>
     <p>
-      <i>Stations extend the supply range but make sure that you build them <span class="text-warning">inside your current supply network</span> otherwise they will not have supply to extend.</i>
+      <i
+        >Stations extend the supply range but make sure that you build them
+        <span class="text-warning">inside your current supply network</span>
+        otherwise they will not have supply to extend.</i
+      >
     </p>
   </ConfirmationModal>
 
@@ -78,8 +86,9 @@
     @cancel="cancelScuttleStation"
   >
     <p>
-      Are you sure you want to <strong class="text-danger">scuttle this station</strong>? You will not be refunded
-      any prestige.
+      Are you sure you want to
+      <strong class="text-danger">scuttle this station</strong>? You will not be
+      refunded any prestige.
     </p>
   </ConfirmationModal>
 </template>

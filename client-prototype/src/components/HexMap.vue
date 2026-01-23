@@ -1,5 +1,6 @@
 <template>
     <HexLayer />
+    <TerritoryBorderLayer />
     <EffectLayer />
     <UnitLayer />
     <SupplyLayer />
@@ -12,6 +13,7 @@
 
 <script setup lang="ts">
 import HexLayer from "./map/HexLayer.vue";
+import TerritoryBorderLayer from "./map/TerritoryBorderLayer.vue";
 import EffectLayer from "./map/EffectLayer.vue";
 import UnitLayer from "./map/UnitLayer.vue";
 import SupplyLayer from "./map/SupplyLayer.vue";

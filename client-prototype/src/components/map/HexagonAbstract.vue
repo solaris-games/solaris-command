@@ -19,11 +19,16 @@ const groupRef = ref(null);
 const getPolygonConfig = computed(() => {
   let fill = "rgba(0, 0, 0, 0)";
   let stroke = "#444";
-  let opacity = 0.6;
+  let strokeWidth = 4;
+  let opacity = 0.4;
 
   if (props.hex.planetId) {
     stroke = "#FFF";
-    opacity = 1;
+    opacity = 0.8;
+  }
+
+  if (galaxyStore.validSpawnLocations && galaxyStore.validSpawnLocations.get(String(HexUtils.getCoordsID(props.hex.location)))) {
+    opacity = 0.45 // Indicates that the hex is a valid spawn location.
   }
 
   if (props.hex.playerId) {
@@ -31,7 +36,7 @@ const getPolygonConfig = computed(() => {
     const playerColor = PLAYER_COLOR_LOOKUP.get(player.color);
     if (playerColor) {
       fill = playerColor.background;
-      stroke = playerColor.foreground;
+      stroke = playerColor.background;
     }
   }
 
@@ -39,8 +44,8 @@ const getPolygonConfig = computed(() => {
     sides: 6,
     radius: HEX_SIZE - 2,
     fill,
-    stroke: stroke,
-    strokeWidth: 4,
+    stroke,
+    strokeWidth,
     rotation: 60,
     opacity,
   };
@@ -84,7 +89,9 @@ const getBackgroundTextConfig = computed(() => {
   }
 
   if (props.hex.planetId != null) {
-    const isCapital = galaxyStore.planetLookup!.get(String(HexUtils.getCoordsID(props.hex.location)))!.isCapital
+    const isCapital = galaxyStore.planetLookup!.get(
+      String(HexUtils.getCoordsID(props.hex.location)),
+    )!.isCapital;
 
     text = isCapital ? "✫" : "⦲";
   }

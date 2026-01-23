@@ -1,13 +1,13 @@
 export const CONSTANTS = {
   // Supply
-  SUPPLY_RANGE_MP_ROOT: 8,
+  SUPPLY_RANGE_MP_ROOT: 6,
   SUPPLY_RANGE_MP_NODE: 4,
 
   TERRAIN_MP_COST_ZOC_MULTIPLIER: 2,
 
   // Planets
-  PLANET_PRESTIGE_INCOME_CAPITAL: 100,
-  PLANET_PRESTIGE_INCOME: 50,
+  PLANET_PRESTIGE_INCOME_CAPITAL: 250,
+  PLANET_PRESTIGE_INCOME: 100,
 
   // VP income is based on the rule of thumb of 8 player games
   // with 8 planets per player; games should last ~2 weeks.
@@ -25,7 +25,7 @@ export const CONSTANTS = {
   STATION_VISION_RANGE: 2,
 
   // Stations
-  STATION_PRESTIGE_COST: 250,
+  STATION_PRESTIGE_COST: 150,
 
   // Game Creation / Settings
   GAME_STARTING_PRESTIGE_POINTS: 500,

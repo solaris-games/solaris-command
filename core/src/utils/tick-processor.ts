@@ -107,16 +107,24 @@ const handleHexCapture = (context: TickContext, hex: Hex, unit: Unit) => {
   // Flip Planet Ownership (if one exists here)
   const planet = context.planetLookup.get(hexCoordsId);
   if (planet && String(planet.playerId) !== String(unit.playerId)) {
+    const ownerPlayer = context.playerLookup.get(String(planet.playerId));
+    const capturedByPlayer = context.playerLookup.get(String(unit.playerId))!;
+
     context.appendGameEvent(
       null, // Everyone
       GameEventTypes.PLANET_CAPTURED,
       {
         planetId: planet._id,
+        planetName: planet.name,
         hexId: planet.hexId,
         location: planet.location,
-        ownerPlayerId: planet.playerId,
-        capturedByPlayerId: unit.playerId,
-      }
+        ownerPlayerId: ownerPlayer?._id ?? null,
+        ownerPlayerAlias: ownerPlayer?.alias ?? null,
+        ownerPlayerColor: ownerPlayer?.color ?? null,
+        capturedByPlayerId: capturedByPlayer._id,
+        capturedByPlayerAlias: capturedByPlayer.alias,
+        capturedByPlayerColor: capturedByPlayer.color,
+      },
     );
 
     planet.playerId = unit.playerId;
@@ -125,6 +133,9 @@ const handleHexCapture = (context: TickContext, hex: Hex, unit: Unit) => {
   // Destroy hostile stations
   const station = context.stationLookup.get(hexCoordsId);
   if (station && String(station.playerId) !== String(unit.playerId)) {
+    const ownerPlayer = context.playerLookup.get(String(station.playerId))!;
+    const destroyedByPlayer = context.playerLookup.get(String(unit.playerId))!;
+
     context.appendGameEvent(
       null, // Everyone
       GameEventTypes.STATION_DESTROYED,
@@ -132,9 +143,13 @@ const handleHexCapture = (context: TickContext, hex: Hex, unit: Unit) => {
         stationId: station._id,
         hexId: station.hexId,
         location: station.location,
-        ownerPlayerId: station.playerId,
-        destroyedByPlayerId: unit.playerId,
-      }
+        ownerPlayerId: ownerPlayer._id,
+        ownerPlayerAlias: ownerPlayer.alias,
+        ownerPlayerColor: ownerPlayer.color,
+        destroyedByPlayerId: destroyedByPlayer._id,
+        destroyedByPlayerAlias: destroyedByPlayer.alias,
+        destroyedByPlayerColor: destroyedByPlayer.color,
+      },
     );
 
     hex.stationId = null;
@@ -164,7 +179,7 @@ export const TickProcessor = {
       console.log(
         `💰 Processing Cycle ${context.game.state.cycle + 1} for Game ${
           context.game._id
-        }`
+        }`,
       );
 
       TickProcessor.processCycle(context);
@@ -194,7 +209,7 @@ export const TickProcessor = {
     // and were NOT involved in combat, then set them to idle now.
     for (const [, unit] of context.preTickRegroupingUnits) {
       const isStillRegrouping = context.postTickRegroupingUnits.has(
-        String(unit._id)
+        String(unit._id),
       );
 
       if (!isStillRegrouping) {
@@ -309,13 +324,14 @@ export const TickProcessor = {
             GameEventTypes.UNIT_COMBAT_ATTACK_CANCELLED,
             {
               unitId: attacker._id,
+              catalogId: attacker.catalogId,
               combat: {
                 hexId: attacker.combat.hexId,
                 location: attacker.combat.location,
                 operation: attacker.combat.operation,
                 advanceOnVictory: attacker.combat.advanceOnVictory,
               },
-            }
+            },
           );
 
           // Attack fails/cancels
@@ -335,7 +351,7 @@ export const TickProcessor = {
           defender,
           context.hexLookup,
           attacker.combat.operation!,
-          attacker.combat.advanceOnVictory!
+          attacker.combat.advanceOnVictory!,
         );
 
         // Clear the attacker's combat order.
@@ -353,13 +369,13 @@ export const TickProcessor = {
         context.appendGameEvent(
           battleResult.report.attackerPlayerId,
           GameEventTypes.COMBAT_REPORT,
-          battleResult.report
+          battleResult.report,
         );
 
         context.appendGameEvent(
           battleResult.report.defenderPlayerId,
           GameEventTypes.COMBAT_REPORT,
-          battleResult.report
+          battleResult.report,
         );
 
         // Keep track of which units are regrouping
@@ -387,9 +403,10 @@ export const TickProcessor = {
             GameEventTypes.UNIT_DESTROYED_IN_COMBAT,
             {
               unitId: defender._id,
+              catalogId: defender.catalogId,
               hexId: defender.hexId,
               location: defender.location,
-            }
+            },
           );
         } else if (
           battleResult.report.defender.retreated &&
@@ -397,11 +414,11 @@ export const TickProcessor = {
         ) {
           // Move the defender
           context.unitLocations.delete(
-            HexUtils.getCoordsID(battleResult.defenderHex.location)
+            HexUtils.getCoordsID(battleResult.defenderHex.location),
           );
           context.unitLocations.set(
             HexUtils.getCoordsID(battleResult.retreatHex.location),
-            defender
+            defender,
           );
         }
 
@@ -410,7 +427,7 @@ export const TickProcessor = {
           // Attacker destroyed
           // Note: Hex unit reference is handled in battle resolution
           context.unitLocations.delete(
-            HexUtils.getCoordsID(battleResult.attackerHex.location)
+            HexUtils.getCoordsID(battleResult.attackerHex.location),
           ); // Remove from board
 
           context.appendGameEvent(
@@ -418,18 +435,19 @@ export const TickProcessor = {
             GameEventTypes.UNIT_DESTROYED_IN_COMBAT,
             {
               unitId: attacker._id,
+              catalogId: attacker.catalogId,
               hexId: attacker.hexId,
               location: attacker.location,
-            }
+            },
           );
         } else if (battleResult.attackerWonHex) {
           // Move the attacker
           context.unitLocations.delete(
-            HexUtils.getCoordsID(battleResult.attackerHex.location)
+            HexUtils.getCoordsID(battleResult.attackerHex.location),
           );
           context.unitLocations.set(
             HexUtils.getCoordsID(battleResult.defenderHex.location),
-            attacker
+            attacker,
           );
 
           handleHexCapture(context, targetHex, attacker);
@@ -493,11 +511,12 @@ export const TickProcessor = {
         GameEventTypes.UNIT_MOVEMENT_BOUNCED,
         {
           unitId: intent.unit._id,
+          catalogId: intent.unit.catalogId,
           toHexId: toHex._id,
           toHexLocation: toHex.location,
           fromHexId: intent.unit.hexId,
           fromHexLocation: intent.unit.location,
-        }
+        },
       );
     };
 
@@ -571,7 +590,7 @@ export const TickProcessor = {
 
     const liveStations = context.stations.filter(
       (s) =>
-        !context.stationsToRemove.some((id) => String(id) === String(s._id))
+        !context.stationsToRemove.some((id) => String(id) === String(s._id)),
     );
 
     // Process each Player independently
@@ -584,11 +603,11 @@ export const TickProcessor = {
         player._id,
         context.hexes,
         context.planets,
-        liveStations
+        liveStations,
       );
 
       const playerUnits = liveUnits.filter(
-        (u) => String(u.playerId) === playerIdStr
+        (u) => String(u.playerId) === playerIdStr,
       );
 
       playerUnits.forEach((unit) => {
@@ -596,7 +615,7 @@ export const TickProcessor = {
         unit.supply = SupplyEngine.processTickSupplyTarget(
           unit.supply,
           unit.location,
-          supplyNetwork
+          supplyNetwork,
         );
       });
     });
@@ -611,13 +630,13 @@ export const TickProcessor = {
       }
 
       const totalPlanets = context.planets.filter(
-        (p) => p.playerId && String(p.playerId) === String(player._id)
+        (p) => p.playerId && String(p.playerId) === String(player._id),
       ).length;
 
       const totalUnits = context.units.filter(
         (u) =>
           String(u.playerId) === String(player._id) &&
-          UnitManager.unitIsAlive(u)
+          UnitManager.unitIsAlive(u),
       ).length;
 
       return totalPlanets === 0 && totalUnits === 0;
@@ -635,7 +654,7 @@ export const TickProcessor = {
     // --- VICTORY BY LAST MAN STANDING CHECK ---
     // Filter active players (Not defeated)
     const activePlayers = context.players.filter(
-      (p) => p.status !== PlayerStatus.DEFEATED
+      (p) => p.status !== PlayerStatus.DEFEATED,
     );
 
     if (activePlayers.length === 1) {
@@ -645,9 +664,10 @@ export const TickProcessor = {
     // --- VICTORY BY VP CHECK ---
     // Note: If all players are defeated or afk then let's just end the game now.
     const defeatedOrAFKPlayerCount = context.players.filter(
-      (p) => p.status === PlayerStatus.DEFEATED || p.status === PlayerStatus.AFK
+      (p) =>
+        p.status === PlayerStatus.DEFEATED || p.status === PlayerStatus.AFK,
     ).length;
-    
+
     const isAllPlayersDefeatedOrAFK =
       defeatedOrAFKPlayerCount === context.game.settings.playerCount;
 
@@ -656,11 +676,11 @@ export const TickProcessor = {
         GameLeaderboardUtils.getLeaderboard(
           context.players,
           context.planets,
-          context.units
+          context.units,
         ).filter(
           (x) =>
             x.status === PlayerStatus.ACTIVE &&
-            x.victoryPoints >= context.game.settings.victoryPointsToWin
+            x.victoryPoints >= context.game.settings.victoryPointsToWin,
         )[0] ?? null;
     }
 
@@ -685,12 +705,12 @@ export const TickProcessor = {
     // Units in radiation storms suffer 1 step suppression.
     const hexes = context.hexes.filter(
       (hex) =>
-        hex.unitId != null && hex.terrain === TerrainTypes.RADIATION_STORM
+        hex.unitId != null && hex.terrain === TerrainTypes.RADIATION_STORM,
     );
 
     for (const hex of hexes) {
       const unit = context.units.find(
-        (u) => String(u._id) === String(hex.unitId)
+        (u) => String(u._id) === String(hex.unitId),
       )!;
 
       unit.steps = UnitManager.suppressSteps(unit.steps, 1);
@@ -729,7 +749,7 @@ export const TickProcessor = {
     const scoutUnits = context.units
       .filter(
         // Filter only alive units
-        (u) => UnitManager.unitIsAlive(u)
+        (u) => UnitManager.unitIsAlive(u),
       )
       .filter((u) => {
         // Unit must have active scout specialist to do this.
@@ -795,7 +815,7 @@ export const TickProcessor = {
 
       // LOGISTICS PHASE
       const playerUnits = liveUnits.filter(
-        (u) => String(u.playerId) === playerIdStr
+        (u) => String(u.playerId) === playerIdStr,
       );
 
       playerUnits.forEach((unit) => {
@@ -808,7 +828,7 @@ export const TickProcessor = {
           // Unit died this cycle
           // Remove unit from hex
           const hex = context.hexLookup.get(
-            HexUtils.getCoordsID(unit.location)
+            HexUtils.getCoordsID(unit.location),
           )!;
           hex.unitId = null;
 
@@ -817,16 +837,17 @@ export const TickProcessor = {
             GameEventTypes.UNIT_STARVED_BY_OOS,
             {
               unitId: unit._id,
+              catalogId: unit.catalogId,
               hexId: unit.hexId,
               location: unit.location,
-            }
+            },
           );
         }
       });
 
       // --- ECONOMY PHASE ---
       const ownedPlanets = context.planets.filter(
-        (p) => String(p.playerId) === playerIdStr
+        (p) => String(p.playerId) === playerIdStr,
       );
 
       // Calculate Prestige Income
@@ -846,7 +867,7 @@ export const TickProcessor = {
         {
           newPrestige,
           newVP,
-        }
+        },
       );
     });
 
@@ -870,7 +891,7 @@ export const TickProcessor = {
         (planet.isCapital
           ? CONSTANTS.PLANET_PRESTIGE_INCOME_CAPITAL
           : CONSTANTS.PLANET_PRESTIGE_INCOME),
-      0
+      0,
     );
   },
 
@@ -884,7 +905,7 @@ export const TickProcessor = {
         (planet.isCapital
           ? CONSTANTS.PLANET_VP_INCOME_CAPITAL
           : CONSTANTS.PLANET_VP_INCOME),
-      0
+      0,
     );
   },
 
@@ -892,7 +913,7 @@ export const TickProcessor = {
     // ----- UNIT COMBAT VALIDATION -----
     // Validate that units preparing to fight are in a valid state and follow the game rules.
     const attackers = context.units.filter(
-      (u) => u.state.status === UnitStatus.PREPARING
+      (u) => u.state.status === UnitStatus.PREPARING,
     );
 
     for (const unit of attackers) {
@@ -908,7 +929,7 @@ export const TickProcessor = {
 
       // Hex must exist
       const hex = context.hexLookup.get(
-        HexUtils.getCoordsID(unit.combat.location)
+        HexUtils.getCoordsID(unit.combat.location),
       );
 
       if (!hex) {
@@ -931,7 +952,7 @@ export const TickProcessor = {
       }
 
       const targetUnit = context.unitLocations.get(
-        HexUtils.getCoordsID(unit.combat.location)
+        HexUtils.getCoordsID(unit.combat.location),
       );
 
       // Should not happen if hex.unitId is set but double check
@@ -949,7 +970,7 @@ export const TickProcessor = {
 
         if (!hasArtillery) {
           throw new Error(
-            ERROR_CODES.UNIT_MUST_HAVE_ACTIVE_ARTILLERY_SPECIALIST
+            ERROR_CODES.UNIT_MUST_HAVE_ACTIVE_ARTILLERY_SPECIALIST,
           );
         }
       }
@@ -966,7 +987,7 @@ export const TickProcessor = {
     // ----- UNIT MOVEMENT VALIDATION -----
     // Validate the units preparing to move are in a valid state and follow the game rules.
     const movers = context.units.filter(
-      (u) => u.state.status === UnitStatus.MOVING
+      (u) => u.state.status === UnitStatus.MOVING,
     );
 
     for (const unit of movers) {

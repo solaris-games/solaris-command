@@ -30,7 +30,7 @@ export const CreateGameJob = {
 
 async function checkAndCreateGames() {
   // We want to have an official game for each of these player counts:
-  const playerCountPool = [2, 4, 8];
+  const playerCountPool = [2, 4, 6, 8];
 
   for (const playerCount of playerCountPool) {
     const maps = GAME_MAPS.filter((map) => map.playerCount === playerCount);

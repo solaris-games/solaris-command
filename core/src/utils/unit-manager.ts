@@ -169,6 +169,11 @@ export const UnitManager = {
       )
         continue;
 
+      // Must be owned by the current player.
+      if (hex.playerId == null || String(hex.playerId) !== String(playerId)) {
+        continue
+      } 
+
       // Must be empty of units
       const isOccupied = allUnits.some(
         (u) => HexUtils.getCoordsID(u.location) === hexId

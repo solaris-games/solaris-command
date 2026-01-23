@@ -2,10 +2,9 @@ import { defineStore } from "pinia";
 import { useGalaxyStore } from "./galaxy";
 import { CombatCalculator } from "@solaris-command/core/src/utils/combat-calculator";
 import { CombatTables } from "@solaris-command/core/src/data/combat-tables";
-import { HexUtils } from "@solaris-command/core/src/utils/hex-utils";
-import { Unit } from "@solaris-command/core/src/types/unit";
 import { CombatOperation } from "@solaris-command/core/src/types/combat";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
+import { getValidAttackTargetHexes } from "@/utils/combatUtils";
 
 type APIUnit = GameGalaxyResponseSchema["units"][0];
 
@@ -18,33 +17,11 @@ export const useCombatStore = defineStore("combat", {
   }),
   getters: {
     validTargetHexes: (state) => {
-      const galaxyStore = useGalaxyStore();
-      const attacker = galaxyStore.selectedUnit;
-      if (!attacker || !state.isAttackMode) return [];
-
-      const attackerHex = galaxyStore.getHex(attacker.location.q, attacker.location.r);
-      if (!attackerHex) return [];
-
-      const units = galaxyStore.units;
-      const currentPlayerId = galaxyStore.currentPlayerId;
-
-      const neighbors = HexUtils.neighbors(attackerHex.location);
-      const targets = [];
-
-      for (const n of neighbors) {
-        const hex = galaxyStore.getHex(n.q, n.r);
-        if (hex) {
-           const enemyUnit = units.find(u =>
-             u.location.q === hex.location.q &&
-             u.location.r === hex.location.r &&
-             String(u.playerId) !== String(currentPlayerId)
-           );
-           if (enemyUnit) {
-             targets.push(hex);
-           }
-        }
+      if (!state.isAttackMode) {
+        return []
       }
-      return targets;
+
+      return getValidAttackTargetHexes()
     },
     prediction: (state) => {
       const galaxyStore = useGalaxyStore();

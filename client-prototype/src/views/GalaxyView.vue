@@ -62,13 +62,7 @@
           <div
             id="mapOverlayCenter"
             class="col mt-3 d-flex justify-content-center"
-          >
-            <JoinGameModal v-if="showJoinGame" @close="showJoinGame = false" />
-            <LeaderboardModal
-              v-if="showLeaderboard"
-              @close="showLeaderboard = false"
-            />
-          </div>
+          ></div>
 
           <!-- Right map -->
           <div id="mapOverlayRight" class="col-4 col-lg-3 mt-3">
@@ -78,14 +72,19 @@
         </div>
 
         <div
-          id="referenceOverlayContainer"
+          id="mapOverlayAllContainer"
           class="row position-absolute top-0 start-0 w-100 h-100"
         >
           <!-- Center -->
           <div
-            id="referenceOverlayCenter"
+            id="mapOverlayAll"
             class="col mt-3 d-flex justify-content-center"
           >
+            <JoinGameModal v-if="showJoinGame" @close="showJoinGame = false" />
+            <LeaderboardModal
+              v-if="showLeaderboard"
+              @close="showLeaderboard = false"
+            />
             <ReferenceModal
               v-if="showReferenceModal"
               @close="showReferenceModal = false"
@@ -105,6 +104,7 @@
 import { onMounted, onUnmounted, reactive, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useGalaxyStore } from "../stores/galaxy";
+import { useSocketStore } from "../stores/socket";
 import { useMovementStore } from "../stores/movement";
 import { useCombatStore } from "../stores/combat";
 import HexMap from "../components/HexMap.vue";
@@ -123,6 +123,7 @@ import { GameStates } from "@solaris-command/core/src/types/game";
 
 const route = useRoute();
 const galaxyStore = useGalaxyStore();
+const socketStore = useSocketStore();
 const movementStore = useMovementStore();
 const combatStore = useCombatStore();
 const stageContainer = ref<HTMLDivElement | null>(null);
@@ -191,6 +192,9 @@ onMounted(async () => {
 
   await galaxyStore.fetchGalaxy(gameId as any);
 
+  // Connect to the websocket server
+  socketStore.connect(gameId);
+
   // Center map roughly
   if (galaxyStore.galaxy) {
     configStage.x = configStage.width / 2;
@@ -210,6 +214,7 @@ onUnmounted(() => {
   if (resizeObserver && stageContainer.value) {
     resizeObserver.unobserve(stageContainer.value);
   }
+  socketStore.disconnect();
 });
 
 function handleWheel(e: any) {
@@ -242,7 +247,7 @@ function handleDragEnd(e: any) {
 
 <style scoped>
 #mapOverlayContainer,
-#referenceOverlayContainer {
+#mapOverlayAllContainer {
   pointer-events: none; /* Allow clicks to pass through the overlay */
 }
 
@@ -251,7 +256,7 @@ function handleDragEnd(e: any) {
 #mapOverlayLeft > *,
 #mapOverlayCenter > *,
 #mapOverlayRight > *,
-#referenceOverlayCenter > * {
+#mapOverlayAll > * {
   pointer-events: auto;
 }
 

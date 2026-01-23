@@ -71,7 +71,8 @@
                 title="Set an attack target for this unit"
                 :disabled="
                   selectedUnit.state.ap === 0 ||
-                  selectedUnit.state.status !== UnitStatus.IDLE
+                  selectedUnit.state.status !== UnitStatus.IDLE ||
+                  !galaxyStore.selectedUnitHasValidAttackTargets
                 "
               >
                 <i class="fas fa-bolt-lightning"></i> Attack
@@ -92,6 +93,11 @@
                 @click="handleUpgradeUnitStep"
                 data-bs-toggle="tooltip"
                 title="Add a new, suppressed step to this unit"
+                :disabled="
+                  !galaxyStore.currentPlayer ||
+                  galaxyStore.currentPlayer.prestigePoints <
+                    CONSTANTS.UNIT_STEP_BASE_COST
+                "
               >
                 <i class="fas fa-arrow-up-from-bracket"></i> Upgrade Step
               </button>
@@ -103,7 +109,10 @@
                 data-bs-toggle="tooltip"
                 title="Remove a step from this unit"
               >
-                <i class="fas fa-trash"></i> Scrap Step
+                <i class="fas fa-trash"></i>
+                {{
+                  selectedUnit.steps.length > 1 ? "Scrap Step" : "Scrap Unit"
+                }}
               </button>
             </div>
           </div>
@@ -341,8 +350,8 @@ const panelStyle = computed(() => {
 });
 
 const handleClose = () => {
-  galaxyStore.selectedUnit = null
-}
+  galaxyStore.selectedUnit = null;
+};
 </script>
 
 <style scoped>

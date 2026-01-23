@@ -80,7 +80,7 @@ export const initSocket = (httpServer: HttpServer) => {
     }
 
     // Handle joining game rooms
-    socket.on("join_game", (gameId: string) => {
+    socket.on("JOIN_GAME", (gameId: string) => {
       // Basic validation of gameId format?
       // For now trust the client, but in production we might want to verify access rights
       const gameRoom = `game:${gameId}`;
@@ -90,10 +90,10 @@ export const initSocket = (httpServer: HttpServer) => {
       );
 
       // Acknowledge join
-      socket.emit("game_joined", { gameId });
+      socket.emit("GAME_JOINED", { gameId });
     });
 
-    socket.on("leave_game", (gameId: string) => {
+    socket.on("LEAVE_GAME", (gameId: string) => {
       const gameRoom = `game:${gameId}`;
       socket.leave(gameRoom);
       console.log(

@@ -118,6 +118,8 @@ router.post(
             {
               stationId: newStation._id,
               playerId: newStation.playerId,
+              playerAlias: req.player.alias,
+              playerColor: req.player.color,
               hexId: newStation.hexId,
               location: newStation.location,
             },
@@ -177,6 +179,8 @@ router.delete(
             {
               stationId: req.station._id,
               playerId: req.station.playerId,
+              playerAlias: req.player.alias,
+              playerColor: req.player.color,
               hexId: req.station.hexId,
               location: req.station.location,
             },

@@ -21,8 +21,9 @@ const middlegroundImage = ref<HTMLImageElement | null>(null);
 const foregroundImage = ref<HTMLImageElement | null>(null);
 
 const getPolygonConfig = computed(() => {
-  let fill = "rgba(0, 0, 0, 0)";
-  let stroke = "#444";
+  let fill = null;
+  let stroke = props.hex.playerId ? null : '#444';
+  let strokeWidth = 4;
 
   if (props.hex.playerId) {
     const player = galaxyStore.playerLookup!.get(String(props.hex.playerId))!;
@@ -37,10 +38,10 @@ const getPolygonConfig = computed(() => {
     sides: 6,
     radius: HEX_SIZE - 2,
     fill,
-    stroke: stroke,
-    strokeWidth: 4,
+    stroke,
+    strokeWidth,
     rotation: 60,
-    opacity: 1,
+    opacity: 0.1,
   };
 });
 
