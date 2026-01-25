@@ -1,12 +1,14 @@
 <template>
   <div id="header" class="app-header">
     <!-- BEGIN brand -->
-    <div class="brand">
+    <div class="brand" style="width: unset">
       <router-link to="/games" class="brand-logo">
         <span class="brand-img" style="margin-right: 8px">
           <img src="/favicon_dark.ico" style="margin-left: 12px" />
         </span>
-        <span class="brand-text text-success">SOLARIS: COMMAND</span>
+        <span class="brand-text text-success d-none d-md-inline"
+          >SOLARIS: COMMAND</span
+        >
       </router-link>
     </div>
     <!-- END brand -->
@@ -14,7 +16,7 @@
     <!-- Game Time -->
     <div
       v-if="galaxyStore.galaxy"
-      class="section-countdown d-flex align-items-center me-auto"
+      class="section-countdown d-flex align-items-center me-auto ms-2"
       @click="toggleLeaderboard"
     >
       <span class="fw-bold" v-if="galaxyStore.isGameClockRunning">
@@ -44,27 +46,30 @@
         title="Your current victory points"
         >VP:</span
       >
-      <span class="fw-bold">{{ victoryPoints }} / {{ maxVictoryPoints }}</span>
-    </div>
+      <span class="fw-bold">{{ victoryPoints }}</span>
+      <span class="fw-bold d-none d-md-inline-block ms-1"
+        >/ {{ maxVictoryPoints }}</span
+      >
 
-    <!-- Territory -->
-    <div
-      class="section-territory d-flex align-items-center mx-3"
-      v-if="hasUserPlayer"
-      @click="toggleLeaderboard"
-    >
+      <!-- Territory -->
       <i
-        class="fas fa-globe fs-5 me-1 text-info"
+        class="fas fa-globe fs-5 ms-3 me-1 text-info"
         data-bs-toggle="tooltip"
         title="The number of planets you control"
       ></i>
-      <span class="fw-bold">Planets: {{ planetCount }}</span>
+      <span class="fw-bold"
+        ><span class="d-none d-md-inline">Planets: </span
+        >{{ planetCount }}</span
+      >
       <i
         class="fas fa-satellite fs-5 ms-3 me-1 text-info"
         data-bs-toggle="tooltip"
         title="The number of stations you control"
       ></i>
-      <span class="fw-bold">Stations: {{ stationCount }}</span>
+      <span class="fw-bold"
+        ><span class="d-none d-md-inline">Stations: </span
+        >{{ stationCount }}</span
+      >
     </div>
   </div>
 </template>

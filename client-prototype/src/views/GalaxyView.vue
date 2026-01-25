@@ -21,7 +21,7 @@
       <!-- Map and Overlay Container -->
       <div class="flex-grow-1 position-relative">
         <div
-          class="position-absolute top-0 start-0 w-100 h-100"
+          class="position-absolute top-0 start-0 end-0 bottom-0"
           id="stageContainer"
           ref="stageContainer"
         >
@@ -37,10 +37,10 @@
 
         <div
           id="mapOverlayContainer"
-          class="row position-absolute top-0 start-0 w-100 h-100"
+          class="row position-absolute top-0 start-0 end-0 bottom-0"
         >
           <!-- Left sidebar -->
-          <div id="mapOverlayLeftSidebar" class="col-auto">
+          <div id="mapOverlayLeftSidebar" class="col-auto d-none d-md-block">
             <LeftSidebar
               @toggle-join-game="toggleJoinGame"
               @toggle-leaderboard="toggleLeaderboard"
@@ -50,7 +50,10 @@
           </div>
 
           <!-- Left map -->
-          <div id="mapOverlayLeft" class="col-4 col-lg-3 mt-3">
+          <div
+            id="mapOverlayLeft"
+            class="col-12 col-md-4 col-lg-3 mt-2 ps-3 pe-3 ps-md-0 pe-md-0"
+          >
             <SelectionPanel
               v-if="!movementStore.isMoveMode && !combatStore.isAttackMode"
             />
@@ -61,24 +64,41 @@
           <!-- Center map -->
           <div
             id="mapOverlayCenter"
-            class="col mt-3 d-flex justify-content-center"
+            class="col mt-2 d-flex justify-content-center"
           ></div>
 
           <!-- Right map -->
-          <div id="mapOverlayRight" class="col-4 col-lg-3 mt-3">
-            <MapOverlayButtons />
-            <RightSidebar />
+          <div
+            id="mapOverlayRight"
+            :class="[
+              'mt-2',
+              mobileFleetOpen ? 'col-12' : 'col-12 col-md-4 col-lg-3',
+            ]"
+          >
+            <div class="d-none d-md-block pe-2">
+              <MapOverlayButtons />
+            </div>
+            <RightSidebar :mobileFleetOpen="mobileFleetOpen" />
           </div>
+        </div>
+
+        <!-- Mobile Map Buttons Popup -->
+        <div
+          v-if="mobileLayersOpen"
+          class="position-fixed start-0 d-md-none"
+          style="bottom: 52px; right: 12px; z-index: 1050"
+        >
+          <MapOverlayButtons />
         </div>
 
         <div
           id="mapOverlayAllContainer"
-          class="row position-absolute top-0 start-0 w-100 h-100"
+          class="row position-absolute top-0 start-0 end-0 bottom-0"
         >
           <!-- Center -->
           <div
             id="mapOverlayAll"
-            class="col mt-3 d-flex justify-content-center"
+            class="col mt-2 d-flex justify-content-center"
           >
             <JoinGameModal v-if="showJoinGame" @close="showJoinGame = false" />
             <LeaderboardModal
@@ -95,6 +115,18 @@
             />
           </div>
         </div>
+
+        <BottomNavBar
+          class="d-md-none"
+          :fleetOpen="mobileFleetOpen"
+          :layersOpen="mobileLayersOpen"
+          @toggle-join-game="toggleJoinGame"
+          @toggle-leaderboard="toggleLeaderboard"
+          @toggle-reference-modal="toggleReferenceModal"
+          @toggle-event-log-modal="toggleEventLogModal"
+          @toggle-fleet="toggleMobileFleet"
+          @toggle-layers="toggleMobileLayers"
+        />
       </div>
     </div>
   </div>
@@ -110,6 +142,7 @@ import { useCombatStore } from "../stores/combat";
 import HexMap from "../components/HexMap.vue";
 import HeaderBar from "../components/layout/HeaderBar.vue";
 import LeftSidebar from "../components/layout/LeftSidebar.vue";
+import BottomNavBar from "../components/layout/BottomNavBar.vue";
 import JoinGameModal from "../components/modals/JoinGameModal.vue";
 import LeaderboardModal from "../components/modals/LeaderboardModal.vue";
 import ReferenceModal from "../components/modals/ReferenceModal.vue";
@@ -132,6 +165,9 @@ const showJoinGame = ref(false);
 const showLeaderboard = ref(false);
 const showReferenceModal = ref(false);
 const showEventLogModal = ref(false);
+
+const mobileFleetOpen = ref(false);
+const mobileLayersOpen = ref(false);
 
 const toggleJoinGame = () => {
   showLeaderboard.value = false;
@@ -159,6 +195,18 @@ const toggleEventLogModal = () => {
   showLeaderboard.value = false;
   showReferenceModal.value = false;
   showEventLogModal.value = !showEventLogModal.value;
+};
+
+const toggleMobileFleet = () => {
+  mobileFleetOpen.value = !mobileFleetOpen.value;
+  // If we open fleet, we might want to close layers
+  if (mobileFleetOpen.value) {
+    mobileLayersOpen.value = false;
+  }
+};
+
+const toggleMobileLayers = () => {
+  mobileLayersOpen.value = !mobileLayersOpen.value;
 };
 
 const configStage = reactive({

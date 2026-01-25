@@ -34,7 +34,7 @@
         <!-- Unit Actions -->
         <div class="unit-actions" v-if="canOrderUnit">
           <div class="row g-2">
-            <div class="col-12 col-md-6">
+            <div class="col-3 col-md-6">
               <button
                 v-if="selectedUnit.state.status !== UnitStatus.MOVING"
                 class="btn w-100 btn-success"
@@ -46,7 +46,8 @@
                   selectedUnit.state.status !== UnitStatus.IDLE
                 "
               >
-                <i class="fas fa-arrows-up-down-left-right"></i> Move
+                <i class="fas fa-arrows-up-down-left-right"></i
+                ><span class="d-none d-md-inline ms-1">Move</span>
               </button>
               <button
                 v-else
@@ -55,10 +56,10 @@
                 data-bs-toggle="tooltip"
                 title="Cancel the current move order"
               >
-                <i class="fas fa-ban"></i> Cancel Move
+                <i class="fas fa-ban"></i><span class="d-none d-md-inline ms-1">Cancel Move</span>
               </button>
             </div>
-            <div class="col-12 col-md-6">
+            <div class="col-3 col-md-6">
               <button
                 v-if="selectedUnit.state.status !== UnitStatus.PREPARING"
                 class="btn w-100"
@@ -75,7 +76,7 @@
                   !galaxyStore.selectedUnitHasValidAttackTargets
                 "
               >
-                <i class="fas fa-bolt-lightning"></i> Attack
+                <i class="fas fa-bolt-lightning"></i><span class="d-none d-md-inline ms-1">Attack</span>
               </button>
               <button
                 v-else
@@ -84,10 +85,10 @@
                 data-bs-toggle="tooltip"
                 title="Cancel the current attack order"
               >
-                <i class="fas fa-ban"></i> Cancel Attack
+                <i class="fas fa-ban"></i><span class="d-none d-md-inline ms-1">Cancel Attack</span>
               </button>
             </div>
-            <div class="col-12 col-md-6">
+            <div class="col-3 col-md-6">
               <button
                 class="btn btn-primary w-100"
                 @click="handleUpgradeUnitStep"
@@ -99,10 +100,11 @@
                     CONSTANTS.UNIT_STEP_BASE_COST
                 "
               >
-                <i class="fas fa-arrow-up-from-bracket"></i> Upgrade Step
+                <i class="fas fa-arrow-up-from-bracket"></i
+                ><span class="d-none d-md-inline ms-1">Upgrade Step</span>
               </button>
             </div>
-            <div class="col-12 col-md-6">
+            <div class="col-3 col-md-6">
               <button
                 class="btn btn-outline-danger w-100"
                 @click="handleScrapUnitStep"
@@ -110,9 +112,9 @@
                 title="Remove a step from this unit"
               >
                 <i class="fas fa-trash"></i>
-                {{
+                <span class="d-none d-md-inline ms-1">{{
                   selectedUnit.steps.length > 1 ? "Scrap Step" : "Scrap Unit"
-                }}
+                }}</span>
               </button>
             </div>
           </div>
@@ -370,20 +372,6 @@ hr {
   margin-bottom: 0;
   font-size: 0.9rem;
   color: #aaa;
-}
-.unit-stats {
-  display: flex;
-  justify-content: space-around;
-  text-align: center;
-}
-.stat-label {
-  display: block;
-  font-size: 0.8rem;
-  color: #aaa;
-}
-.stat-value {
-  font-size: 1.2rem;
-  font-weight: bold;
 }
 .unit-steps {
   display: flex;

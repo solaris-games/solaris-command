@@ -16,7 +16,8 @@
             }"
             @click="selectUnit(unit)"
           >
-            <div class="row">
+            <!-- Desktop View -->
+            <div class="row d-none d-md-flex">
               <div class="col">
                 <h6 class="mb-1">{{ getUnitName(unit.catalogId) }}</h6>
               </div>
@@ -33,7 +34,7 @@
                 >
               </div>
             </div>
-            <div class="d-flex w-100 justify-content-between pt-1">
+            <div class="d-none d-md-flex w-100 justify-content-between pt-1">
               <p class="mb-1 small">
                 <i class="fas fa-table-cells-large"></i> {{ unit.location.q }},
                 {{ unit.location.r }}
@@ -53,6 +54,46 @@
                 </div>
               </div>
             </div>
+
+            <!-- Mobile View -->
+            <div class="row d-md-none">
+              <div class="col-4">
+                <h6 class="mb-0">{{ getUnitName(unit.catalogId) }}</h6>
+              </div>
+              <div class="col-3">
+                <span
+                  v-if="!unit.supply.isInSupply"
+                  class="badge bg-danger me-1"
+                  >OOS</span
+                >
+                <span
+                  class="badge"
+                  :class="statusBadgeClass(unit.state.status)"
+                  >{{ unit.state.status }}</span
+                >
+              </div>
+              <div class="col-auto me-auto">
+              <p class="small mb-0">
+                <i class="fas fa-table-cells-large"></i> {{ unit.location.q }},
+                {{ unit.location.r }}
+              </p>
+              </div>
+              <div class="unit-steps col-auto">
+                <div
+                  v-for="(step, index) in unit.steps"
+                  :key="index"
+                  class="step-square"
+                  :class="{ suppressed: step.isSuppressed }"
+                  data-bs-toggle="tooltip"
+                  :title="getSpecialistTooltip(step)"
+                >
+                  <span v-if="step.specialistId" class="specialist-symbol">{{
+                    getSpecialistSymbol(step.specialistId)
+                  }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex w-100 justify-content-between pt-1"></div>
           </a>
         </div>
       </div>

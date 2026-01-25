@@ -65,26 +65,7 @@
     </div>
   </div>
   <hr />
-  <div class="unit-stats row no-gutters">
-    <div class="col-12 col-md-3 p-0" data-bs-toggle="tooltip" title="The unit's attack strength">
-      <span class="stat-label">Attack</span>
-      <span class="stat-value">{{ unitCatalog?.stats.attack }}</span>
-    </div>
-    <div class="col-12 col-md-3 p-0" data-bs-toggle="tooltip" title="The unit's defensive strength">
-      <span class="stat-label">Defense</span>
-      <span class="stat-value">{{ unitCatalog?.stats.defense }}</span>
-    </div>
-    <div class="col-12 col-md-3 p-0" data-bs-toggle="tooltip" title="The unit's armour value">
-      <span class="stat-label">Armour</span>
-      <span class="stat-value">{{ unitCatalog?.stats.armour }}</span>
-    </div>
-    <div class="col-12 col-md-3 p-0" data-bs-toggle="tooltip" title="Remaining Movement Points">
-      <span class="stat-label">MP</span>
-      <span class="stat-value"
-        >{{ unit.state.mp }}/{{ unitCatalog?.stats.maxMP }}</span
-      >
-    </div>
-  </div>
+  <UnitStats :unit="props.unit"/>
 </template>
 
 <script setup lang="ts">
@@ -97,6 +78,7 @@ import { UNIT_CATALOG_ID_MAP } from "@solaris-command/core/src/data/units";
 import { UnitManager } from "@solaris-command/core/src/utils/unit-manager";
 import { UnitStatus } from "@solaris-command/core/src/types/unit";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
+import UnitStats from './UnitStats.vue'
 
 type APIUnit = GameGalaxyResponseSchema["units"][0];
 
@@ -147,20 +129,6 @@ hr {
   margin-bottom: 0;
   font-size: 0.9rem;
   color: #aaa;
-}
-.unit-stats {
-  display: flex;
-  justify-content: space-around;
-  text-align: center;
-}
-.stat-label {
-  display: block;
-  font-size: 0.8rem;
-  color: #aaa;
-}
-.stat-value {
-  font-size: 1.2rem;
-  font-weight: bold;
 }
 .unit-steps {
   display: flex;

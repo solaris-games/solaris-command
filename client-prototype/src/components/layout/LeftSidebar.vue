@@ -1,6 +1,6 @@
 <template>
   <div
-    class="left-sidebar d-flex flex-column p-2 h-100"
+    class="left-sidebar d-none d-md-flex flex-column p-2 h-100"
     style="background: var(--bs-app-header-bg)"
   >
     <button
@@ -20,6 +20,7 @@
       @click="toggleLeaderboard"
       data-bs-toggle="tooltip"
       title="Leaderboard"
+      v-if="galaxyStore.currentPlayer"
     >
       <i class="fas fa-trophy"></i>
     </button>

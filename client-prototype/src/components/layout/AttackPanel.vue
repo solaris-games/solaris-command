@@ -7,7 +7,7 @@
       </div>
       <div class="card-body bg-dark p-2">
         <!-- Attacker Details (Top) -->
-        <div class="mb-3">
+        <div class="mb-1">
           <h6 class="text-uppercase text-success mb-2">Attacker</h6>
           <UnitDetails v-if="attacker" :unit="attacker" />
         </div>
@@ -15,7 +15,7 @@
         <hr class="mt-0 mb-2" />
 
         <!-- Target Selection / Defender Details -->
-        <div class="mb-3">
+        <div class="mb-2">
           <h6 class="text-uppercase text-danger mb-2">Defender</h6>
           <div
             v-if="!defender"
@@ -53,12 +53,12 @@
         <div v-if="prediction" class="mb-0">
           <hr class="mt-0 mb-2" />
 
-          <h6 class="text-uppercase text-muted mb-2 text-center">
+          <h6 class="text-uppercase text-muted mb-0 text-center">
             Combat Prediction
           </h6>
 
           <!-- Operation Selection -->
-          <div class="mb-3">
+          <div class="mb-2">
             <div class="form-group">
               <label class="col-form-label text-muted small">Operation</label>
               <select
@@ -94,7 +94,7 @@
           </div>
 
           <!-- Odds -->
-          <div class="text-center mb-3">
+          <div class="text-center mb-2">
             <div class="display-6 fw-bold text-warning">
               <span v-if="prediction.prediction.oddsRatio >= 1"
                 >{{ prediction.prediction.oddsRatio }}:1</span
@@ -161,7 +161,7 @@
           </div>
 
           <!-- Outcome Prediction -->
-          <div class="row text-center mb-3" v-if="attacker && defender">
+          <div class="row text-center mb-2" v-if="attacker && defender">
             <div class="col-6 border-end border-secondary">
               <div>
                 <span
