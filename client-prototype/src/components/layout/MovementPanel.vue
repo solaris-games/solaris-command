@@ -22,42 +22,7 @@
         <div v-if="movementStore.startHex && movementStore.movementPath">
           <h6 class="mb-1">Movement Path</h6>
           <div v-if="movementStore.movementPath.length" class="row mb-2">
-            <div class="col-6 col-md-3">
-              <p class="mb-0">
-                Segments: {{ movementStore.movementPath.length }}
-              </p>
-            </div>
-            <div class="col-6 col-md-3">
-              <p class="mb-0">
-                MP Cost: {{ movementStore.movementPathMPCost }}
-              </p>
-            </div>
-            <div class="col-6 col-md-3">
-              <p class="mb-0">
-                From:
-                <strong
-                  >({{ movementStore.startHex.location.q }},
-                  {{ movementStore.startHex.location.r }})</strong
-                >
-              </p>
-            </div>
-            <div class="col-6 col-md-3">
-              <p class="mb-0">
-                To:
-                <strong
-                  >({{
-                    movementStore.movementPath[
-                      movementStore.movementPath.length - 1
-                    ].location.q
-                  }},
-                  {{
-                    movementStore.movementPath[
-                      movementStore.movementPath.length - 1
-                    ].location.r
-                  }})</strong
-                >
-              </p>
-            </div>
+            <MovementStats />
 
             <div class="col-12 mt-1">
               <button
@@ -113,6 +78,7 @@ import { useGalaxyStore } from "../../stores/galaxy";
 import { useMovementStore } from "../../stores/movement";
 import UnitDetails from "./UnitDetails.vue";
 import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
+import MovementStats from "./MovementStats.vue";
 
 const galaxyStore = useGalaxyStore();
 const movementStore = useMovementStore();

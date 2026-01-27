@@ -93,10 +93,6 @@ export const useMovementStore = defineStore("movement", () => {
     movementPath.value = [];
     movementPathMPCost.value = 0;
     reachableHexes.value = [];
-    useGalaxyStore().selectedUnit = null;
-    useGalaxyStore().selectedHex = null;
-    useGalaxyStore().selectedPlanet = null;
-    useGalaxyStore().selectedStation = null;
   }
 
   async function confirmMove() {

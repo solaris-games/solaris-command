@@ -9,28 +9,30 @@
         y: hexToPoints(hex)[1],
         sides: 6,
         radius: HEX_SIZE - 2,
-        stroke: '#ff4444',
         strokeWidth: 4,
-        fill: 'rgba(255, 0, 0, 0.2)',
         rotation: 60,
-        listening: false
+        listening: false,
+        dash: [10, 5],
+        opacity: 0.4,
+        ...playerColour,
       }"
     />
 
     <!-- Highlight selected target -->
     <v-regular-polygon
-       v-if="targetHex"
-       :config="{
+      v-if="targetHex"
+      :config="{
         x: hexToPoints(targetHex)[0],
         y: hexToPoints(targetHex)[1],
         sides: 6,
         radius: HEX_SIZE - 2,
-        stroke: '#ff0000',
         strokeWidth: 6,
-        fill: 'rgba(255, 0, 0, 0.4)',
         rotation: 60,
-        listening: false
-       }"
+        listening: false,
+        dash: [10, 5],
+        opacity: 0.5,
+        ...playerColour,
+      }"
     />
   </v-layer>
 </template>
@@ -40,6 +42,7 @@ import { computed } from "vue";
 import { useCombatStore } from "../../stores/combat";
 import { useGalaxyStore } from "../../stores/galaxy";
 import { hexToPixel } from "../../utils/hexUtils";
+import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
 
 const HEX_SIZE = 64;
 
@@ -47,8 +50,29 @@ const combatStore = useCombatStore();
 const galaxyStore = useGalaxyStore();
 
 const targetHex = computed(() => {
-    if (!combatStore.targetUnit) return null;
-    return galaxyStore.getHex(combatStore.targetUnit.location.q, combatStore.targetUnit.location.r);
+  if (!combatStore.targetUnit) return null;
+  return galaxyStore.getHex(
+    combatStore.targetUnit.location.q,
+    combatStore.targetUnit.location.r,
+  );
+});
+
+const playerColour = computed(() => {
+  const player = galaxyStore.playerLookup!.get(
+    String(galaxyStore.selectedUnit!.playerId),
+  )!;
+  const playerColor = PLAYER_COLOR_LOOKUP.get(player.color);
+  if (playerColor) {
+    return {
+      fill: playerColor.background,
+      stroke: playerColor.background,
+    };
+  }
+
+  return {
+    fill: "rgba(255, 0, 0, 0.6)",
+    stroke: "#ff0000",
+  };
 });
 
 const hexToPoints = (hex: any) => {

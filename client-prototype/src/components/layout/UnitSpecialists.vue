@@ -1,5 +1,5 @@
 <template>
-  <div v-if="specialistStepsWithStats.length > 0" class="specialist-stats">
+  <div v-if="specialistStepsWithStats.length > 0">
     <table class="table table-sm table-striped table-hover">
       <thead class="table-dark">
         <tr>
@@ -126,9 +126,6 @@ const specialistStepsWithStats = computed(() => {
 hr {
   margin: 0.5rem 0;
 }
-.specialist-stats {
-  font-size: 0.9rem;
-}
 .step-square-small {
   min-width: 20px;
   min-height: 20px;
@@ -140,7 +137,6 @@ hr {
   font-weight: bold;
 }
 .step-square-small .specialist-symbol-small {
-  font-size: 0.8rem;
   color: #000;
 }
 .step-square-small.suppressed {
