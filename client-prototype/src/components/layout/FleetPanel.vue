@@ -75,6 +75,7 @@
 </template>
 
 <script setup lang="ts">
+import { useMapSettingsStore } from "../../stores/mapSettings";
 import { computed } from "vue";
 import { useGalaxyStore } from "../../stores/galaxy";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api";
@@ -89,6 +90,7 @@ import UnitDetails from "./UnitDetails.vue";
 type APIUnit = GameGalaxyResponseSchema["units"][0];
 
 const galaxyStore = useGalaxyStore();
+const mapSettingsStore = useMapSettingsStore();
 
 const sortedPlayerUnits = computed(() => {
   const currentPlayerId = galaxyStore.currentPlayerId;
@@ -127,6 +129,7 @@ function selectUnit(unit: APIUnit) {
   );
   if (hex) {
     galaxyStore.selectHex(hex);
+    mapSettingsStore.centerOnHex(unit.location.q, unit.location.r);
   }
 }
 

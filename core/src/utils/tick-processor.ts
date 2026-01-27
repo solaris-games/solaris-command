@@ -473,6 +473,20 @@ export const TickProcessor = {
       if (intent.unit.state.mp < mpCost) {
         intent.unit.state.status = UnitStatus.IDLE;
         intent.unit.movement.path = [];
+
+        context.appendGameEvent(
+          intent.unit.playerId, // Owner of the unit
+          GameEventTypes.UNIT_MOVEMENT_STALLED,
+          {
+            unitId: intent.unit._id,
+            catalogId: intent.unit.catalogId,
+            toHexId: intent.toHex._id,
+            toHexLocation: intent.toHex.location,
+            fromHexId: intent.unit.hexId,
+            fromHexLocation: intent.unit.location,
+          },
+        );
+
         return; // Exit this specific move intent
       }
 

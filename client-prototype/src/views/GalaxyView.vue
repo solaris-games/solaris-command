@@ -26,8 +26,8 @@
           ref="stageContainer"
         >
           <v-stage
-            v-if="configStage.width && configStage.height"
-            :config="configStage"
+            v-if="stageConfig.width && stageConfig.height"
+            :config="stageConfig"
             @wheel="handleWheel"
             @dragend="handleDragEnd"
           >
@@ -133,12 +133,14 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, reactive, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute } from "vue-router";
+import { storeToRefs } from "pinia";
 import { useGalaxyStore } from "../stores/galaxy";
 import { useSocketStore } from "../stores/socket";
 import { useMovementStore } from "../stores/movement";
 import { useCombatStore } from "../stores/combat";
+import { useMapSettingsStore } from "../stores/mapSettings";
 import HexMap from "../components/HexMap.vue";
 import HeaderBar from "../components/layout/HeaderBar.vue";
 import LeftSidebar from "../components/layout/LeftSidebar.vue";
@@ -159,6 +161,9 @@ const galaxyStore = useGalaxyStore();
 const socketStore = useSocketStore();
 const movementStore = useMovementStore();
 const combatStore = useCombatStore();
+const mapSettingsStore = useMapSettingsStore();
+const { stage: stageState } = storeToRefs(mapSettingsStore);
+
 const stageContainer = ref<HTMLDivElement | null>(null);
 
 const showJoinGame = ref(false);
@@ -209,15 +214,15 @@ const toggleMobileLayers = () => {
   mobileLayersOpen.value = !mobileLayersOpen.value;
 };
 
-const configStage = reactive({
-  width: 0,
-  height: 0,
+const stageConfig = computed(() => ({
+  width: stageState.value.width,
+  height: stageState.value.height,
+  x: stageState.value.x,
+  y: stageState.value.y,
+  scaleX: stageState.value.scale,
+  scaleY: stageState.value.scale,
   draggable: true,
-  x: 0,
-  y: 0,
-  scaleX: 1,
-  scaleY: 1,
-});
+}));
 
 let resizeObserver: ResizeObserver;
 
@@ -225,13 +230,13 @@ onMounted(async () => {
   const gameId = route.params.id as string;
 
   if (stageContainer.value) {
-    configStage.width = stageContainer.value.offsetWidth;
-    configStage.height = stageContainer.value.offsetHeight;
+    mapSettingsStore.stage.width = stageContainer.value.offsetWidth;
+    mapSettingsStore.stage.height = stageContainer.value.offsetHeight;
 
     resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        configStage.width = entry.contentRect.width;
-        configStage.height = entry.contentRect.height;
+        mapSettingsStore.stage.width = entry.contentRect.width;
+        mapSettingsStore.stage.height = entry.contentRect.height;
       }
     });
 
@@ -245,8 +250,8 @@ onMounted(async () => {
 
   // Center map roughly
   if (galaxyStore.galaxy) {
-    configStage.x = configStage.width / 2;
-    configStage.y = configStage.height / 2;
+    mapSettingsStore.stage.x = mapSettingsStore.stage.width / 2;
+    mapSettingsStore.stage.y = mapSettingsStore.stage.height / 2;
   }
 
   // Auto-open the join game modal if there is no player and the game is pending.
@@ -277,19 +282,16 @@ function handleWheel(e: any) {
 
   const newScale = e.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy;
 
-  configStage.scaleX = newScale;
-  configStage.scaleY = newScale;
-
-  configStage.x =
+  mapSettingsStore.stage.scale = newScale;
+  mapSettingsStore.stage.x =
     -(mousePointTo.x - stage.getPointerPosition().x / newScale) * newScale;
-  configStage.y =
+  mapSettingsStore.stage.y =
     -(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale;
 }
 
 function handleDragEnd(e: any) {
-  // Update reactive state if needed
-  configStage.x = e.target.x();
-  configStage.y = e.target.y();
+  mapSettingsStore.stage.x = e.target.x();
+  mapSettingsStore.stage.y = e.target.y();
 }
 </script>
 
