@@ -16,38 +16,52 @@
         <span>{{ owner?.alias }}</span>
       </div>
       <div class="card-body bg-dark p-2">
-        <UnitDetails :unit="selectedUnit" />
+        <UnitDetails :unit="selectedUnit" :compact="true" />
         <hr />
         <!-- Movement Path Details -->
         <div v-if="movementStore.startHex && movementStore.movementPath">
-          <h6>Movement Path</h6>
-          <div v-if="movementStore.movementPath.length">
-            <p class="mb-0">
-              Segments: {{ movementStore.movementPath.length }}
-            </p>
-            <p class="mb-0">
-              MP Cost: {{ movementStore.movementPathMPCost }}
-            </p>
-            <p class="mb-0">
-              From: <strong>({{ movementStore.startHex.location.q }},
-              {{ movementStore.startHex.location.r }})</strong>
-            </p>
-            <p class="mb-2">
-              To: <strong>({{
-                movementStore.movementPath[
-                  movementStore.movementPath.length - 1
-                ].location.q
-              }},
-              {{
-                movementStore.movementPath[
-                  movementStore.movementPath.length - 1
-                ].location.r
-              }})</strong>
-            </p>
+          <h6 class="mb-1">Movement Path</h6>
+          <div v-if="movementStore.movementPath.length" class="row mb-2">
+            <div class="col-6 col-md-3">
+              <p class="mb-0">
+                Segments: {{ movementStore.movementPath.length }}
+              </p>
+            </div>
+            <div class="col-6 col-md-3">
+              <p class="mb-0">
+                MP Cost: {{ movementStore.movementPathMPCost }}
+              </p>
+            </div>
+            <div class="col-6 col-md-3">
+              <p class="mb-0">
+                From:
+                <strong
+                  >({{ movementStore.startHex.location.q }},
+                  {{ movementStore.startHex.location.r }})</strong
+                >
+              </p>
+            </div>
+            <div class="col-6 col-md-3">
+              <p class="mb-0">
+                To:
+                <strong
+                  >({{
+                    movementStore.movementPath[
+                      movementStore.movementPath.length - 1
+                    ].location.q
+                  }},
+                  {{
+                    movementStore.movementPath[
+                      movementStore.movementPath.length - 1
+                    ].location.r
+                  }})</strong
+                >
+              </p>
+            </div>
 
-            <div class="col-4">
+            <div class="col-12 mt-1">
               <button
-                class="btn btn-outline-warning"
+                class="btn btn-sm btn-outline-warning"
                 @click="movementStore.undoMove()"
               >
                 <i class="fas fa-undo"></i> Undo

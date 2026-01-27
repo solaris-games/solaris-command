@@ -8,25 +8,25 @@
       <div class="card-body bg-dark p-2">
         <!-- Attacker Details (Top) -->
         <div class="mb-1">
-          <h6 class="text-uppercase text-success mb-2">Attacker</h6>
-          <UnitDetails v-if="attacker" :unit="attacker" />
+          <h6 class="text-uppercase text-success mb-1">Attacker</h6>
+          <UnitDetails v-if="attacker" :unit="attacker" :compact="true" />
         </div>
 
-        <hr class="mt-0 mb-2" />
+        <hr class="mt-2 mb-2" />
 
         <!-- Target Selection / Defender Details -->
         <div class="mb-2">
-          <h6 class="text-uppercase text-danger mb-2">Defender</h6>
+          <h6 class="text-uppercase text-danger mb-1">Defender</h6>
           <div
             v-if="!defender"
-            class="text-center py-4 text-muted border border-secondary border-dashed rounded"
+            class="text-center py-3 text-muted border border-secondary border-dashed rounded"
           >
-            <h1><i class="fas fa-crosshairs"></i></h1>
-            <p class="mt-2 mb-0">Select an adjacent enemy unit</p>
+            <h1 class="mb-0"><i class="fas fa-crosshairs"></i></h1>
+            <p class="mt-0 mb-0">Select an adjacent enemy unit</p>
           </div>
           <div v-else>
             <div
-              class="defender-header mb-2 d-flex justify-content-between align-items-center"
+              class="defender-header mb-1 d-flex justify-content-between align-items-center"
             >
               <span :style="{ color: defenderColor }">
                 <i
@@ -45,7 +45,7 @@
                 <i class="fas fa-xmark"></i>
               </button>
             </div>
-            <UnitDetails :unit="defender" />
+            <UnitDetails :unit="defender" :compact="true" />
           </div>
         </div>
 

@@ -52,6 +52,12 @@
     <hr />
 
     <h3>Tools</h3>
+    <div class="form-group">
+      <label style="flex-direction: row; align-items: center; gap: 10px;">
+        <input type="checkbox" v-model="mapStore.mirrorMode" style="width: auto" />
+        Mirror Painting
+      </label>
+    </div>
     <div class="tools-grid">
       <div class="tool-section">
         <h4>Terrain</h4>

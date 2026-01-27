@@ -19,7 +19,7 @@
         ></button>
       </div>
       <div class="card-body bg-dark p-2">
-        <UnitDetails :unit="selectedUnit" />
+        <UnitDetails :unit="selectedUnit" :compact="false" />
         <UnitSpecialists :unit="selectedUnit" />
         <div v-if="!selectedUnit.supply.isInSupply">
           <hr />

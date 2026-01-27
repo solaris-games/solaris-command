@@ -52,7 +52,7 @@ export const CONSTANTS = {
   ],
 
   AI_PLAYERS: {
-    AI_EXECUTION_INTERVAL_TICKS: 4,
+    AI_EXECUTION_INTERVAL_TICKS: 1, // 4,
     // Weights for Influence Map
     INFLUENCE_WEIGHTS: {
       FRIENDLY_HEX: 1,

@@ -6,14 +6,60 @@
       </h5>
     </div>
     <div class="col-auto">
+      <span v-if="!unit.supply.isInSupply" class="badge bg-danger me-1"
+        >OOS</span
+      >
       <span class="badge" :class="statusBadgeClass(unit.state.status)">{{
         unit.state.status
       }}</span>
     </div>
   </div>
-  <p class="text-muted mb-2">
-    {{ unitCatalog?.class.replaceAll("_", " ") }}
-  </p>
+  <div class="row mt-1 mb-1">
+    <div class="col me-auto">
+      <p class="text-muted mb-0">
+        {{ unitCatalog?.class.replaceAll("_", " ") }}
+      </p>
+    </div>
+    <div class="col-auto unit-steps" v-if="props.compact">
+      <!-- Compact unit stats-->
+      <div
+        class="me-1"
+        data-bs-toggle="tooltip"
+        title="The unit's attack strength"
+      >
+        <span class="text-warning"
+          ><i class="fas fa-bolt-lightning me-1"></i
+          >{{ unitCatalog?.stats.attack }}</span
+        >
+      </div>
+      <div
+        class="me-1"
+        data-bs-toggle="tooltip"
+        title="The unit's defensive strength"
+      >
+        <span
+          ><i class="fas fa-shield me-1 text-muted"></i
+          >{{ unitCatalog?.stats.defense }}</span
+        >
+      </div>
+      <div
+        class="me-1"
+        data-bs-toggle="tooltip"
+        title="The unit's armour value"
+      >
+        <span class="text-info"
+          ><i class="fas fa-shield-halved me-1"></i
+          >{{ unitCatalog?.stats.armour }}</span
+        >
+      </div>
+      <div class="me-0" data-bs-toggle="tooltip" title="Unit's movement points">
+        <span class="text-success"
+          ><i class="fas fa-arrows-up-down-left-right me-1"></i
+          >{{ unit.state.mp }}/{{ unitCatalog?.stats.maxMP }}</span
+        >
+      </div>
+    </div>
+  </div>
   <div class="row">
     <div class="col">
       <div class="unit-steps">
@@ -39,6 +85,7 @@
     </div>
     <div class="col-auto unit-steps">
       <div
+        v-if="unit.state.ap > 0"
         class="step-square step-square-ap"
         v-for="(i, index) in unit.state.ap"
         :key="index"
@@ -64,8 +111,8 @@
       </div>
     </div>
   </div>
-  <hr />
-  <UnitStats :unit="props.unit"/>
+  <hr v-if="!props.compact" />
+  <UnitStats v-if="!props.compact" :unit="props.unit" />
 </template>
 
 <script setup lang="ts">
@@ -78,12 +125,13 @@ import { UNIT_CATALOG_ID_MAP } from "@solaris-command/core/src/data/units";
 import { UnitManager } from "@solaris-command/core/src/utils/unit-manager";
 import { UnitStatus } from "@solaris-command/core/src/types/unit";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
-import UnitStats from './UnitStats.vue'
+import UnitStats from "./UnitStats.vue";
 
 type APIUnit = GameGalaxyResponseSchema["units"][0];
 
 const props = defineProps<{
   unit: APIUnit;
+  compact: boolean;
 }>();
 
 const unitCatalog = computed(() => {

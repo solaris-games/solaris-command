@@ -8,7 +8,7 @@
             href="#"
             v-for="unit in sortedPlayerUnits"
             :key="String(unit._id)"
-            class="list-group-item list-group-item-action bg-secondary text-white border-dark"
+            class="list-group-item list-group-item-action bg-dark text-white border-light"
             :class="{
               'active bg-info':
                 galaxyStore.selectedUnit &&
@@ -16,43 +16,9 @@
             }"
             @click="selectUnit(unit)"
           >
-            <!-- Desktop View -->
+            <!-- Desktop view-->
             <div class="row d-none d-md-flex">
-              <div class="col">
-                <h6 class="mb-1">{{ getUnitName(unit.catalogId) }}</h6>
-              </div>
-              <div class="col-auto">
-                <span
-                  v-if="!unit.supply.isInSupply"
-                  class="badge bg-danger me-1"
-                  >OOS</span
-                >
-                <span
-                  class="badge"
-                  :class="statusBadgeClass(unit.state.status)"
-                  >{{ unit.state.status }}</span
-                >
-              </div>
-            </div>
-            <div class="d-none d-md-flex w-100 justify-content-between pt-1">
-              <p class="mb-1 small">
-                <i class="fas fa-table-cells-large"></i> {{ unit.location.q }},
-                {{ unit.location.r }}
-              </p>
-              <div class="unit-steps">
-                <div
-                  v-for="(step, index) in unit.steps"
-                  :key="index"
-                  class="step-square"
-                  :class="{ suppressed: step.isSuppressed }"
-                  data-bs-toggle="tooltip"
-                  :title="getSpecialistTooltip(step)"
-                >
-                  <span v-if="step.specialistId" class="specialist-symbol">{{
-                    getSpecialistSymbol(step.specialistId)
-                  }}</span>
-                </div>
-              </div>
+              <UnitDetails :unit="unit" :compact="true" />
             </div>
 
             <!-- Mobile View -->
@@ -73,10 +39,11 @@
                 >
               </div>
               <div class="col-auto me-auto">
-              <p class="small mb-0">
-                <i class="fas fa-table-cells-large"></i> {{ unit.location.q }},
-                {{ unit.location.r }}
-              </p>
+                <p class="small mb-0">
+                  <i class="fas fa-table-cells-large"></i>
+                  {{ unit.location.q }},
+                  {{ unit.location.r }}
+                </p>
               </div>
               <div class="unit-steps col-auto">
                 <div
@@ -117,6 +84,7 @@ import {
   SPECIALIST_STEP_SYMBOL_MAP,
 } from "@solaris-command/core/src/data/specialists";
 import { UNIT_CATALOG_ID_MAP } from "@solaris-command/core/src/data/units";
+import UnitDetails from "./UnitDetails.vue";
 
 type APIUnit = GameGalaxyResponseSchema["units"][0];
 

@@ -24,6 +24,7 @@ interface MapState {
   hexes: Map<string, EditorHex>; // Key is "q,r,s"
 
   selectedTerrain: TerrainTypes | 'PLANET' | 'CAPITAL' | null;
+  mirrorMode: boolean;
 }
 
 export const mapStore = reactive<MapState>({
@@ -33,7 +34,8 @@ export const mapStore = reactive<MapState>({
   mapName: 'New Map',
   hexes: new Map(),
   victoryPointsToWin: CONSTANTS.GAME_DEFAULT_VICTORY_POINTS_TO_WIN,
-  selectedTerrain: TerrainTypes.EMPTY
+  selectedTerrain: TerrainTypes.EMPTY,
+  mirrorMode: false,
 });
 
 export function getHexKey(q: number, r: number, s: number): string {

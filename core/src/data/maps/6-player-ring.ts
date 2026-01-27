@@ -1,10 +1,10 @@
 import { GameMap, TerrainTypes } from "../../types";
 import { CONSTANTS } from "../constants";
 
-export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
-  id: "6-player-shattered-belt",
-  name: "Shattered Belt",
-  playerCount: 6,
+export const GAME_MAP_6_PLAYER_RING: GameMap = {
+  id: "new-map",
+  name: "New Map",
+  playerCount: 2,
   victoryPointsToWin: CONSTANTS.GAME_DEFAULT_VICTORY_POINTS_TO_WIN,
   hexes: [
     {
@@ -77,7 +77,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 8,
         s: 4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -85,7 +85,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 9,
         s: 3,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -125,7 +125,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 0,
         s: 11,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -133,7 +133,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 1,
         s: 10,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -141,7 +141,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 2,
         s: 9,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -165,7 +165,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 5,
         s: 6,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -173,7 +173,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 6,
         s: 5,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -189,7 +189,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 8,
         s: 3,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -197,7 +197,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 9,
         s: 2,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -205,7 +205,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 10,
         s: 1,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -213,7 +213,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 11,
         s: 0,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -237,7 +237,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -1,
         s: 11,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -261,7 +261,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 2,
         s: 8,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -301,7 +301,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 7,
         s: 3,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -333,7 +333,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 11,
         s: -1,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -341,7 +341,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 12,
         s: -2,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -349,7 +349,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -3,
         s: 12,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -357,7 +357,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -2,
         s: 11,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -381,7 +381,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 1,
         s: 8,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -421,7 +421,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 6,
         s: 3,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -429,7 +429,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 7,
         s: 2,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -461,7 +461,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 11,
         s: -2,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -469,7 +469,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 12,
         s: -3,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -477,7 +477,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -4,
         s: 12,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -517,7 +517,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 1,
         s: 7,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -541,7 +541,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 4,
         s: 4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -549,7 +549,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 5,
         s: 3,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -589,7 +589,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 10,
         s: -2,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -621,7 +621,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -4,
         s: 11,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -677,7 +677,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 3,
         s: 4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -685,7 +685,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 4,
         s: 3,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -725,7 +725,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 9,
         s: -2,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -733,7 +733,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 10,
         s: -3,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -741,7 +741,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 11,
         s: -4,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -765,7 +765,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -5,
         s: 11,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -805,7 +805,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 0,
         s: 6,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -813,7 +813,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 1,
         s: 5,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -821,7 +821,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 2,
         s: 4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -829,7 +829,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 3,
         s: 3,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -837,7 +837,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 4,
         s: 2,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -845,7 +845,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 5,
         s: 1,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -853,7 +853,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 6,
         s: 0,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -869,7 +869,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 8,
         s: -2,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -893,7 +893,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 11,
         s: -5,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -917,7 +917,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -6,
         s: 11,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -941,7 +941,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -3,
         s: 8,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -957,7 +957,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -1,
         s: 6,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -973,7 +973,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 1,
         s: 4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -981,7 +981,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 2,
         s: 3,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1013,7 +1013,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 6,
         s: -1,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -1029,7 +1029,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 8,
         s: -3,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1053,7 +1053,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 11,
         s: -6,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -1077,7 +1077,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -7,
         s: 11,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -1101,7 +1101,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -4,
         s: 8,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1117,7 +1117,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -2,
         s: 6,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -1125,7 +1125,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -1,
         s: 5,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1133,7 +1133,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 0,
         s: 4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1141,7 +1141,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 1,
         s: 3,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1181,7 +1181,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 6,
         s: -2,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -1189,7 +1189,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 7,
         s: -3,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1197,7 +1197,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 8,
         s: -4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1237,7 +1237,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -9,
         s: 12,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1285,7 +1285,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -3,
         s: 6,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -1293,7 +1293,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -2,
         s: 5,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1349,7 +1349,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 5,
         s: -2,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1357,7 +1357,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 6,
         s: -3,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -1389,7 +1389,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 10,
         s: -7,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1397,7 +1397,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 11,
         s: -8,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -1421,7 +1421,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -9,
         s: 11,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -1437,7 +1437,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -7,
         s: 9,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1445,7 +1445,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -6,
         s: 8,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1461,7 +1461,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -4,
         s: 6,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -1469,7 +1469,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -3,
         s: 5,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1477,7 +1477,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -2,
         s: 4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1493,7 +1493,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 0,
         s: 2,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.INDUSTRIAL_ZONE,
     },
     {
       location: {
@@ -1501,7 +1501,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 1,
         s: 1,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.INDUSTRIAL_ZONE,
     },
     {
       location: {
@@ -1509,7 +1509,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 2,
         s: 0,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.INDUSTRIAL_ZONE,
     },
     {
       location: {
@@ -1533,7 +1533,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 5,
         s: -3,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1541,7 +1541,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 6,
         s: -4,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -1573,7 +1573,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 10,
         s: -8,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1581,7 +1581,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 11,
         s: -9,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -1605,7 +1605,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -10,
         s: 11,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -1645,7 +1645,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -5,
         s: 6,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -1653,7 +1653,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -4,
         s: 5,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1661,7 +1661,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -3,
         s: 4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1677,7 +1677,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -1,
         s: 2,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.INDUSTRIAL_ZONE,
     },
     {
       location: {
@@ -1685,7 +1685,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 0,
         s: 1,
       },
-      terrain: TerrainTypes.DEBRIS_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1693,7 +1693,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 1,
         s: 0,
       },
-      terrain: TerrainTypes.DEBRIS_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1701,7 +1701,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 2,
         s: -1,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.INDUSTRIAL_ZONE,
     },
     {
       location: {
@@ -1717,7 +1717,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 4,
         s: -3,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1725,7 +1725,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 5,
         s: -4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1733,7 +1733,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 6,
         s: -5,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -1773,7 +1773,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 11,
         s: -10,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -1797,7 +1797,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -11,
         s: 11,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -1837,7 +1837,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -6,
         s: 6,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -1845,7 +1845,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -5,
         s: 5,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1869,7 +1869,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -2,
         s: 2,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.INDUSTRIAL_ZONE,
     },
     {
       location: {
@@ -1877,7 +1877,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -1,
         s: 1,
       },
-      terrain: TerrainTypes.DEBRIS_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1893,7 +1893,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 1,
         s: -1,
       },
-      terrain: TerrainTypes.DEBRIS_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1901,7 +1901,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 2,
         s: -2,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.INDUSTRIAL_ZONE,
     },
     {
       location: {
@@ -1917,7 +1917,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 4,
         s: -4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -1933,7 +1933,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 6,
         s: -6,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -1973,7 +1973,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 11,
         s: -11,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -1997,7 +1997,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -11,
         s: 10,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -2037,7 +2037,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -6,
         s: 5,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -2045,7 +2045,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -5,
         s: 4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -2069,7 +2069,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -2,
         s: 1,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.INDUSTRIAL_ZONE,
     },
     {
       location: {
@@ -2077,7 +2077,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -1,
         s: 0,
       },
-      terrain: TerrainTypes.DEBRIS_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -2085,7 +2085,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 0,
         s: -1,
       },
-      terrain: TerrainTypes.DEBRIS_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -2093,7 +2093,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 1,
         s: -2,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.INDUSTRIAL_ZONE,
     },
     {
       location: {
@@ -2109,7 +2109,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 3,
         s: -4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -2125,7 +2125,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 5,
         s: -6,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -2141,7 +2141,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 7,
         s: -8,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -2165,7 +2165,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 10,
         s: -11,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -2189,7 +2189,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -11,
         s: 9,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -2197,7 +2197,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -10,
         s: 8,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -2229,7 +2229,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -6,
         s: 4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -2261,7 +2261,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -2,
         s: 0,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.INDUSTRIAL_ZONE,
     },
     {
       location: {
@@ -2269,7 +2269,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -1,
         s: -1,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.INDUSTRIAL_ZONE,
     },
     {
       location: {
@@ -2277,7 +2277,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 0,
         s: -2,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.INDUSTRIAL_ZONE,
     },
     {
       location: {
@@ -2301,7 +2301,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 3,
         s: -5,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -2309,7 +2309,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 4,
         s: -6,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -2333,7 +2333,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 7,
         s: -9,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -2349,7 +2349,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 9,
         s: -11,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -2373,7 +2373,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -11,
         s: 8,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -2381,7 +2381,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -10,
         s: 7,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -2405,7 +2405,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -7,
         s: 4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -2413,7 +2413,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -6,
         s: 3,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -2477,7 +2477,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 2,
         s: -5,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -2485,7 +2485,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 3,
         s: -6,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -2549,7 +2549,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -11,
         s: 7,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -2589,7 +2589,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -6,
         s: 2,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -2637,7 +2637,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 0,
         s: -4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -2645,7 +2645,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 1,
         s: -5,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -2653,7 +2653,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 2,
         s: -6,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -2717,7 +2717,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -11,
         s: 6,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -2741,7 +2741,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -8,
         s: 3,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -2749,7 +2749,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -7,
         s: 2,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -2757,7 +2757,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -6,
         s: 1,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -2789,7 +2789,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -2,
         s: -3,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -2797,7 +2797,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -1,
         s: -4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -2813,7 +2813,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 1,
         s: -6,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -2829,7 +2829,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 3,
         s: -8,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -2853,7 +2853,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 6,
         s: -11,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -2877,7 +2877,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -11,
         s: 5,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -2901,7 +2901,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -8,
         s: 2,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -2917,7 +2917,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -6,
         s: 0,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -2925,7 +2925,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -5,
         s: -1,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -2933,7 +2933,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -4,
         s: -2,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -2941,7 +2941,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -3,
         s: -3,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -2949,7 +2949,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -2,
         s: -4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -2957,7 +2957,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -1,
         s: -5,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -2965,7 +2965,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 0,
         s: -6,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.RADIATION_STORM,
     },
     {
       location: {
@@ -2981,7 +2981,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 2,
         s: -8,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -3005,7 +3005,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 5,
         s: -11,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -3029,7 +3029,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -11,
         s: 4,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -3053,7 +3053,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -8,
         s: 1,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -3093,7 +3093,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -3,
         s: -4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -3149,7 +3149,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 4,
         s: -11,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -3181,7 +3181,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -10,
         s: 2,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -3189,7 +3189,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -9,
         s: 1,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -3221,7 +3221,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -5,
         s: -3,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -3229,7 +3229,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -4,
         s: -4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -3237,7 +3237,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -3,
         s: -5,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -3253,7 +3253,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -1,
         s: -7,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -3285,7 +3285,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 3,
         s: -11,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -3357,7 +3357,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -5,
         s: -4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -3381,7 +3381,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -2,
         s: -7,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -3421,7 +3421,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 3,
         s: -12,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -3429,7 +3429,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -12,
         s: 2,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -3437,7 +3437,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -11,
         s: 1,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -3469,7 +3469,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -7,
         s: -3,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -3477,7 +3477,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -6,
         s: -4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -3501,7 +3501,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -3,
         s: -7,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -3533,7 +3533,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 1,
         s: -11,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -3557,7 +3557,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -11,
         s: 0,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -3565,7 +3565,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -10,
         s: -1,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -3573,7 +3573,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -9,
         s: -2,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -3589,7 +3589,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -7,
         s: -4,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -3597,7 +3597,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -6,
         s: -5,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -3605,7 +3605,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -5,
         s: -6,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -3613,7 +3613,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -4,
         s: -7,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -3629,7 +3629,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -2,
         s: -9,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -3637,7 +3637,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -1,
         s: -10,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -3645,7 +3645,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: 0,
         s: -11,
       },
-      terrain: TerrainTypes.EMPTY,
+      terrain: TerrainTypes.ASTEROID_FIELD,
     },
     {
       location: {
@@ -3685,7 +3685,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -9,
         s: -3,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -3693,7 +3693,7 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
         r: -8,
         s: -4,
       },
-      terrain: TerrainTypes.ASTEROID_FIELD,
+      terrain: TerrainTypes.EMPTY,
     },
     {
       location: {
@@ -3763,11 +3763,19 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
   planets: [
     {
       location: {
-        q: -10,
+        q: -12,
         r: 0,
-        s: 10,
+        s: 12,
       },
-      isCapital: true,
+      isCapital: false,
+    },
+    {
+      location: {
+        q: -12,
+        r: 12,
+        s: 0,
+      },
+      isCapital: false,
     },
     {
       location: {
@@ -3779,27 +3787,19 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
     },
     {
       location: {
-        q: -10,
-        r: 10,
-        s: 0,
+        q: -9,
+        r: 0,
+        s: 9,
       },
       isCapital: true,
     },
     {
       location: {
-        q: -6,
-        r: 0,
-        s: 6,
-      },
-      isCapital: false,
-    },
-    {
-      location: {
-        q: -6,
-        r: 6,
+        q: -9,
+        r: 9,
         s: 0,
       },
-      isCapital: false,
+      isCapital: true,
     },
     {
       location: {
@@ -3819,8 +3819,8 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
     },
     {
       location: {
-        q: -2,
-        r: 0,
+        q: -4,
+        r: 2,
         s: 2,
       },
       isCapital: false,
@@ -3828,39 +3828,15 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
     {
       location: {
         q: -2,
-        r: 2,
-        s: 0,
-      },
-      isCapital: false,
-    },
-    {
-      location: {
-        q: 0,
-        r: -10,
-        s: 10,
-      },
-      isCapital: true,
-    },
-    {
-      location: {
-        q: 0,
-        r: -6,
-        s: 6,
-      },
-      isCapital: false,
-    },
-    {
-      location: {
-        q: 0,
         r: -2,
-        s: 2,
+        s: 4,
       },
       isCapital: false,
     },
     {
       location: {
-        q: 0,
-        r: 2,
+        q: -2,
+        r: 4,
         s: -2,
       },
       isCapital: false,
@@ -3868,31 +3844,55 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
     {
       location: {
         q: 0,
-        r: 6,
-        s: -6,
+        r: -12,
+        s: 12,
       },
       isCapital: false,
     },
     {
       location: {
         q: 0,
-        r: 10,
-        s: -10,
+        r: -9,
+        s: 9,
       },
       isCapital: true,
     },
     {
       location: {
-        q: 2,
-        r: -2,
-        s: 0,
+        q: 0,
+        r: 9,
+        s: -9,
+      },
+      isCapital: true,
+    },
+    {
+      location: {
+        q: 0,
+        r: 12,
+        s: -12,
       },
       isCapital: false,
     },
     {
       location: {
         q: 2,
-        r: 0,
+        r: -4,
+        s: 2,
+      },
+      isCapital: false,
+    },
+    {
+      location: {
+        q: 2,
+        r: 2,
+        s: -4,
+      },
+      isCapital: false,
+    },
+    {
+      location: {
+        q: 4,
+        r: -2,
         s: -2,
       },
       isCapital: false,
@@ -3915,25 +3915,17 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
     },
     {
       location: {
-        q: 6,
-        r: -6,
+        q: 9,
+        r: -9,
         s: 0,
       },
-      isCapital: false,
+      isCapital: true,
     },
     {
       location: {
-        q: 6,
+        q: 9,
         r: 0,
-        s: -6,
-      },
-      isCapital: false,
-    },
-    {
-      location: {
-        q: 10,
-        r: -10,
-        s: 0,
+        s: -9,
       },
       isCapital: true,
     },
@@ -3947,11 +3939,19 @@ export const GAME_MAP_6_PLAYER_SHATTERED_BELT: GameMap = {
     },
     {
       location: {
-        q: 10,
-        r: 0,
-        s: -10,
+        q: 12,
+        r: -12,
+        s: 0,
       },
-      isCapital: true,
+      isCapital: false,
+    },
+    {
+      location: {
+        q: 12,
+        r: 0,
+        s: -12,
+      },
+      isCapital: false,
     },
   ],
 };

@@ -5,8 +5,12 @@
       data-bs-toggle="tooltip"
       title="The unit's attack strength"
     >
-      <span class="stat-label d-none d-md-block">Attack</span>
-      <span class="d-inline-block d-md-none me-1 text-warning"><i class="fas fa-bolt-lightning"></i></span>
+      <span class="stat-label d-none d-md-block"
+        ><i class="fas fa-bolt-lightning me-1"></i>Attack</span
+      >
+      <span class="d-inline-block d-md-none me-1 text-warning"
+        ><i class="fas fa-bolt-lightning"></i
+      ></span>
       <span class="stat-value">{{ unitCatalog?.stats.attack }}</span>
     </div>
     <div
@@ -14,8 +18,12 @@
       data-bs-toggle="tooltip"
       title="The unit's defensive strength"
     >
-      <span class="stat-label d-none d-md-block">Defense</span>
-      <span class="d-inline-block d-md-none me-1"><i class="fas fa-shield"></i></span>
+      <span class="stat-label d-none d-md-block"
+        ><i class="fas fa-shield me-1"></i>Defense</span
+      >
+      <span class="d-inline-block d-md-none me-1 text-muted"
+        ><i class="fas fa-shield"></i
+      ></span>
       <span class="stat-value">{{ unitCatalog?.stats.defense }}</span>
     </div>
     <div
@@ -23,8 +31,12 @@
       data-bs-toggle="tooltip"
       title="The unit's armour value"
     >
-      <span class="stat-label d-none d-md-block">Armour</span>
-      <span class="d-inline-block d-md-none me-1 text-info"><i class="fas fa-shield-halved"></i></span>
+      <span class="stat-label d-none d-md-block"
+        ><i class="fas fa-shield-halved me-1"></i>Armour</span
+      >
+      <span class="d-inline-block d-md-none me-1 text-info"
+        ><i class="fas fa-shield-halved"></i
+      ></span>
       <span class="stat-value">{{ unitCatalog?.stats.armour }}</span>
     </div>
     <div
@@ -32,8 +44,12 @@
       data-bs-toggle="tooltip"
       title="Remaining Movement Points"
     >
-      <span class="stat-label d-none d-md-block">MP</span>
-      <span class="d-inline-block d-md-none me-1 text-success"><i class="fas fa-arrows-up-down-left-right"></i></span>
+      <span class="stat-label d-none d-md-block"
+        ><i class="fas fa-arrows-up-down-left-right me-1"></i>MP</span
+      >
+      <span class="d-inline-block d-md-none me-1 text-success"
+        ><i class="fas fa-arrows-up-down-left-right"></i
+      ></span>
       <span class="stat-value"
         >{{ unit.state.mp }}/{{ unitCatalog?.stats.maxMP }}</span
       >

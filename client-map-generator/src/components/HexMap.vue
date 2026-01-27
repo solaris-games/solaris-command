@@ -40,7 +40,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, onUnmounted, watch } from 'vue';
-import { mapStore, EditorHex } from '../stores/mapStore';
+import { mapStore, EditorHex, getHexKey } from '../stores/mapStore';
 import { TerrainTypes } from '@solaris-command/core/src/types/hex';
 import { hexToPixel } from '../utils/hexUtils';
 
@@ -155,7 +155,7 @@ function getCoordTextConfig(hex: EditorHex) {
     }
 }
 
-function handleHexClick(hex: EditorHex) {
+function updateHex(hex: EditorHex) {
   const tool = mapStore.selectedTerrain;
 
   if (tool === 'PLANET') {
@@ -183,6 +183,22 @@ function handleHexClick(hex: EditorHex) {
     if (hex.terrain !== TerrainTypes.EMPTY) {
         hex.hasPlanet = false;
         hex.isCapital = false;
+    }
+  }
+}
+
+function handleHexClick(hex: EditorHex) {
+  updateHex(hex);
+
+  if (mapStore.mirrorMode) {
+    const mirrorQ = -hex.q;
+    const mirrorR = -hex.r;
+    const mirrorS = -hex.s;
+    const mirrorKey = getHexKey(mirrorQ, mirrorR, mirrorS);
+    const mirrorHex = mapStore.hexes.get(mirrorKey);
+
+    if (mirrorHex && mirrorHex !== hex) {
+      updateHex(mirrorHex);
     }
   }
 }
