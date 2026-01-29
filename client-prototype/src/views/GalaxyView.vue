@@ -100,17 +100,17 @@
             id="mapOverlayAll"
             class="col mt-2 d-flex justify-content-center"
           >
-            <JoinGameModal v-if="showJoinGame" @close="showJoinGame = false" />
+            <JoinGameModal :show="showJoinGame" @close="showJoinGame = false" />
             <LeaderboardModal
-              v-if="showLeaderboard"
+              :show="showLeaderboard"
               @close="showLeaderboard = false"
             />
             <ReferenceModal
-              v-if="showReferenceModal"
+              :show="showReferenceModal"
               @close="showReferenceModal = false"
             />
             <EventLogModal
-              v-if="showEventLogModal"
+              :show="showEventLogModal"
               @close="showEventLogModal = false"
             />
           </div>
@@ -254,7 +254,6 @@ onMounted(async () => {
     mapSettingsStore.stage.y = mapSettingsStore.stage.height / 2;
   }
 
-  // Auto-open the join game modal if there is no player and the game is pending.
   if (
     galaxyStore.galaxy?.game.state.status === GameStates.PENDING &&
     galaxyStore.currentPlayer == null

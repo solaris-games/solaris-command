@@ -1,50 +1,33 @@
 <template>
-  <div class="event-log-modal">
-    <div class="modal-content">
-      <div class="card p-1">
-        <div class="card-header bg-dark fw-bold">
-          Event Log
-          <button
-            type="button"
-            class="btn-close"
-            @click="$emit('close')"
-            data-bs-toggle="tooltip"
-            title="Close this dialog"
-          ></button>
+  <BaseModal :show="show" title="Event Log" @close="$emit('close')">
+    <div class="list-group scrollable-list">
+      <div
+        v-for="event in events"
+        :key="event._id"
+        class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between align-items-start"
+      >
+        <div class="flex-grow-1">
+          <component :is="getEventComponent(event.type)" :event="event" />
         </div>
-        <div class="card-body bg-dark">
-          <div class="list-group scrollable-list">
-            <div
-              v-for="event in events"
-              :key="event._id"
-              class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between align-items-start"
-            >
-              <div class="flex-grow-1">
-                <component :is="getEventComponent(event.type)" :event="event" />
-              </div>
-              <span class="badge bg-info mb-1 ms-2"
-                >Tick: {{ event.tick }}</span
-              >
-            </div>
-          </div>
-        </div>
-        <!-- card-arrow -->
-        <div class="card-arrow">
-          <div class="card-arrow-top-left"></div>
-          <div class="card-arrow-top-right"></div>
-          <div class="card-arrow-bottom-left"></div>
-          <div class="card-arrow-bottom-right"></div>
-        </div>
+        <span class="badge bg-info mb-1 ms-2">Tick: {{ event.tick }}</span>
       </div>
     </div>
-  </div>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, defineAsyncComponent } from "vue";
+import { computed, watch, defineAsyncComponent } from "vue";
 import { useGameStore } from "@/stores/game";
 import { useGalaxyStore } from "@/stores/galaxy";
 import { GameEventTypes } from "@solaris-command/core/src/types/game-event";
+import BaseModal from "./BaseModal.vue";
+
+const props = defineProps({
+  show: {
+    type: Boolean,
+    required: true,
+  },
+});
 
 defineEmits(["close"]);
 
@@ -99,22 +82,18 @@ const getEventComponent = (eventType: string) => {
   return (eventComponents as any)[eventType] || DefaultEventComponent;
 };
 
-onMounted(async () => {
-  if (gameId.value) {
-    await gameStore.fetchEvents(String(gameId.value));
-  }
-});
+watch(
+  () => props.show,
+  async (newVal) => {
+    if (newVal && gameId.value) {
+      await gameStore.fetchEvents(String(gameId.value));
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <style scoped>
-.event-log-modal {
-  margin-bottom: auto;
-}
-.btn-close {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-}
 .scrollable-list {
   max-height: 80vh;
   overflow-y: auto;

@@ -1,51 +1,34 @@
 <template>
-  <div
-    class="modal fade"
-    tabindex="-1"
-    role="dialog"
-    :class="{ 'show d-block': show }"
-  >
-    <div class="modal-dialog" role="document">
-      <div class="modal-content bg-dark text-white">
-        <div class="modal-header">
-          <h5 class="modal-title">{{ title }}</h5>
-          <button
-            type="button"
-            class="btn-close"
-            @click="onCancel"
-            data-bs-toggle="tooltip"
-            title="Close this dialog"
-          ></button>
-        </div>
-        <div class="modal-body">
-          <slot></slot>
-        </div>
-        <div class="modal-footer">
-          <button
-            type="button"
-            class="btn btn-outline-danger"
-            @click="onCancel"
-            data-bs-toggle="tooltip"
-            title="Cancel this action"
-          >
-            <i class="fas fa-ban"></i> Cancel
-          </button>
-          <button
-            type="button"
-            class="btn btn-success"
-            @click="onConfirm"
-            data-bs-toggle="tooltip"
-            title="Confirm this action"
-          >
-            <i class="fas fa-check"></i> Confirm
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <BaseModal :show="show" :title="title" @close="onCancel">
+    <template #default>
+      <slot></slot>
+    </template>
+    <template #footer>
+      <button
+        type="button"
+        class="btn btn-outline-danger"
+        @click="onCancel"
+        data-bs-toggle="tooltip"
+        title="Cancel this action"
+      >
+        <i class="fas fa-ban"></i> Cancel
+      </button>
+      <button
+        type="button"
+        class="btn btn-success"
+        @click="onConfirm"
+        data-bs-toggle="tooltip"
+        title="Confirm this action"
+      >
+        <i class="fas fa-check"></i> Confirm
+      </button>
+    </template>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
+import BaseModal from "./BaseModal.vue";
+
 defineProps({
   show: {
     type: Boolean,
@@ -67,14 +50,3 @@ const onCancel = () => {
   emit("cancel");
 };
 </script>
-
-<style scoped>
-.modal {
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-.modal {
-  padding-top: 50px;
-  z-index: 20;
-}
-</style>
