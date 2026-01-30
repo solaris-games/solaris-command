@@ -56,6 +56,11 @@
     >
       <i class="fas fa-layer-group"></i>
     </button>
+
+    <!-- Main Menu -->
+    <button class="btn btn-outline-theme" @click="goToMainMenu">
+      <i class="fas fa-chevron-left"></i>
+    </button>
   </div>
 </template>
 
@@ -78,6 +83,10 @@ defineEmits([
   "toggle-fleet",
   "toggle-layers",
 ]);
+
+const goToMainMenu = () => {
+  window.location.href = "/";
+};
 </script>
 
 <style scoped>

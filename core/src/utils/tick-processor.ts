@@ -675,27 +675,29 @@ export const TickProcessor = {
       winnerPlayer = activePlayers[0]!;
     }
 
-    // --- VICTORY BY VP CHECK ---
-    // Note: If all players are defeated or afk then let's just end the game now.
-    const defeatedOrAFKPlayerCount = context.players.filter(
-      (p) =>
-        p.status === PlayerStatus.DEFEATED || p.status === PlayerStatus.AFK,
-    ).length;
+    if (!winnerPlayer) {
+      // --- VICTORY BY VP CHECK ---
+      // Note: If all players are defeated or afk then let's just end the game now.
+      const defeatedOrAFKPlayerCount = context.players.filter(
+        (p) =>
+          p.status === PlayerStatus.DEFEATED || p.status === PlayerStatus.AFK,
+      ).length;
 
-    const isAllPlayersDefeatedOrAFK =
-      defeatedOrAFKPlayerCount === context.game.settings.playerCount;
+      const isAllPlayersDefeatedOrAFK =
+        defeatedOrAFKPlayerCount === context.game.settings.playerCount;
 
-    if (winnerPlayer == null || isAllPlayersDefeatedOrAFK) {
-      winnerPlayer =
-        GameLeaderboardUtils.getLeaderboard(
-          context.players,
-          context.planets,
-          context.units,
-        ).filter(
-          (x) =>
-            x.status === PlayerStatus.ACTIVE &&
-            x.victoryPoints >= context.game.settings.victoryPointsToWin,
-        )[0] ?? null;
+      if (winnerPlayer == null || isAllPlayersDefeatedOrAFK) {
+        winnerPlayer =
+          GameLeaderboardUtils.getLeaderboard(
+            context.players,
+            context.planets,
+            context.units,
+          ).filter(
+            (x) =>
+              x.status === PlayerStatus.ACTIVE &&
+              x.victoryPoints >= context.game.settings.victoryPointsToWin,
+          )[0] ?? null;
+      }
     }
 
     if (winnerPlayer) {
