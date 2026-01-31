@@ -111,7 +111,9 @@
               Raw Ratio: {{ prediction.oddsRatio.toFixed(2) }}
             </div> -->
             <div class="small text-muted">
-              Final Score: {{ prediction.prediction.finalScore }} ({{ prediction.outcome.resultType }})
+              Final Score: {{ prediction.prediction.finalScore }} ({{
+                prediction.outcome.resultType
+              }})
             </div>
           </div>
 
@@ -176,39 +178,21 @@
                 <i class="fas fa-arrow-right mx-1"></i>
                 <!-- Simplified visualization for predicted steps -->
                 <span
-                  v-for="i in Math.min(
-                    attacker.steps.length,
-                    prediction.outcome.attacker.losses,
-                  )"
-                  :key="'lost' + i"
-                  class="step-dot lost"
-                  >X</span
-                >
-                <span
-                  v-for="i in Math.max(
-                    0,
-                    Math.min(
-                      attacker.steps.length -
-                        prediction.outcome.attacker.losses,
-                      prediction.outcome.attacker.suppressed,
-                    ),
-                  )"
-                  :key="'lost' + i"
-                  class="step-dot suppressed"
-                ></span>
-                <span
-                  v-for="i in Math.max(
-                    0,
-                    attacker.steps.length -
-                      prediction.outcome.attacker.losses -
-                      prediction.outcome.attacker.suppressed,
-                  )"
+                  v-for="(state, i) in attackerPredictedSteps"
                   :key="i"
-                  class="step-dot active"
-                ></span>
+                  class="step-dot"
+                  :class="{
+                    lost: state === 'lost',
+                    suppressed: state === 'suppressed',
+                    active: state === 'active',
+                  }"
+                  ><span v-if="state === 'lost'">X</span></span
+                >
               </div>
               <div
-                v-if="prediction.outcome.resultType === CombatResultType.OVERRUN"
+                v-if="
+                  prediction.outcome.resultType === CombatResultType.OVERRUN
+                "
                 class="text-success mt-1"
               >
                 <i class="fas fa-rotate-right"></i> Overrun
@@ -227,36 +211,16 @@
                 ></span>
                 <i class="fas fa-arrow-right mx-1"></i>
                 <span
-                  v-for="i in Math.min(
-                    defender.steps.length,
-                    prediction.outcome.defender.losses,
-                  )"
-                  :key="'lost' + i"
-                  class="step-dot lost"
-                  >X</span
-                >
-                <span
-                  v-for="i in Math.max(
-                    0,
-                    Math.min(
-                      defender.steps.length -
-                        prediction.outcome.defender.losses,
-                      prediction.outcome.defender.suppressed,
-                    ),
-                  )"
-                  :key="'lost' + i"
-                  class="step-dot suppressed"
-                ></span>
-                <span
-                  v-for="i in Math.max(
-                    0,
-                    defender.steps.length -
-                      prediction.outcome.defender.losses -
-                      prediction.outcome.defender.suppressed,
-                  )"
+                  v-for="(state, i) in defenderPredictedSteps"
                   :key="i"
-                  class="step-dot active"
-                ></span>
+                  class="step-dot"
+                  :class="{
+                    lost: state === 'lost',
+                    suppressed: state === 'suppressed',
+                    active: state === 'active',
+                  }"
+                  ><span v-if="state === 'lost'">X</span></span
+                >
               </div>
               <div
                 v-if="prediction.outcome.defender.retreat"
@@ -300,7 +264,10 @@ import { computed } from "vue";
 import { useGalaxyStore } from "../../stores/galaxy";
 import { useCombatStore } from "../../stores/combat";
 import UnitDetails from "./UnitDetails.vue";
-import { CombatOperation, CombatResultType } from "@solaris-command/core/src/types/combat";
+import {
+  CombatOperation,
+  CombatResultType,
+} from "@solaris-command/core/src/types/combat";
 import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
 
 const galaxyStore = useGalaxyStore();
@@ -321,6 +288,45 @@ const defenderColor = computed(() => {
     return color?.foreground || "#fff";
   }
   return "#fff";
+});
+
+const getPredictedSteps = (unit: any, outcome: any) => {
+  if (!unit || !outcome) return [];
+
+  let initialSteps = unit.steps;
+  let losses = outcome.losses;
+  let newlySuppressed = outcome.suppressed;
+
+  // 1. Determine which steps are lost
+  const lostStepsCount = Math.min(initialSteps.length, losses);
+  const lostSteps = Array(lostStepsCount).fill("lost");
+
+  // 2. Determine state of surviving steps
+  const survivingSteps = initialSteps.slice(lostStepsCount);
+  let suppressCounter = newlySuppressed;
+
+  const finalSurvivingStepsState = survivingSteps.map((step: any) => {
+    if (step.isSuppressed) {
+      return "suppressed";
+    }
+    if (suppressCounter > 0) {
+      suppressCounter--;
+      return "suppressed";
+    }
+    return "active";
+  });
+
+  return [...lostSteps, ...finalSurvivingStepsState];
+};
+
+const attackerPredictedSteps = computed(() => {
+  if (!attacker.value || !prediction.value) return [];
+  return getPredictedSteps(attacker.value, prediction.value.outcome.attacker);
+});
+
+const defenderPredictedSteps = computed(() => {
+  if (!defender.value || !prediction.value) return [];
+  return getPredictedSteps(defender.value, prediction.value.outcome.defender);
 });
 </script>
 

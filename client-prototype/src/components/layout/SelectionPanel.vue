@@ -124,7 +124,13 @@
             </div>
           </div>
           <hr />
-          <div class="input-group">
+          <div
+            class="input-group"
+            v-if="
+              unitCatalog != null &&
+              selectedUnit.steps.length < unitCatalog.stats.maxSteps
+            "
+          >
             <select class="form-select" v-model="selectedSpecialist">
               <option disabled value="">Hire Specialist</option>
               <option
