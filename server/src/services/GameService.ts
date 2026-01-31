@@ -68,6 +68,12 @@ export class GameService {
       .limit(100);
   }
 
+  static async startGame(gameId: UnifiedId) {
+    return GameService.updateGameState(gameId, {
+      "state.status": GameStates.ACTIVE,
+    });
+  }
+
   static async lockGame(gameId: UnifiedId) {
     return GameService.updateGameState(gameId, {
       "state.status": GameStates.LOCKED,

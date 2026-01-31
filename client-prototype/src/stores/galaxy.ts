@@ -37,6 +37,7 @@ export const useGalaxyStore = defineStore("galaxy", {
     selectedUnitHasValidAttackTargets: null as boolean | null,
     isGameInPlay: false,
     isGameClockRunning: false,
+    isGameStarting: false
   }),
   getters: {
     players: (state): APIPlayer[] => state.galaxy?.players || [],
@@ -122,6 +123,8 @@ export const useGalaxyStore = defineStore("galaxy", {
         this.isGameClockRunning =
           this.galaxy!.game.state.status === GameStates.ACTIVE ||
           this.galaxy!.game.state.status === GameStates.STARTING;
+
+        this.isGameStarting = this.galaxy!.game.state.status === GameStates.STARTING;
 
         // Reload any selected hexes/planets/stations/units etc.
         if (this.selectedHex)

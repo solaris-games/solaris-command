@@ -2,9 +2,9 @@ import { GameMap, TerrainTypes } from "../../types";
 import { CONSTANTS } from "../constants";
 
 export const GAME_MAP_6_PLAYER_RING: GameMap = {
-  id: "new-map",
-  name: "New Map",
-  playerCount: 2,
+  id: "6-player-ring",
+  name: "Ring",
+  playerCount: 6,
   victoryPointsToWin: CONSTANTS.GAME_DEFAULT_VICTORY_POINTS_TO_WIN,
   hexes: [
     {

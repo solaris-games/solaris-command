@@ -19,11 +19,17 @@
       class="section-countdown d-flex align-items-center me-auto ms-2"
       @click="toggleLeaderboard"
     >
-      <span class="fw-bold" v-if="galaxyStore.isGameClockRunning">
+      <span
+        class="fw-bold"
+        v-if="galaxyStore.isGameClockRunning && !galaxyStore.isGameStarting"
+      >
         [Cycle {{ galaxyStore.galaxy.game.state.cycle }} - Tick
         {{ galaxyStore.galaxy.game.state.tick }}] {{ nextCycleCountdown }}
       </span>
-      <span class="fw-bold" v-else>
+      <span class="fw-bold" v-if="galaxyStore.isGameStarting">
+        Game starts in {{ nextCycleCountdown }}
+      </span>
+      <span class="fw-bold" v-if="!galaxyStore.isGameClockRunning">
         {{ galaxyStore.galaxy.game.state.status }}
       </span>
     </div>
@@ -77,6 +83,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from "vue";
 import { useGalaxyStore } from "../../stores/galaxy";
+import { GameStates } from "@solaris-command/core/src/types/game";
 
 const galaxyStore = useGalaxyStore();
 
@@ -134,6 +141,21 @@ function updateCountdowns() {
   }
 
   const game = galaxyStore.galaxy.game;
+
+  if (game.state.status === GameStates.STARTING && game.state.startDate) {
+    const startDate = new Date(game.state.startDate);
+    const now = new Date();
+    const timeToStart = startDate.getTime() - now.getTime();
+
+    if (timeToStart > 0) {
+      nextCycleCountdown.value = formatMillisecondsToHMS(timeToStart);
+    } else {
+      nextCycleCountdown.value = "Processing...";
+    }
+
+    return;
+  }
+
   const lastTickDate = game.state.lastTickDate
     ? new Date(game.state.lastTickDate)
     : null;
@@ -146,7 +168,8 @@ function updateCountdowns() {
     const now = new Date();
     const timeToNextTick = nextTickTime.getTime() - now.getTime();
 
-    const ticksRemainingInCycle = ticksPerCycle - currentTick + 1;
+    const nextCycleTick = ticksPerCycle * (game.state.cycle + 1);
+    const ticksRemainingInCycle = nextCycleTick - currentTick;
     const timeToNextCycle =
       timeToNextTick + (ticksRemainingInCycle - 1) * tickDurationMS;
 

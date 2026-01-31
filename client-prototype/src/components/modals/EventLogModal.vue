@@ -47,8 +47,8 @@ const eventComponents = {
   [GameEventTypes.PLAYER_CONCEDED]: defineAsyncComponent(
     () => import("../events/PlayerConceded.vue"),
   ),
-  [GameEventTypes.GAME_STARTED]: defineAsyncComponent(
-    () => import("../events/GameStarted.vue"),
+  [GameEventTypes.GAME_STARTING]: defineAsyncComponent(
+    () => import("../events/GameStarting.vue"),
   ),
   [GameEventTypes.COMBAT_REPORT]: defineAsyncComponent(
     () => import("../events/CombatReport.vue"),

@@ -61,11 +61,14 @@ export const GameLoop = {
  * Main Processor: Iterates through all running games
  */
 async function processActiveGames() {
-  // 1. Find games that are ACTIVE
+  // 1. Find games that are ACTIVE or STARTING
   const activeGames = await GameModel.find({
-    "state.status": GameStates.ACTIVE,
+    "state.status": {
+      $in: [GameStates.ACTIVE, GameStates.STARTING],
+    },
   }).select({
     _id: 1,
+    "state.status": 1,
     "state.startDate": 1,
     "state.tick": 1,
     "settings.tickDurationMS": 1,
@@ -75,17 +78,31 @@ async function processActiveGames() {
     let gameModel: Game | null = null;
 
     try {
+      const now = Date.now();
+      const startDate = new Date(gameId.state.startDate!);
+
+      // If the game is currently STARTING then we need to set
+      // it to ACTIVE if the starting timer has expired.
+      if (
+        gameId.state.status === GameStates.STARTING &&
+        now >= startDate.getTime()
+      ) {
+        await GameService.startGame(gameId._id);
+        SocketService.publishToGame(gameId._id, "GAME_STARTED", {});
+        console.log(`⚡ Game started: ${gameId._id}`);
+        return;
+      }
+
       // 2. Time Check: Is it time for a tick?
       // Logic: Start Date + (Tick Count * Tick Duration)
       // This prevents clock drift compared to just adding to 'lastTickDate'
       const nextTickTime =
-        new Date(gameId.state.startDate!).getTime() +
+        startDate.getTime() +
         (gameId.state.tick + 1) * gameId.settings.tickDurationMS;
-      const now = Date.now();
 
       if (now >= nextTickTime) {
         console.log(
-          `⚡ Processing Tick ${gameId.state.tick + 1} for Game ${gameId._id}`
+          `⚡ Processing Tick ${gameId.state.tick + 1} for Game ${gameId._id}`,
         );
 
         // Load the game right at the start of the tick so there is minimal delay.
@@ -158,7 +175,7 @@ async function executeGameTick(game: Game) {
     units as Unit[],
     planets as Planet[],
     stations as Station[],
-    () => new Types.ObjectId()
+    () => new Types.ObjectId(),
   );
 
   // Firstly, validate that the game is in a valid state. We should be vigilant and make sure we
@@ -213,14 +230,14 @@ async function executeGameTick(game: Game) {
     if (deadUnits.length > 0) {
       await UnitModel.deleteMany(
         { _id: { $in: deadUnits.map((u) => u._id) } },
-        { session }
+        { session },
       );
     }
 
     if (tickResult.stationsToRemove.length > 0) {
       await StationModel.deleteMany(
         { _id: { $in: tickResult.stationsToRemove } },
-        { session }
+        { session },
       );
     }
 
@@ -250,28 +267,28 @@ async function executeGameTick(game: Game) {
     // ----- User Achievements (Victory) -----
     if (tickResult.winnerPlayerId) {
       const winnerPlayer = players.find(
-        (p) => String(p._id) === String(tickResult.winnerPlayerId)
+        (p) => String(p._id) === String(tickResult.winnerPlayerId),
       );
 
       if (winnerPlayer) {
         await UserService.incrementUserVictories(
           winnerPlayer.userId,
           1,
-          session
+          session,
         );
       }
 
       const newUserRankings = GameLeaderboardUtils.calculateGameRankRewards(
         players,
         planets,
-        liveUnits
+        liveUnits,
       );
 
       for (const newRanking of newUserRankings) {
         await UserService.incrementUserRank(
           newRanking.userId,
           newRanking.rankChange,
-          session
+          session,
         );
       }
     }
@@ -279,7 +296,7 @@ async function executeGameTick(game: Game) {
 
   if (game.state.status === GameStates.COMPLETED) {
     console.log(
-      `🏆 Game ${gameId} Completed! Winner: ${game.state.winnerPlayerId}`
+      `🏆 Game ${gameId} Completed! Winner: ${game.state.winnerPlayerId}`,
     );
   }
 }

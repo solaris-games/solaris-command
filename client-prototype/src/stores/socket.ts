@@ -58,6 +58,16 @@ export const useSocketStore = defineStore("socket", {
         galaxyStore.fetchGalaxy(gameId);
       });
 
+      this.socket.on("GAME_STARTING", () => {
+        console.log("Socket: GAME_STARTING received, reloading galaxy...");
+        galaxyStore.fetchGalaxy(gameId);
+      });
+
+      this.socket.on("GAME_STARTED", () => {
+        console.log("Socket: GAME_STARTED received, reloading galaxy...");
+        galaxyStore.fetchGalaxy(gameId);
+      });
+
       // TODO: Implement other websocket events.
     },
     disconnect() {

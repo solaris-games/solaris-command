@@ -78,7 +78,7 @@ socket.on("GAME_JOINED", (data) => {
 The server publishes events using standard event names. Currently supported events include:
 
 *   `PLAYER_JOINED`: When a new player joins the lobby.
-*   `GAME_STARTED`: When the game lobby fills up and the countdown starts.
+*   `GAME_STARTING`: When the game lobby fills up and the countdown starts.
 
 ```javascript
 // Example: Listening for a player join event
@@ -87,7 +87,7 @@ socket.on("PLAYER_JOINED", (eventData) => {
   // Update UI logic here...
 });
 
-socket.on("GAME_STARTED", (eventData) => {
+socket.on("GAME_STARTING", (eventData) => {
   console.log("Game started!", eventData);
 });
 ```
@@ -184,8 +184,8 @@ Here is a standalone example you can run in a browser (served via a simple HTTP 
                 log("EVENT: PLAYER_JOINED", data);
             });
 
-            socket.on("GAME_STARTED", (data) => {
-                log("EVENT: GAME_STARTED", data);
+            socket.on("GAME_STARTING", (data) => {
+                log("EVENT: GAME_STARTING", data);
             });
         }
 

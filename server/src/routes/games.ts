@@ -239,7 +239,7 @@ router.post(
           await GameService.updateGameState(
             gameId,
             {
-              "state.status": GameStates.ACTIVE,
+              "state.status": GameStates.STARTING,
               "state.startDate": startDate,
             },
             session
@@ -250,7 +250,7 @@ router.post(
               gameId,
               null,
               req.game.state.tick,
-              GameEventTypes.GAME_STARTED,
+              GameEventTypes.GAME_STARTING,
               {
                 startDate: startDate.toISOString(),
               },
