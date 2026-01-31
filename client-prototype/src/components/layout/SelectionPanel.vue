@@ -56,7 +56,8 @@
                 data-bs-toggle="tooltip"
                 title="Cancel the current move order"
               >
-                <i class="fas fa-ban"></i><span class="d-none d-md-inline ms-1">Cancel Move</span>
+                <i class="fas fa-ban"></i
+                ><span class="d-none d-md-inline ms-1">Cancel Move</span>
               </button>
             </div>
             <div class="col-3 col-md-6">
@@ -76,7 +77,8 @@
                   !galaxyStore.selectedUnitHasValidAttackTargets
                 "
               >
-                <i class="fas fa-bolt-lightning"></i><span class="d-none d-md-inline ms-1">Attack</span>
+                <i class="fas fa-bolt-lightning"></i
+                ><span class="d-none d-md-inline ms-1">Attack</span>
               </button>
               <button
                 v-else
@@ -85,7 +87,8 @@
                 data-bs-toggle="tooltip"
                 title="Cancel the current attack order"
               >
-                <i class="fas fa-ban"></i><span class="d-none d-md-inline ms-1">Cancel Attack</span>
+                <i class="fas fa-ban"></i
+                ><span class="d-none d-md-inline ms-1">Cancel Attack</span>
               </button>
             </div>
             <div class="col-3 col-md-6">
@@ -97,7 +100,9 @@
                 :disabled="
                   !galaxyStore.currentPlayer ||
                   galaxyStore.currentPlayer.prestigePoints <
-                    CONSTANTS.UNIT_STEP_BASE_COST
+                    CONSTANTS.UNIT_STEP_BASE_COST ||
+                  unitCatalog == null ||
+                  selectedUnit.steps.length >= unitCatalog.stats.maxSteps
                 "
               >
                 <i class="fas fa-arrow-up-from-bracket"></i
@@ -236,6 +241,7 @@ import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-color
 import UnitDetails from "./UnitDetails.vue";
 import UnitSpecialists from "./UnitSpecialists.vue";
 import { UnitStatus } from "@solaris-command/core/src/types/unit";
+import { UNIT_CATALOG_ID_MAP } from "@solaris-command/core/src/data/units";
 
 const galaxyStore = useGalaxyStore();
 const movementStore = useMovementStore();
@@ -333,6 +339,11 @@ const unitOOSCycles = computed(() => {
     selectedUnit.value as any,
     galaxyStore.galaxy!.game.settings.ticksPerCycle,
   );
+});
+
+const unitCatalog = computed(() => {
+  if (!selectedUnit.value) return null;
+  return UNIT_CATALOG_ID_MAP.get(selectedUnit.value.catalogId);
 });
 
 const panelStyle = computed(() => {

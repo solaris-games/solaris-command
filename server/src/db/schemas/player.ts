@@ -16,6 +16,7 @@ const PlayerSchema = new Schema<Player>({
   victoryPoints: { type: Number, required: true, default: 0 },
   renownToDistribute: { type: Number, required: true, default: 0 },
   lastSeenDate: { type: Date, required: true, default: Date.now },
+  defeatedDate: { type: Date, default: null },
   isAIControlled: { type: Boolean, required: true, default: false }
 });
 

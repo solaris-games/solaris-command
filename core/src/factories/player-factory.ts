@@ -20,6 +20,7 @@ export const PlayerFactory = {
       prestigePoints: CONSTANTS.GAME_STARTING_PRESTIGE_POINTS,
       victoryPoints: 0,
       lastSeenDate: new Date(),
+      defeatedDate: null,
       renownToDistribute,
       isAIControlled: false
     };

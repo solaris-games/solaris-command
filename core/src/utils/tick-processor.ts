@@ -658,6 +658,7 @@ export const TickProcessor = {
 
     defeatedPlayers.forEach((p) => {
       p.status = PlayerStatus.DEFEATED;
+      p.defeatedDate = new Date();
       p.isAIControlled = true;
     });
   },

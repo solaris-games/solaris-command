@@ -82,6 +82,7 @@ export interface GameGalaxyResponseSchema {
     prestigePoints: number | null;
     victoryPoints: number | null;
     lastSeenDate: string;
+    defeatedDate: string | null;
     renownToDistribute: number | null;
     isAIControlled: boolean;
   }[];

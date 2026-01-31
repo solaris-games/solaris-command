@@ -7,6 +7,7 @@ export const useMapSettingsStore = defineStore("mapSettings", {
   state: () => ({
     showHexGraphics: false,
     showHexCoordinates: false,
+    showUnits: true,
     showSupply: false,
     showZOC: false,
     showMPCosts: false,
@@ -24,6 +25,9 @@ export const useMapSettingsStore = defineStore("mapSettings", {
     },
     toggleHexCoordinates() {
       this.showHexCoordinates = !this.showHexCoordinates;
+    },
+    toggleUnits() {
+      this.showUnits = !this.showUnits;
     },
     toggleSupply() {
       this.showSupply = !this.showSupply;

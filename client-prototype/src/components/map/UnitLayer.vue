@@ -1,17 +1,20 @@
 <template>
   <v-layer :config="{ listening: false }">
-    <v-group
-      v-for="hex in galaxyStore.hexes"
-      :key="`unit-${hex.location.q},${hex.location.r}`"
-      :config="getHexConfig(hex)"
-    >
-      <UnitCounter v-if="getUnitAt(hex)" :unit="getUnitAt(hex)!" />
+    <v-group v-if="mapSettingsStore.showUnits">
+      <v-group
+        v-for="hex in galaxyStore.hexes"
+        :key="`unit-${hex.location.q},${hex.location.r}`"
+        :config="getHexConfig(hex)"
+      >
+        <UnitCounter v-if="getUnitAt(hex)" :unit="getUnitAt(hex)!" />
+      </v-group>
     </v-group>
   </v-layer>
 </template>
 
 <script setup lang="ts">
 import { useGalaxyStore } from "../../stores/galaxy";
+import { useMapSettingsStore } from "../../stores/mapSettings";
 import { hexToPixel } from "../../utils/hexUtils";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
 import UnitCounter from "./UnitCounter.vue";
@@ -20,10 +23,11 @@ type APIHex = GameGalaxyResponseSchema["hexes"][0];
 
 const HEX_SIZE = 64;
 const galaxyStore = useGalaxyStore();
+const mapSettingsStore = useMapSettingsStore();
 
 function getUnitAt(hex: APIHex) {
   return galaxyStore.units.find(
-    (u) => u.location.q === hex.location.q && u.location.r === hex.location.r
+    (u) => u.location.q === hex.location.q && u.location.r === hex.location.r,
   );
 }
 

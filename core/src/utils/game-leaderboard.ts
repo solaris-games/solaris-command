@@ -61,6 +61,15 @@ export const GameLeaderboardUtils = {
           return unitsB - unitsA;
         }
 
+        // 5. Defeated date descending
+        if (a.defeatedDate && b.defeatedDate) {
+          return b.defeatedDate.getTime() - a.defeatedDate.getTime();
+        } else if (a.defeatedDate) {
+          return -1; // a has a defeatedDate, b does not, so a comes first (descending)
+        } else if (b.defeatedDate) {
+          return 1; // b has a defeatedDate, a does not, so b comes first (descending)
+        }
+
         // Equal
         return 0;
       });

@@ -60,6 +60,7 @@ function createPlayer(id: string, overrides: Partial<Player> = {}): Player {
     victoryPoints: 0,
     renownToDistribute: 0,
     lastSeenDate: new Date(),
+    defeatedDate: null,
     isAIControlled: false,
     ...overrides,
   };
@@ -69,7 +70,7 @@ function createHex(
   q: number,
   r: number,
   s: number,
-  overrides: Partial<Hex> = {}
+  overrides: Partial<Hex> = {},
 ): Hex {
   return {
     _id: new MockUnifiedId(),
@@ -89,7 +90,7 @@ function createUnit(
   id: string,
   playerId: string,
   hex: Hex,
-  overrides: Partial<Unit> = {}
+  overrides: Partial<Unit> = {},
 ): Unit {
   const steps: UnitStep[] = [
     { isSuppressed: false, specialistId: null },
@@ -126,7 +127,7 @@ function createUnit(
 function createPlanet(
   playerId: string | null,
   hex: Hex,
-  isCapital: boolean = false
+  isCapital: boolean = false,
 ): Planet {
   return {
     _id: new MockUnifiedId(),
@@ -159,7 +160,7 @@ function createTinyGalaxy() {
   const center = createHex(0, 0, 0);
   // Use HexUtils.neighbors instead of getNeighbors (typo in original file)
   const neighbors = HexUtils.neighbors(center.location).map((loc) =>
-    createHex(loc.q, loc.r, loc.s)
+    createHex(loc.q, loc.r, loc.s),
   );
   return [center, ...neighbors];
 }
@@ -180,7 +181,7 @@ describe("TickProcessor Integration Tests", () => {
       units,
       planets,
       stations,
-      ID_GENERATOR
+      ID_GENERATOR,
     );
 
     expect(context).toBeDefined();
@@ -209,7 +210,7 @@ describe("TickProcessor Integration Tests", () => {
         [unit],
         [],
         [],
-        ID_GENERATOR
+        ID_GENERATOR,
       );
 
       TickProcessor.processTick(context);
@@ -239,7 +240,7 @@ describe("TickProcessor Integration Tests", () => {
         [unit],
         [],
         [],
-        ID_GENERATOR
+        ID_GENERATOR,
       );
 
       TickProcessor.processTick(context);
@@ -273,7 +274,7 @@ describe("TickProcessor Integration Tests", () => {
         [unit],
         [planet],
         [],
-        ID_GENERATOR
+        ID_GENERATOR,
       );
 
       TickProcessor.processTick(context);
@@ -287,7 +288,7 @@ describe("TickProcessor Integration Tests", () => {
 
       // Event generated
       const event = context.gameEvents.find(
-        (e) => e.type === GameEventTypes.PLANET_CAPTURED
+        (e) => e.type === GameEventTypes.PLANET_CAPTURED,
       );
       expect(event).toBeDefined();
     });
@@ -316,7 +317,7 @@ describe("TickProcessor Integration Tests", () => {
         [unit],
         [],
         [station],
-        ID_GENERATOR
+        ID_GENERATOR,
       );
 
       TickProcessor.processTick(context);
@@ -327,13 +328,13 @@ describe("TickProcessor Integration Tests", () => {
       // Station marked for removal
       expect(
         context.stationsToRemove.some(
-          (id) => id.toString() === station._id.toString()
-        )
+          (id) => id.toString() === station._id.toString(),
+        ),
       ).toBe(true);
 
       // Event generated
       const event = context.gameEvents.find(
-        (e) => e.type === GameEventTypes.STATION_DESTROYED
+        (e) => e.type === GameEventTypes.STATION_DESTROYED,
       );
       expect(event).toBeDefined();
     });
@@ -366,7 +367,7 @@ describe("TickProcessor Integration Tests", () => {
         [unit],
         [],
         [],
-        ID_GENERATOR
+        ID_GENERATOR,
       );
 
       TickProcessor.processTick(context);
@@ -396,7 +397,7 @@ describe("TickProcessor Integration Tests", () => {
         [unit],
         [],
         [],
-        ID_GENERATOR
+        ID_GENERATOR,
       );
 
       TickProcessor.processTick(context);
@@ -425,7 +426,7 @@ describe("TickProcessor Integration Tests", () => {
         [unit],
         [],
         [],
-        ID_GENERATOR
+        ID_GENERATOR,
       );
 
       TickProcessor.processTick(context);
@@ -457,7 +458,7 @@ describe("TickProcessor Integration Tests", () => {
         [],
         [planet1, planet2],
         [],
-        ID_GENERATOR
+        ID_GENERATOR,
       );
 
       TickProcessor.processTick(context);
@@ -488,7 +489,7 @@ describe("TickProcessor Integration Tests", () => {
         [unit],
         [],
         [],
-        ID_GENERATOR
+        ID_GENERATOR,
       );
 
       TickProcessor.processTick(context);
@@ -497,7 +498,7 @@ describe("TickProcessor Integration Tests", () => {
 
       // Event generated
       const event = context.gameEvents.find(
-        (e) => e.type === GameEventTypes.UNIT_STARVED_BY_OOS
+        (e) => e.type === GameEventTypes.UNIT_STARVED_BY_OOS,
       );
       expect(event).toBeDefined();
     });
@@ -532,7 +533,7 @@ describe("TickProcessor Integration Tests", () => {
         [attacker, defender],
         [],
         [],
-        ID_GENERATOR
+        ID_GENERATOR,
       );
 
       TickProcessor.processTick(context);
@@ -542,7 +543,7 @@ describe("TickProcessor Integration Tests", () => {
 
       // Check for combat reports in events
       const reports = context.gameEvents.filter(
-        (e) => e.type === GameEventTypes.COMBAT_REPORT
+        (e) => e.type === GameEventTypes.COMBAT_REPORT,
       );
       expect(reports.length).toBe(2); // One for each player
 
@@ -586,7 +587,7 @@ describe("TickProcessor Integration Tests", () => {
         [attacker, defender, bystander],
         [],
         [],
-        ID_GENERATOR
+        ID_GENERATOR,
       );
 
       TickProcessor.processTick(context);
@@ -626,14 +627,14 @@ describe("TickProcessor Integration Tests", () => {
         [attacker, target],
         [],
         [],
-        ID_GENERATOR
+        ID_GENERATOR,
       );
 
       TickProcessor.processTick(context);
 
       // Should have cancelled event
       const cancelledEvent = context.gameEvents.find(
-        (e) => e.type === GameEventTypes.UNIT_COMBAT_ATTACK_CANCELLED
+        (e) => e.type === GameEventTypes.UNIT_COMBAT_ATTACK_CANCELLED,
       );
       expect(cancelledEvent).toBeDefined();
 
@@ -666,7 +667,7 @@ describe("TickProcessor Integration Tests", () => {
         [],
         [planet],
         [],
-        ID_GENERATOR
+        ID_GENERATOR,
       );
 
       TickProcessor.processTick(context);
@@ -695,7 +696,7 @@ describe("TickProcessor Integration Tests", () => {
         [],
         [planet],
         [],
-        ID_GENERATOR
+        ID_GENERATOR,
       );
 
       TickProcessor.processTick(context);
@@ -710,6 +711,7 @@ describe("TickProcessor Integration Tests", () => {
 
       const player = createPlayer("p1");
       player.status = PlayerStatus.DEFEATED;
+      player.defeatedDate = new Date();
       player.isAIControlled = true;
       player.lastSeenDate = new Date(Date.now() - 48 * 60 * 60 * 1000);
 
@@ -720,7 +722,7 @@ describe("TickProcessor Integration Tests", () => {
         [],
         [],
         [],
-        ID_GENERATOR
+        ID_GENERATOR,
       );
 
       TickProcessor.processTick(context);
@@ -743,7 +745,7 @@ describe("TickProcessor Integration Tests", () => {
         [],
         [],
         [],
-        ID_GENERATOR
+        ID_GENERATOR,
       );
 
       TickProcessor.processTick(context);
@@ -768,7 +770,7 @@ describe("TickProcessor Integration Tests", () => {
         [],
         [planet],
         [],
-        ID_GENERATOR
+        ID_GENERATOR,
       );
 
       TickProcessor.processTick(context);
@@ -793,7 +795,7 @@ describe("TickProcessor Integration Tests", () => {
         [unit],
         [],
         [],
-        ID_GENERATOR
+        ID_GENERATOR,
       );
 
       TickProcessor.processTick(context);
@@ -826,7 +828,7 @@ describe("TickProcessor Integration Tests", () => {
         [unit],
         [],
         [],
-        ID_GENERATOR
+        ID_GENERATOR,
       );
 
       TickProcessor.processTick(context);
@@ -871,7 +873,7 @@ describe("TickProcessor Integration Tests", () => {
         [unit1, unit2],
         [],
         [],
-        ID_GENERATOR
+        ID_GENERATOR,
       );
 
       TickProcessor.processTick(context);
@@ -925,7 +927,7 @@ describe("TickProcessor Integration Tests", () => {
         [unit1, unit2],
         [],
         [],
-        ID_GENERATOR
+        ID_GENERATOR,
       );
 
       TickProcessor.processTick(context);
@@ -978,7 +980,7 @@ describe("TickProcessor Integration Tests", () => {
         [unit1, unit2],
         [],
         [],
-        ID_GENERATOR
+        ID_GENERATOR,
       );
 
       TickProcessor.processTick(context);

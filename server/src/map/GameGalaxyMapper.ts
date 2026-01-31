@@ -92,6 +92,7 @@ export class GameGalaxyMapper {
         prestigePoints: tryMaskField(p._id, p.prestigePoints),
         victoryPoints: p.victoryPoints,
         lastSeenDate: p.lastSeenDate.toISOString(),
+        defeatedDate: p.defeatedDate ? p.defeatedDate.toISOString() : null,
         renownToDistribute: p.renownToDistribute,
         isAIControlled: p.isAIControlled
       })),

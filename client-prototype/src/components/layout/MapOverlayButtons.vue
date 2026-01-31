@@ -61,6 +61,18 @@
       >
         <i class="fas fa-map"></i>
       </button>
+      <button
+        class="btn"
+        :class="{
+          'btn-dark': !mapSettingsStore.showUnits,
+          'btn-yellow': mapSettingsStore.showUnits,
+        }"
+        @click="mapSettingsStore.toggleUnits()"
+        data-bs-toggle="tooltip"
+        title="Toggle Units"
+      >
+        <i class="fas fa-rocket"></i>
+      </button>
     </div>
   </div>
 </template>
