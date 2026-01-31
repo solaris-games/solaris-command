@@ -132,6 +132,10 @@ Combat results are modified by "Shifts" (moving the result column up or down).
 - **Armour Shift:** Heavy units reduce damage from light units.
 - **Terrain Shift:** Defenders in cover force worse die rolls for attackers.
 
+### Combat Overrun
+
+If the outcome of combat results in an **Overrun** (overwhelming attacker advantage) then the attacker **does not** expend any AP for the attack and may attack again.
+
 #### Simultaneous Attack Resolution (Sequential 1v1)
 
 If multiple units are scheduled to attack the same hex on the same Tick, they resolve as a rapid sequence of discrete 1v1 battles.
@@ -166,9 +170,9 @@ Penalties for being cut off are progressive based on the duration (in Cycles) th
 
 | Duration      | Penalty Effect                                                                                                     |
 | :------------ | :----------------------------------------------------------------------------------------------------------------- |
-| **1 Cycle**   | **Disruption:** Unit cannot recover previously suppressed steps.                                                   |
+| **1 Cycle**   | **Disruption:** Unit cannot recover previously suppressed steps. **Max MP is halved**.                             |
 | **2 Cycles**  | **Starvation:** Unit sets **AP to 0**. **2 Steps** are immediately Suppressed.                                     |
-| **3 Cycles**  | **Crippled:** AP is 0. **Max MP is halved**. All remaining steps are Suppressed. Terrain movement is blocked.      |
+| **3 Cycles**  | **Crippled:** AP is 0. All remaining steps are Suppressed.                                                         |
 | **4+ Cycles** | **Collapse:** All effects of Cycle 3 apply. Additionally, **3 Steps are Destroyed** per cycle (Deserters/Failure). |
 
 ### Recovery

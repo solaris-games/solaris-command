@@ -37,6 +37,7 @@
       @click="toggleEventLogModal"
       data-bs-toggle="tooltip"
       title="Event Log"
+      v-if="galaxyStore.currentPlayer"
     >
       <i class="fas fa-list-ul"></i>
     </button>

@@ -186,6 +186,7 @@ const statusBadgeClass = (status: UnitStatus) => {
   justify-content: center;
   font-weight: bold;
   font-size: 0.7rem;
+  margin-bottom: auto;
 }
 .step-square .specialist-symbol {
   font-size: 0.8rem;

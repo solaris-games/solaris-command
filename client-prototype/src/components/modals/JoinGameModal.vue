@@ -74,9 +74,8 @@ const props = defineProps({
 const emit = defineEmits(["close"]);
 const galaxyStore = useGalaxyStore();
 const gameStore = useGameStore();
-const authStore = useAuthStore();
 
-const alias = ref(authStore.user?.username ?? "");
+const alias = ref("");
 const color = ref("");
 
 const availableColors = computed(() => {
@@ -92,7 +91,7 @@ watch(
   () => props.show,
   (newVal) => {
     if (newVal) {
-      alias.value = authStore.user?.username ?? "";
+      alias.value = "";
       if (availableColors.value.length > 0) {
         color.value = availableColors.value[0].key;
       }

@@ -192,6 +192,7 @@ hr {
   align-items: center;
   justify-content: center;
   font-weight: bold;
+  margin-bottom: auto;
 }
 .step-square .specialist-symbol {
   font-size: 1rem;

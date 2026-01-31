@@ -18,6 +18,28 @@ export const useAuthStore = defineStore("auth", {
     isAuthenticated: (state) => !!state.token,
   },
   actions: {
+    async loginGoogle(idToken: string) {
+      try {
+        const response = await axios.post("/api/v1/auth/google", {
+          idToken,
+        });
+        const { token, user } = response.data;
+
+        this.token = token;
+        this.user = user;
+
+        localStorage.setItem("auth_token", token);
+        localStorage.setItem("auth_user", JSON.stringify(user));
+
+        // Set default header
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+        return true;
+      } catch (error) {
+        console.error("Google login failed", error);
+        return false;
+      }
+    },
     async loginDev(username: string, email: string) {
       try {
         const response = await axios.post("/api/v1/auth/dev", {

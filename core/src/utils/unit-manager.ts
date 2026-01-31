@@ -76,7 +76,12 @@ export const UnitManager = {
       // --- OOS PENALTY LOGIC ---
       // Based on GDD Tier List
 
-      // Tier 2: Starvation (2 Cycles) -> AP = 0, Suppress 2 Steps
+      // Tier 1: Disruption (1 Cycle) -> MP halved
+      if (cyclesOOS >= 1) {
+        unit.state.mp = Math.ceil(calculatedMaxMP / 2);
+      }
+
+      // Tier 2: Starvation (2 Cycles) -> AP = 0, Suppress Steps
       if (cyclesOOS >= 2) {
         unit.state.ap = 0;
         unit.steps = UnitManager.suppressSteps(
@@ -85,14 +90,12 @@ export const UnitManager = {
         );
       }
 
-      // Tier 3: Crippled (3 Cycles) -> AP = 0, MP Halved, Suppress ALL
+      // Tier 3: Crippled (3 Cycles) -> Suppress ALL
       if (cyclesOOS >= 3) {
-        unit.state.ap = 0;
-        unit.state.mp = Math.ceil(calculatedMaxMP / 2);
         unit.steps = UnitManager.suppressSteps(unit.steps, 999); // Suppress all
       }
 
-      // Tier 4: Collapse (4+ Cycles) -> Tier 3 + Destroy 3 Steps
+      // Tier 4: Collapse (4+ Cycles) -> Tier 3 + Destroy Steps
       if (cyclesOOS >= 4) {
         unit.steps = UnitManager.killSteps(
           unit.steps,

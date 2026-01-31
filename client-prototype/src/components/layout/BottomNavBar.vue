@@ -35,6 +35,7 @@
     <button
       class="btn btn-outline-theme"
       @click="$emit('toggle-event-log-modal')"
+      v-if="galaxyStore.currentPlayer"
     >
       <i class="fas fa-list-ul"></i>
     </button>
@@ -44,6 +45,7 @@
       class="btn btn-outline-theme"
       :class="{ active: fleetOpen }"
       @click="$emit('toggle-fleet')"
+      v-if="galaxyStore.currentPlayer"
     >
       <i class="fas fa-rocket"></i>
     </button>

@@ -1,6 +1,10 @@
 import { CombatTables } from "../data/combat-tables";
 import { SPECIALIST_STEP_ID_MAP } from "../data/specialists";
-import { CombatOperation, CombatReport, CombatResultType } from "../types/combat";
+import {
+  CombatOperation,
+  CombatReport,
+  CombatResultType,
+} from "../types/combat";
 import { HexCoordsId } from "../types/geometry";
 import { Hex } from "../types/hex";
 import { SpecialistStepTypes, Unit, UnitStatus } from "../types/unit";
@@ -15,7 +19,7 @@ export const CombatEngine = {
     defender: Unit,
     hex: Hex,
     operation: CombatOperation,
-    advanceOnVictory: boolean
+    advanceOnVictory: boolean,
   ) {
     if (attacker.state.status !== UnitStatus.PREPARING)
       throw new Error("Attacker must be 'PREPARING' to order to attack.");
@@ -35,7 +39,7 @@ export const CombatEngine = {
 
       if (!hasArtillery) {
         throw new Error(
-          "Attacker cannot perform Suppressive Fire without an active Artillery specialist."
+          "Attacker cannot perform Suppressive Fire without an active Artillery specialist.",
         );
       }
     }
@@ -51,7 +55,7 @@ export const CombatEngine = {
     defender: Unit,
     hexLookup: Map<HexCoordsId, Hex>,
     operation: CombatOperation,
-    advanceOnVictory: boolean
+    advanceOnVictory: boolean,
   ): {
     report: CombatReport;
     attackerHex: Hex;
@@ -70,12 +74,8 @@ export const CombatEngine = {
       defender,
       defenderHex,
       operation,
-      advanceOnVictory
+      advanceOnVictory,
     );
-
-    // Deduct AP Cost
-    // We deduct 1 AP for the attack action.
-    attacker.state.ap = Math.max(0, attacker.state.ap - 1);
 
     // 2. Calculate & Predict
     // We pass the requested operation (defaulting to STANDARD if undefined)
@@ -83,7 +83,7 @@ export const CombatEngine = {
       attacker,
       defender,
       defenderHex,
-      operation
+      operation,
     );
 
     // 3. Get Result (Deterministic or Forced)
@@ -95,21 +95,21 @@ export const CombatEngine = {
     // Note: We kill steps first, then suppress the remaining steps.
     attacker.steps = UnitManager.killSteps(
       attacker.steps,
-      resultEntry.attacker.losses
+      resultEntry.attacker.losses,
     );
     attacker.steps = UnitManager.suppressSteps(
       attacker.steps,
-      resultEntry.attacker.suppressed
+      resultEntry.attacker.suppressed,
     );
 
     // 5. Apply Damage (Defender)
     defender.steps = UnitManager.killSteps(
       defender.steps,
-      resultEntry.defender.losses
+      resultEntry.defender.losses,
     );
     defender.steps = UnitManager.suppressSteps(
       defender.steps,
-      resultEntry.defender.suppressed
+      resultEntry.defender.suppressed,
     );
 
     // 6. Check for Destruction
@@ -166,8 +166,8 @@ export const CombatEngine = {
       const mpCost = MapUtils.getHexMPCost(defenderHex, attacker.playerId);
 
       if (advanceOnVictory && attacker.state.mp > mpCost) {
-        attacker.movement.path = [defenderHex.location]
-        
+        attacker.movement.path = [defenderHex.location];
+
         UnitManager.moveUnit(attacker, attackerHex, defenderHex, mpCost);
 
         attackerWonHex = true;
@@ -186,6 +186,14 @@ export const CombatEngine = {
         })!;
 
       firstArtSpec.isSuppressed = true;
+    }
+
+    // If the outcome is 'overrun' then allow the attacker to
+    // attack again; they do not lose an action point for this attack.
+    if (outcome !== CombatResultType.OVERRUN) {
+      // Deduct AP Cost
+      // We deduct 1 AP for the attack action.
+      attacker.state.ap = Math.max(0, attacker.state.ap - 1);
     }
 
     // 10. Generate Report
@@ -223,7 +231,7 @@ export const CombatEngine = {
   findRetreatHex(
     unit: Unit,
     threat: Unit,
-    hexLookup: Map<HexCoordsId, Hex>
+    hexLookup: Map<HexCoordsId, Hex>,
   ): Hex | null {
     const neighbors = HexUtils.neighbors(unit.location);
     const validRetreats: Hex[] = [];

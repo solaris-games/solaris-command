@@ -111,7 +111,7 @@
               Raw Ratio: {{ prediction.oddsRatio.toFixed(2) }}
             </div> -->
             <div class="small text-muted">
-              Final Score: {{ prediction.prediction.finalScore }}
+              Final Score: {{ prediction.prediction.finalScore }} ({{ prediction.outcome.resultType }})
             </div>
           </div>
 
@@ -207,6 +207,12 @@
                   class="step-dot active"
                 ></span>
               </div>
+              <div
+                v-if="prediction.outcome.resultType === CombatResultType.OVERRUN"
+                class="text-success mt-1"
+              >
+                <i class="fas fa-rotate-right"></i> Overrun
+              </div>
             </div>
             <div class="col-6">
               <div>
@@ -294,7 +300,7 @@ import { computed } from "vue";
 import { useGalaxyStore } from "../../stores/galaxy";
 import { useCombatStore } from "../../stores/combat";
 import UnitDetails from "./UnitDetails.vue";
-import { CombatOperation } from "@solaris-command/core/src/types/combat";
+import { CombatOperation, CombatResultType } from "@solaris-command/core/src/types/combat";
 import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
 
 const galaxyStore = useGalaxyStore();

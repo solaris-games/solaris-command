@@ -102,13 +102,13 @@ export const COMBAT_RESULTS_TABLE: Record<number, CombatResultEntry> = {
   8: {
     attacker: { losses: 0, suppressed: 0 },
     defender: { losses: 4, suppressed: 3, retreat: true },
-    resultType: CombatResultType.SHATTERED,
+    resultType: CombatResultType.OVERRUN,
   },
 
   9: {
     attacker: { losses: 0, suppressed: 0 },
     defender: { losses: 5, suppressed: 3, retreat: true },
-    resultType: CombatResultType.SHATTERED,
+    resultType: CombatResultType.OVERRUN,
   },
 };
 

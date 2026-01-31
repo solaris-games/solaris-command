@@ -6,6 +6,7 @@ export enum CombatResultType {
   SUPPRESS = "SUPPRESS",
   RETREAT = "RETREAT",
   SHATTERED = "SHATTERED",
+  OVERRUN = "OVERRUN"
 }
 
 export enum CombatShiftType {
