@@ -1,5 +1,10 @@
 <template>
-  <BaseModal :show="show" title="Event Log" @close="$emit('close')" size="modal-lg">
+  <BaseModal
+    :show="show"
+    title="Event Log"
+    @close="$emit('close')"
+    size="modal-lg"
+  >
     <div class="list-group scrollable-list">
       <div
         v-for="event in events"
@@ -9,7 +14,9 @@
         <div class="flex-grow-1">
           <component :is="getEventComponent(event.type)" :event="event" />
         </div>
-        <span class="badge bg-info mb-1 ms-2">Tick: {{ event.tick }}, Cycle: {{ event.cycle }}</span>
+        <span class="badge bg-info mb-1 ms-2"
+          >Tick: {{ event.tick }}, Cycle: {{ event.cycle }}</span
+        >
       </div>
     </div>
   </BaseModal>
@@ -38,11 +45,6 @@ const events = computed(() => gameStore.events);
 const gameId = computed(() => galaxyStore.galaxy?.game._id);
 
 // TODO:
-// PLAYER_AFK
-// UNIT_COMBAT_ATTACK_CANCELLED
-// UNIT_MOVEMENT_STALLED
-// UNIT_STARVED_BY_OOS
-// GAME_COMPLETED
 // PLAYERS_TRADED_PRESTIGE
 // PLAYERS_TRADED_RENOWN
 
@@ -53,11 +55,17 @@ const eventComponents = {
   [GameEventTypes.PLAYER_LEFT]: defineAsyncComponent(
     () => import("../events/PlayerLeft.vue"),
   ),
+  [GameEventTypes.PLAYER_AFK]: defineAsyncComponent(
+    () => import("../events/PlayerAFK.vue"),
+  ),
   [GameEventTypes.PLAYER_CONCEDED]: defineAsyncComponent(
     () => import("../events/PlayerConceded.vue"),
   ),
   [GameEventTypes.GAME_STARTING]: defineAsyncComponent(
     () => import("../events/GameStarting.vue"),
+  ),
+  [GameEventTypes.GAME_COMPLETED]: defineAsyncComponent(
+    () => import("../events/GameCompleted.vue"),
   ),
   [GameEventTypes.COMBAT_REPORT]: defineAsyncComponent(
     () => import("../events/CombatReport.vue"),
@@ -74,8 +82,17 @@ const eventComponents = {
   [GameEventTypes.UNIT_MOVEMENT_BOUNCED]: defineAsyncComponent(
     () => import("../events/UnitMovementBounced.vue"),
   ),
+  [GameEventTypes.UNIT_MOVEMENT_STALLED]: defineAsyncComponent(
+    () => import("../events/UnitMovementStalled.vue"),
+  ),
   [GameEventTypes.UNIT_DESTROYED_IN_COMBAT]: defineAsyncComponent(
     () => import("../events/UnitDestroyedInCombat.vue"),
+  ),
+  [GameEventTypes.UNIT_STARVED_BY_OOS]: defineAsyncComponent(
+    () => import("../events/UnitStarvedByOOS.vue"),
+  ),
+  [GameEventTypes.UNIT_COMBAT_ATTACK_CANCELLED]: defineAsyncComponent(
+    () => import("../events/UnitCombatAttackCancelled.vue"),
   ),
   [GameEventTypes.UNIT_DEPLOYED]: defineAsyncComponent(
     () => import("../events/UnitDeployed.vue"),
