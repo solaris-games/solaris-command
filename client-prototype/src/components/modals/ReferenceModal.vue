@@ -102,6 +102,48 @@
           </tbody>
         </table>
 
+        <h5 class="mt-4">Forced Feint Attack</h5>
+        <table
+          class="table table-sm table-striped table-hover table-dark table-bordered"
+        >
+          <thead>
+            <tr>
+              <th>Attacker Losses</th>
+              <th>Attacker Suppressed</th>
+              <th>Defender Losses</th>
+              <th>Defender Suppressed</th>
+              <th>Defender Retreats</th>
+              <th>Result Type</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-end">
+                {{ COMBAT_RESULT_FORCED_FEINT_ATTACK.attacker.losses }}
+              </td>
+              <td class="text-end">
+                {{ COMBAT_RESULT_FORCED_FEINT_ATTACK.attacker.suppressed }}
+              </td>
+              <td class="text-end">
+                {{ COMBAT_RESULT_FORCED_FEINT_ATTACK.defender.losses }}
+              </td>
+              <td class="text-end">
+                {{ COMBAT_RESULT_FORCED_FEINT_ATTACK.defender.suppressed }}
+              </td>
+              <td>
+                {{
+                  COMBAT_RESULT_FORCED_FEINT_ATTACK.defender.retreat
+                    ? "Yes"
+                    : "No"
+                }}
+              </td>
+              <td>
+                {{ COMBAT_RESULT_FORCED_FEINT_ATTACK.resultType }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
         <h5 class="mt-4">Forced Suppressive Fire</h5>
         <table
           class="table table-sm table-striped table-hover table-dark table-bordered"
@@ -316,6 +358,7 @@
 import { computed } from "vue";
 import {
   COMBAT_RESULTS_TABLE,
+  COMBAT_RESULT_FORCED_FEINT_ATTACK,
   COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE,
 } from "@solaris-command/core/src/data/combat-tables";
 import { UNIT_CATALOG } from "@solaris-command/core/src/data/units";

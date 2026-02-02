@@ -2,7 +2,7 @@ import { CombatForcedResult, CombatOperation, CombatResultType, CombatShift, Com
 import { Hex } from "../types/hex";
 import { SpecialistStepTypes, Unit, UnitStatus } from "../types/unit";
 import { UnitManager } from "./unit-manager";
-import { COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE } from '../data/combat-tables'
+import { COMBAT_RESULT_FORCED_FEINT_ATTACK, COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE } from '../data/combat-tables'
 import { UNIT_CATALOG_ID_MAP } from "../data/units";
 import { SPECIALIST_STEP_ID_MAP } from "../data/specialists";
 import { COMBAT_SHIFT_DEFENDER_DISORGANISED, COMBAT_SHIFT_PLANETS, COMBAT_SHIFTS_TERRAIN } from "../data/terrain";
@@ -52,11 +52,7 @@ export const CombatCalculator = {
 
     if (operation === CombatOperation.FEINT) {
       // Feint: 1 Suppress vs 1 Suppress (Fixed)
-      forcedResult = {
-        attacker: { losses: 0, suppressed: 1 },
-        defender: { losses: 0, suppressed: 1, retreat: false },
-        resultType: CombatResultType.SUPPRESS,
-      };
+      forcedResult = COMBAT_RESULT_FORCED_FEINT_ATTACK;
     } else if (operation === CombatOperation.SUPPRESSIVE_FIRE) {
       // Suppressive Fire forced result:
       forcedResult = COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE;

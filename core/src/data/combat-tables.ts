@@ -112,6 +112,12 @@ export const COMBAT_RESULTS_TABLE: Record<number, CombatResultEntry> = {
   },
 };
 
+export const COMBAT_RESULT_FORCED_FEINT_ATTACK = {
+  attacker: { losses: 0, suppressed: 1 },
+  defender: { losses: 0, suppressed: 1, retreat: false },
+  resultType: CombatResultType.SUPPRESS,
+};
+
 // Suppressive Fire: 0 vs 2 Suppress (Fixed)
 export const COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE = {
   attacker: { losses: 0, suppressed: 0 },
