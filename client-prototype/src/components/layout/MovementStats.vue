@@ -41,9 +41,10 @@
         ><i class="fas fa-location-pin"></i
       ></span>
       <span class="stat-value"
-        >{{ movementStore.startHex.location.q }},
-        {{ movementStore.startHex.location.r }}</span
-      >
+        ><LocationLink
+          :coords="movementStore.startHex.location"
+          :text-class="'text-white'"
+      /></span>
     </div>
     <div
       class="col-3 col-md-6 p-0"
@@ -56,16 +57,13 @@
       <span class="d-inline-block d-md-none me-1 text-muted"
         ><i class="fas fa-location-dot"></i
       ></span>
-      <span class="stat-value"
-        >{{
-          movementStore.movementPath[movementStore.movementPath.length - 1]
-            .location.q
-        }},
-        {{
-          movementStore.movementPath[movementStore.movementPath.length - 1]
-            .location.r
-        }}</span
-      >
+      <span class="stat-value">
+        <LocationLink
+          :coords="
+            movementStore.movementPath[movementStore.movementPath.length - 1].location
+          "
+          :text-class="'text-white'"
+      /></span>
     </div>
   </div>
   <div v-else>
@@ -75,6 +73,7 @@
 
 <script setup lang="ts">
 import { useMovementStore } from "../../stores/movement";
+import LocationLink from "../LocationLink.vue";
 
 const movementStore = useMovementStore();
 </script>

@@ -47,7 +47,7 @@ router.post(
 
       const hex = await HexService.getByGameAndId(
         req.game._id,
-        new Types.ObjectId(hexId)
+        new Types.ObjectId(hexId),
       );
 
       if (!hex) {
@@ -69,7 +69,7 @@ router.post(
       // Make sure hex isn't already occupied by another station.
       const hexCoordsId = HexUtils.getCoordsID(hex.location);
       const existingStation = req.stations.find(
-        (s) => HexUtils.getCoordsID(s.location) === hexCoordsId
+        (s) => HexUtils.getCoordsID(s.location) === hexCoordsId,
       );
 
       if (existingStation) {
@@ -89,7 +89,7 @@ router.post(
         req.player._id,
         hex._id,
         hex.location,
-        () => new Types.ObjectId() as any
+        () => new Types.ObjectId() as any,
       );
 
       const createdStation = await executeInTransaction(async (session) => {
@@ -99,14 +99,14 @@ router.post(
           req.game._id,
           hex._id,
           newStation._id,
-          session
+          session,
         );
 
         await PlayerService.deductPrestigePoints(
           req.game._id,
           req.player._id,
           CONSTANTS.STATION_PRESTIGE_COST,
-          session
+          session,
         );
 
         const stationCreatedEvent = await GameService.createGameEvent(
@@ -114,6 +114,7 @@ router.post(
             req.game._id,
             null, // Everyone
             req.game.state.tick,
+            req.game.state.cycle,
             GameEventTypes.PLAYER_CONSTRUCTED_STATION,
             {
               stationId: newStation._id,
@@ -123,9 +124,9 @@ router.post(
               hexId: newStation.hexId,
               location: newStation.location,
             },
-            () => new Types.ObjectId()
+            () => new Types.ObjectId(),
           ),
-          session
+          session,
         );
 
         SocketService.publishEventToGame(stationCreatedEvent);
@@ -138,8 +139,8 @@ router.post(
         .json(
           StationMapper.toBuildStationResponse(
             createdStation,
-            CONSTANTS.STATION_PRESTIGE_COST
-          )
+            CONSTANTS.STATION_PRESTIGE_COST,
+          ),
         );
     } catch (error: any) {
       console.error("Error building station:", error);
@@ -148,7 +149,7 @@ router.post(
         errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
     }
-  }
+  },
 );
 
 // DELETE /api/v1/games/:id/stations/:stationId
@@ -167,7 +168,7 @@ router.delete(
         await HexService.updateHexStation(
           req.game._id,
           req.station.hexId,
-          null
+          null,
         );
 
         const stationDecommissionedEvent = await GameService.createGameEvent(
@@ -175,6 +176,7 @@ router.delete(
             req.game._id,
             null, // Everyone
             req.game.state.tick,
+            req.game.state.cycle,
             GameEventTypes.PLAYER_DECOMMISSIONED_STATION,
             {
               stationId: req.station._id,
@@ -184,9 +186,9 @@ router.delete(
               hexId: req.station.hexId,
               location: req.station.location,
             },
-            () => new Types.ObjectId()
+            () => new Types.ObjectId(),
           ),
-          session
+          session,
         );
 
         SocketService.publishEventToGame(stationDecommissionedEvent);
@@ -200,7 +202,7 @@ router.delete(
     }
 
     res.json({});
-  }
+  },
 );
 
 export default router;

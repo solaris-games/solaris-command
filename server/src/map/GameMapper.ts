@@ -43,6 +43,7 @@ export class GameMapper {
       gameId: String(e.gameId),
       playerId: e.playerId?.toString() || null,
       tick: e.tick,
+      cycle: e.cycle,
       type: e.type,
       data: e.data,
     }));

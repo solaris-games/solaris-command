@@ -11,6 +11,7 @@ export const useMapSettingsStore = defineStore("mapSettings", {
     showSupply: false,
     showZOC: false,
     showMPCosts: false,
+    isPinching: false,
     stage: {
       width: 0,
       height: 0,

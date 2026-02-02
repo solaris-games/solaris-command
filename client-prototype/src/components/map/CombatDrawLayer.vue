@@ -1,5 +1,5 @@
 <template>
-  <v-layer>
+  <v-layer :listening="!mapSettingsStore.isPinching">
     <!-- Highlight valid target hexes -->
     <v-regular-polygon
       v-for="(hex, index) in combatStore.validTargetHexes"
@@ -41,6 +41,7 @@
 import { computed } from "vue";
 import { useCombatStore } from "../../stores/combat";
 import { useGalaxyStore } from "../../stores/galaxy";
+import { useMapSettingsStore } from "../../stores/mapSettings";
 import { hexToPixel } from "../../utils/hexUtils";
 import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
 
@@ -48,6 +49,7 @@ const HEX_SIZE = 64;
 
 const combatStore = useCombatStore();
 const galaxyStore = useGalaxyStore();
+const mapSettingsStore = useMapSettingsStore();
 
 const targetHex = computed(() => {
   if (!combatStore.targetUnit) return null;

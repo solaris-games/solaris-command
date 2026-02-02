@@ -38,8 +38,7 @@
         </div>
         <div class="col-auto">
           <p class="mb-0">
-            <i class="fas fa-table-cells-large"></i>
-            {{ selectedHex.location.q }}, {{ selectedHex.location.r }}
+            <i class="fas fa-table-cells-large"></i> <LocationLink :coords="selectedHex.location" :text-class="'text-white'" />
           </p>
         </div>
       </div>
@@ -59,6 +58,7 @@ import { computed, ref } from "vue";
 import { useGalaxyStore } from "../../stores/galaxy";
 import { TerrainTypes } from "@solaris-command/core/src/types/hex";
 import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
+import LocationLink from "../LocationLink.vue";
 
 const galaxyStore = useGalaxyStore();
 const selectedHex = computed(() => galaxyStore.selectedHex);

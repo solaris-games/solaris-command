@@ -22,7 +22,6 @@ import {
   PlanetModel,
   StationModel,
   GameEventModel,
-  UserModel,
 } from "../db/schemas";
 import { connectToDb } from "../db/instance";
 import { Types } from "mongoose";
@@ -70,6 +69,7 @@ async function processActiveGames() {
     _id: 1,
     "state.status": 1,
     "state.startDate": 1,
+    "state.nextTickDate": 1,
     "state.tick": 1,
     "settings.tickDurationMS": 1,
   });
@@ -93,14 +93,10 @@ async function processActiveGames() {
         return;
       }
 
-      // 2. Time Check: Is it time for a tick?
-      // Logic: Start Date + (Tick Count * Tick Duration)
-      // This prevents clock drift compared to just adding to 'lastTickDate'
-      const nextTickTime =
-        startDate.getTime() +
-        (gameId.state.tick + 1) * gameId.settings.tickDurationMS;
+      const nextTickDate = new Date(gameId.state.nextTickDate!);
 
-      if (now >= nextTickTime) {
+      // Is it time for a tick?
+      if (now >= nextTickDate.getTime()) {
         console.log(
           `⚡ Processing Tick ${gameId.state.tick + 1} for Game ${gameId._id}`,
         );
@@ -111,7 +107,6 @@ async function processActiveGames() {
         // Publish to websocket so that clients are aware that the game tick is currently being processed.
         SocketService.publishToGame(gameModel._id, "TICK_STARTED", {});
 
-        gameModel.state.lastTickDate = new Date(nextTickTime); // Set the tick time here to prevent clock drift
         gameModel.state.status = GameStates.LOCKED;
 
         // Start by locking the game to prevent players from changing the game state
@@ -187,6 +182,8 @@ async function executeGameTick(game: Game) {
   // Get live units so that we can save only those ones (the others will be deleted)
   const liveUnits = units.filter((u) => UnitManager.unitIsAlive(u));
   const deadUnits = units.filter((u) => !UnitManager.unitIsAlive(u));
+
+  updateGameTickDates(game);
 
   // --- D. PERSISTENCE (Bulk Writes) ---
   // We execute updates in a transaction.
@@ -299,4 +296,24 @@ async function executeGameTick(game: Game) {
       `🏆 Game ${gameId} Completed! Winner: ${game.state.winnerPlayerId}`,
     );
   }
+}
+
+function updateGameTickDates(game: Game) {
+  // Update the game state tick times:
+  game.state.lastTickDate = game.state.nextTickDate; // Prevents clock drift.
+
+  // Calculate the tick date for the next tick.
+  let nextTickTime =
+    new Date(game.state.lastTickDate).getTime() + game.settings.tickDurationMS;
+
+  game.state.nextTickDate = new Date(nextTickTime);
+
+  // Calculate when the next cycle tick will be
+  const nextCycleTick = game.settings.ticksPerCycle * (game.state.cycle + 1);
+  const ticksRemainingInCycle = nextCycleTick - game.state.tick;
+
+  game.state.nextCycleTickDate = new Date(
+    new Date(game.state.lastTickDate).getTime() +
+      game.settings.tickDurationMS * ticksRemainingInCycle,
+  );
 }

@@ -3,8 +3,8 @@
     <!-- BEGIN brand -->
     <div class="brand">
       <router-link to="/games" class="brand-logo">
-        <span class="brand-img" style="margin-right: 8px;">
-          <img src="/favicon_dark.ico" style="margin-left:12px;" />
+        <span class="brand-img" style="margin-right: 8px">
+          <img src="/favicon_dark.ico" style="margin-left: 12px" />
         </span>
         <span class="brand-text text-success">SOLARIS: COMMAND</span>
       </router-link>
@@ -34,7 +34,7 @@
             </div>
           </div>
           <div class="menu-text d-sm-block d-none">
-            {{ authStore.user?.username ?? '' }}
+            {{ authStore.user?.username ?? "" }}
           </div>
         </a>
         <div class="dropdown-menu dropdown-menu-end me-lg-3 fs-11px mt-1">
@@ -56,7 +56,7 @@
           >
             <span>LOGOUT</span>
             <i class="bi bi-toggle-off ms-auto text-theme fs-16px my-n1"></i>
-        </a>
+          </a>
         </div>
       </div>
     </div>
@@ -68,7 +68,6 @@
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 
-
 const authStore = useAuthStore();
 const router = useRouter();
 
@@ -76,5 +75,17 @@ function handleLogout() {
   authStore.logout();
   router.push("/login");
 }
-
 </script>
+
+<style scoped>
+/* Prevent brand from being hidden on mobile */
+@media (max-width: 767.98px) {
+  .app-header .brand {
+    display: flex;
+  }
+
+  .app-header .brand .brand-logo {
+    display: flex;
+  }
+}
+</style>

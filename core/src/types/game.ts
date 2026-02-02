@@ -17,6 +17,8 @@ export interface GameState {
   startDate: Date | null;
   endDate: Date | null;
   lastTickDate: Date | null;
+  nextTickDate: Date | null;
+  nextCycleTickDate: Date | null;
   winnerPlayerId: UnifiedId | null;
 }
 

@@ -63,6 +63,8 @@ export interface GameGalaxyResponseSchema {
       startDate: string | null;
       endDate: string | null;
       lastTickDate: string | null;
+      nextTickDate: string | null;
+      nextCycleTickDate: string | null;
       winnerPlayerId: string | null;
     };
     settings: {
@@ -157,6 +159,7 @@ export interface GameEventsResponseSchema {
   gameId: string;
   playerId: string | null;
   tick: number;
+  cycle: number;
   type: string;
   data: object;
 }

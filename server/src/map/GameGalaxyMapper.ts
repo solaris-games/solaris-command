@@ -72,6 +72,8 @@ export class GameGalaxyMapper {
           startDate: galaxy.game.state.startDate?.toISOString() || null,
           endDate: galaxy.game.state.endDate?.toISOString() || null,
           lastTickDate: galaxy.game.state.lastTickDate?.toISOString() || null,
+          nextTickDate: galaxy.game.state.nextTickDate?.toISOString() || null,
+          nextCycleTickDate: galaxy.game.state.nextCycleTickDate?.toISOString() || null,
           winnerPlayerId: galaxy.game.state.winnerPlayerId?.toString() || null,
         },
         settings: {

@@ -23,9 +23,11 @@ const httpServer = createServer(app);
 const port = process.env.PORT || 3000;
 
 // ----- CORS -----
-const allowedOrigins = [
+const allowedOrigins: (string | RegExp)[] = [
   'http://localhost:5173', // Frontend dev local (prototype)
   'https://command.solaris.games',
+  /^http:\/\/192\.168\.\d+\.\d+:\d+$/, // Allow local network access for testing
+  /^http:\/\/10\.\d+\.\d+\.\d+:\d+$/, // Allow local network access for testing
 ];
 
 app.use(cors({
@@ -33,11 +35,21 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) === -1) {
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      if (typeof allowedOrigin === 'string') {
+        return origin === allowedOrigin;
+      }
+      if (allowedOrigin instanceof RegExp) {
+        return allowedOrigin.test(origin);
+      }
+      return false;
+    });
+
+    if (isAllowed) {
+      return callback(null, true);
+    } else {
       return callback(new Error('CORS not allowed'), false);
     }
-    
-    return callback(null, true);
   },
   credentials: true
 }));

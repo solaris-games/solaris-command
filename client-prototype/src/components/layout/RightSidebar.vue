@@ -17,10 +17,10 @@
         <div class="col-12">
           <DeployUnitPanel v-if="galaxyStore.isGameInPlay" />
         </div>
-        <div class="col-6">
+        <div class="col">
           <HexDetailsPanel />
         </div>
-        <div class="col-6 d-flex flex-column">
+        <div class="col-auto d-flex flex-column">
           <BuildStationPanel v-if="galaxyStore.isGameInPlay" />
         </div>
       </div>

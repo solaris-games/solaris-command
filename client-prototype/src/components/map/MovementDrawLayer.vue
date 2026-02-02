@@ -1,5 +1,5 @@
 <template>
-  <v-layer>
+  <v-layer :listening="!mapSettingsStore.isPinching">
     <!-- Highlight reachable hexes -->
     <v-regular-polygon
       v-for="(hex, index) in movementStore.reachableHexes"
@@ -35,11 +35,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useMovementStore } from "../../stores/movement";
+import { useMapSettingsStore } from "../../stores/mapSettings";
 import { hexToPixel } from "../../utils/hexUtils";
 
 const HEX_SIZE = 64;
 
 const movementStore = useMovementStore();
+const mapSettingsStore = useMapSettingsStore();
 
 const pathPoints = computed(() => {
   if (movementStore.startHex == null || movementStore.movementPath.length === 0)

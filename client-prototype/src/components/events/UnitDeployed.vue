@@ -4,7 +4,7 @@
             <i class="fas fa-plus-square"></i>
         </div>
         <div class="flex-grow-1 ms-3">
-            <span :style="{ color: player?.color }">{{ player?.alias }}</span>
+            <span class="text-info">{{ player?.alias }}</span>
             deployed a new {{ unitName }} unit.
         </div>
     </div>

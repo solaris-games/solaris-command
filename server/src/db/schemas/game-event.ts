@@ -6,6 +6,7 @@ const GameEventSchema = new Schema<GameEvent>(
     gameId: { type: Schema.ObjectId, ref: "Game", required: true },
     playerId: { type: Schema.ObjectId, ref: "Player", default: null },
     tick: { type: Number, required: true },
+    cycle: { type: Number, required: true },
     type: { type: String, required: true },
     data: { type: Schema.Types.Mixed, required: true },
   },

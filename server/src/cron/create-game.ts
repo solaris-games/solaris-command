@@ -82,6 +82,8 @@ async function checkAndCreateGames() {
         startDate: null,
         endDate: null,
         lastTickDate: null,
+        nextTickDate: null,
+        nextCycleTickDate: null,
         winnerPlayerId: null,
       },
     };

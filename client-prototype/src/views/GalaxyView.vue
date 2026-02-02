@@ -30,6 +30,9 @@
             :config="stageConfig"
             @wheel="handleWheel"
             @dragend="handleDragEnd"
+            @touchstart="handleTouchStart"
+            @touchmove="handleTouch"
+            @touchend="handleTouchEnd"
           >
             <HexMap />
           </v-stage>
@@ -291,6 +294,86 @@ function handleWheel(e: any) {
 function handleDragEnd(e: any) {
   mapSettingsStore.stage.x = e.target.x();
   mapSettingsStore.stage.y = e.target.y();
+}
+
+let lastDist = 0;
+let lastCenter: { x: number; y: number } | null = null;
+
+function getDistance(p1: { x: number, y: number }, p2: { x: number, y: number }) {
+  return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+}
+
+function getCenter(p1: { x: number, y: number }, p2: { x: number, y: number }) {
+  return {
+    x: (p1.x + p2.x) / 2,
+    y: (p1.y + p2.y) / 2,
+  };
+}
+
+function handleTouchStart(e: any) {
+  const touch1 = e.evt.touches[0];
+  const touch2 = e.evt.touches[1];
+
+  if (touch1 && touch2) {
+    mapSettingsStore.isPinching = true;
+  }
+}
+
+function handleTouch(e: any) {
+  e.evt.preventDefault();
+  const touch1 = e.evt.touches[0];
+  const touch2 = e.evt.touches[1];
+  const stage = e.target.getStage();
+
+  if (touch1 && touch2 && stage) {
+    if (stage.isDragging()) {
+      stage.stopDrag();
+    }
+
+    const p1 = { x: touch1.clientX, y: touch1.clientY };
+    const p2 = { x: touch2.clientX, y: touch2.clientY };
+
+    if (!lastCenter) {
+      lastCenter = getCenter(p1, p2);
+      lastDist = getDistance(p1, p2);
+      return;
+    }
+
+    const newCenter = getCenter(p1, p2);
+    const newDist = getDistance(p1, p2);
+    const oldScale = stage.scaleX();
+
+    // local coordinates of center point
+    const pointTo = {
+      x: (newCenter.x - stage.x()) / oldScale,
+      y: (newCenter.y - stage.y()) / oldScale,
+    };
+
+    const newScale = oldScale * (newDist / lastDist);
+    
+    mapSettingsStore.stage.scale = newScale;
+
+    // calculate new position of the stage
+    const dx = newCenter.x - lastCenter.x;
+    const dy = newCenter.y - lastCenter.y;
+
+    const newPos = {
+      x: newCenter.x - pointTo.x * newScale + dx,
+      y: newCenter.y - pointTo.y * newScale + dy,
+    };
+
+    mapSettingsStore.stage.x = newPos.x;
+    mapSettingsStore.stage.y = newPos.y;
+
+    lastDist = newDist;
+    lastCenter = newCenter;
+  }
+}
+
+function handleTouchEnd() {
+  lastDist = 0;
+  lastCenter = null;
+  mapSettingsStore.isPinching = false;
 }
 </script>
 

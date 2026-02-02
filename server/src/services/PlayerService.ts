@@ -35,7 +35,7 @@ export class PlayerService {
 
   static async isAliasTaken(
     gameId: UnifiedId,
-    alias: string
+    alias: string,
   ): Promise<boolean> {
     const existingPlayer = await PlayerModel.findOne({
       gameId: gameId,
@@ -46,7 +46,9 @@ export class PlayerService {
 
   static async findActivePlayersForUser(userId: UnifiedId) {
     const activeGames = await GameModel.find({
-      "state.status": GameStates.ACTIVE,
+      "state.status": {
+        $in: [GameStates.ACTIVE, GameStates.STARTING],
+      },
     });
 
     return PlayerModel.find({
@@ -72,12 +74,12 @@ export class PlayerService {
     gameId: UnifiedId,
     playerId: UnifiedId,
     prestige: number,
-    session?: ClientSession
+    session?: ClientSession,
   ) {
     await PlayerModel.updateOne(
       { gameId, _id: playerId },
       { $inc: { prestigePoints: prestige } },
-      { session }
+      { session },
     );
   }
 
@@ -85,12 +87,12 @@ export class PlayerService {
     gameId: UnifiedId,
     playerId: UnifiedId,
     prestige: number,
-    session?: ClientSession
+    session?: ClientSession,
   ) {
     await PlayerModel.updateOne(
       { gameId, _id: playerId },
       { $inc: { prestigePoints: -prestige } },
-      { session }
+      { session },
     );
   }
 
@@ -98,12 +100,12 @@ export class PlayerService {
     gameId: UnifiedId,
     playerId: UnifiedId,
     renown: number,
-    session?: ClientSession
+    session?: ClientSession,
   ) {
     await PlayerModel.updateOne(
       { gameId, _id: playerId },
       { $inc: { renownToDistribute: -renown } },
-      { session }
+      { session },
     );
   }
 
@@ -111,7 +113,7 @@ export class PlayerService {
     gameId: UnifiedId,
     userId: UnifiedId,
     options: { alias?: string; color?: string; renownToDistribute: number },
-    session?: ClientSession
+    session?: ClientSession,
   ) {
     const player = PlayerFactory.create(
       gameId,
@@ -119,7 +121,7 @@ export class PlayerService {
       options.alias || "Unknown",
       options.color || "#FF0000",
       options.renownToDistribute,
-      () => new Types.ObjectId()
+      () => new Types.ObjectId(),
     );
 
     const model = new PlayerModel(player);
@@ -131,7 +133,7 @@ export class PlayerService {
   static async removePlayerAssets(
     gameId: UnifiedId,
     playerId: UnifiedId,
-    session?: ClientSession
+    session?: ClientSession,
   ) {
     // Delete units
     await UnitService.deleteByPlayerId(gameId, playerId, session);
@@ -152,11 +154,11 @@ export class PlayerService {
   static async leaveGame(
     gameId: UnifiedId,
     playerId: UnifiedId,
-    session?: ClientSession
+    session?: ClientSession,
   ) {
     const result = await PlayerModel.deleteOne(
       { gameId, _id: playerId },
-      { session }
+      { session },
     );
 
     return result;
@@ -165,7 +167,7 @@ export class PlayerService {
   static async concedeGame(
     gameId: UnifiedId,
     playerId: UnifiedId,
-    session?: ClientSession
+    session?: ClientSession,
   ) {
     // Update player status to DEFEATED
     const result = await PlayerModel.updateOne(
@@ -179,7 +181,7 @@ export class PlayerService {
           isAIControlled: true,
         },
       },
-      { session }
+      { session },
     );
     return result;
   }
@@ -188,12 +190,12 @@ export class PlayerService {
     gameId: UnifiedId,
     playerId: UnifiedId,
     status: PlayerStatus,
-    session?: ClientSession
+    session?: ClientSession,
   ) {
     return PlayerModel.updateOne(
       { gameId, _id: playerId },
       { $set: { status } },
-      { session }
+      { session },
     );
   }
 
@@ -220,7 +222,7 @@ export class PlayerService {
           status: newStatus,
           isAIControlled: newIsAIControlled,
         },
-      }
+      },
     );
   }
 }

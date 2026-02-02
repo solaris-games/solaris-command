@@ -169,7 +169,7 @@ async function handleDelete() {
   if (!confirm("Last chance?")) return;
 
   try {
-    await axios.delete(`/api/v1/users/${authStore.user?._id}`);
+    await axios.delete(`/api/v1/users/me`);
     authStore.logout();
     router.push("/login");
   } catch (err: any) {

@@ -1,5 +1,5 @@
 <template>
-  <BaseModal :show="show" title="Event Log" @close="$emit('close')">
+  <BaseModal :show="show" title="Event Log" @close="$emit('close')" size="modal-lg">
     <div class="list-group scrollable-list">
       <div
         v-for="event in events"
@@ -9,7 +9,7 @@
         <div class="flex-grow-1">
           <component :is="getEventComponent(event.type)" :event="event" />
         </div>
-        <span class="badge bg-info mb-1 ms-2">Tick: {{ event.tick }}</span>
+        <span class="badge bg-info mb-1 ms-2">Tick: {{ event.tick }}, Cycle: {{ event.cycle }}</span>
       </div>
     </div>
   </BaseModal>
@@ -36,6 +36,15 @@ const galaxyStore = useGalaxyStore();
 
 const events = computed(() => gameStore.events);
 const gameId = computed(() => galaxyStore.galaxy?.game._id);
+
+// TODO:
+// PLAYER_AFK
+// UNIT_COMBAT_ATTACK_CANCELLED
+// UNIT_MOVEMENT_STALLED
+// UNIT_STARVED_BY_OOS
+// GAME_COMPLETED
+// PLAYERS_TRADED_PRESTIGE
+// PLAYERS_TRADED_RENOWN
 
 const eventComponents = {
   [GameEventTypes.PLAYER_JOINED]: defineAsyncComponent(
@@ -70,6 +79,12 @@ const eventComponents = {
   ),
   [GameEventTypes.UNIT_DEPLOYED]: defineAsyncComponent(
     () => import("../events/UnitDeployed.vue"),
+  ),
+  [GameEventTypes.PLAYER_DECOMMISSIONED_STATION]: defineAsyncComponent(
+    () => import("../events/PlayerDecommissionedStation.vue"),
+  ),
+  [GameEventTypes.PLAYER_CONSTRUCTED_STATION]: defineAsyncComponent(
+    () => import("../events/PlayerConstructedStation.vue"),
   ),
   // Add other event components here
 };

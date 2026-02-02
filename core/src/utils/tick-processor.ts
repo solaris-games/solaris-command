@@ -138,7 +138,7 @@ const handleHexCapture = (context: TickContext, hex: Hex, unit: Unit) => {
 
     context.appendGameEvent(
       null, // Everyone
-      GameEventTypes.STATION_DESTROYED,
+      GameEventTypes.PLAYER_DECOMMISSIONED_STATION,
       {
         stationId: station._id,
         hexId: station.hexId,
@@ -364,6 +364,7 @@ export const TickProcessor = {
 
         // Log Report
         battleResult.report.tick = context.game.state.tick;
+        battleResult.report.cycle = context.game.state.cycle;
 
         // One for the attacker and another for the defender.
         context.appendGameEvent(
@@ -889,12 +890,14 @@ export const TickProcessor = {
     });
 
     context.appendGameEvent(null, GameEventTypes.GAME_CYCLE_COMPLETED, {
-      players: context.players.map((p) => ({
-        _id: p._id,
-        alias: p.alias,
-        color: p.color,
-        newVP: p.victoryPoints,
-      })),
+      players: context.players
+        .map((p) => ({
+          _id: p._id,
+          alias: p.alias,
+          color: p.color,
+          newVP: p.victoryPoints,
+        }))
+        .sort((a, b) => b.newVP - a.newVP) // Sort by new vp descending
     });
   },
 

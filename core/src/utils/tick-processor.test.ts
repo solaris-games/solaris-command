@@ -32,6 +32,8 @@ function createGame(overrides: Partial<Game> = {}): Game {
       startDate: new Date(),
       endDate: null,
       lastTickDate: new Date(),
+      nextTickDate: new Date(),
+      nextCycleTickDate: new Date(),
       winnerPlayerId: null,
       ...overrides.state,
     },
@@ -334,7 +336,7 @@ describe("TickProcessor Integration Tests", () => {
 
       // Event generated
       const event = context.gameEvents.find(
-        (e) => e.type === GameEventTypes.STATION_DESTROYED,
+        (e) => e.type === GameEventTypes.PLAYER_DECOMMISSIONED_STATION,
       );
       expect(event).toBeDefined();
     });

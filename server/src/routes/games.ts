@@ -39,7 +39,7 @@ const router = express.Router();
 router.get("/", authenticateToken, async (req, res) => {
   try {
     const { games, myGameIds } = await GameService.listGamesByUser(
-      req.user._id
+      req.user._id,
     );
 
     res.json(GameMapper.toGameListResponse(games, myGameIds));
@@ -88,7 +88,7 @@ router.post(
       // Check if color is already taken
       const existingPlayers = await PlayerService.getByGameId(req.game._id);
       const isColorTaken = existingPlayers.some(
-        (p) => p.color === req.body.color
+        (p) => p.color === req.body.color,
       );
       if (isColorTaken) {
         throw new Error(ERROR_CODES.PLAYER_COLOR_ALREADY_TAKEN);
@@ -97,7 +97,7 @@ router.post(
       // Check if already joined
       const existingPlayer = await PlayerService.getByGameAndUserId(
         gameId,
-        userId
+        userId,
       );
 
       if (existingPlayer) {
@@ -114,7 +114,7 @@ router.post(
             color: req.body.color,
             renownToDistribute: req.game.settings.playerCount, // Renown = Player limit of the game
           },
-          session
+          session,
         );
 
         // Assign Capital
@@ -129,7 +129,7 @@ router.post(
           req.game._id,
           capital._id,
           newPlayer._id,
-          session
+          session,
         );
 
         // Assign Starting Fleet
@@ -139,7 +139,7 @@ router.post(
         const spawnHexes = MapUtils.findNearestFreeHexes(
           hexes,
           capital.location,
-          fleetIds.length
+          fleetIds.length,
         );
 
         // Make sure there are enough hexes to be able to spawn the player's starting fleet.
@@ -160,7 +160,7 @@ router.post(
             gameId,
             hex._id,
             hex.location,
-            () => new Types.ObjectId() // ID Generator
+            () => new Types.ObjectId(), // ID Generator
           );
 
           const createdUnit = await UnitService.createUnit(unit, session);
@@ -170,14 +170,14 @@ router.post(
             req.game._id,
             hex._id,
             createdUnit._id,
-            session
+            session,
           );
 
           await HexService.addUnitToAdjacentHexZOC(
             req.game._id,
             hex,
             unit,
-            session
+            session,
           );
         }
 
@@ -187,12 +187,12 @@ router.post(
           capital.location,
         ]);
         const territoryIds = new Set(
-          territoryCoords.map((c) => HexUtils.getCoordsID(c))
+          territoryCoords.map((c) => HexUtils.getCoordsID(c)),
         );
 
         // Filter hexes that are in this territory
         const territoryHexes = hexes.filter((h) =>
-          territoryIds.has(HexUtils.getCoordsID(h.location))
+          territoryIds.has(HexUtils.getCoordsID(h.location)),
         );
 
         for (const hex of territoryHexes) {
@@ -201,7 +201,7 @@ router.post(
               req.game._id,
               hex._id,
               newPlayer._id,
-              session
+              session,
             );
           }
         }
@@ -214,15 +214,16 @@ router.post(
             gameId,
             null,
             req.game.state.tick,
+            req.game.state.cycle,
             GameEventTypes.PLAYER_JOINED,
             {
               playerId: newPlayer._id,
               alias: newPlayer.alias,
               color: newPlayer.color,
             },
-            () => new Types.ObjectId()
+            () => new Types.ObjectId(),
           ),
-          session
+          session,
         );
 
         // Publish to WebSocket
@@ -233,7 +234,15 @@ router.post(
         if (req.game.state.playerCount + 1 >= req.game.settings.playerCount) {
           const now = new Date();
           const startDate = new Date(
-            now.getTime() + CONSTANTS.GAME_STARTING_WARMUP_PERIOD_MS
+            now.getTime() + CONSTANTS.GAME_STARTING_WARMUP_PERIOD_MS,
+          );
+          const nextTickDate = new Date(
+            startDate.getTime() + req.game.settings.tickDurationMS,
+          );
+          const nextCycleTickDate = new Date(
+            startDate.getTime() +
+              req.game.settings.tickDurationMS *
+                req.game.settings.ticksPerCycle,
           );
 
           await GameService.updateGameState(
@@ -241,8 +250,10 @@ router.post(
             {
               "state.status": GameStates.STARTING,
               "state.startDate": startDate,
+              "state.nextTickDate": nextTickDate,
+              "state.nextCycleTickDate": nextCycleTickDate,
             },
-            session
+            session,
           );
 
           const startEvent = await GameService.createGameEvent(
@@ -250,13 +261,16 @@ router.post(
               gameId,
               null,
               req.game.state.tick,
+              req.game.state.cycle,
               GameEventTypes.GAME_STARTING,
               {
                 startDate: startDate.toISOString(),
+                nextTickDate: nextTickDate.toISOString(),
+                nextCycleTickDate: nextCycleTickDate.toISOString(),
               },
-              () => new Types.ObjectId()
+              () => new Types.ObjectId(),
             ),
-            session
+            session,
           );
 
           // Publish to WebSocket
@@ -308,7 +322,7 @@ router.post(
         errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
     }
-  }
+  },
 );
 
 // POST /api/v1/games/:id/leave
@@ -325,7 +339,7 @@ router.post(
         await PlayerService.removePlayerAssets(
           req.game._id,
           req.player._id,
-          session
+          session,
         );
         await GameService.deductPlayerCount(req.game._id, session);
 
@@ -334,15 +348,16 @@ router.post(
             req.game._id,
             null,
             req.game.state.tick,
+            req.game.state.cycle,
             GameEventTypes.PLAYER_LEFT,
             {
               playerId: req.player._id,
               alias: req.player.alias,
               color: req.player.color,
             },
-            () => new Types.ObjectId()
+            () => new Types.ObjectId(),
           ),
-          session
+          session,
         );
 
         SocketService.publishEventToGame(playerLeftEvent);
@@ -356,7 +371,7 @@ router.post(
     }
 
     res.json({});
-  }
+  },
 );
 
 // POST /api/v1/games/:id/concede
@@ -376,15 +391,16 @@ router.post(
             req.game._id,
             null,
             req.game.state.tick,
+            req.game.state.cycle,
             GameEventTypes.PLAYER_CONCEDED,
             {
               playerId: req.player._id,
               alias: req.player.alias,
               color: req.player.color,
             },
-            () => new Types.ObjectId()
+            () => new Types.ObjectId(),
           ),
-          session
+          session,
         );
 
         SocketService.publishEventToGame(playerConcededEvent);
@@ -398,7 +414,7 @@ router.post(
     }
 
     return res.json({});
-  }
+  },
 );
 
 // GET /api/v1/games/:id
@@ -407,7 +423,7 @@ router.get("/:id", authenticateToken, loadGame, async (req, res) => {
   try {
     const { galaxy, currentPlayer } = await GameGalaxyService.getGameGalaxy(
       req.game,
-      req.user._id
+      req.user._id,
     );
 
     if (currentPlayer) {
@@ -440,7 +456,7 @@ router.get(
     try {
       const events = await GameService.getGameEvents(
         req.game._id,
-        req.player._id
+        req.player._id,
       );
 
       res.json(GameMapper.toGameEventsResponse(events));
@@ -451,7 +467,7 @@ router.get(
         errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
     }
-  }
+  },
 );
 
 export default router;

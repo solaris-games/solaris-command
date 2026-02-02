@@ -55,7 +55,7 @@ router.post(
 
       const targetPlayer = await PlayerService.getByGameAndPlayerId(
         req.game._id,
-        new Types.ObjectId(targetPlayerId)
+        new Types.ObjectId(targetPlayerId),
       );
 
       if (!targetPlayer) {
@@ -69,14 +69,14 @@ router.post(
           req.game._id,
           req.player._id,
           prestige,
-          session
+          session,
         );
 
         await PlayerService.incrementPrestigePoints(
           req.game._id,
           new Types.ObjectId(targetPlayerId),
           prestige,
-          session
+          session,
         );
 
         const eventPayload = {
@@ -93,40 +93,37 @@ router.post(
           prestige,
         };
 
-        const tradeSenderEvent =
-          await GameService.createGameEvent(
-            GameEventFactory.create(
-              req.game._id,
-              req.player._id, // Sender
-              req.game.state.tick,
-              GameEventTypes.PLAYERS_TRADED_PRESTIGE,
-              eventPayload,
-              () => new Types.ObjectId()
-            ),
-            session
-          );
-
-        SocketService.publishEventToUser(
-          tradeSenderEvent,
-          req.player.userId
+        const tradeSenderEvent = await GameService.createGameEvent(
+          GameEventFactory.create(
+            req.game._id,
+            req.player._id, // Sender
+            req.game.state.tick,
+            req.game.state.cycle,
+            GameEventTypes.PLAYERS_TRADED_PRESTIGE,
+            eventPayload,
+            () => new Types.ObjectId(),
+          ),
+          session,
         );
 
-        const tradeRecipientEvent =
-          await GameService.createGameEvent(
-            GameEventFactory.create(
-              req.game._id,
-              targetPlayer._id, // Recipient
-              req.game.state.tick,
-              GameEventTypes.PLAYERS_TRADED_PRESTIGE,
-              eventPayload,
-              () => new Types.ObjectId()
-            ),
-            session
-          );
+        SocketService.publishEventToUser(tradeSenderEvent, req.player.userId);
+
+        const tradeRecipientEvent = await GameService.createGameEvent(
+          GameEventFactory.create(
+            req.game._id,
+            targetPlayer._id, // Recipient
+            req.game.state.tick,
+            req.game.state.cycle,
+            GameEventTypes.PLAYERS_TRADED_PRESTIGE,
+            eventPayload,
+            () => new Types.ObjectId(),
+          ),
+          session,
+        );
 
         SocketService.publishEventToUser(
           tradeRecipientEvent,
-          targetPlayer.userId
+          targetPlayer.userId,
         );
       });
     } catch (error: any) {
@@ -136,7 +133,7 @@ router.post(
         errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
     }
-  }
+  },
 );
 
 // POST /api/v1/players/renown
@@ -168,7 +165,7 @@ router.post(
 
       const targetPlayer = await PlayerService.getByGameAndPlayerId(
         req.game._id,
-        new Types.ObjectId(targetPlayerId)
+        new Types.ObjectId(targetPlayerId),
       );
 
       if (!targetPlayer) {
@@ -182,13 +179,13 @@ router.post(
           req.game._id,
           req.player._id,
           renown,
-          session
+          session,
         );
 
         await UserService.incrementUserRenown(
           targetPlayer.userId,
           renown,
-          session
+          session,
         );
 
         const eventPayload = {
@@ -210,33 +207,32 @@ router.post(
             req.game._id,
             req.player._id, // Sender
             req.game.state.tick,
+            req.game.state.cycle,
             GameEventTypes.PLAYERS_TRADED_RENOWN,
             eventPayload,
-            () => new Types.ObjectId()
+            () => new Types.ObjectId(),
           ),
-          session
+          session,
         );
 
-        SocketService.publishEventToUser(
-          tradeSenderEvent,
-          targetPlayer.userId
-        );
+        SocketService.publishEventToUser(tradeSenderEvent, targetPlayer.userId);
 
         const tradeRecipientEvent = await GameService.createGameEvent(
           GameEventFactory.create(
             req.game._id,
             targetPlayer._id, // Recipient
             req.game.state.tick,
+            req.game.state.cycle,
             GameEventTypes.PLAYERS_TRADED_RENOWN,
             eventPayload,
-            () => new Types.ObjectId()
+            () => new Types.ObjectId(),
           ),
-          session
+          session,
         );
 
         SocketService.publishEventToUser(
           tradeRecipientEvent,
-          targetPlayer.userId
+          targetPlayer.userId,
         );
       });
     } catch (error: any) {
@@ -246,7 +242,7 @@ router.post(
         errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
       });
     }
-  }
+  },
 );
 
 export default router;

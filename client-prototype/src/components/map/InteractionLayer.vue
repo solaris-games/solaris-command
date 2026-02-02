@@ -4,6 +4,7 @@
       v-for="hex in galaxyStore.hexes"
       :key="`interaction-${hex.location.q},${hex.location.r}`"
       :config="getHexConfig(hex)"
+      :listening="!mapSettingsStore.isPinching"
       @click="handleClick(hex)"
       @tap="handleClick(hex)"
     >
@@ -20,6 +21,7 @@
 import { useGalaxyStore } from "../../stores/galaxy";
 import { useMovementStore } from "../../stores/movement";
 import { useCombatStore } from "../../stores/combat";
+import { useMapSettingsStore } from "../../stores/mapSettings";
 import { hexToPixel } from "../../utils/hexUtils";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
 
@@ -29,6 +31,7 @@ const HEX_SIZE = 64;
 const galaxyStore = useGalaxyStore();
 const movementStore = useMovementStore();
 const combatStore = useCombatStore();
+const mapSettingsStore = useMapSettingsStore();
 
 function getHexConfig(hex: APIHex) {
   const { x, y } = hexToPixel(hex.location.q, hex.location.r, HEX_SIZE);
@@ -64,11 +67,11 @@ function handleClick(hex: APIHex) {
     movementStore.addHexToPath(hex);
   } else if (combatStore.isAttackMode) {
     const unit = galaxyStore.units.find(
-      (u) => u.location.q === hex.location.q && u.location.r === hex.location.r
+      (u) => u.location.q === hex.location.q && u.location.r === hex.location.r,
     );
     if (unit) {
       const isValid = combatStore.validTargetHexes.some(
-        (targetHex: any) => targetHex._id === hex._id
+        (targetHex: any) => targetHex._id === hex._id,
       );
       if (isValid) {
         combatStore.setTarget(unit);

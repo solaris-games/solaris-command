@@ -1,11 +1,11 @@
 <template>
   <div
-    class="card p-1 mb-1"
+    class="card p-1 mb-1 h-100"
     v-if="galaxyStore.selectedHexIsValidStationSpawnLocation"
   >
     <div class="card-body bg-dark p-2">
       <button
-        class="btn btn-sm btn-primary w-100"
+        class="btn btn-sm btn-primary w-100 h-100"
         @click="handleBuildStation"
         data-bs-toggle="tooltip"
         title="Build a new station on this hex"
@@ -15,10 +15,11 @@
             CONSTANTS.STATION_PRESTIGE_COST
         "
       >
-        <i class="fas fa-satellite"></i> Build Station (<i
-          class="fas fa-coins me-1"
-        ></i
-        >{{ CONSTANTS.STATION_PRESTIGE_COST }})
+        <i class="fas fa-satellite"></i> Build Station
+        <span class="d-none d-md-inline-block"
+          >(<i class="fas fa-coins me-1"></i
+          >{{ CONSTANTS.STATION_PRESTIGE_COST }})</span
+        >
       </button>
     </div>
     <!-- card-arrow -->

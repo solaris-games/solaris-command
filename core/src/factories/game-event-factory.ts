@@ -9,6 +9,7 @@ export class GameEventFactory {
     gameId: UnifiedId,
     playerId: UnifiedId | null,
     tick: number,
+    cycle: number,
     type: GameEventTypes,
     data: any,
     idGenerator: () => UnifiedId
@@ -18,6 +19,7 @@ export class GameEventFactory {
       gameId,
       playerId,
       tick,
+      cycle,
       type,
       data,
     };

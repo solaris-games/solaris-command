@@ -156,30 +156,21 @@ function updateCountdowns() {
     return;
   }
 
-  const lastTickDate = game.state.lastTickDate
-    ? new Date(game.state.lastTickDate)
-    : null;
-  const tickDurationMS = game.settings.tickDurationMS;
-  const ticksPerCycle = game.settings.ticksPerCycle;
-  const currentTick = game.state.tick;
+  const now = new Date();
+  const nextTickDate = new Date(game.state.nextTickDate!);
 
-  if (lastTickDate && tickDurationMS) {
-    const nextTickTime = new Date(lastTickDate.getTime() + tickDurationMS);
-    const now = new Date();
-    const timeToNextTick = nextTickTime.getTime() - now.getTime();
+  if (now.getTime() >= nextTickDate.getTime()) {
+    nextCycleCountdown.value = "Processing...";
+    return;
+  }
 
-    const nextCycleTick = ticksPerCycle * (game.state.cycle + 1);
-    const ticksRemainingInCycle = nextCycleTick - currentTick;
-    const timeToNextCycle =
-      timeToNextTick + (ticksRemainingInCycle - 1) * tickDurationMS;
+  const nextCycleTickDate = new Date(game.state.nextCycleTickDate!);
+  const timeToNextCycle = nextCycleTickDate.getTime() - now.getTime();
 
-    if (timeToNextCycle > 0) {
-      nextCycleCountdown.value = formatMillisecondsToHMS(timeToNextCycle);
-    } else {
-      nextCycleCountdown.value = "Processing...";
-    }
+  if (now.getTime() >= nextCycleTickDate.getTime()) {
+    nextCycleCountdown.value = "Processing...";
   } else {
-    nextCycleCountdown.value = "N/A";
+    nextCycleCountdown.value = formatMillisecondsToHMS(timeToNextCycle);
   }
 }
 

@@ -5,7 +5,6 @@ export enum GameEventTypes {
   COMBAT_REPORT = "COMBAT_REPORT",
   UNIT_COMBAT_ATTACK_CANCELLED = "UNIT_COMBAT_ATTACK_CANCELLED",
   PLANET_CAPTURED = "PLANET_CAPTURED",
-  STATION_DESTROYED = "STATION_DESTROYED",
   UNIT_MOVEMENT_BOUNCED = "UNIT_MOVEMENT_BOUNCED",
   UNIT_MOVEMENT_STALLED = "UNIT_MOVEMENT_STALLED",
   UNIT_STARVED_BY_OOS = "UNIT_STARVED_BY_OOS",
@@ -30,6 +29,7 @@ export interface GameEvent {
   playerId: UnifiedId | null;
 
   tick: number;
+  cycle: number;
   type: GameEventTypes;
   data: object;
 }

@@ -5,23 +5,19 @@
     </div>
     <div class="flex-grow-1 ms-3">
       <p class="mb-0">
-        Combat at
-        <span
-          >{{ (event.data as any).location.q }},
-          {{ (event.data as any).location.r }}</span
-        >
+        Combat at <LocationLink :coords="(event.data as any).location" />
       </p>
       <div class="small text-muted">
         <div class="d-flex justify-content-between">
           <div>
             <strong>Attacker:</strong>
-            <span :style="{ color: attackerPlayer?.color }"
+            <span class="text-success ms-1"
               >{{ attackerPlayer?.alias }} ({{ attackerUnitName }})</span
             >
           </div>
           <div>
             <strong>Defender:</strong>
-            <span :style="{ color: defenderPlayer?.color }"
+            <span class="text-danger ms-1"
               >{{ defenderPlayer?.alias }} ({{ defenderUnitName }})</span
             >
           </div>
@@ -49,6 +45,7 @@ import { computed } from "vue";
 import type { GameEventsResponseSchema } from "@solaris-command/core/src/types/api";
 import { useGalaxyStore } from "@/stores/galaxy";
 import { UNIT_CATALOG_ID_MAP } from "@solaris-command/core/src/data/units";
+import LocationLink from "../LocationLink.vue";
 
 const props = defineProps<{
   event: GameEventsResponseSchema;

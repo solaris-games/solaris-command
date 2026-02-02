@@ -199,6 +199,7 @@ export const CombatEngine = {
     // 10. Generate Report
     const report: CombatReport = {
       tick: 0, // Controller should inject current tick
+      cycle: 0,
       attackerPlayerId: attacker.playerId,
       attackerUnitId: attacker._id,
       defenderPlayerId: defender.playerId,

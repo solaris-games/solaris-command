@@ -21,7 +21,7 @@ export class UserService {
     email: string,
     googleId: string,
     username: string,
-    session?: ClientSession
+    session?: ClientSession,
   ): Promise<User> {
     let user = await this.getUserByEmail(email);
 
@@ -34,7 +34,7 @@ export class UserService {
       googleId,
       email,
       username,
-      () => new Types.ObjectId()
+      () => new Types.ObjectId(),
     );
 
     const createdUser = await this.createUser(newUser, session);
@@ -63,7 +63,7 @@ export class UserService {
         $set: {
           lastSeenDate: new Date(),
         },
-      }
+      },
     );
   }
 
@@ -87,14 +87,13 @@ export class UserService {
             isAIControlled: true,
           },
         },
-        { session }
+        { session },
       );
     }
 
     // 3. Handle Pending Games -> Delete Player & Assets
-    const pendingPlayers = await PlayerService.findPendingPlayersForUser(
-      userId
-    );
+    const pendingPlayers =
+      await PlayerService.findPendingPlayersForUser(userId);
 
     if (pendingPlayers.length) {
       const playerIds = pendingPlayers.map((p) => p._id);
@@ -103,16 +102,29 @@ export class UserService {
       await PlayerModel.deleteMany({ _id: { $in: playerIds } }, { session });
 
       // Iterate over each player and remove their game assets.
+      // This simulates the player leaving the game.
+      // TODO: Add a game event? (See /leave API route)
       for (const player of pendingPlayers) {
         await PlayerService.removePlayerAssets(
           player.gameId,
           player._id as UnifiedId,
-          session
+          session,
         );
 
         await GameService.deductPlayerCount(player.gameId, session);
       }
     }
+
+    // 4. Remove the user id reference from any players the user had.
+    await PlayerModel.updateMany(
+      { userId },
+      {
+        $set: {
+          userId: null,
+        },
+      },
+      { session },
+    );
 
     return result;
   }
@@ -120,36 +132,36 @@ export class UserService {
   static async incrementUserVictories(
     userId: UnifiedId,
     amount: number,
-    session?: ClientSession
+    session?: ClientSession,
   ) {
     await UserModel.updateOne(
       { _id: userId },
       { $inc: { "achievements.victories": amount } },
-      { session }
+      { session },
     );
   }
 
   static async incrementUserRank(
     userId: UnifiedId,
     amount: number,
-    session?: ClientSession
+    session?: ClientSession,
   ) {
     await UserModel.updateOne(
       { _id: userId },
       { $inc: { "achievements.rank": amount } },
-      { session }
+      { session },
     );
   }
 
   static async incrementUserRenown(
     userId: UnifiedId,
     amount: number,
-    session?: ClientSession
+    session?: ClientSession,
   ) {
     await UserModel.updateOne(
       { _id: userId },
       { $inc: { "achievements.renown": amount } },
-      { session }
+      { session },
     );
   }
 }

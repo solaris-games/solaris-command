@@ -97,6 +97,7 @@ export class TickContext {
         this.game._id,
         playerId,
         this.game.state.tick,
+        this.game.state.cycle,
         type,
         data,
         this.idGenerator,

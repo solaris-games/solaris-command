@@ -49,6 +49,7 @@ export interface CombatForcedResult {
 
 export interface CombatReport {
   tick: number;
+  cycle: number;
 
   attackerPlayerId: UnifiedId;
   attackerUnitId: UnifiedId;

@@ -21,6 +21,8 @@ const GameStateSchema = new Schema<GameState>(
     startDate: { type: Date, default: null },
     endDate: { type: Date, default: null },
     lastTickDate: { type: Date, default: null },
+    nextTickDate: { type: Date, default: null },
+    nextCycleTickDate: { type: Date, default: null },
     winnerPlayerId: { type: Schema.ObjectId, default: null },
   },
   { _id: false }

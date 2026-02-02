@@ -8,9 +8,9 @@
             href="#"
             v-for="unit in sortedPlayerUnits"
             :key="String(unit._id)"
-            class="list-group-item list-group-item-action bg-dark text-white border-light"
+            class="list-group-item list-group-item-action text-white border-light"
             :class="{
-              'active bg-info':
+              'active bg-black':
                 galaxyStore.selectedUnit &&
                 String(galaxyStore.selectedUnit._id) === String(unit._id),
             }"

@@ -149,6 +149,7 @@ router.post(
             req.game._id,
             unit.playerId,
             req.game.state.tick,
+            req.game.state.cycle,
             GameEventTypes.UNIT_DEPLOYED,
             {
               unit,

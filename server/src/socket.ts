@@ -7,9 +7,11 @@ import { Types } from "mongoose";
 let io: Server | null = null;
 
 // Define allowed origins matching the express config
-const allowedOrigins = [
-  "http://localhost:5173", // Frontend dev local
-  "https://command.solaris.games",
+const allowedOrigins: (string | RegExp)[] = [
+  'http://localhost:5173', // Frontend dev local (prototype)
+  'https://command.solaris.games',
+  /^http:\/\/192\.168\.\d+\.\d+:\d+$/, // Allow local network access for testing
+  /^http:\/\/10\.\d+\.\d+\.\d+:\d+$/, // Allow local network access for testing
 ];
 
 interface AuthenticatedSocket extends Socket {
