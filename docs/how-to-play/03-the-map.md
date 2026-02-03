@@ -1,6 +1,6 @@
 # The Map & Terrain
 
-The universe of Solaris is laid out on a hexagonal grid. Not all space is empty; the terrain you fight in can determine the victor.
+The universe of Solaris: Command is laid out on a hexagonal grid. Not all space is empty; the terrain you fight in can determine the victor.
 
 ## Terrain Types
 

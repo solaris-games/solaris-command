@@ -1,6 +1,6 @@
 # Structures & Economy
 
-War requires funding. In Solaris, your economy is fueled by **Prestige**, and your logistics are maintained by **Planets** and **Stations**.
+War requires funding. In Solaris: Command, your economy is fueled by **Prestige**, and your logistics are maintained by **Planets** and **Stations**.
 
 ## Planets
 Planets are the prize.
@@ -15,7 +15,7 @@ Stations are deployable logistics hubs.
 *   **Function:** They extend supply range from Planets into deep space.
 *   **Deployment:** When deployed, a station takes time to come online. It provides supply starting the *following* Cycle.
 
-> **Strategy Tip:** Avoid placing stations on the front line. They are fragile. If an enemy captures your station, your entire forward fleet could be cut off from supply!
+> **Strategy Tip:** Avoid placing stations on the front line. They are fragile. If an enemy destroys your station, your entire forward fleet could be cut off from supply!
 
 ## Prestige
 There is no complex metal or crystal management. The currency is **Prestige**, representing political and military influence.

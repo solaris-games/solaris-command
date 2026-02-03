@@ -15,7 +15,7 @@ Different hulls for different roles.
 ### 1. Screening Ships
 *   **Types:** Corvettes, Frigates.
 *   **Role:** Scouting, rapid response, capturing undefended points.
-*   **Stats:** High Speed (MP), Low Cost, Low Armour.
+*   **Stats:** Long Range (MP), Low Cost, Low Armour.
 
 > **Strategy Tip:** Use Corvettes to probe enemy lines. Losing a cheap corvette to find the enemy's main fleet is a trade worth making.
 
@@ -27,9 +27,9 @@ Different hulls for different roles.
 ### 3. Capital Ships
 *   **Types:** Heavy Cruisers, Battlecruisers.
 *   **Role:** Line of battle. They can take a hit and dish it out.
-*   **Stats:** Heavy Armour, High Firepower, Low Speed.
+*   **Stats:** Heavy Armour, High Firepower, Short Range.
 
 ### 4. Super Capitals
 *   **Types:** Battleships, Dreadnaughts.
 *   **Role:** Anchor units. The ultimate projection of power.
-*   **Stats:** Maximum Firepower and Armour. Very Slow.
+*   **Stats:** Maximum Firepower and Armour. Very Short Range.
