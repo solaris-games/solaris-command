@@ -516,7 +516,12 @@ export const TickProcessor = {
 
       intent.unit.state.mp = Math.max(0, intent.unit.state.mp - mpCost); // Reduce MP
       intent.unit.movement.path = []; // Clear the path
-      intent.unit.steps = UnitManager.suppressSteps(intent.unit.steps, 1); // Take damage
+
+      // TODO: Unsure as to whether suppression when bouncing is too strong so
+      // I've set up a constant for it if we need to tweak it.
+      if (CONSTANTS.UNIT_STEP_BOUNCE_SUPPRESSION > 0) {
+        intent.unit.steps = UnitManager.suppressSteps(intent.unit.steps, CONSTANTS.UNIT_STEP_BOUNCE_SUPPRESSION); // Take damage
+      }
 
       // Set the unit to regrouping at the end of the tick (disorganised from forced stop)
       context.postTickRegroupingUnits.set(String(intent.unit._id), intent.unit);
