@@ -19,6 +19,7 @@
 
     <div
       class="card-body bg-inverse bg-dark bg-opacity-90 flex-grow-1 overflow-auto p-2"
+      style="height: 10vh"
       ref="messagesContainer"
     >
       <div class="d-flex flex-column">
@@ -37,7 +38,7 @@
 
           <div
             class="p-2 rounded text-break"
-            style="max-width: 85%"
+            style="max-width: 85%; white-space: pre-wrap;"
             :style="getMessageStyle(msg.senderId)"
           >
             {{ msg.content }}
@@ -52,13 +53,14 @@
 
     <div class="card-footer bg-dark">
       <div class="input-group">
-        <input
-          type="text"
+        <textarea
           class="form-control"
           placeholder="Write your message..."
           v-model="newMessage"
-          @keyup.enter="sendMessage"
-        />
+          rows="1"
+          style="resize: none"
+          @keydown.enter="handleEnter"
+        ></textarea>
         <button
           class="btn btn-outline-default"
           type="button"
@@ -158,6 +160,13 @@ async function sendMessage() {
     content,
   );
   scrollToBottom();
+}
+
+function handleEnter(e: KeyboardEvent) {
+  if (!e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
 }
 
 function scrollToBottom() {

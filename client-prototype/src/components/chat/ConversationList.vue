@@ -5,6 +5,7 @@
     >
       <div class="fw-bold text-truncate">
         <button
+        v-if="potentialParticipants.length"
           class="btn btn-sm btn-outline-secondary me-2"
           @click="showCreate = true"
         >
@@ -56,7 +57,7 @@
         />
       </div>
       <div class="d-flex justify-content-between">
-        <button class="btn btn-sm btn-outline-secondary" @click="cancelCreate">
+        <button class="btn btn-sm btn-outline-danger" @click="cancelCreate">
           Cancel
         </button>
         <button
@@ -70,7 +71,7 @@
     </div>
 
     <!-- List Mode -->
-    <div v-else class="card-body bg-dark bg-opacity-90 p-2 overflow-auto">
+    <div v-else class="card-body bg-dark bg-opacity-90 p-2 overflow-auto" style="height: 10vh;">
       <div
         v-if="chatStore.conversations.length === 0"
         class="p-3 text-muted text-center"
