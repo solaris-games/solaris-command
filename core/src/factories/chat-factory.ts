@@ -22,7 +22,7 @@ export class ConversationFactory {
 export class MessageFactory {
   static create(
     conversationId: UnifiedId,
-    senderId: UnifiedId,
+    senderPlayerId: UnifiedId,
     content: string,
     tick: number,
     cycle: number
@@ -30,7 +30,7 @@ export class MessageFactory {
     return {
       _id: new Types.ObjectId(),
       conversationId,
-      senderId,
+      senderPlayerId,
       content,
       sentAt: new Date(),
       tick,

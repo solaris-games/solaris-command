@@ -7,7 +7,7 @@
     @click.self="close"
   >
     <div class="modal-dialog" :class="size" role="document">
-      <div class="modal-content bg-dark text-white">
+      <div class="modal-content bg-dark bg-opacity-95 text-white">
         <div class="modal-header">
           <h5 class="modal-title" v-if="title">{{ title }}</h5>
           <slot name="header-actions"></slot>

@@ -1,7 +1,7 @@
 <template>
   <div class="card mb-1 p-1" v-if="sortedPlayerUnits.length">
     <div class="card-header bg-dark fw-bold small">FLEET</div>
-    <div class="card-body bg-dark p-2">
+    <div class="card-body bg-dark bg-opacity-95 p-2">
       <div class="units-list">
         <div class="list-group">
           <a

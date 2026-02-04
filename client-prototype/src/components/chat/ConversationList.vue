@@ -23,7 +23,7 @@
 
     <!-- Create Mode -->
 
-    <div v-if="showCreate" class="card-body bg-dark bg-opacity-90 p-2">
+    <div v-if="showCreate" class="card-body bg-dark bg-opacity-95 p-2">
       <h6 class="mb-3">New Conversation</h6>
       <div class="mb-3">
         <label class="form-label">Participants</label>
@@ -71,7 +71,7 @@
     </div>
 
     <!-- List Mode -->
-    <div v-else class="card-body bg-dark bg-opacity-90 p-2 overflow-auto" style="height: 10vh;">
+    <div v-else class="card-body bg-dark bg-opacity-95 p-2 overflow-auto" style="height: 10vh;">
       <div
         v-if="chatStore.conversations.length === 0"
         class="p-3 text-muted text-center"

@@ -1,6 +1,6 @@
 <template>
   <div class="card p-1 mb-1" v-if="selectedHex">
-    <div class="card-body p-2" :style="panelStyle">
+    <div class="card-body bg-opacity-95 p-2" :style="panelStyle">
       <div class="row">
         <div class="col">
           <p class="mb-0" v-if="owner">
@@ -38,7 +38,7 @@
         </div>
         <div class="col-auto">
           <p class="mb-0">
-            <i class="fas fa-table-cells-large"></i> <LocationLink :coords="selectedHex.location" :text-class="'text-white'" />
+            <i class="fas fa-table-cells-large"></i> <LocationLink :coords="selectedHex.location" :text-class="null" />
           </p>
         </div>
       </div>

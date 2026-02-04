@@ -13,7 +13,7 @@ export const ConversationModel = model<Conversation>("Conversation", Conversatio
 
 const MessageSchema = new Schema<Message>({
   conversationId: { type: Schema.Types.ObjectId, ref: "Conversation", required: true },
-  senderId: { type: Schema.Types.ObjectId, ref: "Player", required: true },
+  senderPlayerId: { type: Schema.Types.ObjectId, ref: "Player", required: true },
   content: { type: String, required: true },
   sentAt: { type: Date, default: Date.now },
   tick: { type: Number, required: true },

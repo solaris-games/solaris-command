@@ -18,7 +18,7 @@
     </div>
 
     <div
-      class="card-body bg-inverse bg-dark bg-opacity-90 flex-grow-1 overflow-auto p-2"
+      class="card-body bg-dark bg-opacity-95 flex-grow-1 overflow-auto p-2"
       style="height: 10vh"
       ref="messagesContainer"
     >
@@ -27,19 +27,19 @@
           v-for="(msg, index) in messages"
           :key="String(msg._id)"
           class="mb-2 d-flex flex-column"
-          :class="isMe(msg.senderId) ? 'align-items-end' : 'align-items-start'"
+          :class="isMe(msg.senderPlayerId) ? 'align-items-end' : 'align-items-start'"
         >
           <div
             v-if="shouldShowName(index, msg)"
             class="text-muted small mb-1 px-1"
           >
-            {{ getPlayerAlias(msg.senderId) }}
+            {{ getPlayerAlias(msg.senderPlayerId) }}
           </div>
 
           <div
             class="p-2 rounded text-break"
             style="max-width: 85%; white-space: pre-wrap;"
-            :style="getMessageStyle(msg.senderId)"
+            :style="getMessageStyle(msg.senderPlayerId)"
           >
             {{ msg.content }}
           </div>
@@ -114,8 +114,8 @@ function goBack() {
   chatStore.activeConversationId = null;
 }
 
-function isMe(senderId: any) {
-  return String(senderId) === String(galaxyStore.currentPlayerId);
+function isMe(senderPlayerId: any) {
+  return String(senderPlayerId) === String(galaxyStore.currentPlayerId);
 }
 
 function getPlayerAlias(playerId: any) {
@@ -123,14 +123,14 @@ function getPlayerAlias(playerId: any) {
 }
 
 function shouldShowName(index: number, msg: any) {
-  if (isMe(msg.senderId)) return false;
+  if (isMe(msg.senderPlayerId)) return false;
   if (index === 0) return true;
   const prevMsg = messages.value[index - 1];
-  return String(prevMsg.senderId) !== String(msg.senderId);
+  return String(prevMsg.senderPlayerId) !== String(msg.senderPlayerId);
 }
 
-function getMessageStyle(senderId: any) {
-  const player = galaxyStore.playerLookup?.get(String(senderId));
+function getMessageStyle(senderPlayerId: any) {
+  const player = galaxyStore.playerLookup?.get(String(senderPlayerId));
   if (!player) return { background: "#eee", color: "#000" };
 
   const color = PLAYER_COLOR_LOOKUP.get(player.color);

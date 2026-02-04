@@ -9,7 +9,7 @@
       <div
         v-for="event in events"
         :key="event._id"
-        class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between align-items-start"
+        class="list-group-item bg-dark bg-opacity-95 text-white border-secondary d-flex justify-content-between align-items-start"
       >
         <div class="flex-grow-1">
           <component :is="getEventComponent(event.type)" :event="event" />

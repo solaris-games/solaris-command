@@ -12,7 +12,7 @@ export interface Conversation {
 export interface Message {
   _id: UnifiedId;
   conversationId: UnifiedId;
-  senderId: UnifiedId; // Player ID
+  senderPlayerId: UnifiedId; // Player ID
   content: string;
   sentAt: Date;
   tick: number;

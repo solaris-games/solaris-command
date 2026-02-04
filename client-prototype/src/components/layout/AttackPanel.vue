@@ -5,7 +5,7 @@
         <i class="fas fa-bolt-lightning me-1"></i>
         <span class="text-white">DECLARE ATTACK</span>
       </div>
-      <div class="card-body bg-dark p-2">
+      <div class="card-body bg-dark bg-opacity-95 p-2">
         <!-- Attacker Details (Top) -->
         <div class="mb-1">
           <h6 class="text-uppercase text-success mb-1">Attacker</h6>

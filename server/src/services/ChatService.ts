@@ -58,13 +58,13 @@ export class ChatService {
     return MessageModel.find({ conversationId }).sort({ sentAt: 1 });
   }
 
-  static async sendMessage(gameId: UnifiedId, conversationId: UnifiedId, senderId: UnifiedId, content: string) {
+  static async sendMessage(gameId: UnifiedId, conversationId: UnifiedId, senderPlayerId: UnifiedId, content: string) {
     const conversation = await ConversationModel.findById(conversationId);
     if (!conversation) {
         throw new Error("Conversation not found");
     }
 
-    const isParticipant = conversation.participantIds.some(id => String(id) === String(senderId));
+    const isParticipant = conversation.participantIds.some(id => String(id) === String(senderPlayerId));
     if (!isParticipant) {
         throw new Error("Sender is not a participant in this conversation");
     }
@@ -77,7 +77,7 @@ export class ChatService {
     const tick = game.state.tick;
     const cycle = game.state.cycle;
 
-    const message = MessageFactory.create(conversationId, senderId, content, tick, cycle);
+    const message = MessageFactory.create(conversationId, senderPlayerId, content, tick, cycle);
     const model = new MessageModel(message);
     await model.save();
 

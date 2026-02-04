@@ -1,6 +1,6 @@
 <template>
   <div v-if="galaxyStore.selectedHexIsValidSpawnLocation" class="card p-1 mb-1">
-    <div class="card-body bg-dark p-2">
+    <div class="card-body bg-dark bg-opacity-95 p-2">
       <div class="input-group">
         <select class="form-select" v-model="selectedUnitToDeploy">
           <option disabled value="">Deploy New Unit</option>

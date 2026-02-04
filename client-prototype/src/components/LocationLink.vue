@@ -15,7 +15,7 @@ const props = defineProps({
     required: true,
   },
   textClass: {
-    type: String,
+    type: [String, null],
     default: "text-info",
   }
 });

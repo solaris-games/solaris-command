@@ -3,7 +3,7 @@
     class="card p-1 mb-1 h-100"
     v-if="galaxyStore.selectedHexIsValidStationSpawnLocation"
   >
-    <div class="card-body bg-dark p-2">
+    <div class="card-body bg-dark bg-opacity-95 p-2">
       <button
         class="btn btn-sm btn-primary w-100 h-100"
         @click="handleBuildStation"
@@ -39,7 +39,7 @@
       String(selectedStation.playerId) === String(galaxyStore.currentPlayerId)
     "
   >
-    <div class="card-body bg-dark p-2">
+    <div class="card-body bg-dark bg-opacity-95 p-2">
       <button
         class="btn btn-sm btn-outline-danger w-100"
         @click="handleScuttleStation"

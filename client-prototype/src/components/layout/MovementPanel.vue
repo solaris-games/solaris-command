@@ -15,7 +15,7 @@
         ></i>
         <span>{{ owner?.alias }}</span>
       </div>
-      <div class="card-body bg-dark p-2">
+      <div class="card-body bg-dark bg-opacity-95 p-2">
         <UnitDetails :unit="selectedUnit" :compact="true" />
         <hr />
         <!-- Movement Path Details -->
