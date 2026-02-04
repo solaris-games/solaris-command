@@ -1,5 +1,5 @@
 <template>
-  <div class="h-100">
+  <div class="h-100 pb-2">
     <ChatWindow v-if="chatStore.activeConversationId" />
     <ConversationList v-else />
   </div>
@@ -16,8 +16,8 @@ const chatStore = useChatStore();
 const galaxyStore = useGalaxyStore();
 
 onMounted(() => {
-    if (galaxyStore.galaxy) {
-        chatStore.fetchConversations(galaxyStore.galaxy.game._id);
-    }
+  if (galaxyStore.galaxy) {
+    chatStore.fetchConversations(galaxyStore.galaxy.game._id);
+  }
 });
 </script>

@@ -13,7 +13,7 @@
           <slot name="header-actions"></slot>
           <button
             type="button"
-            class="btn-close"
+            class="btn-close btn-sm btn-outline-theme"
             @click="close"
             data-bs-toggle="tooltip"
             title="Close this dialog"

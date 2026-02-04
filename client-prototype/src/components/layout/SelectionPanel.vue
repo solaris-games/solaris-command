@@ -12,7 +12,7 @@
         <span>{{ owner?.alias }}</span>
         <button
           type="button"
-          class="btn-close"
+          class="btn-close btn-sm btn-outline-theme"
           @click="handleClose"
           data-bs-toggle="tooltip"
           title="Close this dialog"
