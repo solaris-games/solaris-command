@@ -49,3 +49,12 @@ export const SendRenownRequestSchema = z.object({
   targetPlayerId: z.string().length(24),
   renown: z.number().min(1),
 });
+
+export const CreateConversationRequestSchema = z.object({
+  name: z.string().trim().optional(),
+  participantIds: z.array(z.string().length(24)).min(1),
+});
+
+export const SendMessageRequestSchema = z.object({
+  content: z.string().min(1).max(1000),
+});

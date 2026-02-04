@@ -13,6 +13,7 @@ import gameRoutes from "./routes/games";
 import unitRoutes from "./routes/units";
 import stationRoutes from "./routes/stations";
 import playerRoutes from "./routes/players";
+import chatRoutes from "./routes/chat";
 import { CreateGameJob } from "./cron/create-game";
 import { initSocket } from "./socket";
 
@@ -96,6 +97,7 @@ async function startServer() {
     // Note: Express Router with mergeParams allows accessing :id from parent
     app.use("/api/v1/games/:id/units", unitRoutes);
     app.use("/api/v1/games/:id/stations", stationRoutes);
+    app.use("/api/v1/games/:id/conversations", chatRoutes);
     app.use("/api/v1/players", playerRoutes);
 
     // Status route

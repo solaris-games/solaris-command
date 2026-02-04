@@ -40,6 +40,16 @@
       <i class="fas fa-list-ul"></i>
     </button>
 
+    <!-- Chat -->
+    <button
+      class="btn btn-outline-theme"
+      @click="chatStore.toggleChat()"
+      v-if="galaxyStore.currentPlayer"
+      :class="{ active: chatStore.isOpen }"
+    >
+      <i class="fas fa-comments"></i>
+    </button>
+
     <!-- Fleet -->
     <button
       class="btn btn-outline-theme"
@@ -68,9 +78,11 @@
 
 <script setup lang="ts">
 import { useGalaxyStore } from "../../stores/galaxy";
+import { useChatStore } from "../../stores/chat";
 import { GameStates } from "../../../../core/src/types/game";
 
 const galaxyStore = useGalaxyStore();
+const chatStore = useChatStore();
 
 defineProps<{
   fleetOpen?: boolean;

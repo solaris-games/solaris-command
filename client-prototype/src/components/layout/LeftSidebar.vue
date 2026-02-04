@@ -41,6 +41,16 @@
     >
       <i class="fas fa-list-ul"></i>
     </button>
+    <button
+      class="btn btn-outline-theme mb-2"
+      @click="chatStore.toggleChat()"
+      data-bs-toggle="tooltip"
+      title="Chat"
+      v-if="galaxyStore.currentPlayer"
+      :class="{ active: chatStore.isOpen }"
+    >
+      <i class="fas fa-comments"></i>
+    </button>
 
     <div class="mt-auto d-flex flex-column">
       <button
@@ -65,9 +75,11 @@
 
 <script setup lang="ts">
 import { useGalaxyStore } from "../../stores/galaxy";
+import { useChatStore } from "../../stores/chat";
 import { GameStates } from "../../../../core/src/types/game";
 
 const galaxyStore = useGalaxyStore();
+const chatStore = useChatStore();
 
 const emit = defineEmits([
   "toggle-join-game",

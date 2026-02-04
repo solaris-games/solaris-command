@@ -9,6 +9,8 @@ import {
   StationModel,
   UnitModel,
   UserModel,
+  ConversationModel,
+  MessageModel,
 } from "./schemas";
 
 dotenv.config();
@@ -33,6 +35,8 @@ export const connectToDb = async (): Promise<Connection> => {
     await StationModel.syncIndexes();
     await GameEventModel.syncIndexes();
     await UserModel.syncIndexes();
+    await ConversationModel.syncIndexes();
+    await MessageModel.syncIndexes();
 
     console.log("✅ Indexes synchronized.");
 

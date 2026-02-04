@@ -6,4 +6,5 @@ export * from "./PlayerService";
 export * from "./StationService";
 export * from "./UnitService";
 export * from "./UserService";
+export * from "./ChatService";
 export * from "./SocketService";

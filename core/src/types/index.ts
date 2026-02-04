@@ -15,3 +15,4 @@ export * from "./unified-id";
 export * from "./unit";
 export * from "./user";
 export * from "./tick";
+export * from "./chat";

@@ -57,11 +57,14 @@
             id="mapOverlayLeft"
             class="col-12 col-md-4 col-lg-3 mt-2 ps-3 pe-3 ps-md-0 pe-md-0"
           >
-            <SelectionPanel
-              v-if="!movementStore.isMoveMode && !combatStore.isAttackMode"
-            />
-            <MovementPanel v-if="movementStore.isMoveMode" />
-            <AttackPanel v-if="combatStore.isAttackMode" />
+            <ChatPanel v-if="chatStore.isOpen" />
+            <template v-else>
+              <SelectionPanel
+                v-if="!movementStore.isMoveMode && !combatStore.isAttackMode"
+              />
+              <MovementPanel v-if="movementStore.isMoveMode" />
+              <AttackPanel v-if="combatStore.isAttackMode" />
+            </template>
           </div>
 
           <!-- Center map -->
@@ -144,6 +147,7 @@ import { useSocketStore } from "../stores/socket";
 import { useMovementStore } from "../stores/movement";
 import { useCombatStore } from "../stores/combat";
 import { useMapSettingsStore } from "../stores/mapSettings";
+import { useChatStore } from "../stores/chat";
 import HexMap from "../components/HexMap.vue";
 import HeaderBar from "../components/layout/HeaderBar.vue";
 import LeftSidebar from "../components/layout/LeftSidebar.vue";
@@ -156,6 +160,7 @@ import RightSidebar from "../components/layout/RightSidebar.vue";
 import SelectionPanel from "../components/layout/SelectionPanel.vue";
 import MovementPanel from "../components/layout/MovementPanel.vue";
 import AttackPanel from "../components/layout/AttackPanel.vue";
+import ChatPanel from "../components/chat/ChatPanel.vue";
 import MapOverlayButtons from "../components/layout/MapOverlayButtons.vue";
 import { GameStates } from "@solaris-command/core/src/types/game";
 
@@ -165,6 +170,7 @@ const socketStore = useSocketStore();
 const movementStore = useMovementStore();
 const combatStore = useCombatStore();
 const mapSettingsStore = useMapSettingsStore();
+const chatStore = useChatStore();
 const { stage: stageState } = storeToRefs(mapSettingsStore);
 
 const stageContainer = ref<HTMLDivElement | null>(null);

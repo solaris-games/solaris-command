@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { io, Socket } from "socket.io-client";
 import { useAuthStore } from "./auth";
 import { useGalaxyStore } from "./galaxy";
+import { useChatStore } from "./chat";
 
 export const useSocketStore = defineStore("socket", {
   state: () => ({
@@ -12,6 +13,7 @@ export const useSocketStore = defineStore("socket", {
     connect(gameId: string) {
       const authStore = useAuthStore();
       const galaxyStore = useGalaxyStore();
+      const chatStore = useChatStore();
 
       if (!authStore.token) {
         console.error("Socket: No auth token found.");
@@ -66,6 +68,11 @@ export const useSocketStore = defineStore("socket", {
       this.socket.on("GAME_STARTED", () => {
         console.log("Socket: GAME_STARTED received, reloading galaxy...");
         galaxyStore.fetchGalaxy(gameId);
+      });
+
+      this.socket.on("CHAT_MESSAGE", (data: { conversationId: string, message: any }) => {
+          console.log("Socket: CHAT_MESSAGE received", data);
+          chatStore.handleMessage(data.message);
       });
 
       // TODO: Implement other websocket events.
