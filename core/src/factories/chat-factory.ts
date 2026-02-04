@@ -6,13 +6,13 @@ export class ConversationFactory {
   static create(
     gameId: UnifiedId,
     name: string,
-    participantIds: UnifiedId[]
+    participantPlayerIds: UnifiedId[],
   ): Conversation {
     return {
       _id: new Types.ObjectId(),
       gameId,
       name,
-      participantIds,
+      participantPlayerIds,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -22,15 +22,15 @@ export class ConversationFactory {
 export class MessageFactory {
   static create(
     conversationId: UnifiedId,
-    senderPlayerId: UnifiedId,
+    playerId: UnifiedId,
     content: string,
     tick: number,
-    cycle: number
+    cycle: number,
   ): Message {
     return {
       _id: new Types.ObjectId(),
       conversationId,
-      senderPlayerId,
+      playerId,
       content,
       sentAt: new Date(),
       tick,

@@ -1,5 +1,8 @@
 import { Types } from "mongoose";
-import { ConversationFactory, MessageFactory } from "@solaris-command/core/src/factories/chat-factory";
+import {
+  ConversationFactory,
+  MessageFactory,
+} from "@solaris-command/core/src/factories/chat-factory";
 import { ConversationModel, MessageModel } from "../db/schemas/chat";
 import { PlayerModel } from "../db/schemas/player";
 import { UnifiedId } from "@solaris-command/core/src/types/unified-id";
@@ -10,28 +13,41 @@ export class ChatService {
   static async getConversations(gameId: UnifiedId, playerId: UnifiedId) {
     return ConversationModel.find({
       gameId,
-      participantIds: playerId,
+      participantPlayerIds: playerId,
     }).sort({ updatedAt: -1 });
   }
 
-  static async findConversation(gameId: UnifiedId, participantIds: UnifiedId[]) {
-    const sortedIds = [...participantIds].map(id => String(id)).sort().map(id => new Types.ObjectId(id));
+  static async findConversation(
+    gameId: UnifiedId,
+    participantPlayerIds: UnifiedId[],
+  ) {
+    const sortedIds = [...participantPlayerIds]
+      .map((id) => String(id))
+      .sort()
+      .map((id) => new Types.ObjectId(id));
     return ConversationModel.findOne({
       gameId,
-      participantIds: sortedIds,
+      participantPlayerIds: sortedIds,
     });
   }
 
-  static async createConversation(gameId: UnifiedId, name: string, participantIds: UnifiedId[]) {
-    const sortedIds = [...participantIds].map(id => String(id)).sort().map(id => new Types.ObjectId(id));
+  static async createConversation(
+    gameId: UnifiedId,
+    name: string,
+    participantPlayerIds: UnifiedId[],
+  ) {
+    const sortedIds = [...participantPlayerIds]
+      .map((id) => String(id))
+      .sort()
+      .map((id) => new Types.ObjectId(id));
 
     const existing = await ConversationModel.findOne({
       gameId,
-      participantIds: sortedIds
+      participantPlayerIds: sortedIds,
     });
 
     if (existing) {
-        return existing;
+      return existing;
     }
 
     const conversation = ConversationFactory.create(gameId, name, sortedIds);
@@ -44,13 +60,18 @@ export class ChatService {
     return ConversationModel.findById(conversationId);
   }
 
-  static async getMessages(conversationId: UnifiedId, requestingPlayerId: UnifiedId) {
+  static async getMessages(
+    conversationId: UnifiedId,
+    requestingPlayerId: UnifiedId,
+  ) {
     const conversation = await ConversationModel.findById(conversationId);
     if (!conversation) {
       throw new Error("Conversation not found");
     }
 
-    const isParticipant = conversation.participantIds.some(id => String(id) === String(requestingPlayerId));
+    const isParticipant = conversation.participantPlayerIds.some(
+      (id) => String(id) === String(requestingPlayerId),
+    );
     if (!isParticipant) {
       throw new Error("Player is not a participant in this conversation");
     }
@@ -58,26 +79,39 @@ export class ChatService {
     return MessageModel.find({ conversationId }).sort({ sentAt: 1 });
   }
 
-  static async sendMessage(gameId: UnifiedId, conversationId: UnifiedId, senderPlayerId: UnifiedId, content: string) {
+  static async sendMessage(
+    gameId: UnifiedId,
+    conversationId: UnifiedId,
+    playerId: UnifiedId,
+    content: string,
+  ) {
     const conversation = await ConversationModel.findById(conversationId);
     if (!conversation) {
-        throw new Error("Conversation not found");
+      throw new Error("Conversation not found");
     }
 
-    const isParticipant = conversation.participantIds.some(id => String(id) === String(senderPlayerId));
+    const isParticipant = conversation.participantPlayerIds.some(
+      (id) => String(id) === String(playerId),
+    );
     if (!isParticipant) {
-        throw new Error("Sender is not a participant in this conversation");
+      throw new Error("Sender is not a participant in this conversation");
     }
 
     const game = await GameService.getById(gameId);
     if (!game) {
-        throw new Error("Game not found");
+      throw new Error("Game not found");
     }
 
     const tick = game.state.tick;
     const cycle = game.state.cycle;
 
-    const message = MessageFactory.create(conversationId, senderPlayerId, content, tick, cycle);
+    const message = MessageFactory.create(
+      conversationId,
+      playerId,
+      content,
+      tick,
+      cycle,
+    );
     const model = new MessageModel(message);
     await model.save();
 
@@ -86,18 +120,18 @@ export class ChatService {
 
     // Emit Socket Event
     const participants = await PlayerModel.find({
-        _id: { $in: conversation.participantIds }
+      _id: { $in: conversation.participantPlayerIds },
     });
 
     const userIds = participants
-        .map(p => p.userId)
-        .filter(uid => uid != null);
+      .map((p) => p.userId)
+      .filter((uid) => uid != null);
 
     for (const userId of userIds) {
-        SocketService.publishToUser(userId, "CHAT_MESSAGE", {
-            conversationId,
-            message
-        });
+      SocketService.publishToUser(userId, "CHAT_MESSAGE", {
+        conversationId,
+        message,
+      });
     }
 
     return model;

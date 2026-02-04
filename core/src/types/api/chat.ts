@@ -1,13 +1,7 @@
 import { Conversation, Message } from "../chat";
 
-export interface CreateConversationRequest {
-  name: string;
-  participantIds: string[]; // Player IDs
-}
-
-export interface SendMessageRequest {
-  content: string;
-}
+// TODO: Use explicit prop names and types.
+// TODO: Add to mapping layer.
 
 export interface CreateConversationResponse {
   conversation: Conversation;

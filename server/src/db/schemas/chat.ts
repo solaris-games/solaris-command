@@ -1,19 +1,35 @@
 import { Schema, model } from "mongoose";
 import { Conversation, Message } from "@solaris-command/core/src/types/chat";
 
-const ConversationSchema = new Schema<Conversation>({
-  gameId: { type: Schema.Types.ObjectId, ref: "Game", required: true },
-  name: { type: String, required: false },
-  participantIds: [{ type: Schema.Types.ObjectId, ref: "Player", required: true }],
-}, { timestamps: true });
+const ConversationSchema = new Schema<Conversation>(
+  {
+    gameId: { type: Schema.Types.ObjectId, ref: "Game", required: true },
+    name: { type: String, required: false },
+    participantPlayerIds: [
+      { type: Schema.Types.ObjectId, ref: "Player", required: true },
+    ],
+  },
+  { timestamps: true },
+);
 
-ConversationSchema.index({ gameId: 1, participantIds: 1 });
+ConversationSchema.index({ gameId: 1, participantPlayerIds: 1 });
 
-export const ConversationModel = model<Conversation>("Conversation", ConversationSchema);
+export const ConversationModel = model<Conversation>(
+  "Conversation",
+  ConversationSchema,
+);
 
 const MessageSchema = new Schema<Message>({
-  conversationId: { type: Schema.Types.ObjectId, ref: "Conversation", required: true },
-  senderPlayerId: { type: Schema.Types.ObjectId, ref: "Player", required: true },
+  conversationId: {
+    type: Schema.Types.ObjectId,
+    ref: "Conversation",
+    required: true,
+  },
+  playerId: {
+    type: Schema.Types.ObjectId,
+    ref: "Player",
+    required: true,
+  },
   content: { type: String, required: true },
   sentAt: { type: Date, default: Date.now },
   tick: { type: Number, required: true },

@@ -5,7 +5,7 @@
     >
       <div class="fw-bold text-truncate">
         <button
-        v-if="potentialParticipants.length"
+          v-if="potentialParticipants.length"
           class="btn btn-sm btn-outline-secondary me-2"
           @click="showCreate = true"
         >
@@ -71,7 +71,11 @@
     </div>
 
     <!-- List Mode -->
-    <div v-else class="card-body bg-dark bg-opacity-95 p-2 overflow-auto" style="height: 10vh;">
+    <div
+      v-else
+      class="card-body bg-dark bg-opacity-95 p-2 overflow-auto"
+      style="height: 10vh"
+    >
       <div
         v-if="chatStore.conversations.length === 0"
         class="p-3 text-muted text-center"
@@ -182,7 +186,7 @@ function getConversationName(conv: Conversation) {
 }
 
 function getParticipantNames(conv: Conversation) {
-  const names = conv.participantIds
+  const names = conv.participantPlayerIds
     .filter((pid) => String(pid) !== String(galaxyStore.currentPlayerId))
     .map(
       (pid) => galaxyStore.playerLookup?.get(String(pid))?.alias || "Unknown",
@@ -198,8 +202,8 @@ function formatTime(dateStr: Date | string) {
 }
 
 const handleClose = () => {
-    chatStore.isOpen = false
-}
+  chatStore.isOpen = false;
+};
 </script>
 
 <style scoped>

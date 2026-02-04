@@ -35,12 +35,12 @@ export const useChatStore = defineStore("chat", {
     async createConversation(
       gameId: UnifiedId,
       name: string | undefined,
-      participantIds: string[],
+      participantPlayerIds: string[],
     ) {
       try {
         const res = await axios.post(`/api/v1/games/${gameId}/conversations`, {
           name,
-          participantIds,
+          participantPlayerIds,
         });
         const conv = res.data.conversation;
 

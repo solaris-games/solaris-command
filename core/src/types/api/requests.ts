@@ -52,7 +52,7 @@ export const SendRenownRequestSchema = z.object({
 
 export const CreateConversationRequestSchema = z.object({
   name: z.string().trim().optional(),
-  participantIds: z.array(z.string().length(24)).min(1),
+  participantPlayerIds: z.array(z.string().length(24)).min(1),
 });
 
 export const SendMessageRequestSchema = z.object({

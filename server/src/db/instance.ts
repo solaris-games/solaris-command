@@ -79,7 +79,7 @@ export const closeDb = async () => {
 // };
 
 export const executeInTransaction = async (
-  callback: (session: ClientSession) => Promise<any>
+  callback: (session: ClientSession) => Promise<any>,
 ) => {
   const session = await mongoose.startSession();
 

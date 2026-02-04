@@ -4,7 +4,7 @@ export interface Conversation {
   _id: UnifiedId;
   gameId: UnifiedId;
   name: string;
-  participantIds: UnifiedId[]; // Player IDs
+  participantPlayerIds: UnifiedId[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -12,7 +12,7 @@ export interface Conversation {
 export interface Message {
   _id: UnifiedId;
   conversationId: UnifiedId;
-  senderPlayerId: UnifiedId; // Player ID
+  playerId: UnifiedId;
   content: string;
   sentAt: Date;
   tick: number;

@@ -6,35 +6,27 @@ import {
   ERROR_CODES,
   UnifiedId,
 } from "@solaris-command/core";
-import {
-  loadGame,
-  loadPlayer,
-  validateRequest,
-} from "../middleware";
+import { loadGame, loadPlayer, validateRequest } from "../middleware";
 import { ChatService } from "../services";
 import { Types } from "mongoose";
 
 const router = express.Router({ mergeParams: true });
 
 // GET /api/v1/games/:id/conversations
-router.get(
-  "/",
-  authenticateToken,
-  loadGame,
-  loadPlayer,
-  async (req, res) => {
-    try {
-      const conversations = await ChatService.getConversations(
-        req.game._id,
-        req.player._id
-      );
-      res.json({ conversations });
-    } catch (error: any) {
-      console.error("Error fetching conversations:", error);
-      res.status(500).json({ errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR });
-    }
+router.get("/", authenticateToken, loadGame, loadPlayer, async (req, res) => {
+  try {
+    const conversations = await ChatService.getConversations(
+      req.game._id,
+      req.player._id,
+    );
+
+    // TODO: Need a mapping layer.
+    res.json({ conversations });
+  } catch (error: any) {
+    console.error("Error fetching conversations:", error);
+    res.status(500).json({ errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR });
   }
-);
+});
 
 // POST /api/v1/games/:id/conversations
 router.post(
@@ -44,28 +36,32 @@ router.post(
   loadGame,
   loadPlayer,
   async (req, res) => {
-    const { name, participantIds } = req.body;
+    const { name, participantPlayerIds } = req.body;
 
     // Ensure current player is in participants
     const allParticipants = new Set([
-      ...participantIds,
-      String(req.player._id)
+      ...participantPlayerIds,
+      String(req.player._id),
     ]);
 
-    const participantList = Array.from(allParticipants).map(id => new Types.ObjectId(id));
+    const participantList = Array.from(allParticipants).map(
+      (id) => new Types.ObjectId(id),
+    );
 
     try {
       const conversation = await ChatService.createConversation(
         req.game._id,
         name || "New Conversation",
-        participantList as UnifiedId[]
+        participantList as UnifiedId[],
       );
+
+      // TODO: Need a mapping layer.
       res.status(201).json({ conversation });
     } catch (error: any) {
       console.error("Error creating conversation:", error);
       res.status(500).json({ errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR });
     }
-  }
+  },
 );
 
 // GET /api/v1/games/:id/conversations/:conversationId/messages
@@ -80,17 +76,22 @@ router.get(
     try {
       const messages = await ChatService.getMessages(
         new Types.ObjectId(conversationId),
-        req.player._id
+        req.player._id,
       );
+
+      // TODO: Need a mapping layer.
       res.json({ messages });
     } catch (error: any) {
       console.error("Error fetching messages:", error);
-      if (error.message === "Conversation not found" || error.message.includes("not a participant")) {
-          return res.status(403).json({ errorCode: ERROR_CODES.FORBIDDEN });
+      if (
+        error.message === "Conversation not found" ||
+        error.message.includes("not a participant")
+      ) {
+        return res.status(403).json({ errorCode: ERROR_CODES.FORBIDDEN });
       }
       res.status(500).json({ errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR });
     }
-  }
+  },
 );
 
 // POST /api/v1/games/:id/conversations/:conversationId/messages
@@ -109,17 +110,19 @@ router.post(
         req.game._id,
         new Types.ObjectId(conversationId),
         req.player._id,
-        content
+        content,
       );
+
+      // TODO: Need a mapping layer.
       res.status(201).json({ message });
     } catch (error: any) {
       console.error("Error sending message:", error);
       if (error.message.includes("not a participant")) {
-          return res.status(403).json({ errorCode: ERROR_CODES.FORBIDDEN });
+        return res.status(403).json({ errorCode: ERROR_CODES.FORBIDDEN });
       }
       res.status(500).json({ errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR });
     }
-  }
+  },
 );
 
 export default router;
