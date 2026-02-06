@@ -11,7 +11,7 @@ A resource used by units to perform offensive actions, like attacking. Units typ
 The digital representation of a military unit on the map. In physical board games, these are cardboard squares. In Solaris: Command, they are your fleets.
 
 **Cycle**
-The 24-hour day in Solaris: Command. Logistics, income, and repairs happen once per Cycle.
+The 20 tick _day_ in Solaris: Command. Logistics, income, and repairs happen once per Cycle.
 
 **Hex**
 The map is divided into a hexagonal grid. Each "Hex" is a distinct location that can hold one unit (fleet) or structure.

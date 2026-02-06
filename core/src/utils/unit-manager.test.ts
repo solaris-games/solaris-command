@@ -8,7 +8,7 @@ import { Hex } from "../types/hex";
 // --- FACTORY HELPER ---
 const CATALOG_UNIT_ID = "unit_frigate_01";
 const CATALOG_UNIT = UNIT_CATALOG_ID_MAP.get(CATALOG_UNIT_ID)!;
-const TICKS_PER_CYCLE = 24;
+const TICKS_PER_CYCLE = 20;
 
 function createTestUnit(overrides: Partial<Unit> = {}): Unit {
   return {
@@ -72,12 +72,12 @@ describe("UnitManager", () => {
   });
 
   describe("processCycle (Out of Supply)", () => {
-    it("should handle Tier 1 OOS (1 Cycle / 24 ticks): No Recovery, but No Penalty", () => {
+    it("should handle Tier 1 OOS (1 Cycle / 20 ticks): No Recovery, but No Penalty", () => {
       const unit = createTestUnit({
         supply: {
           isInSupply: false,
-          ticksOutOfSupply: 24,
-          ticksLastSupply: 24,
+          ticksOutOfSupply: 20,
+          ticksLastSupply: 20,
         },
         // 1 suppressed step that should NOT recover
         steps: [{ isSuppressed: true, specialistId: null }],

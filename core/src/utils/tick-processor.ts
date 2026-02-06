@@ -165,7 +165,7 @@ export const TickProcessor = {
    * Returns objects representing the CHANGES to be made (does not mutate DB directly).
    */
   processTick(context: TickContext): ProcessTickResult {
-    // If this new tick completes a cycle (e.g., tick 24, 48...)
+    // If this new tick completes a cycle (e.g., tick 20, 40...)
     const isCycleTick =
       context.game.state.tick % context.game.settings.ticksPerCycle === 0;
 
@@ -221,6 +221,9 @@ export const TickProcessor = {
     // combat shifts (defender disorganised) therefore we must change
     // the status' of units that have been involved in combat AFTER ALL
     // combat has resolved.
+    // Since all combat is resolved simultaneously, we can't mark units as regrouping
+    // after each individual combat since they may be unfairly penalised by other combat events
+    // they take part in in a single tick.
     for (const [, unit] of context.postTickRegroupingUnits) {
       if (unit.state.status !== UnitStatus.REGROUPING) {
         unit.state.status = UnitStatus.REGROUPING;
@@ -313,11 +316,14 @@ export const TickProcessor = {
         // Lookup Defender (Is there a unit at the location RIGHT NOW?)
         const defender = context.unitLocations.get(targetHexCoordsId);
 
+        const attackerCanAttack = CombatEngine.unitCanAttack(attacker, targetHex);
+
         // Whiff Check: Did the defender die, retreat in a previous sequence step or move as part of another battle?
         // Also check Friendly Fire (Attacker vs Attacker race condition)
         if (
           !defender ||
-          String(defender.playerId) === String(attacker.playerId)
+          String(defender.playerId) === String(attacker.playerId) ||
+          !attackerCanAttack
         ) {
           context.appendGameEvent(
             attacker.playerId,
@@ -382,12 +388,14 @@ export const TickProcessor = {
         // Keep track of which units are regrouping
         if (
           UnitManager.unitIsAlive(defender) &&
+          battleResult.report.defender.disorganised &&
           !context.postTickRegroupingUnits.has(String(defender._id))
         ) {
           context.postTickRegroupingUnits.set(String(defender._id), defender);
         }
         if (
           UnitManager.unitIsAlive(attacker) &&
+          battleResult.report.attacker.disorganised &&
           !context.postTickRegroupingUnits.has(String(attacker._id))
         ) {
           context.postTickRegroupingUnits.set(String(attacker._id), attacker);
@@ -520,7 +528,10 @@ export const TickProcessor = {
       // TODO: Unsure as to whether suppression when bouncing is too strong so
       // I've set up a constant for it if we need to tweak it.
       if (CONSTANTS.UNIT_STEP_BOUNCE_SUPPRESSION > 0) {
-        intent.unit.steps = UnitManager.suppressSteps(intent.unit.steps, CONSTANTS.UNIT_STEP_BOUNCE_SUPPRESSION); // Take damage
+        intent.unit.steps = UnitManager.suppressSteps(
+          intent.unit.steps,
+          CONSTANTS.UNIT_STEP_BOUNCE_SUPPRESSION,
+        ); // Take damage
       }
 
       // Set the unit to regrouping at the end of the tick (disorganised from forced stop)
@@ -902,7 +913,7 @@ export const TickProcessor = {
           color: p.color,
           newVP: p.victoryPoints,
         }))
-        .sort((a, b) => b.newVP - a.newVP) // Sort by new vp descending
+        .sort((a, b) => b.newVP - a.newVP), // Sort by new vp descending
     });
   },
 

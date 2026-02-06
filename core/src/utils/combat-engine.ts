@@ -14,35 +14,38 @@ import { MapUtils } from "./map-utils";
 import { UnitManager } from "./unit-manager";
 
 export const CombatEngine = {
-  validateBattle(
-    attacker: Unit,
-    defender: Unit,
-    hex: Hex,
-    operation: CombatOperation,
-    advanceOnVictory: boolean,
-  ) {
-    if (attacker.state.status !== UnitStatus.PREPARING)
-      throw new Error("Attacker must be 'PREPARING' to order to attack.");
+  unitCanAttack(unit: Unit, hex: Hex) {
+    // Attacker must be 'PREPARING' to order to attack.
+    if (unit.state.status !== UnitStatus.PREPARING) {
+      return false;
+    }
 
-    if (attacker.state.ap === 0)
-      throw new Error("Attacker does not have enough AP to attack.");
+    // Attacker does not have enough AP to attack.
+    if (unit.state.ap === 0) {
+      return false;
+    }
 
-    if (!HexUtils.isNeighbor(attacker.location, hex.location))
-      throw new Error("Defender's hex is not adjacent to attacker.");
+    // Defender's hex is not adjacent to attacker.
+    if (!HexUtils.isNeighbor(unit.location, hex.location)) return false;
 
-    if (!hex.unitId)
-      throw new Error("Defender's hex is not occupied by a unit.");
+    // Defender's hex is not occupied by a unit.
+    if (!hex.unitId) return false;
 
-    if (operation === CombatOperation.SUPPRESSIVE_FIRE) {
-      // Must have Artillery Specialist for suppressive fire attacks.
-      const hasArtillery = UnitManager.unitHasActiveSpecialistStep(attacker);
+    // Must have at least one active step.
+    if (UnitManager.getActiveSteps(unit).length === 0) {
+      return false;
+    }
+
+    // Must have Artillery Specialist for suppressive fire attacks.
+    if (unit.combat!.operation === CombatOperation.SUPPRESSIVE_FIRE) {
+      const hasArtillery = UnitManager.unitHasActiveSpecialistStep(unit);
 
       if (!hasArtillery) {
-        throw new Error(
-          "Attacker cannot perform Suppressive Fire without an active Artillery specialist.",
-        );
+        return false;
       }
     }
+
+    return true;
   },
 
   /**
@@ -66,16 +69,6 @@ export const CombatEngine = {
     // 1. Setup Context
     const defenderHex = hexLookup.get(HexUtils.getCoordsID(defender.location))!;
     const attackerHex = hexLookup.get(HexUtils.getCoordsID(attacker.location))!;
-
-    // Combat is complicated and we should do some defensive programming here.
-    // Validate that the battle is in the right state before proceeding.
-    CombatEngine.validateBattle(
-      attacker,
-      defender,
-      defenderHex,
-      operation,
-      advanceOnVictory,
-    );
 
     // 2. Calculate & Predict
     // We pass the requested operation (defaulting to STANDARD if undefined)
@@ -213,11 +206,13 @@ export const CombatEngine = {
         combatValue: prediction.attackPower,
         shifts: prediction.shifts,
         losses: resultEntry.attacker,
+        disorganised: resultEntry.attacker.disorganised
       },
       defender: {
         combatValue: prediction.defensePower,
         shifts: [],
         losses: resultEntry.defender,
+        disorganised: resultEntry.defender.disorganised,
         retreated: defenderRetreated,
         shattered: defenderShattered,
       },

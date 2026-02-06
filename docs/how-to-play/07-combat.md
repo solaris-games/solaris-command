@@ -18,7 +18,8 @@ Combat is deterministic, relying on preparation, positioning, and coordination r
     *   AND the Attacker has `Advance on Victory` enabled...
     *   AND the Attacker has enough MP...
     *   The Attacker **instantly moves** into the captured hex.
-5.  **Regrouping:** Both units enter a cooldown state.
+5.  **Regrouping:** Units enter a cooldown state.
+    * Note that attacks resulting in overruns will not cause the attacker to regroup after combat.
 
 ## Attack Methods
 You can choose how to attack:

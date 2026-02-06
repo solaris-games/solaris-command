@@ -11,8 +11,8 @@ The **Tick** is the heartbeat of the game.
 > **Strategy Tip:** Since all movement happens at the same time, you can predict exactly when an enemy fleet will arrive. Use this to set up ambushes!
 
 ## The Cycle (Daily)
-The **Cycle** is a 24-tick milestone.
-*   **Frequency:** Every 24 hours by default.
+The **Cycle** is a 20-tick milestone.
+*   **Frequency:** Every 20 hours by default.
 *   **What Happens:** The "Logistics Phase".
     *   **Resupply:** Units trace supply lines to recover.
     *   **Refill:** Action Points (AP) and Movement Points (MP) are fully restored.

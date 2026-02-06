@@ -39,7 +39,7 @@ function createGame(overrides: Partial<Game> = {}): Game {
     },
     settings: {
       playerCount: 2,
-      ticksPerCycle: 24,
+      ticksPerCycle: 20,
       tickDurationMS: 1000,
       victoryPointsToWin: 100,
       combatVersion: "v1",
@@ -404,9 +404,9 @@ describe("TickProcessor Integration Tests", () => {
 
       TickProcessor.processTick(context);
 
-      // Should refill to max (1 AP, 18 MP for Frigate in Catalog)
+      // Should refill to max (1 AP, 16 MP for Frigate in Catalog)
       expect(unit.state.ap).toBe(1);
-      expect(unit.state.mp).toBe(18);
+      expect(unit.state.mp).toBe(16);
     });
 
     it("should NOT refill Unit AP and MP on normal tick", () => {

@@ -6,7 +6,7 @@ export enum CombatResultType {
   SUPPRESS = "SUPPRESS",
   RETREAT = "RETREAT",
   SHATTERED = "SHATTERED",
-  OVERRUN = "OVERRUN"
+  OVERRUN = "OVERRUN",
 }
 
 export enum CombatShiftType {
@@ -18,7 +18,7 @@ export enum CombatShiftType {
   ENTRENCHMENT = "ENTRENCHMENT",
   FORTIFICATIONS = "FORTIFICATIONS",
   SIEGE = "SIEGE",
-  DEFENDER_DISORGANISED = "DEFENDER_DISORGANISED"
+  DEFENDER_DISORGANISED = "DEFENDER_DISORGANISED",
 }
 
 export enum CombatOperation {
@@ -35,6 +35,7 @@ export interface CombatShift {
 export interface CombatLosses {
   losses: number;
   suppressed: number;
+  disorganised: boolean;
 }
 
 export interface CombatForcedResult {
@@ -43,6 +44,7 @@ export interface CombatForcedResult {
   defender: {
     losses: number;
     suppressed: number;
+    disorganised: boolean;
     retreat: boolean;
   };
 }
@@ -69,12 +71,14 @@ export interface CombatReport {
     combatValue: number; // Total attack value * number of active steps
     shifts: CombatShift[];
     losses: CombatLosses;
+    disorganised: boolean;
   };
 
   defender: {
     combatValue: number;
     shifts: CombatShift[];
     losses: CombatLosses;
+    disorganised: boolean;
     retreated: boolean;
     shattered: boolean; // If retreat was impossible
   };

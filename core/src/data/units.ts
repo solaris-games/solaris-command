@@ -14,7 +14,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       defense: 1,
       armour: 0,
       maxAP: 1,
-      maxMP: 24, // Very high mobility
+      maxMP: 20, // Very high mobility
       defaultSteps: 1,
       maxSteps: 3,
       initiative: 1,
@@ -34,7 +34,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       defense: 2,
       armour: 0,
       maxAP: 1,
-      maxMP: 18,
+      maxMP: 16,
       defaultSteps: 2,
       maxSteps: 4,
       initiative: 1,
@@ -76,7 +76,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       defense: 2, // Weak defense
       armour: 0, // No heavy armour
       maxAP: 1,
-      maxMP: 16, // Fast
+      maxMP: 14, // Fast
       defaultSteps: 3,
       maxSteps: 5,
       initiative: 2,

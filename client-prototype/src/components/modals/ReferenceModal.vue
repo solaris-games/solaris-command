@@ -62,6 +62,20 @@
           Terrain
         </button>
       </li>
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          id="oos-tab"
+          data-bs-toggle="tab"
+          data-bs-target="#oos"
+          type="button"
+          role="tab"
+          aria-controls="oos"
+          aria-selected="false"
+        >
+          Out of Supply
+        </button>
+      </li>
     </ul>
     <div class="tab-content" id="referenceTabContent">
       <div
@@ -83,8 +97,10 @@
               <th>Net Score</th>
               <th>Attacker Losses</th>
               <th>Attacker Suppressed</th>
+              <th>Attacker Disorganised</th>
               <th>Defender Losses</th>
               <th>Defender Suppressed</th>
+              <th>Defender Disorganised</th>
               <th>Defender Retreats</th>
               <th>Result Type</th>
             </tr>
@@ -94,8 +110,10 @@
               <td class="text-end">{{ score }}</td>
               <td class="text-end">{{ result.attacker.losses }}</td>
               <td class="text-end">{{ result.attacker.suppressed }}</td>
+              <td>{{ result.attacker.disorganised ? "Yes" : "No" }}</td>
               <td class="text-end">{{ result.defender.losses }}</td>
               <td class="text-end">{{ result.defender.suppressed }}</td>
+              <td>{{ result.defender.disorganised ? "Yes" : "No" }}</td>
               <td>{{ result.defender.retreat ? "Yes" : "No" }}</td>
               <td>{{ result.resultType }}</td>
             </tr>
@@ -110,8 +128,10 @@
             <tr>
               <th>Attacker Losses</th>
               <th>Attacker Suppressed</th>
+              <th>Attacker Disorganised</th>
               <th>Defender Losses</th>
               <th>Defender Suppressed</th>
+              <th>Defender Disorganised</th>
               <th>Defender Retreats</th>
               <th>Result Type</th>
             </tr>
@@ -124,11 +144,25 @@
               <td class="text-end">
                 {{ COMBAT_RESULT_FORCED_FEINT_ATTACK.attacker.suppressed }}
               </td>
+              <td>
+                {{
+                  COMBAT_RESULT_FORCED_FEINT_ATTACK.attacker.disorganised
+                    ? "Yes"
+                    : "No"
+                }}
+              </td>
               <td class="text-end">
                 {{ COMBAT_RESULT_FORCED_FEINT_ATTACK.defender.losses }}
               </td>
               <td class="text-end">
                 {{ COMBAT_RESULT_FORCED_FEINT_ATTACK.defender.suppressed }}
+              </td>
+              <td>
+                {{
+                  COMBAT_RESULT_FORCED_FEINT_ATTACK.defender.disorganised
+                    ? "Yes"
+                    : "No"
+                }}
               </td>
               <td>
                 {{
@@ -152,8 +186,10 @@
             <tr>
               <th>Attacker Losses</th>
               <th>Attacker Suppressed</th>
+              <th>Attacker Disorganised</th>
               <th>Defender Losses</th>
               <th>Defender Suppressed</th>
+              <th>Defender Disorganised</th>
               <th>Defender Retreats</th>
               <th>Result Type</th>
             </tr>
@@ -166,11 +202,25 @@
               <td class="text-end">
                 {{ COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE.attacker.suppressed }}
               </td>
+              <td>
+                {{
+                  COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE.attacker.disorganised
+                    ? "Yes"
+                    : "No"
+                }}
+              </td>
               <td class="text-end">
                 {{ COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE.defender.losses }}
               </td>
               <td class="text-end">
                 {{ COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE.defender.suppressed }}
+              </td>
+              <td>
+                {{
+                  COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE.defender.disorganised
+                    ? "Yes"
+                    : "No"
+                }}
               </td>
               <td>
                 {{
@@ -345,6 +395,55 @@
               </td>
               <td class="text-end">
                 {{ COMBAT_SHIFT_DEFENDER_DISORGANISED.value }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div
+        class="tab-pane fade table-scroll-container"
+        id="oos"
+        role="tabpanel"
+        aria-labelledby="oos-tab"
+      >
+        <h5>Out of Supply Effects</h5>
+        <table
+          class="table table-sm table-striped table-hover table-dark table-bordered"
+        >
+          <thead>
+            <tr>
+              <th>Cycles</th>
+              <th>Effect</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1 Cycle</td>
+              <td>
+                <strong class="text-danger">Disruption</strong>: Cannot recover
+                suppressed steps. <strong>Max MP is halved</strong>.
+              </td>
+            </tr>
+            <tr>
+              <td>2 Cycles</td>
+              <td>
+                <strong class="text-danger">Starvation</strong>: Unit has 0 AP
+                (Cannot attack). 2 Steps are Suppressed immediately.
+              </td>
+            </tr>
+            <tr>
+              <td>3 Cycles</td>
+              <td>
+                <strong class="text-danger">Crippled</strong>: 0 AP. All
+                remaining steps are Suppressed. The unit is useless.
+              </td>
+            </tr>
+            <tr>
+              <td>4 Cycles</td>
+              <td>
+                <strong class="text-danger">Collapse</strong>: All above
+                effects. Plus 3 Steps are Destroyed per cycle. The fleet
+                dissolves.
               </td>
             </tr>
           </tbody>
