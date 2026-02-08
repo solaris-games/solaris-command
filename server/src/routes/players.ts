@@ -26,7 +26,7 @@ import { Types } from "mongoose";
 
 const router = express.Router({ mergeParams: true });
 
-// POST /api/v1/players/trade
+// POST /api/v1/games/:id/players/trade
 router.post(
   "/trade",
   authenticateToken,
@@ -126,6 +126,8 @@ router.post(
           targetPlayer.userId,
         );
       });
+
+      res.sendStatus(200);
     } catch (error: any) {
       console.error("Error trading prestige:", error);
 
@@ -136,7 +138,7 @@ router.post(
   },
 );
 
-// POST /api/v1/players/renown
+// POST /api/v1/games/:id/players/renown
 router.post(
   "/renown",
   authenticateToken,
@@ -235,6 +237,8 @@ router.post(
           targetPlayer.userId,
         );
       });
+
+      res.sendStatus(200);
     } catch (error: any) {
       console.error("Error sending renown:", error);
 

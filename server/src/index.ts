@@ -94,7 +94,7 @@ async function startServer() {
     app.use("/api/v1/games/:id/units", unitRoutes);
     app.use("/api/v1/games/:id/stations", stationRoutes);
     app.use("/api/v1/games/:id/conversations", chatRoutes);
-    app.use("/api/v1/players", playerRoutes);
+    app.use("/api/v1/games/:id/players", playerRoutes);
 
     // Status route
     app.get("/status", (req, res) => {

@@ -63,9 +63,7 @@
             <span v-if="player.status === 'AFK'" class="badge bg-secondary"
               >AFK</span
             >
-            <span
-              v-if="player.status === 'DEFEATED'"
-              class="badge bg-danger"
+            <span v-if="player.status === 'DEFEATED'" class="badge bg-danger"
               >DEFEATED</span
             >
           </div>
@@ -88,35 +86,57 @@
 
     <hr />
 
-    <div class="mt-auto" v-if="galaxyStore.currentPlayer">
-      <button
-        class="btn btn-outline-danger me-2"
-        @click="
-          showConfirmation = true;
-          confirmationTitle = 'Quit Game';
-          confirmationText = 'Are you sure you want to quit the game?';
-          onConfirmAction = handleQuitGame;
-        "
-        v-if="galaxyStore.galaxy?.game.state.status === GameStates.PENDING"
-        data-bs-toggle="tooltip"
-        title="Quit the game"
-      >
-        Quit Game
-      </button>
-      <button
-        class="btn btn-outline-danger"
-        @click="
-          showConfirmation = true;
-          confirmationTitle = 'Concede Game';
-          confirmationText = 'Are you sure you want to concede?';
-          onConfirmAction = handleConcedeGame;
-        "
-        v-if="galaxyStore.galaxy?.game.state.status === GameStates.ACTIVE"
-        data-bs-toggle="tooltip"
-        title="Concede the game"
-      >
-        Concede
-      </button>
+    <div class="row mt-auto" v-if="galaxyStore.currentPlayer">
+      <div class="col">
+        <button
+          class="btn btn-outline-danger me-2"
+          @click="
+            showConfirmation = true;
+            confirmationTitle = 'Quit Game';
+            confirmationText = 'Are you sure you want to quit the game?';
+            onConfirmAction = handleQuitGame;
+          "
+          v-if="galaxyStore.galaxy?.game.state.status === GameStates.PENDING"
+          data-bs-toggle="tooltip"
+          title="Quit the game"
+        >
+          Quit Game
+        </button>
+        <button
+          class="btn btn-outline-danger"
+          @click="
+            showConfirmation = true;
+            confirmationTitle = 'Concede Game';
+            confirmationText = 'Are you sure you want to concede?';
+            onConfirmAction = handleConcedeGame;
+          "
+          v-if="galaxyStore.galaxy?.game.state.status === GameStates.ACTIVE"
+          data-bs-toggle="tooltip"
+          title="Concede the game"
+        >
+          Concede
+        </button>
+      </div>
+      <div class="col-auto">
+        <button
+          class="btn btn-success ms-1"
+          @click="showTradeModal = true"
+          v-if="galaxyStore.galaxy?.game.state.status === GameStates.ACTIVE"
+          data-bs-toggle="tooltip"
+          title="Send prestige"
+        >
+          <i class="fas fa-coins me-1"></i>Send Prestige
+        </button>
+        <button
+          class="btn btn-primary ms-1"
+          @click="showRenownModal = true"
+          v-if="galaxyStore.galaxy?.game.state.status === GameStates.COMPLETED"
+          data-bs-toggle="tooltip"
+          title="Send prestige"
+        >
+          <i class="fas fa-heart me-1"></i>Send Renown
+        </button>
+      </div>
     </div>
   </BaseModal>
 
@@ -128,6 +148,18 @@
   >
     {{ confirmationText }}
   </ConfirmationModal>
+
+  <TradePrestigeModal
+    :show="showTradeModal"
+    @close="showTradeModal = false"
+    @success="showTradeModal = false"
+  />
+
+  <TradeRenownModal
+    :show="showRenownModal"
+    @close="showRenownModal = false"
+    @success="showRenownModal = false"
+  />
 </template>
 
 <script setup lang="ts">
@@ -158,13 +190,6 @@ const showRenownModal = ref(false);
 const confirmationTitle = ref("");
 const confirmationText = ref("");
 let onConfirmAction = () => {};
-
-const eligiblePlayers = computed(() => {
-  if (!galaxyStore.galaxy || !galaxyStore.currentPlayer) return [];
-  return galaxyStore.galaxy.players.filter(
-    (p) => p._id.toString() !== galaxyStore.currentPlayer?._id.toString(),
-  );
-});
 
 const leaderboard = computed(() => {
   if (!galaxyStore.galaxy) return [];

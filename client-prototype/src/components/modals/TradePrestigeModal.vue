@@ -1,12 +1,8 @@
 <template>
-  <BaseModal
-    :show="show"
-    title="Trade Prestige"
-    @close="closeModal"
-  >
+  <BaseModal :show="show" title="Send Prestige" @close="closeModal">
     <div class="mb-3">
       <p class="text-muted">
-        Send prestige to another player to aid an ally or for political reasons.
+        Send prestige to another player.
       </p>
 
       <div v-if="error" class="alert alert-danger" role="alert">
@@ -23,7 +19,7 @@
         >
           <option value="" disabled>Select a player...</option>
           <option
-            v-for="player in players"
+            v-for="player in eligiblePlayers"
             :key="player._id.toString()"
             :value="player._id.toString()"
           >
@@ -41,13 +37,16 @@
             id="prestigeAmount"
             v-model.number="prestigeAmount"
             min="1"
-            :max="maxPrestige"
+            :max="galaxyStore.currentPlayer?.prestigePoints ?? 0"
             :disabled="isLoading"
           />
-          <span class="input-group-text">/ {{ maxPrestige }}</span>
+          <span class="input-group-text"
+            >/ {{ galaxyStore.currentPlayer?.prestigePoints ?? 0 }}</span
+          >
         </div>
         <div class="form-text">
-          Available Prestige: {{ maxPrestige }}
+          Available Prestige:
+          {{ galaxyStore.currentPlayer?.prestigePoints ?? 0 }}
         </div>
       </div>
     </div>
@@ -55,7 +54,7 @@
     <template #footer>
       <button
         type="button"
-        class="btn btn-secondary"
+        class="btn btn-outline-danger"
         @click="closeModal"
         :disabled="isLoading"
       >
@@ -63,7 +62,7 @@
       </button>
       <button
         type="button"
-        class="btn btn-primary"
+        class="btn btn-success"
         @click="confirmTrade"
         :disabled="isLoading || !isValid"
       >
@@ -73,7 +72,7 @@
           role="status"
           aria-hidden="true"
         ></span>
-        Send Prestige
+        <i class="fas fa-coins me-1"></i>Send Prestige
       </button>
     </template>
   </BaseModal>
@@ -83,12 +82,12 @@
 import { ref, computed } from "vue";
 import axios from "axios";
 import BaseModal from "./BaseModal.vue";
-import type { Player } from "@solaris-command/core/src/types/player";
+import { useGalaxyStore } from "../../stores/galaxy";
+
+const galaxyStore = useGalaxyStore();
 
 const props = defineProps<{
   show: boolean;
-  players: Player[];
-  maxPrestige: number;
 }>();
 
 const emit = defineEmits<{
@@ -105,7 +104,14 @@ const isValid = computed(() => {
   return (
     targetPlayerId.value !== "" &&
     prestigeAmount.value > 0 &&
-    prestigeAmount.value <= props.maxPrestige
+    prestigeAmount.value <= (galaxyStore.currentPlayer?.prestigePoints ?? 0)
+  );
+});
+
+const eligiblePlayers = computed(() => {
+  if (!galaxyStore.galaxy || !galaxyStore.currentPlayer) return [];
+  return galaxyStore.galaxy.players.filter(
+    (p) => p._id.toString() !== galaxyStore.currentPlayer?._id.toString(),
   );
 });
 
@@ -117,22 +123,24 @@ const closeModal = () => {
 };
 
 const confirmTrade = async () => {
-  if (!isValid.value) return;
+  if (!isValid.value || !galaxyStore.currentPlayer) return;
 
   isLoading.value = true;
   error.value = null;
 
   try {
-    await axios.post("/api/v1/players/trade", {
+    await axios.post(`/api/v1/games/${galaxyStore.galaxy!.game._id}/players/trade`, {
       targetPlayerId: targetPlayerId.value,
       prestige: prestigeAmount.value,
     });
+    galaxyStore.currentPlayer.prestigePoints -= prestigeAmount.value;
     emit("success");
     closeModal();
   } catch (err: any) {
     console.error("Failed to trade prestige:", err);
     error.value =
-      err.response?.data?.message || "Failed to process trade. Please try again.";
+      err.response?.data?.message ||
+      "Failed to process trade. Please try again.";
   } finally {
     isLoading.value = false;
   }

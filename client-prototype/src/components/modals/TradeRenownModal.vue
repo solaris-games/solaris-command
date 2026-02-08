@@ -1,12 +1,8 @@
 <template>
-  <BaseModal
-    :show="show"
-    title="Send Renown"
-    @close="closeModal"
-  >
+  <BaseModal :show="show" title="Send Renown" @close="closeModal">
     <div class="mb-3">
       <p class="text-muted">
-        Send renown to show appreciation to another player (e.g. good ally, strong opponent).
+        Send renown to show appreciation to another player.
       </p>
 
       <div v-if="error" class="alert alert-danger" role="alert">
@@ -23,7 +19,7 @@
         >
           <option value="" disabled>Select a player...</option>
           <option
-            v-for="player in players"
+            v-for="player in eligiblePlayers"
             :key="player._id.toString()"
             :value="player._id.toString()"
           >
@@ -41,13 +37,16 @@
             id="renownAmount"
             v-model.number="renownAmount"
             min="1"
-            :max="maxRenown"
+            :max="galaxyStore.currentPlayer?.renownToDistribute ?? 0"
             :disabled="isLoading"
           />
-          <span class="input-group-text">/ {{ maxRenown }}</span>
+          <span class="input-group-text"
+            >/ {{ galaxyStore.currentPlayer?.renownToDistribute ?? 0 }}</span
+          >
         </div>
         <div class="form-text">
-          Available Renown: {{ maxRenown }}
+          Available Renown:
+          {{ galaxyStore.currentPlayer?.renownToDistribute ?? 0 }}
         </div>
       </div>
     </div>
@@ -55,7 +54,7 @@
     <template #footer>
       <button
         type="button"
-        class="btn btn-secondary"
+        class="btn btn-outline-danger"
         @click="closeModal"
         :disabled="isLoading"
       >
@@ -73,7 +72,7 @@
           role="status"
           aria-hidden="true"
         ></span>
-        Send Renown
+        <i class="fas fa-heart me-1"></i>Send Renown
       </button>
     </template>
   </BaseModal>
@@ -83,12 +82,12 @@
 import { ref, computed } from "vue";
 import axios from "axios";
 import BaseModal from "./BaseModal.vue";
-import type { Player } from "@solaris-command/core/src/types/player";
+import { useGalaxyStore } from "../../stores/galaxy";
+
+const galaxyStore = useGalaxyStore();
 
 const props = defineProps<{
   show: boolean;
-  players: Player[];
-  maxRenown: number;
 }>();
 
 const emit = defineEmits<{
@@ -105,7 +104,14 @@ const isValid = computed(() => {
   return (
     targetPlayerId.value !== "" &&
     renownAmount.value > 0 &&
-    renownAmount.value <= props.maxRenown
+    renownAmount.value <= (galaxyStore.currentPlayer?.renownToDistribute ?? 0)
+  );
+});
+
+const eligiblePlayers = computed(() => {
+  if (!galaxyStore.galaxy || !galaxyStore.currentPlayer) return [];
+  return galaxyStore.galaxy.players.filter(
+    (p) => p._id.toString() !== galaxyStore.currentPlayer?._id.toString(),
   );
 });
 
@@ -117,16 +123,17 @@ const closeModal = () => {
 };
 
 const confirmSend = async () => {
-  if (!isValid.value) return;
+  if (!isValid.value || !galaxyStore.currentPlayer) return;
 
   isLoading.value = true;
   error.value = null;
 
   try {
-    await axios.post("/api/v1/players/renown", {
+    await axios.post(`/api/v1/games/${galaxyStore.galaxy!.game._id}/players/renown`, {
       targetPlayerId: targetPlayerId.value,
       renown: renownAmount.value,
     });
+    galaxyStore.currentPlayer!.renownToDistribute -= renownAmount.value;
     emit("success");
     closeModal();
   } catch (err: any) {
