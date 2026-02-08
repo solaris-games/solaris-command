@@ -136,6 +136,8 @@ import { useGameStore } from "../../stores/game";
 import { useGalaxyStore } from "../../stores/galaxy";
 import ConfirmationModal from "./ConfirmationModal.vue";
 import BaseModal from "./BaseModal.vue";
+import TradePrestigeModal from "./TradePrestigeModal.vue";
+import TradeRenownModal from "./TradeRenownModal.vue";
 import { GameLeaderboardUtils } from "@solaris-command/core/src/utils/game-leaderboard";
 import { GameStates } from "@solaris-command/core/src/types/game";
 import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
@@ -151,9 +153,18 @@ const emit = defineEmits(["close"]);
 const gameStore = useGameStore();
 const galaxyStore = useGalaxyStore();
 const showConfirmation = ref(false);
+const showTradeModal = ref(false);
+const showRenownModal = ref(false);
 const confirmationTitle = ref("");
 const confirmationText = ref("");
 let onConfirmAction = () => {};
+
+const eligiblePlayers = computed(() => {
+  if (!galaxyStore.galaxy || !galaxyStore.currentPlayer) return [];
+  return galaxyStore.galaxy.players.filter(
+    (p) => p._id.toString() !== galaxyStore.currentPlayer?._id.toString(),
+  );
+});
 
 const leaderboard = computed(() => {
   if (!galaxyStore.galaxy) return [];
