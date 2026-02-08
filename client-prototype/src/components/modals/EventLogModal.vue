@@ -44,9 +44,7 @@ const galaxyStore = useGalaxyStore();
 const events = computed(() => gameStore.events);
 const gameId = computed(() => galaxyStore.galaxy?.game._id);
 
-// TODO:
-// PLAYERS_TRADED_PRESTIGE
-// PLAYERS_TRADED_RENOWN
+
 
 const eventComponents = {
   [GameEventTypes.PLAYER_JOINED]: defineAsyncComponent(
@@ -103,7 +101,12 @@ const eventComponents = {
   [GameEventTypes.PLAYER_CONSTRUCTED_STATION]: defineAsyncComponent(
     () => import("../events/PlayerConstructedStation.vue"),
   ),
-  // Add other event components here
+  [GameEventTypes.PLAYERS_TRADED_PRESTIGE]: defineAsyncComponent(
+    () => import("../events/PlayersTradedPrestige.vue"),
+  ),
+  [GameEventTypes.PLAYERS_TRADED_RENOWN]: defineAsyncComponent(
+    () => import("../events/PlayersTradedRenown.vue"),
+  ),
 };
 
 const DefaultEventComponent = defineAsyncComponent(
