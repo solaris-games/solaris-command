@@ -3,16 +3,9 @@ import { Server, Socket } from "socket.io";
 import jwt from "jsonwebtoken";
 import { UserService } from "./services/UserService";
 import { Types } from "mongoose";
+import { ALLOWED_ORIGINS } from "./config/cors";
 
 let io: Server | null = null;
-
-// Define allowed origins matching the express config
-const allowedOrigins: (string | RegExp)[] = [
-  'http://localhost:5173', // Frontend dev local (prototype)
-  'https://command.solaris.games',
-  /^http:\/\/192\.168\.\d+\.\d+:\d+$/, // Allow local network access for testing
-  /^http:\/\/10\.\d+\.\d+\.\d+:\d+$/, // Allow local network access for testing
-];
 
 interface AuthenticatedSocket extends Socket {
   user?: {
@@ -23,7 +16,7 @@ interface AuthenticatedSocket extends Socket {
 export const initSocket = (httpServer: HttpServer) => {
   io = new Server(httpServer, {
     cors: {
-      origin: allowedOrigins,
+      origin: ALLOWED_ORIGINS,
       methods: ["GET", "POST"],
       credentials: true,
     },
@@ -52,7 +45,7 @@ export const initSocket = (httpServer: HttpServer) => {
 
         // Note: We need to be careful about async inside middleware if it takes too long
         const dbUser = await UserService.getUserById(
-          new Types.ObjectId(decoded.id)
+          new Types.ObjectId(decoded.id),
         );
 
         if (!dbUser) {
@@ -88,7 +81,7 @@ export const initSocket = (httpServer: HttpServer) => {
       const gameRoom = `game:${gameId}`;
       socket.join(gameRoom);
       console.log(
-        `Socket ${socket.id} (User: ${socket.user?._id}) joined ${gameRoom}`
+        `Socket ${socket.id} (User: ${socket.user?._id}) joined ${gameRoom}`,
       );
 
       // Acknowledge join
@@ -99,7 +92,7 @@ export const initSocket = (httpServer: HttpServer) => {
       const gameRoom = `game:${gameId}`;
       socket.leave(gameRoom);
       console.log(
-        `Socket ${socket.id} (User: ${socket.user?._id}) left ${gameRoom}`
+        `Socket ${socket.id} (User: ${socket.user?._id}) left ${gameRoom}`,
       );
     });
 

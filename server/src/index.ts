@@ -16,6 +16,7 @@ import playerRoutes from "./routes/players";
 import chatRoutes from "./routes/chat";
 import { CreateGameJob } from "./cron/create-game";
 import { initSocket } from "./socket";
+import { ALLOWED_ORIGINS } from "./config/cors";
 
 dotenv.config();
 
@@ -24,20 +25,13 @@ const httpServer = createServer(app);
 const port = process.env.PORT || 3000;
 
 // ----- CORS -----
-const allowedOrigins: (string | RegExp)[] = [
-  "http://localhost:5173", // Frontend dev local (prototype)
-  "https://command.solaris.games",
-  /^http:\/\/192\.168\.\d+\.\d+:\d+$/, // Allow local network access for testing
-  /^http:\/\/10\.\d+\.\d+\.\d+:\d+$/, // Allow local network access for testing
-];
-
 app.use(
   cors({
     origin: function (origin, callback) {
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
 
-      const isAllowed = allowedOrigins.some((allowedOrigin) => {
+      const isAllowed = ALLOWED_ORIGINS.some((allowedOrigin) => {
         if (typeof allowedOrigin === "string") {
           return origin === allowedOrigin;
         }
