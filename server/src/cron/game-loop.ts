@@ -190,37 +190,36 @@ async function executeGameTick(game: Game) {
 
   await executeInTransaction(async (session) => {
     // ----- Save Modified Entities -----
-    // Mongoose tracks changes. calling .save() only writes if modified.
-    // Update models sequentially, transactions do not support parallel operations.
+    // Mongoose tracks changes. Update models using bulk operations for better performance.
 
     // Planets
-    for (const planet of planets) {
-      await planet.save({ session });
+    if (planets.length > 0) {
+      await PlanetModel.bulkSave(planets as any, { session });
     }
 
     // Units
-    for (const unit of liveUnits) {
-      if (unit.save == null) {
-        // This might be a unit created by AI.
-        let newDBUnit = new UnitModel(unit);
-        await newDBUnit.save({ session });
-      } else {
-        await unit.save({ session });
-      }
+    if (liveUnits.length > 0) {
+      const unitDocs = liveUnits.map((u) => {
+        if ((u as any).save == null) {
+          return new UnitModel(u);
+        }
+        return u as any;
+      });
+      await UnitModel.bulkSave(unitDocs, { session });
     }
 
     // Hexes
-    for (const hex of hexes) {
-      await hex.save({ session });
+    if (hexes.length > 0) {
+      await HexModel.bulkSave(hexes as any, { session });
     }
 
     // Players (Points updates)
-    for (const player of players) {
+    if (players.length > 0) {
       // TODO: Occasionally fails with error:
       /*
       Failed to process game XXX: MongoServerError: Caused by :: Write conflict during plan execution and yielding is disabled. :: Please retry your operation or multi-document transaction.
       */
-      await player.save({ session });
+      await PlayerModel.bulkSave(players as any, { session });
     }
 
     // ----- Deletions -----
@@ -254,11 +253,7 @@ async function executeGameTick(game: Game) {
 
     // ----- Game Events -----
     if (tickResult.gameEvents.length > 0) {
-      for (const gameEvent of tickResult.gameEvents) {
-        const model = new GameEventModel(gameEvent);
-
-        await model.save();
-      }
+      await GameEventModel.insertMany(tickResult.gameEvents, { session });
     }
 
     // ----- User Achievements (Victory) -----
