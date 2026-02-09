@@ -5,6 +5,15 @@ services:
     - "27017:27017"
     volumes:
     - "command_data:/data/db"
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
 
 volumes:
   command_data:
+
+#rs.initiate( {
+#   _id : "rs0",
+#   members: [
+#      { _id: 0, host: "localhost:27017" }
+#   ]
+#})
+#
