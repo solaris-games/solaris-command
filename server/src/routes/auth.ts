@@ -73,6 +73,8 @@ router.post("/dev", async (req, res) => {
 
   const { email, username } = req.body;
 
+  console.warn(email, username);
+
   if (!email || !username) {
     return res.status(400).json({ error: "Email and username are required" });
   }

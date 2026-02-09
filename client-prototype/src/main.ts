@@ -5,20 +5,28 @@ import App from './App.vue'
 import router from './router'
 import { useAuthStore } from './stores/auth'
 import vue3GoogleLogin from 'vue3-google-login'
+import {FrontendConfig} from "../../core";
+import {configInjectionKey} from "@/utils/config.ts";
 
-const app = createApp(App)
+const init = (config: FrontendConfig) => {
+  const app = createApp(App)
 
-app.use(createPinia())
+  app.provide(configInjectionKey, config);
 
-app.use(vue3GoogleLogin, {
-  clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-})
+  app.use(createPinia())
+
+  app.use(vue3GoogleLogin, {
+    clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+  })
 
 // Initialize auth store
-const authStore = useAuthStore();
-authStore.initialize();
+  const authStore = useAuthStore();
+  authStore.initialize();
 
-app.use(router)
-app.use(VueKonva)
+  app.use(router)
+  app.use(VueKonva)
 
-app.mount('#app')
+  app.mount('#app')
+};
+
+fetch("/api/v1/config").then(r => r.json()).then(cfg => init(cfg));

@@ -7,6 +7,7 @@ const compression = require("compression");
 
 import { GameLoop } from "./cron/game-loop";
 import { connectToDb } from "./db";
+import configRoutes from "./routes/config";
 import authRoutes from "./routes/auth";
 import userRoutes from "./routes/users";
 import gameRoutes from "./routes/games";
@@ -85,6 +86,7 @@ async function startServer() {
     });
 
     // Routes
+    app.use("/api/v1/config", configRoutes);
     app.use("/api/v1/auth", authRoutes);
     app.use("/api/v1/users", userRoutes);
     app.use("/api/v1/games", gameRoutes);
