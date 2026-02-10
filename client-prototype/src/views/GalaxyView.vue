@@ -139,7 +139,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import {computed, inject, onMounted, onUnmounted, ref} from "vue";
 import { useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useGalaxyStore } from "../stores/galaxy";
@@ -163,6 +163,7 @@ import AttackPanel from "../components/layout/AttackPanel.vue";
 import ChatPanel from "../components/chat/ChatPanel.vue";
 import MapOverlayButtons from "../components/layout/MapOverlayButtons.vue";
 import { GameStates } from "@solaris-command/core/src/types/game";
+import {configInjectionKey} from "@/utils/config.ts";
 
 const route = useRoute();
 const galaxyStore = useGalaxyStore();
@@ -172,6 +173,8 @@ const combatStore = useCombatStore();
 const mapSettingsStore = useMapSettingsStore();
 const chatStore = useChatStore();
 const { stage: stageState } = storeToRefs(mapSettingsStore);
+
+const config = inject(configInjectionKey)!;
 
 const stageContainer = ref<HTMLDivElement | null>(null);
 
@@ -257,7 +260,7 @@ onMounted(async () => {
   chatStore.isOpen = false // Close this so we don't persist the chat window in different games.
 
   // Connect to the websocket server
-  socketStore.connect(gameId);
+  socketStore.connect(config, gameId);
 
   // Center map roughly
   if (galaxyStore.galaxy) {

@@ -86,18 +86,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import {inject, ref} from "vue";
 import { useAuthStore } from "../stores/auth";
 import { useRouter } from "vue-router";
 import NavBar from "../components/NavBar.vue";
 import { GoogleLogin } from "vue3-google-login";
+import {configInjectionKey} from "@/utils/config.ts";
+
+const config = inject(configInjectionKey)!;
 
 const username = ref("");
 const email = ref("");
 const error = ref("");
 const authStore = useAuthStore();
 const router = useRouter();
-const enableDevAuth = ref(import.meta.env.VITE_ENABLE_DEV_AUTH === "true");
+const enableDevAuth = ref(config.devAuthEnabled);
 
 async function handleLogin() {
   const success = await authStore.loginDev(username.value, email.value);

@@ -16,7 +16,7 @@ const init = (config: FrontendConfig) => {
   app.use(createPinia())
 
   app.use(vue3GoogleLogin, {
-    clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+    clientId: config.googleClientId,
   })
 
 // Initialize auth store
