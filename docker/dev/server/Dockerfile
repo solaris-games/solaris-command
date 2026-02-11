@@ -1,4 +1,4 @@
-FROM solaris-command-server-dev
+FROM solaris-command-base-dev
 
 WORKDIR /solaris-command/server
 

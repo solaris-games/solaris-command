@@ -3,4 +3,4 @@ services:
     image: solaris-command-server-dev
     build:
       context: ../../../
-      dockerfile: /Dockerfile
+      dockerfile: docker/dev/server/Dockerfile
