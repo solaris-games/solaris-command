@@ -241,8 +241,11 @@ export const TickProcessor = {
     const now = new Date();
 
     for (const player of context.players) {
-      // Don't touch defeated players
-      if (player.status === PlayerStatus.DEFEATED) {
+      // Don't touch defeated players or players who are alerady AFK.
+      if (
+        player.status === PlayerStatus.DEFEATED ||
+        player.status === PlayerStatus.AFK
+      ) {
         continue;
       }
 
@@ -316,7 +319,10 @@ export const TickProcessor = {
         // Lookup Defender (Is there a unit at the location RIGHT NOW?)
         const defender = context.unitLocations.get(targetHexCoordsId);
 
-        const attackerCanAttack = CombatEngine.unitCanAttack(attacker, targetHex);
+        const attackerCanAttack = CombatEngine.unitCanAttack(
+          attacker,
+          targetHex,
+        );
 
         // Whiff Check: Did the defender die, retreat in a previous sequence step or move as part of another battle?
         // Also check Friendly Fire (Attacker vs Attacker race condition)

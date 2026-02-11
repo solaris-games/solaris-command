@@ -4,7 +4,7 @@ Combat is deterministic, relying on preparation, positioning, and coordination r
 
 ## Constraints
 *   **1-Stack Limit:** Only one unit may occupy a hex at a time.
-*   **The AP Economy:** Units receive **1 Action Point (AP) per Cycle**. A unit can effectively initiate only **one** offensive action per day. Choose your battles wisely.
+*   **The AP Economy:** Units receive **1 Action Point (AP) per Cycle**. A unit can effectively initiate only **one** offensive action per cycle. Choose your battles wisely.
 
 ## The Combat Sequence
 1.  **Declaration:** Attacker targets an adjacent enemy and spends **1 AP**.
@@ -40,4 +40,4 @@ Combat resolves *before* movement.
 If Attacker A attacks Defender B, and captures the hex, Attacker A moves in immediately.
 If a third unit (Neutral C) was trying to move into that same hex on the same tick, they will find it occupied by Attacker A. Neutral C will suffer a **Collision** (Bounce, Damage, MP loss).
 
-> **Strategy Tip:** Timing is everything. Coordinate your attacks to clear a path, then have a fast reserve fleet move through the gap shortly afterwards (note that movement occurs **before** combat).
+> **Strategy Tip:** Timing is everything. Coordinate your attacks to clear a path, then have a fast reserve fleet move through the gap shortly afterwards (note that combat occurs **before** movement).

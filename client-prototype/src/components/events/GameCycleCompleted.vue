@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import type { GameEventsResponseSchema } from "@solaris-command/core";
+import { GameEventsResponseSchema } from '@solaris-command/core/src/types/api/responses';
 
 defineProps<{
   event: GameEventsResponseSchema;

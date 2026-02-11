@@ -11,10 +11,10 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import type { GameEventsResponseSchema } from "@solaris-command/core";
+import { GameEventsResponseSchema } from '@solaris-command/core/src/types/api/responses';
 import { useGalaxyStore } from "@/stores/galaxy";
-import { UNIT_CATALOG_ID_MAP } from "@solaris-command/core";
 import LocationLink from "../LocationLink.vue";
+import { UNIT_CATALOG_ID_MAP } from "@solaris-command/core/src/data/units";
 
 const props = defineProps<{
   event: GameEventsResponseSchema;

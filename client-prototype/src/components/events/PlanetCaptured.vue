@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import type { GameEventsResponseSchema } from "@solaris-command/core";
+import { GameEventsResponseSchema } from '@solaris-command/core/src/types/api/responses';
 import { useGalaxyStore } from "@/stores/galaxy";
 
 const props = defineProps<{

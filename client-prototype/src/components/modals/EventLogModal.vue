@@ -44,8 +44,6 @@ const galaxyStore = useGalaxyStore();
 const events = computed(() => gameStore.events);
 const gameId = computed(() => galaxyStore.galaxy?.game._id);
 
-
-
 const eventComponents = {
   [GameEventTypes.PLAYER_JOINED]: defineAsyncComponent(
     () => import("../events/PlayerJoined.vue"),
