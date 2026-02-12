@@ -19,7 +19,10 @@ import { CreateGameJob } from "./cron/create-game";
 import { initSocket } from "./socket";
 import { ALLOWED_ORIGINS } from "./config/cors";
 
-dotenv.config();
+// load configurable file so that we can load docker secrets
+const envFiles = process.env.ENV_FILE ? [process.env.ENV_FILE, ".env"] : [".env"];
+
+dotenv.config({ path: envFiles });
 
 const app = express();
 const httpServer = createServer(app);
