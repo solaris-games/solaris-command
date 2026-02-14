@@ -139,7 +139,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, inject, onMounted, onUnmounted, ref} from "vue";
+import { computed, inject, onMounted, onUnmounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useGalaxyStore } from "../stores/galaxy";
@@ -163,7 +163,7 @@ import AttackPanel from "../components/layout/AttackPanel.vue";
 import ChatPanel from "../components/chat/ChatPanel.vue";
 import MapOverlayButtons from "../components/layout/MapOverlayButtons.vue";
 import { GameStates } from "@solaris-command/core/src/types/game";
-import {configInjectionKey} from "@/utils/config.ts";
+import { configInjectionKey } from "@/utils/config.ts";
 
 const route = useRoute();
 const galaxyStore = useGalaxyStore();
@@ -257,7 +257,7 @@ onMounted(async () => {
 
   await galaxyStore.fetchGalaxy(gameId as any);
 
-  chatStore.isOpen = false // Close this so we don't persist the chat window in different games.
+  chatStore.isOpen = false; // Close this so we don't persist the chat window in different games.
 
   // Connect to the websocket server
   socketStore.connect(config, gameId);
@@ -310,11 +310,14 @@ function handleDragEnd(e: any) {
 let lastDist = 0;
 let lastCenter: { x: number; y: number } | null = null;
 
-function getDistance(p1: { x: number, y: number }, p2: { x: number, y: number }) {
+function getDistance(
+  p1: { x: number; y: number },
+  p2: { x: number; y: number },
+) {
   return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
 }
 
-function getCenter(p1: { x: number, y: number }, p2: { x: number, y: number }) {
+function getCenter(p1: { x: number; y: number }, p2: { x: number; y: number }) {
   return {
     x: (p1.x + p2.x) / 2,
     y: (p1.y + p2.y) / 2,
@@ -361,7 +364,7 @@ function handleTouch(e: any) {
     };
 
     const newScale = oldScale * (newDist / lastDist);
-    
+
     mapSettingsStore.stage.scale = newScale;
 
     // calculate new position of the stage

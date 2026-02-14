@@ -20,7 +20,9 @@ import { initSocket } from "./socket";
 import { ALLOWED_ORIGINS } from "./config/cors";
 
 // load configurable file so that we can load docker secrets
-const envFiles = process.env.ENV_FILE ? [process.env.ENV_FILE, ".env"] : [".env"];
+const envFiles = process.env.ENV_FILE
+  ? [process.env.ENV_FILE, ".env"]
+  : [".env"];
 
 dotenv.config({ path: envFiles });
 
