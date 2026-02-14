@@ -3,6 +3,7 @@ import { io, Socket } from "socket.io-client";
 import { useAuthStore } from "./auth";
 import { useGalaxyStore } from "./galaxy";
 import { useChatStore } from "./chat";
+import { FrontendConfig } from "@solaris-command/core/src/types/config";
 
 export const useSocketStore = defineStore("socket", {
   state: () => ({
@@ -10,7 +11,7 @@ export const useSocketStore = defineStore("socket", {
     isConnected: false,
   }),
   actions: {
-    connect(gameId: string) {
+    connect(config: FrontendConfig, gameId: string) {
       const authStore = useAuthStore();
       const galaxyStore = useGalaxyStore();
       const chatStore = useChatStore();
@@ -25,7 +26,7 @@ export const useSocketStore = defineStore("socket", {
         this.disconnect();
       }
 
-      const socketUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      const socketUrl = config.socketUrl || "http://localhost:3000";
 
       this.socket = io(socketUrl, {
         auth: {
@@ -70,10 +71,13 @@ export const useSocketStore = defineStore("socket", {
         galaxyStore.fetchGalaxy(gameId);
       });
 
-      this.socket.on("CHAT_MESSAGE", (data: { conversationId: string, message: any }) => {
+      this.socket.on(
+        "CHAT_MESSAGE",
+        (data: { conversationId: string; message: any }) => {
           console.log("Socket: CHAT_MESSAGE received", data);
           chatStore.handleMessage(data.message);
-      });
+        },
+      );
 
       // TODO: Implement other websocket events.
     },

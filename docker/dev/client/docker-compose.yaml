@@ -1,0 +1,6 @@
+services:
+  solaris-command-client:
+    image: solaris-command-client-dev
+    build:
+      context: ../../../
+      dockerfile: docker/dev/client/Dockerfile

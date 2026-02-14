@@ -1,0 +1,40 @@
+services:
+  client:
+    image: solaris-command-client-dev
+    ports:
+      - "5173:5173"
+    environment:
+      SERVER_URL: "http://server:3000"
+  server:
+    image: solaris-command-server-dev
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      MONGO_URI: "mongodb://mongo:27017/solaris-command"
+      GAME_LOOP_SCHEDULE: "*/10 * * * * *" # Every 10 seconds
+      CREATE_GAME_SCHEDULE: "*/10 * * * * *" # Every 10 seconds
+      GOOGLE_CLIENT_ID: "abc123"
+      JWT_SECRET: "default-secret-change-me"
+      ENABLE_DEV_AUTH: "true"
+      FRONTEND_BASE_URL: /
+      FRONTEND_SOCKET_URL: "localhost:3000"
+
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - "command_data:/data/db"
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+
+volumes:
+  command_data:
+
+#rs.initiate( {
+#   _id : "rs0",
+#   members: [
+#      { _id : 0, host : "mongo:27017" }
+#   ]
+#})
+#

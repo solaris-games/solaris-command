@@ -10,10 +10,19 @@
         <div>
           <h1 class="display-5">Solaris: Command</h1>
           <p class="lead">
-            <strong>Solaris: Command</strong> is a persistent, <span class="text-info">weeks-long</span> struggle for galactic supremacy. On this <span class="text-info">hex-based</span> battlefield, your <span class="text-warning">tactical positioning</span> and <span class="text-warning">logistical foresight</span> are the only things standing between <span class="text-success">glory</span> and <span class="text-danger">extinction</span>.
+            <strong>Solaris: Command</strong> is a persistent,
+            <span class="text-info">weeks-long</span> struggle for galactic
+            supremacy. On this
+            <span class="text-info">hex-based</span> battlefield, your
+            <span class="text-warning">tactical positioning</span> and
+            <span class="text-warning">logistical foresight</span> are the only
+            things standing between <span class="text-success">glory</span> and
+            <span class="text-danger">extinction</span>.
           </p>
           <p>
-            Forge alliances in real-time, navigate deep-space betrayals, and command your fleets across a living galaxy. The front line is waiting for its next commander.
+            Forge alliances in real-time, navigate deep-space betrayals, and
+            command your fleets across a living galaxy. The front line is
+            waiting for its next commander.
           </p>
           <p class="fw-bold">Sign Up & Claim Your Sector</p>
 
@@ -21,7 +30,10 @@
 
           <h2 class="mt-3">Enter the War Room</h2>
           <p>
-            <strong>The best commanders don't fight alone</strong>. <span class="text-warning">Join our official Discord</span> to coordinate operations, negotiate secret pacts, and stay updated on the latest shifts in the galactic front.
+            <strong>The best commanders don't fight alone</strong>.
+            <span class="text-warning">Join our official Discord</span> to
+            coordinate operations, negotiate secret pacts, and stay updated on
+            the latest shifts in the galactic front.
           </p>
           <a
             href="https://discord.com/invite/v7PD33d"
@@ -86,18 +98,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { inject, ref } from "vue";
 import { useAuthStore } from "../stores/auth";
 import { useRouter } from "vue-router";
 import NavBar from "../components/NavBar.vue";
 import { GoogleLogin } from "vue3-google-login";
+import { configInjectionKey } from "@/utils/config.ts";
+
+const config = inject(configInjectionKey)!;
 
 const username = ref("");
 const email = ref("");
 const error = ref("");
 const authStore = useAuthStore();
 const router = useRouter();
-const enableDevAuth = ref(import.meta.env.VITE_ENABLE_DEV_AUTH === "true");
+const enableDevAuth = ref(config.devAuthEnabled);
 
 async function handleLogin() {
   const success = await authStore.loginDev(username.value, email.value);

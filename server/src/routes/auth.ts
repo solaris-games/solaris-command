@@ -39,7 +39,7 @@ router.post("/google", async (req, res) => {
     const user = await UserService.findOrCreateUser(
       email,
       googleId,
-      name || email.split("@")[0]
+      name || email.split("@")[0],
     );
 
     if (!user) {
@@ -54,13 +54,13 @@ router.post("/google", async (req, res) => {
         username: user.username,
       },
       JWT_SECRET,
-      { expiresIn: "7d" } // Long lived session
+      { expiresIn: "7d" }, // Long lived session
     );
 
     res.json(AuthMapper.toLoginResponse(sessionToken, user));
   } catch (error) {
     console.error("Auth Error:", error);
-    
+
     return res.status(401).json({ errorCode: ERROR_CODES.AUTH_FAILED });
   }
 });
@@ -96,7 +96,7 @@ router.post("/dev", async (req, res) => {
         username: user.username,
       },
       JWT_SECRET,
-      { expiresIn: "7d" } // Long lived session
+      { expiresIn: "7d" }, // Long lived session
     );
 
     res.json(AuthMapper.toLoginResponse(sessionToken, user));

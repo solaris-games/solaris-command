@@ -9,6 +9,7 @@
     "client-prototype"
   ],
   "scripts": {
+    "build": "npm run build --workspaces --if-present",
     "test:core": "npm test --workspace=core",
     "build:server": "npm run build --workspace=server",
     "dev:server": "npm run dev --workspace=server",
