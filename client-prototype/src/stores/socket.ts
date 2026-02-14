@@ -3,7 +3,7 @@ import { io, Socket } from "socket.io-client";
 import { useAuthStore } from "./auth";
 import { useGalaxyStore } from "./galaxy";
 import { useChatStore } from "./chat";
-import { FrontendConfig } from "../../../core";
+import { FrontendConfig } from "@solaris-command/core/src/types/config";
 
 export const useSocketStore = defineStore("socket", {
   state: () => ({
