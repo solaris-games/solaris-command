@@ -18,6 +18,7 @@ Detailed explanations of the core rules.
 *   [**Economy & Structures**](./05-structures-and-economy.md): Planets, Stations, and Prestige.
 *   [**Movement**](./06-movement.md): Moving fleets, Zone of Control, and Collisions.
 *   [**Combat**](./07-combat.md): How to fight, attack types, and resolution.
+*   [**Combat Example**](./07a-combat-calculation-example.md): Combat explained in detail.
 *   [**Supply**](./08-supply.md): The logistics network and Out-of-Supply penalties.
 *   [**Winning**](./09-winning.md): Victory conditions.
 
