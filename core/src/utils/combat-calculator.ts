@@ -132,10 +132,16 @@ export const CombatCalculator = {
     }
 
     // --- Specialist: ARTILLERY ---
-    const artilleryVal = this.getSpecialistShiftSum(attacker, "artillery");
+    const artilleryValAttacker = this.getSpecialistShiftSum(attacker, "artillery");
 
-    if (artilleryVal > 0) {
-      shifts.push({ type: CombatShiftType.ARTILLERY, value: artilleryVal });
+    if (artilleryValAttacker > 0) {
+      shifts.push({ type: CombatShiftType.ARTILLERY, value: artilleryValAttacker });
+    }
+
+    const artilleryValDefender = this.getSpecialistShiftSum(defender, "artillery");
+
+    if (artilleryValDefender > 0) {
+      shifts.push({ type: CombatShiftType.ARTILLERY, value: -artilleryValDefender });
     }
 
     // --- Armour vs Torpedoes ---
