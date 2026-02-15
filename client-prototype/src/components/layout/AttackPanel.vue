@@ -146,7 +146,7 @@
                 :key="i"
                 class="text-success"
               >
-                {{ shift.type.replaceAll("_", " ") }} (+{{ shift.value }})
+                {{ shift.type.replaceAll("_", " ") }} ({{ Math.abs(shift.value) }})
               </div>
             </div>
             <div class="col-6">
@@ -157,7 +157,7 @@
                 :key="i"
                 class="text-danger"
               >
-                {{ shift.type.replaceAll("_", " ") }} ({{ shift.value }})
+                {{ shift.type.replaceAll("_", " ") }} ({{ Math.abs(shift.value) }})
               </div>
             </div>
           </div>
