@@ -13,6 +13,7 @@
     "test:core": "npm test --workspace=core",
     "build:server": "npm run build --workspace=server",
     "dev:server": "npm run dev --workspace=server",
+    "db:migrate": "npm --prefix server run db:migrate",
     "dev:client": "npm run dev --workspace=client",
     "dev:map-gen": "npm run dev --workspace=client-map-generator",
     "dev:proto": "npm run dev --workspace=client-prototype"

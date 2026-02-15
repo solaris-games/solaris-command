@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "build": "pkgroll",
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "db:migrate": "tsx src/db/migrate.ts"
   },
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.10",
