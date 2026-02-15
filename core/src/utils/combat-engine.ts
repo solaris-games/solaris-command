@@ -139,7 +139,7 @@ export const CombatEngine = {
         // Cornered -> Shattered!
         defender.steps = UnitManager.suppressSteps(defender.steps, 999);
         defenderShattered = true;
-        outcome = CombatResultType.SHATTERED;
+        outcome = CombatResultType.SHATTERED; // All steps suppressed
       }
     }
 

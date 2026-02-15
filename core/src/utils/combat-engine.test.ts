@@ -448,7 +448,7 @@ describe("CombatEngine", () => {
       const killResult: CombatForcedResult = {
         attacker: { losses: 0, suppressed: 0 },
         defender: { losses: 5, suppressed: 0, retreat: false },
-        resultType: CombatResultType.SHATTERED,
+        resultType: CombatResultType.RETREAT,
       };
 
       vi.mocked(CombatCalculator.calculate).mockReturnValue({
@@ -490,7 +490,7 @@ describe("CombatEngine", () => {
       const killResult: CombatForcedResult = {
         attacker: { losses: 0, suppressed: 0 },
         defender: { losses: 5, suppressed: 0, retreat: false },
-        resultType: CombatResultType.SHATTERED,
+        resultType: CombatResultType.RETREAT,
       };
 
       vi.mocked(CombatCalculator.calculate).mockReturnValue({
