@@ -214,7 +214,7 @@ export const CombatCalculator = {
     if (defenderHasTorpedo) {
       shifts.push({
         type: CombatShiftType.ARMOUR_TORPEDO_PENALTY,
-        value: attackerArmour,
+        value: -attackerArmour,
       });
     }
 
