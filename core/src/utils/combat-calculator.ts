@@ -222,8 +222,6 @@ export const CombatCalculator = {
         type: CombatShiftType.ARMOUR_TORPEDO_PENALTY,
         value: -attackerArmour,
       });
-
-      return shifts;
     }
 
     const armourDiff = attackerArmour - defenderArmour;
