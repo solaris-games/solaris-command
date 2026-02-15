@@ -217,13 +217,6 @@ export const CombatCalculator = {
       return !s.isSuppressed && hasTorpedoSpec;
     });
 
-    if (defenderHasTorpedo) {
-      shifts.push({
-        type: CombatShiftType.ARMOUR_TORPEDO_PENALTY,
-        value: -attackerArmour,
-      });
-    }
-
     const armourDiff = attackerArmour - defenderArmour;
 
     // Only Attacker gets armour bonus in offensive combat (Heavy ships crushing light ships)
@@ -233,6 +226,13 @@ export const CombatCalculator = {
       shifts.push({
         type: CombatShiftType.ARMOUR,
         value: Math.min(CONSTANTS.COMBAT_SHIFT_MAX_ARMOUR, armourDiff),
+      });
+    }
+
+    if (defenderHasTorpedo) {
+      shifts.push({
+        type: CombatShiftType.ARMOUR_TORPEDO_PENALTY,
+        value: -armourDiff,
       });
     }
 
