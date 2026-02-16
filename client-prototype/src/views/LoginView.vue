@@ -89,6 +89,9 @@
             <h1 class="text-center">Sign In</h1>
             <div class="text-center mt-3 d-flex justify-content-center">
               <GoogleLogin :callback="handleGoogleLogin" />
+              <button class="btn btn-primary ms-2" @click="handleDiscordLogin">
+                <i class="fa-brands fa-discord me-1"></i> Sign in with Discord
+              </button>
             </div>
           </div>
         </div>
@@ -131,6 +134,18 @@ async function handleGoogleLogin(response: any) {
   } else {
     error.value = "Google login failed.";
   }
+}
+
+function handleDiscordLogin() {
+  const baseUrl = "https://discord.com/api/oauth2/authorize";
+  const params = new URLSearchParams({
+    client_id: config.discordClientId,
+    redirect_uri: `${window.location.origin}/auth/discord`,
+    response_type: "code",
+    scope: "identify email"
+  });
+
+  window.location.href = `${baseUrl}?${params.toString()}`;
 }
 </script>
 

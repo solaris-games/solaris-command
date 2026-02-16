@@ -3,6 +3,7 @@ import { UnifiedId, User } from "../types";
 export const UserFactory = {
   create(
     googleId: string,
+    discordId: string,
     email: string,
     username: string,
     idGenerator: () => UnifiedId
@@ -10,6 +11,7 @@ export const UserFactory = {
     return {
       _id: idGenerator(),
       googleId,
+      discordId,
       email,
       username,
       lastSeenDate: new Date(),

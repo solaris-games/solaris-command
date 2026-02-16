@@ -7,11 +7,22 @@ const UserAchievementsSchema = new Schema<UserAchievements>(
     rank: { type: Number, required: true, default: 0 },
     renown: { type: Number, required: true, default: 0 },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const UserSchema = new Schema<User>({
-  googleId: { type: String, required: true, unique: true },
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true, // Allows multiple documents to have 'null'
+    default: null, // Ensures it is explicitly null if not provided
+  },
+  discordId: {
+    type: String,
+    unique: true,
+    sparse: true,
+    default: null,
+  },
   username: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   lastSeenDate: { type: Date, required: true, default: Date.now },

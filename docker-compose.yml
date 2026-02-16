@@ -15,6 +15,9 @@ services:
       GAME_LOOP_SCHEDULE: "*/10 * * * * *" # Every 10 seconds
       CREATE_GAME_SCHEDULE: "*/10 * * * * *" # Every 10 seconds
       GOOGLE_CLIENT_ID: "abc123"
+      DISCORD_CLIENT_ID: "abc123"
+      DISCORD_CLIENT_SECRET: "abc123"
+      DISCORD_REDIRECT_URI: "http://localhost:5173/auth/discord"
       JWT_SECRET: "default-secret-change-me"
       ENABLE_DEV_AUTH: "true"
       FRONTEND_BASE_URL: /

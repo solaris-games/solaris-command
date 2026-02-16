@@ -19,7 +19,8 @@ export class UserService {
 
   static async findOrCreateUser(
     email: string,
-    googleId: string,
+    googleId: string | null,
+    discordId: string | null,
     username: string,
     session?: ClientSession,
   ): Promise<User> {
@@ -27,11 +28,23 @@ export class UserService {
 
     if (user) {
       await this.touchUser(user._id);
+
+      if (googleId && user.googleId !== googleId) {
+        user.googleId = googleId;
+        await user.save();
+      }
+
+      if (discordId && user.discordId !== discordId) {
+        user.discordId = discordId;
+        await user.save();
+      }
+
       return user;
     }
 
     const newUser: User = UserFactory.create(
       googleId,
+      discordId,
       email,
       username,
       () => new Types.ObjectId(),

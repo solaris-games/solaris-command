@@ -20,6 +20,9 @@ Create a `.env` file in the deployment directory.
 | `PORT` | Server port | `3000` |
 | `MONGO_URI` | MongoDB connection string | `mongodb://user:pass@host:27017/solaris-command` |
 | `GOOGLE_CLIENT_ID` | Google OAuth Client ID | `...` |
+| `DISCORD_CLIENT_ID` | Discord OAuth Client ID | `...` |
+| `DISCORD_CLIENT_SECRET` | Discord OAuth Client Secret | `...` |
+| `DISCORD_REDIRECT_URI` | Discord Redirect URL | `...` |
 | `JWT_SECRET` | Secret key for sessions | `...` |
 | `ENABLE_DEV_AUTH` | **Set to false** for production | `false` |
 | `GAME_LOOP_SCHEDULE` | Tick schedule | `*/10 * * * * *` |

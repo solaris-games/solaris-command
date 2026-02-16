@@ -40,6 +40,27 @@ export const useAuthStore = defineStore("auth", {
         return false;
       }
     },
+    async loginDiscord(code: string) {
+      try {
+        const response = await axios.post("/api/v1/auth/discord", {
+          code,
+        });
+        const { token, user } = response.data;
+
+        this.token = token;
+        this.user = user;
+
+        localStorage.setItem("auth_token", token);
+        localStorage.setItem("auth_user", JSON.stringify(user));
+
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+        return true;
+      } catch (error) {
+        console.error("Discord login failed", error);
+        return false;
+      }
+    },
     async loginDev(username: string, email: string) {
       try {
         const response = await axios.post("/api/v1/auth/dev", {

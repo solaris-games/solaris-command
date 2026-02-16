@@ -9,6 +9,7 @@ export interface UserAchievements {
 export interface User {
   _id: UnifiedId;
   googleId: string;
+  discordId: string;
 
   username: string;
   email: string;

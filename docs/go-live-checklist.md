@@ -25,6 +25,9 @@ Configure the following DNS records in your domain registrar (e.g., Namecheap, C
 ### 3. Secrets Preparation
 Ensure you have the following secrets ready:
 - `GOOGLE_CLIENT_ID`: From Google Cloud Console.
+- `DISCORD_CLIENT_ID`: From Discord Developer Console.
+- `DISCORD_CLIENT_SECRET`: From Discord Developer Console.
+- `DISCORD_REDIRECT_URI`: From Discord Developer Console.
 - `JWT_SECRET`: A strong random string.
 - `MONGO_URI`: Full connection string.
 

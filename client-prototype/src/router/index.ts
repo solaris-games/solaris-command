@@ -1,50 +1,56 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
-import LoginView from '../views/LoginView.vue'
-import GamesListView from '../views/GamesListView.vue'
-import GalaxyView from '../views/GalaxyView.vue'
-import ProfileView from '../views/ProfileView.vue'
-import { useAuthStore } from '../stores/auth'
+import { createRouter, createWebHashHistory } from "vue-router";
+import LoginView from "../views/LoginView.vue";
+import GamesListView from "../views/GamesListView.vue";
+import GalaxyView from "../views/GalaxyView.vue";
+import ProfileView from "../views/ProfileView.vue";
+import DiscordAuthCallbackView from "../views/DiscordAuthCallbackView.vue";
+import { useAuthStore } from "../stores/auth";
 
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
     {
-      path: '/login',
-      name: 'login',
-      component: LoginView
+      path: "/login",
+      name: "login",
+      component: LoginView,
     },
     {
-      path: '/games',
-      name: 'games',
+      path: "/auth/discord",
+      name: "auth-discord",
+      component: DiscordAuthCallbackView,
+    },
+    {
+      path: "/games",
+      name: "games",
       component: GamesListView,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true },
     },
     {
-      path: '/games/:id',
-      name: 'game-galaxy',
+      path: "/games/:id",
+      name: "game-galaxy",
       component: GalaxyView,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true },
     },
     {
-      path: '/profile',
-      name: 'profile',
+      path: "/profile",
+      name: "profile",
       component: ProfileView,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true },
     },
     {
-      path: '/',
-      redirect: '/games'
-    }
-  ]
-})
+      path: "/",
+      redirect: "/games",
+    },
+  ],
+});
 
 router.beforeEach((to, from, next) => {
-  const authStore = useAuthStore()
+  const authStore = useAuthStore();
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next('/login')
+    next("/login");
   } else {
-    next()
+    next();
   }
-})
+});
 
-export default router
+export default router;
