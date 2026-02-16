@@ -8,7 +8,9 @@ Supply propagates outwards like a web:
 2.  **Relay:** Friendly Planets or Stations.
 3.  **Consumer:** Your Unit.
 
-Units must be within range (MP distance) of a Source or Relay to be "In Supply".
+**Planets** have a supply range of `6` MP and **Stations** have a supply range of `4` MP. Units must be within MP range of a Source or Relay to be "In Supply".
+
+_Note: The **Planet** or **Station** determines the supply range, **not** the unit's MP._
 
 ## Out of Supply (OOS)
 If a unit cannot trace a path to a supply source during the daily Cycle check, it is **Out of Supply**. The penalties get worse every day (Cycle) it remains cut off.

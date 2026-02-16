@@ -4,6 +4,7 @@ The goal of Solaris: Command is not just to blow up ships, but to conquer territ
 
 ## Victory Points (VPs)
 *   **Source:** You earn VPs by controlling **Planets**.
+    * **Capital Planets** award `3` VP and **Planets** award `1` VP per cycle.
 *   **Timing:** VPs are awarded at the end of each Cycle.
 
 ## Winning

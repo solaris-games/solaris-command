@@ -18,7 +18,7 @@ Regardless of how much MP a unit has, **all units physically move at a speed of 
 
 ### Zone of Control (ZOC)
 Most units exert a **Zone of Control** into all 6 adjacent hexes.
-*   **Effect:** Moving into a hex that is in an enemy's ZOC costs **Double MP**.
+*   **Effect:** Moving into a hex that is in an enemy's ZOC costs **Double MP**. This also affects enemy **Supply** MP.
 *   **Tactics:** You can use ZOC to slow down enemy advances or screen your valuable planets.
 
 ### Capturing Territory

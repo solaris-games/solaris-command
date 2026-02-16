@@ -5,6 +5,8 @@ War requires funding. In Solaris: Command, your economy is fueled by **Prestige*
 ## Planets
 Planets are the prize.
 *   **Economy:** They generate **Prestige** every Cycle.
+    * **Capital Planets** award `250` prestige per cycle.
+    * **Planets** award `100` prestige per cycle.
 *   **Logistics:** **Capital Planets** serve as **Root Supply Sources**. They produce infinite supply and cannot be besieged out of supply.
 *   **Victory:** Controlling planets earns you Victory Points.
 
@@ -13,7 +15,7 @@ Planets are the prize.
 ## Stations
 Stations are deployable logistics hubs.
 *   **Function:** They extend supply range from Planets into deep space.
-*   **Deployment:** When deployed, a station takes time to come online. It provides supply starting the *following* Cycle.
+*   **Deployment:** When deployed, a station provides supply immediately and will resupply units at the end of the cycle.
 
 > **Strategy Tip:** Avoid placing stations on the front line. They are fragile. If an enemy destroys your station, your entire forward fleet could be cut off from supply!
 
