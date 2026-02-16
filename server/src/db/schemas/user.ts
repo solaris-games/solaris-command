@@ -13,14 +13,10 @@ const UserAchievementsSchema = new Schema<UserAchievements>(
 const UserSchema = new Schema<User>({
   googleId: {
     type: String,
-    unique: true,
-    sparse: true, // Allows multiple documents to have 'null'
-    default: null, // Ensures it is explicitly null if not provided
+    default: null,
   },
   discordId: {
     type: String,
-    unique: true,
-    sparse: true,
     default: null,
   },
   username: { type: String, required: true },
@@ -28,5 +24,16 @@ const UserSchema = new Schema<User>({
   lastSeenDate: { type: Date, required: true, default: Date.now },
   achievements: { type: UserAchievementsSchema, required: true },
 });
+
+// Partial unique indexes to allow multiple nulls for googleId and discordId
+UserSchema.index(
+  { googleId: 1 },
+  { unique: true, partialFilterExpression: { googleId: { $ne: null } } },
+);
+
+UserSchema.index(
+  { discordId: 1 },
+  { unique: true, partialFilterExpression: { discordId: { $ne: null } } },
+);
 
 export const UserModel = model<User>("User", UserSchema);
