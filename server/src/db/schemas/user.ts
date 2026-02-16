@@ -25,15 +25,4 @@ const UserSchema = new Schema<User>({
   achievements: { type: UserAchievementsSchema, required: true },
 });
 
-// Partial unique indexes to allow multiple nulls for googleId and discordId
-UserSchema.index(
-  { googleId: 1 },
-  { unique: true, partialFilterExpression: { googleId: { $ne: null } } },
-);
-
-UserSchema.index(
-  { discordId: 1 },
-  { unique: true, partialFilterExpression: { discordId: { $ne: null } } },
-);
-
 export const UserModel = model<User>("User", UserSchema);
