@@ -132,7 +132,7 @@ router.post("/discord", async (req, res) => {
         email: user.email,
         username: user.username,
       },
-      process.env.JWT_SECRET,
+      JWT_SECRET,
       { expiresIn: "7d" },
     );
 
