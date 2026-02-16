@@ -1,12 +1,10 @@
 <template>
-  <v-layer :config="{ listening: false }">
-    <v-group v-if="mapSettingsStore.showMPCosts">
-      <v-group v-for="source in hexSources" :key="source.id">
-        <v-circle :config="getHexCircleConfig(source)" />
-        <v-text :config="getTextConfig(source)" />
-      </v-group>
+  <v-group v-if="mapSettingsStore.showMPCosts">
+    <v-group v-for="source in hexSources" :key="source.id">
+      <v-circle :config="getHexCircleConfig(source)" />
+      <v-text :config="getTextConfig(source)" />
     </v-group>
-  </v-layer>
+  </v-group>
 </template>
 
 <script setup lang="ts">

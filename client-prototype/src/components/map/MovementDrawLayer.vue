@@ -1,5 +1,5 @@
 <template>
-  <v-layer :listening="!mapSettingsStore.isPinching">
+  <v-layer :listening="!mapSettingsStore.isPinching" :config="{ perfectDrawEnabled: false }">
     <!-- Highlight reachable hexes -->
     <v-regular-polygon
       v-for="(hex, index) in movementStore.reachableHexes"

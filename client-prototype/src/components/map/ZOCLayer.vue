@@ -1,13 +1,11 @@
 <template>
-  <v-layer :config="{ listening: false }">
-    <v-group v-if="mapSettingsStore.showZOC">
-      <v-circle
-        v-for="source in zocSources"
-        :key="source.id"
-        :config="getZOCHexCircleConfig(source)"
-      />
-    </v-group>
-  </v-layer>
+  <v-group v-if="mapSettingsStore.showZOC">
+    <v-circle
+      v-for="source in zocSources"
+      :key="source.id"
+      :config="getZOCHexCircleConfig(source)"
+    />
+  </v-group>
 </template>
 
 <script setup lang="ts">

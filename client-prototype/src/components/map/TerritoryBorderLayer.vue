@@ -83,19 +83,15 @@ function hexCorner(center: { x: number; y: number }, size: number, i: number) {
 </script>
 
 <template>
-  <v-layer :config="{ perfectDrawEnabled: false, listening: false }">
-    <v-line
-      v-for="(border, index) in borders"
-      :key="index"
-      :config="{
-        points: border.points
-          .split(' ')
-          .flatMap((p) => p.split(',').map(Number)),
-        stroke: border.color,
-        strokeWidth: 6,
-        lineCap: 'round',
-        lineJoin: 'round',
-      }"
-    />
-  </v-layer>
+  <v-line
+    v-for="(border, index) in borders"
+    :key="index"
+    :config="{
+      points: border.points.split(' ').flatMap((p) => p.split(',').map(Number)),
+      stroke: border.color,
+      strokeWidth: 6,
+      lineCap: 'round',
+      lineJoin: 'round',
+    }"
+  />
 </template>

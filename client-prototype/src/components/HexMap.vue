@@ -1,14 +1,21 @@
 <template>
+  <v-layer :config="{ perfectDrawEnabled: false, listening: false }">
     <HexLayer />
     <TerritoryBorderLayer />
     <EffectLayer />
+  </v-layer>
+
+  <v-layer :config="{ perfectDrawEnabled: false, listening: false }">
     <UnitLayer />
     <SupplyLayer />
     <ZOCLayer />
     <MovementCostsLayer />
-    <MovementDrawLayer />
-    <CombatDrawLayer />
-    <InteractionLayer />
+  </v-layer>
+
+  <MovementDrawLayer />
+  <CombatDrawLayer />
+
+  <InteractionLayer />
 </template>
 
 <script setup lang="ts">

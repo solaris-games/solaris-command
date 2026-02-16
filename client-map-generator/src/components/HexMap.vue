@@ -1,7 +1,7 @@
 <template>
   <div class="hex-map-container" ref="container">
     <v-stage :config="configStage" @wheel="handleWheel" @dragend="handleDragEnd">
-      <v-layer ref="layer">
+      <v-layer ref="layer" :config="{ perfectDrawEnabled: false, listening: true }">
         <!-- Draw Hexes -->
         <v-group
           :config="{

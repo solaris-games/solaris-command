@@ -1,15 +1,13 @@
 <template>
-  <v-layer :config="{ listening: false }">
-    <v-group v-if="mapSettingsStore.showUnits">
-      <v-group
-        v-for="hex in galaxyStore.hexes"
-        :key="`unit-${hex.location.q},${hex.location.r}`"
-        :config="getHexConfig(hex)"
-      >
-        <UnitCounter v-if="getUnitAt(hex)" :unit="getUnitAt(hex)!" />
-      </v-group>
+  <v-group v-if="mapSettingsStore.showUnits">
+    <v-group
+      v-for="hex in galaxyStore.hexes"
+      :key="`unit-${hex.location.q},${hex.location.r}`"
+      :config="getHexConfig(hex)"
+    >
+      <UnitCounter v-if="getUnitAt(hex)" :unit="getUnitAt(hex)!" />
     </v-group>
-  </v-layer>
+  </v-group>
 </template>
 
 <script setup lang="ts">

@@ -1,15 +1,13 @@
 <template>
-  <v-layer :config="{ listening: false }">
-    <v-group
-      v-for="hex in galaxyStore.hexes"
-      :key="`hex-${hex.location.q},${hex.location.r}`"
-      :config="getHexConfig(hex)"
-    >
-      <Hexagon v-if="mapSettingsStore.showHexGraphics" :hex="hex" />
-      <HexagonAbstract v-if="!mapSettingsStore.showHexGraphics" :hex="hex" />
-      <HexagonOverlay :hex="hex"/>
-    </v-group>
-  </v-layer>
+  <v-group
+    v-for="hex in galaxyStore.hexes"
+    :key="`hex-${hex.location.q},${hex.location.r}`"
+    :config="getHexConfig(hex)"
+  >
+    <Hexagon v-if="mapSettingsStore.showHexGraphics" :hex="hex" />
+    <HexagonAbstract v-if="!mapSettingsStore.showHexGraphics" :hex="hex" />
+    <HexagonOverlay :hex="hex" />
+  </v-group>
 </template>
 
 <script setup lang="ts">

@@ -1,12 +1,10 @@
 <template>
-  <v-layer :config="{ listening: false }">
-    <v-group v-if="mapSettingsStore.showSupply">
-      <v-group v-for="source in supplySources" :key="source.id">
-        <v-circle :config="getSupplyHexCircleConfig(source)" />
-        <v-text :config="getSupplyTextConfig(source)" />
-      </v-group>
+  <v-group v-if="mapSettingsStore.showSupply">
+    <v-group v-for="source in supplySources" :key="source.id">
+      <v-circle :config="getSupplyHexCircleConfig(source)" />
+      <v-text :config="getSupplyTextConfig(source)" />
     </v-group>
-  </v-layer>
+  </v-group>
 </template>
 
 <script setup lang="ts">

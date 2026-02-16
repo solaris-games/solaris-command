@@ -1,5 +1,5 @@
 <template>
-  <v-layer>
+  <v-layer :config="{ perfectDrawEnabled: false, listening: true }">
     <v-group
       v-for="hex in galaxyStore.hexes"
       :key="`interaction-${hex.location.q},${hex.location.r}`"

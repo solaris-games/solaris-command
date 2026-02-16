@@ -5,7 +5,6 @@
       <div class="units-list">
         <div class="list-group">
           <a
-            href="#"
             v-for="unit in sortedPlayerUnits"
             :key="String(unit._id)"
             class="list-group-item list-group-item-action text-white border-light"
