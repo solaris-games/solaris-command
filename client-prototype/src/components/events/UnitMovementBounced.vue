@@ -11,7 +11,6 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { useGalaxyStore } from "@/stores/galaxy";
 import LocationLink from "../LocationLink.vue";
 import { UNIT_CATALOG_ID_MAP } from "@solaris-command/core/src/data/units";
 import { GameEventsResponseSchema } from "@solaris-command/core/src/types/api/responses";
@@ -20,13 +19,7 @@ const props = defineProps<{
   event: GameEventsResponseSchema;
 }>();
 
-const galaxyStore = useGalaxyStore();
-
 const unitName = computed(() => {
-  const unit = galaxyStore.units.find(
-    (u) => u._id === (props.event.data as any).unitId,
-  );
-  if (!unit) return "Unknown";
-  return UNIT_CATALOG_ID_MAP.get(unit.catalogId)?.name ?? "Unknown";
+  return UNIT_CATALOG_ID_MAP.get((props.event.data as any).catalogId)?.name ?? "Unknown";
 });
 </script>

@@ -27,8 +27,9 @@ const player = computed(() => {
 });
 
 const unitName = computed(() => {
-  const unit = (props.event.data as any).unit;
-  if (!unit) return "Unknown";
-  return UNIT_CATALOG_ID_MAP.get(unit.catalogId)?.name ?? "Unknown";
+  return (
+    UNIT_CATALOG_ID_MAP.get((props.event.data as any).unit.catalogId)?.name ??
+    "Unknown"
+  );
 });
 </script>

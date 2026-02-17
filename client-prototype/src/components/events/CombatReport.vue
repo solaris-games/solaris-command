@@ -66,18 +66,10 @@ const defenderPlayer = computed(() => {
 });
 
 const attackerUnitName = computed(() => {
-  const unit = galaxyStore.units.find(
-    (u) => u._id === (props.event.data as any).attackerUnitId,
-  );
-  if (!unit) return "Unknown";
-  return UNIT_CATALOG_ID_MAP.get(unit.catalogId)?.name ?? "Unknown";
+  return UNIT_CATALOG_ID_MAP.get((props.event.data as any).attackerUnitCatalogId)?.name ?? 'Unknown'
 });
 
 const defenderUnitName = computed(() => {
-  const unit = galaxyStore.units.find(
-    (u) => u._id === (props.event.data as any).defenderUnitId,
-  );
-  if (!unit) return "Unknown";
-  return UNIT_CATALOG_ID_MAP.get(unit.catalogId)?.name ?? "Unknown";
+  return UNIT_CATALOG_ID_MAP.get((props.event.data as any).defenderUnitCatalogId)?.name ?? 'Unknown'
 });
 </script>
