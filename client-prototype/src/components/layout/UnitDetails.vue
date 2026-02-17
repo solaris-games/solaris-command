@@ -20,44 +20,8 @@
         {{ unitCatalog?.class.replaceAll("_", " ") }}
       </p>
     </div>
-    <div class="col-auto unit-steps" v-if="props.compact">
-      <!-- Compact unit stats-->
-      <div
-        class="me-1"
-        data-bs-toggle="tooltip"
-        title="The unit's attack strength"
-      >
-        <span class="text-warning"
-          ><i class="fas fa-bolt-lightning me-1"></i
-          >{{ unitCatalog?.stats.attack }}</span
-        >
-      </div>
-      <div
-        class="me-1"
-        data-bs-toggle="tooltip"
-        title="The unit's defensive strength"
-      >
-        <span
-          ><i class="fas fa-shield me-1 text-muted"></i
-          >{{ unitCatalog?.stats.defense }}</span
-        >
-      </div>
-      <div
-        class="me-1"
-        data-bs-toggle="tooltip"
-        title="The unit's armour value"
-      >
-        <span class="text-info"
-          ><i class="fas fa-shield-halved me-1"></i
-          >{{ unitCatalog?.stats.armour }}</span
-        >
-      </div>
-      <div class="me-0" data-bs-toggle="tooltip" title="Unit's movement points">
-        <span class="text-success"
-          ><i class="fas fa-arrows-up-down-left-right me-1"></i
-          >{{ unit.state.mp }}/{{ unitCatalog?.stats.maxMP }}</span
-        >
-      </div>
+    <div class="col-auto" v-if="props.compact">
+      <UnitStatsCompact :unit="unit" />
     </div>
   </div>
   <div class="row">
@@ -126,6 +90,7 @@ import { UnitManager } from "@solaris-command/core/src/utils/unit-manager";
 import { UnitStatus } from "@solaris-command/core/src/types/unit";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
 import UnitStats from "./UnitStats.vue";
+import UnitStatsCompact from "./UnitStatsCompact.vue";
 
 type APIUnit = GameGalaxyResponseSchema["units"][0];
 

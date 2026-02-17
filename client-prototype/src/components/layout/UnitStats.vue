@@ -3,7 +3,7 @@
     <div
       class="col-3 p-0"
       data-bs-toggle="tooltip"
-      title="The unit's attack strength"
+      title="The unit's attack strength and attack power"
     >
       <span class="stat-label d-none d-md-block"
         ><i class="fas fa-bolt-lightning me-1"></i>Attack</span
@@ -11,12 +11,17 @@
       <span class="d-inline-block d-md-none me-1 text-warning"
         ><i class="fas fa-bolt-lightning"></i
       ></span>
-      <span class="stat-value">{{ unitCatalog?.stats.attack }}</span>
+      <span class="stat-value"
+        >{{ unitCatalog?.stats.attack }}
+        <span class="text-success"
+          >({{ CombatCalculator.getUnitPower(unit as any, true) }})</span
+        ></span
+      >
     </div>
     <div
       class="col-3 p-0"
       data-bs-toggle="tooltip"
-      title="The unit's defensive strength"
+      title="The unit's defensive strength and defense power"
     >
       <span class="stat-label d-none d-md-block"
         ><i class="fas fa-shield me-1"></i>Defense</span
@@ -24,7 +29,12 @@
       <span class="d-inline-block d-md-none me-1 text-muted"
         ><i class="fas fa-shield"></i
       ></span>
-      <span class="stat-value">{{ unitCatalog?.stats.defense }}</span>
+      <span class="stat-value"
+        >{{ unitCatalog?.stats.defense }}
+        <span class="text-danger"
+          >({{ CombatCalculator.getUnitPower(unit as any, false) }})</span
+        ></span
+      >
     </div>
     <div
       class="col-3 p-0"
@@ -61,6 +71,7 @@
 import { computed } from "vue";
 import { UNIT_CATALOG_ID_MAP } from "@solaris-command/core/src/data/units";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
+import { CombatCalculator } from "@solaris-command/core/src/utils/combat-calculator";
 
 type APIUnit = GameGalaxyResponseSchema["units"][0];
 
