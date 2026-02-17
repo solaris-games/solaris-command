@@ -26,8 +26,8 @@ The combat calculation follows these steps:
 
 The power of a unit in combat is determined by its base stats multiplied by the number of active (not suppressed) steps it has.
 
-- **Attack Power** = `Attacker's Attack Stat * Number of Attacker's Steps`
-- **Defense Power** = `Defender's Defense Stat * Number of Defender's Steps`
+- **Attack Power** = `(Attacker's Attack Stat + Specialist Attack Buffs) * Number of Attacker's Steps`
+- **Defense Power** = `(Defender's Defense Stat + Specialist Defense Buffs) * Number of Defender's Steps`
 
 In our example:
 

@@ -10,7 +10,7 @@ import { GameGalaxy } from "../services/GameGalaxyService";
 export class GameGalaxyMapper {
   static toGameGalaxyResponse(
     galaxy: GameGalaxy,
-    userPlayerId: UnifiedId | null // Will mask data based on the perspective of this player.
+    userPlayerId: UnifiedId | null, // Will mask data based on the perspective of this player.
   ): GameGalaxyResponseSchema {
     // Mask a field if the player id does not match.
     const tryMaskField = (playerId: UnifiedId, value: any) => {
@@ -36,7 +36,7 @@ export class GameGalaxyMapper {
     // see the next upcoming movement of enemy units.
     const tryMaskMovementPath = (
       playerId: UnifiedId,
-      path: HexCoords[]
+      path: HexCoords[],
     ): HexCoords[] => {
       // Do not mask for completed games.
       if (galaxy.game.state.status === GameStates.COMPLETED) {
@@ -48,12 +48,11 @@ export class GameGalaxyMapper {
         return [];
       }
 
-      if (path.length === 0 || String(userPlayerId) === String(playerId)) {
+      if (String(userPlayerId) === String(playerId)) {
         return path;
       }
 
-      // Return the first one only (masked)
-      return [path[0]];
+      return []; // Masked
     };
 
     return {
@@ -73,7 +72,8 @@ export class GameGalaxyMapper {
           endDate: galaxy.game.state.endDate?.toISOString() || null,
           lastTickDate: galaxy.game.state.lastTickDate?.toISOString() || null,
           nextTickDate: galaxy.game.state.nextTickDate?.toISOString() || null,
-          nextCycleTickDate: galaxy.game.state.nextCycleTickDate?.toISOString() || null,
+          nextCycleTickDate:
+            galaxy.game.state.nextCycleTickDate?.toISOString() || null,
           winnerPlayerId: galaxy.game.state.winnerPlayerId?.toString() || null,
         },
         settings: {
@@ -96,7 +96,7 @@ export class GameGalaxyMapper {
         lastSeenDate: p.lastSeenDate.toISOString(),
         defeatedDate: p.defeatedDate ? p.defeatedDate.toISOString() : null,
         renownToDistribute: p.renownToDistribute,
-        isAIControlled: p.isAIControlled
+        isAIControlled: p.isAIControlled,
       })),
       hexes: galaxy.hexes.map((h) => ({
         _id: String(h._id),

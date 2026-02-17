@@ -4,7 +4,7 @@
       <i class="fas fa-arrow-down"></i>
     </div>
     <div class="flex-grow-1 ms-3">
-      Unit {{ unitName }} movement bounced at <LocationLink :coords="(event.data as any).location" />.
+      Unit {{ unitName }} movement bounced at <LocationLink :coords="(event.data as any).toHexLocation" />.
     </div>
   </div>
 </template>

@@ -8,7 +8,7 @@ Supply propagates outwards like a web:
 2.  **Relay:** Friendly Planets or Stations.
 3.  **Consumer:** Your Unit.
 
-**Planets** have a supply range of `6` MP and **Stations** have a supply range of `4` MP. Units must be within MP range of a Source or Relay to be "In Supply".
+**Capital Planets** have a supply range of `6` MP. **Planets** and **Stations** have a supply range of `4` MP. Units must be within MP range of a Source or Relay to be "In Supply".
 
 _Note: The **Planet** or **Station** determines the supply range, **not** the unit's MP._
 

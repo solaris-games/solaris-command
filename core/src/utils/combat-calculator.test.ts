@@ -79,12 +79,12 @@ describe("CombatCalculator", () => {
     it("should add specialist bonuses", () => {
       // Frigate: Base Attack 2. 5 Steps (4 Normal + 1 Artillery).
       // Artillery Spec: Attack +2.
-      // Calc: (2 * 5 steps) + 2 (Spec Bonus) = 12.
+      // Calc: (2 + 2) * 5 steps = 20.
       const unit = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5, [
         CATALOG_SPEC_ARTILLERY_ID,
       ]);
       const power = CombatCalculator.getUnitPower(unit, true);
-      expect(power).toBe(12);
+      expect(power).toBe(20);
     });
 
     it("should ignore suppressed steps", () => {

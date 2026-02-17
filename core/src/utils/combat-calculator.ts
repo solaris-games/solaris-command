@@ -1,11 +1,23 @@
-import { CombatForcedResult, CombatOperation, CombatResultType, CombatShift, CombatShiftType } from "../types/combat";
+import {
+  CombatForcedResult,
+  CombatOperation,
+  CombatShift,
+  CombatShiftType,
+} from "../types/combat";
 import { Hex } from "../types/hex";
 import { SpecialistStepTypes, Unit, UnitStatus } from "../types/unit";
 import { UnitManager } from "./unit-manager";
-import { COMBAT_RESULT_FORCED_FEINT_ATTACK, COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE } from '../data/combat-tables'
+import {
+  COMBAT_RESULT_FORCED_FEINT_ATTACK,
+  COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE,
+} from "../data/combat-tables";
 import { UNIT_CATALOG_ID_MAP } from "../data/units";
 import { SPECIALIST_STEP_ID_MAP } from "../data/specialists";
-import { COMBAT_SHIFT_DEFENDER_DISORGANISED, COMBAT_SHIFT_PLANETS, COMBAT_SHIFTS_TERRAIN } from "../data/terrain";
+import {
+  COMBAT_SHIFT_DEFENDER_DISORGANISED,
+  COMBAT_SHIFT_PLANETS,
+  COMBAT_SHIFTS_TERRAIN,
+} from "../data/terrain";
 import { CONSTANTS } from "../data/constants";
 
 export interface CombatPrediction {
@@ -26,7 +38,7 @@ export const CombatCalculator = {
     attacker: Unit,
     defender: Unit,
     hex: Hex,
-    operation: CombatOperation = CombatOperation.STANDARD
+    operation: CombatOperation = CombatOperation.STANDARD,
   ): CombatPrediction {
     // 1. Calculate Raw Power (Steps + Specialists)
     const attackPower = this.getUnitPower(attacker, true);
@@ -70,7 +82,8 @@ export const CombatCalculator = {
   },
 
   /**
-   * Helper: Sum up active steps and specialist bonuses
+   * Helper: Sum up active steps and specialist bonuses.
+   * Power = (base attack + specialist buffs) * steps
    */
   getUnitPower(unit: Unit, isAttacking: boolean): number {
     const unitCtlg = UNIT_CATALOG_ID_MAP.get(unit.catalogId)!;
@@ -78,9 +91,7 @@ export const CombatCalculator = {
     // Count Active Steps (Base Stats)
     const activeSteps = UnitManager.getActiveSteps(unit).length;
 
-    let power = isAttacking
-      ? unitCtlg.stats.attack * activeSteps
-      : unitCtlg.stats.defense * activeSteps;
+    let power = isAttacking ? unitCtlg.stats.attack : unitCtlg.stats.defense;
 
     // Add Specialist Bonuses
     unit.steps.forEach((step) => {
@@ -93,7 +104,7 @@ export const CombatCalculator = {
       }
     });
 
-    return Math.round(power);
+    return Math.round(power * activeSteps);
   },
 
   /**
@@ -104,7 +115,7 @@ export const CombatCalculator = {
 
     // --- Defender disorganised shift (Attacker bonus) ---
     if (defender.state.status === UnitStatus.REGROUPING) {
-      shifts.push(COMBAT_SHIFT_DEFENDER_DISORGANISED)
+      shifts.push(COMBAT_SHIFT_DEFENDER_DISORGANISED);
     }
 
     // --- Planet Shift (Defender Bonus) ---
@@ -132,16 +143,28 @@ export const CombatCalculator = {
     }
 
     // --- Specialist: ARTILLERY ---
-    const artilleryValAttacker = this.getSpecialistShiftSum(attacker, "artillery");
+    const artilleryValAttacker = this.getSpecialistShiftSum(
+      attacker,
+      "artillery",
+    );
 
     if (artilleryValAttacker > 0) {
-      shifts.push({ type: CombatShiftType.ARTILLERY, value: artilleryValAttacker });
+      shifts.push({
+        type: CombatShiftType.ARTILLERY,
+        value: artilleryValAttacker,
+      });
     }
 
-    const artilleryValDefender = this.getSpecialistShiftSum(defender, "artillery");
+    const artilleryValDefender = this.getSpecialistShiftSum(
+      defender,
+      "artillery",
+    );
 
     if (artilleryValDefender > 0) {
-      shifts.push({ type: CombatShiftType.ARTILLERY, value: -artilleryValDefender });
+      shifts.push({
+        type: CombatShiftType.ARTILLERY,
+        value: -artilleryValDefender,
+      });
     }
 
     // --- Armour vs Torpedoes ---
@@ -157,7 +180,7 @@ export const CombatCalculator = {
    */
   getSpecialistShiftSum(
     unit: Unit,
-    stat: "artillery" | "siege" | "armour"
+    stat: "artillery" | "siege" | "armour",
   ): number {
     return unit.steps.reduce((sum, step) => {
       if (!step.isSuppressed && step.specialistId) {
@@ -172,18 +195,18 @@ export const CombatCalculator = {
   getArmourShifts(
     attacker: Unit,
     defender: Unit,
-    terrainShift: CombatShift | null
+    terrainShift: CombatShift | null,
   ): CombatShift[] {
     const attackerUnitCtlg = UNIT_CATALOG_ID_MAP.get(attacker.catalogId)!;
     const defenderUnitCtlg = UNIT_CATALOG_ID_MAP.get(defender.catalogId)!;
 
     const attackerSpecialistArmour = this.getSpecialistShiftSum(
       attacker,
-      "armour"
+      "armour",
     );
     const defenderSpecialistArmour = this.getSpecialistShiftSum(
       defender,
-      "armour"
+      "armour",
     );
 
     const attackerArmour =
