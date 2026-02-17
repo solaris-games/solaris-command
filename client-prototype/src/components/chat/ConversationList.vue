@@ -202,7 +202,7 @@ function formatTime(dateStr: Date | string) {
 }
 
 const handleClose = () => {
-  chatStore.isOpen = false;
+  chatStore.toggleChat();
 };
 </script>
 

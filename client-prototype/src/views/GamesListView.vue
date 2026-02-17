@@ -58,6 +58,7 @@
                       <th scope="col">Map</th>
                       <th scope="col">Cycle</th>
                       <th scope="col" class="d-none d-md-table-cell">Status</th>
+                      <th scope="col" class="d-none d-md-table-cell">Players</th>
                       <th scope="col"></th>
                     </tr>
                   </thead>
@@ -73,6 +74,10 @@
                       <td>{{ game.state.cycle }}</td>
                       <td class="d-none d-md-table-cell">
                         {{ game.state.status }}
+                      </td>
+                      <td class="d-none d-md-table-cell">
+                        {{ game.state.playerCount }} /
+                        {{ game.settings.playerCount }}
                       </td>
                       <td align="right">
                         <button

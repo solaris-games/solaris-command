@@ -22,6 +22,7 @@ export const useChatStore = defineStore("chat", {
   },
   actions: {
     toggleChat() {
+      this.activeConversationId = null;
       this.isOpen = !this.isOpen;
     },
     async fetchConversations(gameId: UnifiedId) {
