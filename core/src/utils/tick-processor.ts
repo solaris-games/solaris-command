@@ -36,6 +36,55 @@ interface MoveIntent {
   toHex: Hex;
 }
 
+/**
+ * Sorts units by iniative. 
+ * This is used by movement and combat to determine which units execute their action first.
+ * Tie breaks: MP, active steps, total steps
+ */
+const SORT_UNITS_BY_INITIATIVE = (a: Unit, b: Unit) => {
+  const statsA = UNIT_CATALOG_ID_MAP.get(a.catalogId)!.stats;
+  const statsB = UNIT_CATALOG_ID_MAP.get(b.catalogId)!.stats;
+
+  // 1. Initiative (LOWEST wins)
+  // Logic: Ascending order (a - b)
+  if (statsA.initiative !== statsB.initiative) {
+    return statsA.initiative - statsB.initiative;
+  }
+
+  // 2. MP (Highest wins)
+  // Logic: Descending order (b - a)
+  const mpA = a.state.mp;
+  const mpB = b.state.mp;
+
+  if (mpB !== mpA) {
+    return mpB - mpA;
+  }
+
+  // 3. Active Steps (Highest wins)
+  // Logic: Descending order (b - a)
+  const activeStepsA = UnitManager.getActiveSteps(a).length;
+  const activeStepsB = UnitManager.getActiveSteps(b).length;
+
+  if (activeStepsB !== activeStepsA) {
+    return activeStepsB - activeStepsA;
+  }
+
+  const totalStepsA = a.steps.length;
+  const totalStepsB = b.steps.length;
+
+  // 4. Total Steps (Highest wins)
+  // Logic: Descending order (b - a)
+  if (totalStepsB !== totalStepsA) {
+    return totalStepsB - totalStepsA;
+  }
+
+  // All are equal.
+  // Note: If we want to add true randomness, be careful with the logic. We will
+  // have to randomize the intents BEFORE we sort them because randomising inside
+  // a sort is dangerous and can lead to glitches or infinite loops.
+  return 0;
+};
+
 export class GameUnitMovementContext {
   moveIntents: MoveIntent[] = [];
   movesByDest = new Map<HexCoordsId, MoveIntent[]>(); // Coord ID, Movement Intent
@@ -283,17 +332,7 @@ export const TickProcessor = {
     // Tiebreaker: Units with more MP act faster.
     const attackers = context.units
       .filter((u) => u.state.status === UnitStatus.PREPARING)
-      .sort((a, b) => {
-        const unitACtlg = UNIT_CATALOG_ID_MAP.get(a.catalogId)!;
-        const unitBCtlg = UNIT_CATALOG_ID_MAP.get(b.catalogId)!;
-
-        const initDiff =
-          unitACtlg.stats.initiative - unitBCtlg.stats.initiative;
-
-        if (initDiff !== 0) return initDiff;
-
-        return b.state.mp - a.state.mp;
-      });
+      .sort(SORT_UNITS_BY_INITIATIVE);
 
     // 2. Group by Target Hex (To handle Multi-Unit vs Single-Defender scenarios)
     const attacksByHexCoords = new Map<HexCoordsId, Unit[]>();
@@ -570,40 +609,8 @@ export const TickProcessor = {
       // then we must resolve who captures the hex.
       else if (intents.length > 1) {
         // The unit with the best initiative will win the hex.
-        // Tie-break: Active steps, then total steps.
         const sortedIntents = intents.sort((a, b) => {
-          const statsA = UNIT_CATALOG_ID_MAP.get(a.unit.catalogId)!.stats;
-          const statsB = UNIT_CATALOG_ID_MAP.get(b.unit.catalogId)!.stats;
-
-          // 1. Primary: Initiative (LOWEST wins)
-          // Logic: Ascending order (a - b)
-          if (statsA.initiative !== statsB.initiative) {
-            return statsA.initiative - statsB.initiative;
-          }
-
-          const activeStepsA = UnitManager.getActiveSteps(a.unit).length;
-          const activeStepsB = UnitManager.getActiveSteps(b.unit).length;
-
-          // 2. Secondary: Active Steps (Highest wins)
-          // Logic: Descending order (b - a)
-          if (activeStepsB !== activeStepsA) {
-            return activeStepsB - activeStepsA;
-          }
-
-          const totalStepsA = a.unit.steps.length;
-          const totalStepsB = b.unit.steps.length;
-
-          // 3. Tertiary: Total Steps (Highest wins)
-          // Logic: Descending order (b - a)
-          if (totalStepsB !== totalStepsA) {
-            return totalStepsB - totalStepsA;
-          }
-
-          // All are equal.
-          // Note: If we want to add true randomness, be careful with the logic. We will
-          // have to randomize the intents BEFORE we sort them because randomising inside
-          // a sort is dangerous and can lead to glitches or infinite loops.
-          return 0;
+          return SORT_UNITS_BY_INITIATIVE(a.unit, b.unit);
         });
 
         processUnitMovementSuccess(sortedIntents[0]!);
