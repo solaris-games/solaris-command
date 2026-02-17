@@ -44,71 +44,7 @@
       location for
       <span class="text-warning">{{ selectedUnitData.cost }} prestige</span>?
     </p>
-    <p>
-      <em>{{ selectedUnitData.description }}</em>
-    </p>
-
-    <p>
-      <strong>Stats:</strong>
-    </p>
-    <div class="row">
-      <div class="col">
-        <table class="table table-sm table-striped table-hover">
-          <tbody>
-            <tr>
-              <td>Attack</td>
-              <td class="text-end">{{ selectedUnitData.stats.attack }}</td>
-            </tr>
-            <tr>
-              <td>Defense</td>
-              <td class="text-end">{{ selectedUnitData.stats.defense }}</td>
-            </tr>
-            <tr>
-              <td>Armour</td>
-              <td class="text-end">{{ selectedUnitData.stats.armour }}</td>
-            </tr>
-            <tr>
-              <td>AP</td>
-              <td class="text-end">{{ selectedUnitData.stats.maxAP }}</td>
-            </tr>
-            <tr>
-              <td>MP</td>
-              <td class="text-end">{{ selectedUnitData.stats.maxMP }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="col">
-        <table class="table table-sm table-striped table-hover">
-          <tbody>
-            <tr>
-              <td>Steps</td>
-              <td class="text-end">
-                {{ selectedUnitData.stats.defaultSteps }}
-              </td>
-            </tr>
-            <tr>
-              <td>Max Steps</td>
-              <td class="text-end">{{ selectedUnitData.stats.maxSteps }}</td>
-            </tr>
-            <tr>
-              <td>Initiative</td>
-              <td class="text-end">{{ selectedUnitData.stats.initiative }}</td>
-            </tr>
-            <tr>
-              <td>Emits ZOC</td>
-              <td class="text-end">
-                {{ selectedUnitData.stats.zoc ? "Yes" : "No" }}
-              </td>
-            </tr>
-            <tr>
-              <td>Vision Range</td>
-              <td class="text-end">{{ selectedUnitData.stats.los }} Hexes</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <UnitCatalogStatsTable :catalog-id="selectedUnitData.id"/>
   </ConfirmationModal>
 </template>
 
@@ -117,6 +53,7 @@ import { computed, ref } from "vue";
 import ConfirmationModal from "../modals/ConfirmationModal.vue";
 import { useGalaxyStore } from "../../stores/galaxy";
 import { UNIT_CATALOG } from "@solaris-command/core/src/data/units";
+import UnitCatalogStatsTable from "./UnitCatalogStatsTable.vue";
 
 const galaxyStore = useGalaxyStore();
 const selectedHex = computed(() => galaxyStore.selectedHex);

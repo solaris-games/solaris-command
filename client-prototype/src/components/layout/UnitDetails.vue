@@ -13,6 +13,14 @@
         unit.state.status
       }}</span>
     </div>
+    <div class="col-auto">
+      <button
+        class="btn btn-sm btn-outline-default"
+        @click="showUnitCatalogStatsModal = true"
+      >
+        <i class="fas fa-circle-info"></i>
+      </button>
+    </div>
   </div>
   <div class="row mt-1 mb-1">
     <div class="col me-auto">
@@ -77,10 +85,21 @@
   </div>
   <hr v-if="!props.compact" />
   <UnitStats v-if="!props.compact" :unit="props.unit" />
+
+  <ConfirmationModal
+    v-if="unitCatalog"
+    :show="showUnitCatalogStatsModal"
+    title="Unit Base Stats"
+    @confirm="showUnitCatalogStatsModal = false"
+    @cancel="showUnitCatalogStatsModal = false"
+    :show-cancel="false"
+    >
+    <UnitCatalogStatsTable :catalog-id="unit.catalogId" />
+  </ConfirmationModal>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import {
   SPECIALIST_STEP_ID_MAP,
   SPECIALIST_STEP_SYMBOL_MAP,
@@ -91,8 +110,12 @@ import { UnitStatus } from "@solaris-command/core/src/types/unit";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
 import UnitStats from "./UnitStats.vue";
 import UnitStatsCompact from "./UnitStatsCompact.vue";
+import ConfirmationModal from "../modals/ConfirmationModal.vue";
+import UnitCatalogStatsTable from "./UnitCatalogStatsTable.vue";
 
 type APIUnit = GameGalaxyResponseSchema["units"][0];
+
+const showUnitCatalogStatsModal = ref(false);
 
 const props = defineProps<{
   unit: APIUnit;

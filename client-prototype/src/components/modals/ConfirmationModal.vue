@@ -5,6 +5,7 @@
     </template>
     <template #footer>
       <button
+        v-if="showCancel"
         type="button"
         class="btn btn-outline-danger"
         @click="onCancel"
@@ -37,6 +38,11 @@ defineProps({
   title: {
     type: String,
     required: true,
+  },
+  showCancel: {
+    type: Boolean,
+    required: false,
+    default: true,
   },
 });
 
