@@ -4,6 +4,7 @@ import {
   HexCoords,
   UnifiedId,
   UnitManager,
+  UnitStatus,
 } from "@solaris-command/core";
 import { GameGalaxy } from "../services/GameGalaxyService";
 
@@ -32,9 +33,9 @@ export class GameGalaxyMapper {
       return null;
     };
 
-    // Masks movement paths so that a player can only
-    // see the next upcoming movement of enemy units.
-    const tryMaskMovementPath = (
+    // Masks movement paths so that players can't see
+    // opposing unit's movement path.
+    const tryMaskUnitMovementPath = (
       playerId: UnifiedId,
       path: HexCoords[],
     ): HexCoords[] => {
@@ -53,6 +54,27 @@ export class GameGalaxyMapper {
       }
 
       return []; // Masked
+    };
+
+    // Masks unit status, prevents players from seeing
+    // if a unit is about to move.
+    const tryMaskUnitStatus = (
+      playerId: UnifiedId,
+      status: UnitStatus,
+    ): UnitStatus => {
+      // Do not mask for completed games.
+      if (galaxy.game.state.status === GameStates.COMPLETED) {
+        return status;
+      }
+
+      if (userPlayerId === null || String(userPlayerId) !== String(playerId)) {
+        // Mask MOVING status so it says IDLE.
+        if (status === UnitStatus.MOVING) {
+          return UnitStatus.IDLE;
+        }
+      }
+
+      return status;
     };
 
     return {
@@ -148,14 +170,14 @@ export class GameGalaxyMapper {
           specialistId: s.specialistId,
         })),
         state: {
-          status: u.state.status,
+          status: tryMaskUnitStatus(u.playerId, u.state.status),
           ap: u.state.ap,
           mp: u.state.mp,
           activeSteps: UnitManager.getActiveSteps(u).length,
           suppressedSteps: UnitManager.getSuppressedSteps(u).length,
         },
         movement: {
-          path: tryMaskMovementPath(u.playerId, u.movement.path),
+          path: tryMaskUnitMovementPath(u.playerId, u.movement.path),
         },
         combat: {
           // Note: Masking combat location is not needed since combat triggers at the end of the tick.
