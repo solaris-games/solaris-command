@@ -89,18 +89,26 @@
           class="list-group-item list-group-item-action"
           @click="selectConversation(String(conv._id))"
         >
-          <div class="d-flex justify-content-between align-items-start">
-            <div class="fw-bold text-truncate">
+          <div class="row">
+            <div class="col">
               {{ getConversationName(conv) }}
             </div>
-            <small class="text-muted" style="font-size: 0.7em">{{
-              formatTime(conv.updatedAt)
-            }}</small>
+            <div class="col-auto">
+              <small class="text-muted">
+                {{ formatTime(conv.updatedAt) }}
+              </small>
+            </div>
           </div>
-
-          <small class="text-muted d-block text-truncate">
-            {{ getParticipantNames(conv) }}
-          </small>
+          <div class="row">
+            <div class="col">
+              {{ getParticipantNames(conv) }}
+            </div>
+            <div class="col-auto">
+              <span v-if="conv.hasUnread" class="badge bg-danger ms-2"
+                >Unread</span
+              >
+            </div>
+          </div>
         </button>
       </div>
     </div>

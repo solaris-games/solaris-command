@@ -1,14 +1,15 @@
 import { Conversation, Message } from "../chat";
 
-// TODO: Use explicit prop names and types.
-// TODO: Add to mapping layer.
+export interface ConversationResponse extends Conversation {
+  hasUnread: boolean;
+}
 
 export interface CreateConversationResponse {
   conversation: Conversation;
 }
 
 export interface GetConversationsResponse {
-  conversations: Conversation[];
+  conversations: ConversationResponse[];
 }
 
 export interface GetMessagesResponse {
@@ -17,4 +18,8 @@ export interface GetMessagesResponse {
 
 export interface SendMessageResponse {
   message: Message;
+}
+
+export interface GetUnreadConversationCountResponse {
+  unreadCount: number;
 }

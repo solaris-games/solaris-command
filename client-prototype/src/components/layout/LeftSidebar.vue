@@ -42,7 +42,7 @@
       <i class="fas fa-list-ul"></i>
     </button>
     <button
-      class="btn btn-outline-theme mb-2"
+      class="btn btn-outline-theme mb-2 position-relative"
       @click="chatStore.toggleChat()"
       data-bs-toggle="tooltip"
       title="Chat"
@@ -50,6 +50,13 @@
       :class="{ active: chatStore.isOpen }"
     >
       <i class="fas fa-comments"></i>
+      <span
+        v-if="chatStore.unreadCount > 0"
+        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+        style="z-index: 1"
+      >
+        {{ chatStore.unreadCount }}
+      </span>
     </button>
 
     <div class="mt-auto d-flex flex-column">

@@ -21,12 +21,41 @@ router.get("/", authenticateToken, loadGame, loadPlayer, async (req, res) => {
     );
 
     // TODO: Need a mapping layer.
-    res.json({ conversations });
+    const mapped = conversations.map((c: any) => ({
+      ...c,
+      hasUnread: c.unreadPlayerIds.some(
+        (id: UnifiedId) => String(id) === String(req.player._id),
+      ),
+    }));
+
+    res.json(mapped);
   } catch (error: any) {
     console.error("Error fetching conversations:", error);
     res.status(500).json({ errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR });
   }
 });
+
+// GET /api/v1/games/:id/conversations/unread-count
+router.get(
+  "/unread-count",
+  authenticateToken,
+  loadGame,
+  loadPlayer,
+  async (req, res) => {
+    try {
+      const unreadCount = await ChatService.getUnreadConversationCount(
+        req.game._id,
+        req.player._id,
+      );
+
+      // TODO: Need a mapping layer.
+      res.json({ unreadCount });
+    } catch (error: any) {
+      console.error("Error fetching unread count:", error);
+      res.status(500).json({ errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR });
+    }
+  },
+);
 
 // POST /api/v1/games/:id/conversations
 router.post(

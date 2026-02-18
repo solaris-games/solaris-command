@@ -2,12 +2,18 @@ import { defineStore } from "pinia";
 import axios from "axios";
 import { Conversation, Message } from "@solaris-command/core/src/types/chat";
 import { UnifiedId } from "@solaris-command/core/src/types/unified-id";
+import {
+  ConversationResponse,
+  GetUnreadConversationCountResponse,
+} from "@solaris-command/core/src/types/api/chat";
+import { useGalaxyStore } from "./galaxy";
 
 export const useChatStore = defineStore("chat", {
   state: () => ({
-    conversations: [] as Conversation[],
+    conversations: [] as ConversationResponse[],
     messages: {} as Record<string, Message[]>,
     activeConversationId: null as string | null,
+    unreadCount: 0,
     isOpen: false,
   }),
   getters: {
@@ -27,10 +33,26 @@ export const useChatStore = defineStore("chat", {
     },
     async fetchConversations(gameId: UnifiedId) {
       try {
-        const res = await axios.get(`/api/v1/games/${gameId}/conversations`);
-        this.conversations = res.data.conversations;
+        const res = await axios.get<ConversationResponse[]>(
+          `/api/v1/games/${gameId}/conversations`,
+        );
+
+        this.conversations = res.data;
+
+        this.updateUnreadCountFromConversations();
       } catch (err) {
         console.error("Failed to fetch conversations", err);
+      }
+    },
+    async fetchUnreadCount(gameId: UnifiedId) {
+      try {
+        const res = await axios.get<GetUnreadConversationCountResponse>(
+          `/api/v1/games/${gameId}/conversations/unread-count`,
+        );
+
+        this.unreadCount = res.data.unreadCount;
+      } catch (err) {
+        console.error("Failed to fetch unread count", err);
       }
     },
     async createConversation(
@@ -50,9 +72,6 @@ export const useChatStore = defineStore("chat", {
         );
         if (!existing) {
           this.conversations.unshift(conv);
-        } else {
-          // If it exists, maybe just update it or move to top?
-          // It will be handled by fetch/sort usually, but good to ensure logic.
         }
         return conv;
       } catch (err) {
@@ -66,6 +85,16 @@ export const useChatStore = defineStore("chat", {
           `/api/v1/games/${gameId}/conversations/${conversationId}/messages`,
         );
         this.messages[String(conversationId)] = res.data.messages;
+
+        // Mark as read locally
+        const conv = this.conversations.find(
+          (c) => String(c._id) === String(conversationId),
+        );
+
+        if (conv && conv.hasUnread) {
+          conv.hasUnread = false;
+          this.updateUnreadCountFromConversations();
+        }
       } catch (err) {
         console.error("Failed to fetch messages", err);
       }
@@ -90,6 +119,7 @@ export const useChatStore = defineStore("chat", {
     },
     handleMessage(message: Message) {
       const conversationId = String(message.conversationId);
+      
       if (!this.messages[conversationId]) {
         this.messages[conversationId] = [];
       }
@@ -97,6 +127,7 @@ export const useChatStore = defineStore("chat", {
       const exists = this.messages[conversationId].some(
         (m) => String(m._id) === String(message._id),
       );
+
       if (!exists) {
         this.messages[conversationId].push(message);
       }
@@ -104,16 +135,37 @@ export const useChatStore = defineStore("chat", {
       const conv = this.conversations.find(
         (c) => String(c._id) === conversationId,
       );
+
       if (conv) {
         conv.updatedAt = message.sentAt;
+
+        // If not active, mark as unread
+        if (this.activeConversationId !== conversationId) {
+          if (!conv.hasUnread) {
+            conv.hasUnread = true;
+            this.updateUnreadCountFromConversations();
+          }
+        }
+
         this.conversations.sort(
           (a, b) =>
             new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
         );
+      } else {
+        // If it's a new conversation, fetch the whole list again.
+        // We can get the gameId from the Galaxy store.
+        const galaxyStore = useGalaxyStore();
+
+        if (galaxyStore.galaxy) {
+          this.fetchConversations(galaxyStore.galaxy.game._id);
+        }
       }
     },
     selectConversation(conversationId: string) {
       this.activeConversationId = conversationId;
+    },
+    updateUnreadCountFromConversations() {
+      this.unreadCount = this.conversations.filter((c) => c.hasUnread).length;
     },
   },
 });

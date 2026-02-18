@@ -14,7 +14,9 @@ export class ChatService {
     return ConversationModel.find({
       gameId,
       participantPlayerIds: playerId,
-    }).sort({ updatedAt: -1 });
+    })
+      .sort({ updatedAt: -1 })
+      .lean();
   }
 
   static async findConversation(
@@ -76,6 +78,19 @@ export class ChatService {
       throw new Error("Player is not a participant in this conversation");
     }
 
+    // Remove requesting player from unreadPlayerIds
+    if (
+      conversation.unreadPlayerIds.some(
+        (id) => String(id) === String(requestingPlayerId),
+      )
+    ) {
+      conversation.unreadPlayerIds = conversation.unreadPlayerIds.filter(
+        (id) => String(id) !== String(requestingPlayerId),
+      );
+
+      await conversation.save();
+    }
+
     return MessageModel.find({ conversationId }).sort({ sentAt: 1 });
   }
 
@@ -115,6 +130,12 @@ export class ChatService {
     const model = new MessageModel(message);
     await model.save();
 
+    // Set unreadPlayerIds to all participants except the sender
+    const unreadPlayerIds = conversation.participantPlayerIds.filter(
+      (id) => String(id) !== String(playerId),
+    );
+
+    conversation.unreadPlayerIds = unreadPlayerIds;
     conversation.updatedAt = new Date();
     await conversation.save();
 
@@ -135,5 +156,15 @@ export class ChatService {
     }
 
     return model;
+  }
+
+  static async getUnreadConversationCount(
+    gameId: UnifiedId,
+    playerId: UnifiedId,
+  ) {
+    return ConversationModel.countDocuments({
+      gameId,
+      unreadPlayerIds: playerId,
+    });
   }
 }

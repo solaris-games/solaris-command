@@ -258,6 +258,7 @@ onMounted(async () => {
   await galaxyStore.fetchGalaxy(gameId as any);
 
   chatStore.isOpen = false; // Close this so we don't persist the chat window in different games.
+  chatStore.fetchConversations(gameId as any);
 
   // Connect to the websocket server
   socketStore.connect(config, gameId);

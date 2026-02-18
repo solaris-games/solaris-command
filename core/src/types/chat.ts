@@ -5,6 +5,7 @@ export interface Conversation {
   gameId: UnifiedId;
   name: string;
   participantPlayerIds: UnifiedId[];
+  unreadPlayerIds: UnifiedId[];
   createdAt: Date;
   updatedAt: Date;
 }

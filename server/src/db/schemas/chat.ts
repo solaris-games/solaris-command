@@ -8,6 +8,9 @@ const ConversationSchema = new Schema<Conversation>(
     participantPlayerIds: [
       { type: Schema.Types.ObjectId, ref: "Player", required: true },
     ],
+    unreadPlayerIds: [
+      { type: Schema.Types.ObjectId, ref: "Player", required: true },
+    ],
   },
   { timestamps: true },
 );

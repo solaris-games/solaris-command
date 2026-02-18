@@ -13,6 +13,7 @@ export class ConversationFactory {
       gameId,
       name,
       participantPlayerIds,
+      unreadPlayerIds: [],
       createdAt: new Date(),
       updatedAt: new Date(),
     };

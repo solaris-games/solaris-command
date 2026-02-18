@@ -42,12 +42,19 @@
 
     <!-- Chat -->
     <button
-      class="btn btn-outline-theme"
+      class="btn btn-outline-theme position-relative"
       @click="chatStore.toggleChat()"
       v-if="galaxyStore.currentPlayer"
       :class="{ active: chatStore.isOpen }"
     >
       <i class="fas fa-comments"></i>
+      <span
+        v-if="chatStore.unreadCount > 0"
+        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+        style="z-index: 1"
+      >
+        {{ chatStore.unreadCount }}
+      </span>
     </button>
 
     <!-- Fleet -->
