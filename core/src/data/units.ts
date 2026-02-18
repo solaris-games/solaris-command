@@ -14,7 +14,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       defense: 1,
       armour: 0,
       maxAP: 1,
-      maxMP: 20, // Very high mobility
+      maxMP: 10, // Very high mobility
       defaultSteps: 1,
       maxSteps: 3,
       initiative: 1,
@@ -34,7 +34,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       defense: 2,
       armour: 0,
       maxAP: 1,
-      maxMP: 16,
+      maxMP: 8,
       defaultSteps: 2,
       maxSteps: 4,
       initiative: 1,
@@ -56,7 +56,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       defense: 3,
       armour: 1, // Light armour
       maxAP: 1,
-      maxMP: 14,
+      maxMP: 7,
       defaultSteps: 2,
       maxSteps: 4,
       initiative: 2,
@@ -76,7 +76,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       defense: 2, // Weak defense
       armour: 0, // No heavy armour
       maxAP: 1,
-      maxMP: 14, // Fast
+      maxMP: 7, // Fast
       defaultSteps: 3,
       maxSteps: 5,
       initiative: 2,
@@ -98,7 +98,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       defense: 4,
       armour: 2, // Good armour
       maxAP: 1,
-      maxMP: 12,
+      maxMP: 6,
       defaultSteps: 3,
       maxSteps: 5,
       initiative: 3,
@@ -118,7 +118,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       defense: 3, // Cruiser hull
       armour: 1, // Weak armour for a capital
       maxAP: 1,
-      maxMP: 12, // Fast for a capital
+      maxMP: 6, // Fast for a capital
       defaultSteps: 4,
       maxSteps: 6,
       initiative: 3,
@@ -140,7 +140,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       defense: 6,
       armour: 3, // Heavy Armour
       maxAP: 1,
-      maxMP: 10,
+      maxMP: 5,
       defaultSteps: 4,
       maxSteps: 6,
       initiative: 4, // Acts late
@@ -160,7 +160,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       defense: 8,
       armour: 4, // Super Heavy Armour (Requires Torpedoes to scratch)
       maxAP: 1,
-      maxMP: 6, // Crawls
+      maxMP: 3, // Crawls
       defaultSteps: 5,
       maxSteps: 7, // Huge HP pool
       initiative: 4,
