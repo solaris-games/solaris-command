@@ -91,7 +91,7 @@ export class ChatService {
       await conversation.save();
     }
 
-    return MessageModel.find({ conversationId }).sort({ sentAt: 1 });
+    return MessageModel.find({ conversationId }).sort({ sentAt: 1 }).lean();
   }
 
   static async sendMessage(

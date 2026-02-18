@@ -22,6 +22,10 @@ export class UnitService {
     return UnitModel.find({ gameId });
   }
 
+  static async getByGameIdLean(gameId: UnifiedId) {
+    return UnitModel.find({ gameId }).lean();
+  }
+
   static async getUnitById(gameId: UnifiedId, unitId: UnifiedId) {
     return UnitModel.findOne({ gameId, _id: unitId });
   }

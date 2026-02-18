@@ -5,6 +5,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import { useGalaxyStore } from "./galaxy";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
+import { UnitStatus } from "@solaris-command/core/src/types/unit";
 
 type APIUnit = GameGalaxyResponseSchema["units"][0];
 type APIHex = GameGalaxyResponseSchema["hexes"][0];
@@ -68,7 +69,11 @@ export const useMovementStore = defineStore("movement", () => {
     if (reachableHexes.value.some((h) => h._id === hex._id)) {
       // If the hex is reachable, add it to the path
       movementPath.value.push(hex);
-    movementPathMPCost.value += MapUtils.getHexMPCost(hex, galaxyStore.currentPlayerId, false);
+      movementPathMPCost.value += MapUtils.getHexMPCost(
+        hex,
+        galaxyStore.currentPlayerId,
+        false,
+      );
     } else {
       // If not reachable, don't add
       return;
@@ -83,7 +88,11 @@ export const useMovementStore = defineStore("movement", () => {
 
     if (movementPath.value.length) {
       const hex = movementPath.value.pop();
-    movementPathMPCost.value -= MapUtils.getHexMPCost(hex as any, galaxyStore.currentPlayerId, false);
+      movementPathMPCost.value -= MapUtils.getHexMPCost(
+        hex as any,
+        galaxyStore.currentPlayerId,
+        false,
+      );
       recalculateReachableHexes();
     }
   }
@@ -101,19 +110,24 @@ export const useMovementStore = defineStore("movement", () => {
     if (!galaxyStore.selectedUnit) return;
 
     const unitId = galaxyStore.selectedUnit._id;
-    const path = movementPath.value.map((hex) => hex._id);
+    const pathIds = movementPath.value.map((hex) => hex._id);
+    const pathLocs = movementPath.value.map((hex) => hex.location);
 
     try {
       await axios.post(
         `/api/v1/games/${galaxyStore.galaxy?.game._id}/units/${unitId}/move`,
-        { hexIdPath: path },
+        { hexIdPath: pathIds },
       );
 
-      await galaxyStore.fetchGalaxy(galaxyStore.galaxy!.game._id);
+      // Update local data
+      galaxyStore.selectedUnit.state.status = UnitStatus.MOVING;
+      galaxyStore.selectedUnit.movement = {
+        path: pathLocs,
+      };
 
       isMoveMode.value = false;
       movementPath.value = [];
-    movementPathMPCost.value = 0;
+      movementPathMPCost.value = 0;
       reachableHexes.value = [];
     } catch (err: any) {
       alert("Move failed: " + (err.response?.data?.errorCode || err.message));

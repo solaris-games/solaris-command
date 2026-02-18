@@ -15,6 +15,10 @@ export class StationService {
     return StationModel.find({ gameId });
   }
 
+  static async getByGameIdLean(gameId: UnifiedId) {
+    return StationModel.find({ gameId }).lean();
+  }
+
   static async getByPlayerId(gameId: UnifiedId, playerId: UnifiedId) {
     return StationModel.find({ gameId, playerId });
   }

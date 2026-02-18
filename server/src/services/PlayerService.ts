@@ -18,6 +18,9 @@ export class PlayerService {
   static async getByGameId(gameId: UnifiedId) {
     return PlayerModel.find({ gameId });
   }
+  static async getByGameIdLean(gameId: UnifiedId) {
+    return PlayerModel.find({ gameId }).lean();
+  }
 
   static async getByGameAndUserId(gameId: UnifiedId, userId: UnifiedId) {
     return PlayerModel.findOne({

@@ -30,11 +30,11 @@ export class GameGalaxyService {
     const gameId = game._id;
 
     const [players, hexes, allUnits, planets, stations] = await Promise.all([
-      PlayerService.getByGameId(gameId),
-      HexService.getByGameId(gameId),
-      UnitService.getByGameId(gameId),
-      PlanetService.getByGameId(gameId),
-      StationService.getByGameId(gameId),
+      PlayerService.getByGameIdLean(gameId),
+      HexService.getByGameIdLean(gameId),
+      UnitService.getByGameIdLean(gameId),
+      PlanetService.getByGameIdLean(gameId),
+      StationService.getByGameIdLean(gameId),
     ]);
 
     const currentPlayer = players.find(

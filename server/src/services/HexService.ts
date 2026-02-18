@@ -15,6 +15,9 @@ export class HexService {
   static async getByGameId(gameId: UnifiedId) {
     return HexModel.find({ gameId });
   }
+  static async getByGameIdLean(gameId: UnifiedId) {
+    return HexModel.find({ gameId }).lean();
+  }
 
   static async getByGameIdAndPlayerId(gameId: UnifiedId, playerId: UnifiedId) {
     return HexModel.find({ gameId, playerId });

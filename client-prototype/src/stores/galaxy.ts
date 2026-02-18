@@ -8,6 +8,7 @@ import { GameStates } from "@solaris-command/core/src/types/game";
 import { CombatOperation } from "@solaris-command/core/src/types/combat";
 import { UnitManager } from "@solaris-command/core/src/utils/unit-manager";
 import { getValidAttackTargetHexes } from "@/utils/combatUtils";
+import { UnitStatus } from "@solaris-command/core/src/types/unit";
 
 type APIHex = GameGalaxyResponseSchema["hexes"][0];
 type APIUnit = GameGalaxyResponseSchema["units"][0];
@@ -37,7 +38,7 @@ export const useGalaxyStore = defineStore("galaxy", {
     selectedUnitHasValidAttackTargets: null as boolean | null,
     isGameInPlay: false,
     isGameClockRunning: false,
-    isGameStarting: false
+    isGameStarting: false,
   }),
   getters: {
     players: (state): APIPlayer[] => state.galaxy?.players || [],
@@ -124,7 +125,8 @@ export const useGalaxyStore = defineStore("galaxy", {
           this.galaxy!.game.state.status === GameStates.ACTIVE ||
           this.galaxy!.game.state.status === GameStates.STARTING;
 
-        this.isGameStarting = this.galaxy!.game.state.status === GameStates.STARTING;
+        this.isGameStarting =
+          this.galaxy!.game.state.status === GameStates.STARTING;
 
         // Reload any selected hexes/planets/stations/units etc.
         if (this.selectedHex)
@@ -206,7 +208,11 @@ export const useGalaxyStore = defineStore("galaxy", {
           {},
         );
 
-        await this.fetchGalaxy(this.galaxy!.game._id);
+        // Update the local data
+        this.selectedUnit.state.status = UnitStatus.IDLE;
+        this.selectedUnit.movement = {
+          path: [],
+        };
       } catch (err: any) {
         alert(
           "Cancel move failed: " +
@@ -233,7 +239,14 @@ export const useGalaxyStore = defineStore("galaxy", {
           },
         );
 
-        await this.fetchGalaxy(this.galaxy!.game._id);
+        // Update the local data
+        this.selectedUnit.state.status = UnitStatus.PREPARING;
+        this.selectedUnit.combat = {
+          hexId: targetUnit.hexId,
+          location: targetUnit.location,
+          operation,
+          advanceOnVictory,
+        };
       } catch (err: any) {
         alert(
           "Attack failed: " + (err.response?.data?.errorCode || err.message),
@@ -247,7 +260,14 @@ export const useGalaxyStore = defineStore("galaxy", {
           {},
         );
 
-        await this.fetchGalaxy(this.galaxy!.game._id);
+        // Update the local data
+        unit.state.status = UnitStatus.IDLE;
+        unit.combat = {
+          hexId: null,
+          location: null,
+          operation: null,
+          advanceOnVictory: null,
+        };
       } catch (err: any) {
         alert(
           "Cancel attack failed: " +
@@ -263,6 +283,8 @@ export const useGalaxyStore = defineStore("galaxy", {
           hexId: hex._id,
         });
 
+        // TODO: Update local data instead of reloading galaxy.
+        
         await this.fetchGalaxy(this.galaxy!.game._id);
       } catch (err: any) {
         alert(
@@ -278,6 +300,8 @@ export const useGalaxyStore = defineStore("galaxy", {
           `/api/v1/games/${this.galaxy?.game._id}/stations/${station._id}`,
         );
 
+        // TODO: Update local data instead of reloading galaxy.
+        
         await this.fetchGalaxy(this.galaxy!.game._id);
       } catch (err: any) {
         alert(
@@ -297,6 +321,8 @@ export const useGalaxyStore = defineStore("galaxy", {
           },
         );
 
+        // TODO: Update local data instead of reloading galaxy.
+        
         await this.fetchGalaxy(this.galaxy!.game._id);
       } catch (err: any) {
         alert(
@@ -314,6 +340,8 @@ export const useGalaxyStore = defineStore("galaxy", {
           },
         );
 
+        // TODO: Update local data instead of reloading galaxy.
+        
         await this.fetchGalaxy(this.galaxy!.game._id);
       } catch (err: any) {
         alert(
@@ -332,6 +360,8 @@ export const useGalaxyStore = defineStore("galaxy", {
           },
         );
 
+        // TODO: Update local data instead of reloading galaxy.
+
         await this.fetchGalaxy(this.galaxy!.game._id);
       } catch (err: any) {
         alert(
@@ -347,7 +377,8 @@ export const useGalaxyStore = defineStore("galaxy", {
           {},
         );
 
-        await this.fetchGalaxy(this.galaxy!.game._id);
+        // Update the local data.
+        unit.steps = UnitManager.scrapSteps(unit.steps, 1);
       } catch (err: any) {
         alert(
           "Scrap unit step failed: " +

@@ -19,6 +19,10 @@ export class PlanetService {
     return PlanetModel.find({ gameId });
   }
 
+  static async getByGameIdLean(gameId: UnifiedId) {
+    return PlanetModel.find({ gameId }).lean();
+  }
+
   static async insertPlanets(planets: Planet[], session?: ClientSession) {
     await PlanetModel.insertMany(planets, { session });
   }

@@ -11,7 +11,7 @@ export class GameService {
 
   static async listGamesByUser(userId: UnifiedId) {
     // 1. Find games where user is a player
-    const myPlayers = await PlayerModel.find({ userId });
+    const myPlayers = await PlayerModel.find({ userId }).lean();
 
     const myGameIds = myPlayers.map((p) => p.gameId as Types.ObjectId);
 
@@ -21,7 +21,9 @@ export class GameService {
         { _id: { $in: myGameIds } as any },
         { "state.status": GameStates.PENDING },
       ],
-    }).limit(50);
+    })
+      .limit(50)
+      .lean();
 
     games.sort((a, b) => {
       if (a.state.startDate === null && b.state.startDate !== null) {
@@ -34,7 +36,10 @@ export class GameService {
         return 0; // Both null, maintain relative order
       }
       // Both non-null, sort descending
-      return (b.state.startDate as Date).getTime() - (a.state.startDate as Date).getTime();
+      return (
+        (b.state.startDate as Date).getTime() -
+        (a.state.startDate as Date).getTime()
+      );
     });
 
     return { games, myGameIds };
@@ -65,7 +70,8 @@ export class GameService {
       ],
     })
       .sort({ createdAt: -1 })
-      .limit(100);
+      .limit(100)
+      .lean();
   }
 
   static async startGame(gameId: UnifiedId) {
@@ -86,14 +92,14 @@ export class GameService {
       {
         "state.status": GameStates.ACTIVE,
       },
-      session
+      session,
     );
   }
 
   static async updateGameState(
     gameId: UnifiedId,
     update: any,
-    session?: ClientSession
+    session?: ClientSession,
   ) {
     return GameModel.updateOne({ _id: gameId }, { $set: update }, { session });
   }
@@ -102,7 +108,7 @@ export class GameService {
     return GameModel.findOneAndUpdate(
       { _id: gameId },
       { $inc: { "state.playerCount": 1 } },
-      { session, new: true } // new: true returns the modified document
+      { session, new: true }, // new: true returns the modified document
     );
   }
 
@@ -110,7 +116,7 @@ export class GameService {
     return GameModel.findOneAndUpdate(
       { _id: gameId },
       { $inc: { "state.playerCount": -1 } },
-      { session, new: true } // new: true returns the modified document
+      { session, new: true }, // new: true returns the modified document
     );
   }
 }
