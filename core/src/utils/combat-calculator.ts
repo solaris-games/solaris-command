@@ -133,8 +133,8 @@ export const CombatCalculator = {
     }
 
     // --- Specialist: ENGINEERS (Siege) ---
-    // Engineers negate fortification bonuses on high defense hexes
-    if (terrainShift && terrainShift.value < 0) {
+    // Engineers negate fortification bonuses on high defense hexes and planets.
+    if (planetShift || (terrainShift && terrainShift.value < 0)) {
       const siegeVal = this.getSpecialistShiftSum(attacker, "siege");
 
       if (siegeVal > 0) {

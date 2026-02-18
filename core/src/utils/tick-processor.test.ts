@@ -404,9 +404,9 @@ describe("TickProcessor Integration Tests", () => {
 
       TickProcessor.processTick(context);
 
-      // Should refill to max (1 AP, 16 MP for Frigate in Catalog)
+      // Should refill to max (1 AP, 8 MP for Frigate in Catalog)
       expect(unit.state.ap).toBe(1);
-      expect(unit.state.mp).toBe(16);
+      expect(unit.state.mp).toBe(8);
     });
 
     it("should NOT refill Unit AP and MP on normal tick", () => {
