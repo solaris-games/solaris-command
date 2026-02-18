@@ -4,5 +4,5 @@ export type FrontendConfig = {
   googleClientId: string;
   discordClientId: string;
   devAuthEnabled: boolean;
-  error: Error | null; // for maintenance etc.
+  error?: Error | null; // for maintenance etc.
 };

@@ -15,7 +15,8 @@ import {
 
 dotenv.config();
 
-const mongoUri = process.env.MONGO_URI || "mongodb://localhost:27017/solaris-command";
+const mongoUri =
+  process.env.MONGO_URI || "mongodb://localhost:27017/solaris-command";
 
 let connection: Connection | null = null;
 
