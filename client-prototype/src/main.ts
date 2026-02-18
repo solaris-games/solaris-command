@@ -49,6 +49,24 @@ const init = (config: FrontendConfig) => {
   app.mount("#app");
 };
 
-fetch("/api/v1/config")
-  .then((r) => r.json())
-  .then((cfg) => init(cfg));
+const loadConfig = async () => {
+    try {
+        const response = await fetch("/api/v1/config");
+
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error(`HTTP ${response.status}: ${text}`);
+        }
+
+        const cfg = await response.json();
+
+        init(cfg);
+
+    } catch (error) {
+        console.error("Failed to load config:", error);
+
+        init({ error } as any);
+    }
+}
+
+loadConfig();
