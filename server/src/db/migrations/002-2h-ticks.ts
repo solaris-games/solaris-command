@@ -11,8 +11,8 @@ export const up = async (db: Db): Promise<void> => {
 
     // Update ticksPerCycle and tickDurationMS for all games
     const updateFields: any = {
-      ticksPerCycle,
-      tickDurationMS,
+      "settings.ticksPerCycle": ticksPerCycle,
+      "settings.tickDurationMS": tickDurationMS,
     };
 
     if (!game.state.startDate) {
@@ -25,28 +25,28 @@ export const up = async (db: Db): Promise<void> => {
         now.getTime() - new Date(game.state.startDate).getTime();
 
       const rawTicks = Math.floor(timeSinceStartMS / tickDurationMS);
-      const ticks = Math.max(0, rawTicks);
+      const tick = Math.max(0, rawTicks);
 
-      const rawCycles = Math.floor(ticks / ticksPerCycle);
-      const cycles = Math.max(0, rawCycles);
+      const rawCycles = Math.floor(tick / ticksPerCycle);
+      const cycle = Math.max(0, rawCycles);
 
       const lastTickDate = new Date(
-        new Date(game.state.startDate).getTime() + ticks * tickDurationMS,
+        new Date(game.state.startDate).getTime() + tick * tickDurationMS,
       );
       const nextTickDate = new Date(lastTickDate.getTime() + tickDurationMS);
 
-      const totalTicksForNextCycle = (cycles + 1) * ticksPerCycle;
+      const totalTicksForNextCycle = (cycle + 1) * ticksPerCycle;
       const nextCycleTickDate = new Date(
         new Date(game.state.startDate).getTime() +
           totalTicksForNextCycle * tickDurationMS,
       );
 
       Object.assign(updateFields, {
-        ticks,
-        cycles,
-        lastTickDate,
-        nextTickDate,
-        nextCycleTickDate,
+        "state.tick": tick,
+        "state.cycle": cycle,
+        "state.lastTickDate": lastTickDate,
+        "state.nextTickDate": nextTickDate,
+        "state.nextCycleTickDate": nextCycleTickDate,
       });
     }
 
