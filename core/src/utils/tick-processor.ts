@@ -279,6 +279,15 @@ export const TickProcessor = {
         unit.state.status = UnitStatus.REGROUPING;
       }
     }
+
+    // For units that are 'preparing', this means that they were not put into a 'regrouping' state
+    // by combat. This can occur if the attacker/defender is not disorganised after combat.
+    // Therefore they will need to be set back to 'idle'.
+    for (const unit of context.units) {
+      if (unit.state.status === UnitStatus.PREPARING) {
+        unit.state.status = UnitStatus.IDLE;
+      }
+    }
   },
 
   processTickPlayerAFK(context: TickContext) {
