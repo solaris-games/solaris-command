@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { ERROR_CODES, Player } from "@solaris-command/core";
+import { ERROR_CODES, Player, PlayerStatus } from "@solaris-command/core";
 import { PlayerService } from "../services";
 import { Types } from "mongoose";
 
@@ -15,7 +15,7 @@ declare global {
 export const loadPlayer = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const userId = req.user._id;
   const gameId = req.params.id;
@@ -23,7 +23,7 @@ export const loadPlayer = async (
   try {
     const player = await PlayerService.getByGameAndUserId(
       new Types.ObjectId(gameId),
-      userId
+      userId,
     );
 
     if (!player)
@@ -38,6 +38,20 @@ export const loadPlayer = async (
     return res.status(500).json({
       errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
     });
+  }
+
+  next();
+};
+
+export const requireActivePlayer = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (req.player.status !== PlayerStatus.ACTIVE) {
+    return res
+      .status(400)
+      .json({ errorCode: ERROR_CODES.PLAYER_IS_NOT_ACTIVE });
   }
 
   next();

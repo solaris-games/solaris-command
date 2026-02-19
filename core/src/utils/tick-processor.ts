@@ -3,6 +3,7 @@ import { HexUtils } from "./hex-utils";
 import { UnitManager } from "./unit-manager";
 import { SupplyEngine } from "./supply-engine";
 import { MapUtils } from "./map-utils";
+import { PlanetUtils } from "./planet-utils";
 import { GameLeaderboardUtils } from "./game-leaderboard";
 import { UnifiedId } from "../types/unified-id";
 import { GameEvent, GameEventTypes } from "../types/game-event";
@@ -37,7 +38,7 @@ interface MoveIntent {
 }
 
 /**
- * Sorts units by iniative. 
+ * Sorts units by iniative.
  * This is used by movement and combat to determine which units execute their action first.
  * Tie breaks: MP, active steps, total steps
  */
@@ -898,11 +899,11 @@ export const TickProcessor = {
       );
 
       // Calculate Prestige Income
-      const income = TickProcessor.calculatePrestigeIncome(ownedPlanets);
+      const income = PlanetUtils.calculatePrestigeIncome(ownedPlanets);
       const newPrestige = player.prestigePoints + income;
 
       // Calculate Victory Points (Accumulated per cycle)
-      const vpIncome = TickProcessor.calculateVPIncome(ownedPlanets);
+      const vpIncome = PlanetUtils.calculateVPIncome(ownedPlanets);
       const newVP = player.victoryPoints + vpIncome;
 
       player.prestigePoints = newPrestige;
@@ -928,34 +929,6 @@ export const TickProcessor = {
         }))
         .sort((a, b) => b.newVP - a.newVP), // Sort by new vp descending
     });
-  },
-
-  /**
-   * Calculate total Prestige generated this cycle
-   */
-  calculatePrestigeIncome(ownedPlanets: Planet[]): number {
-    return ownedPlanets.reduce(
-      (total, planet) =>
-        total +
-        (planet.isCapital
-          ? CONSTANTS.PLANET_PRESTIGE_INCOME_CAPITAL
-          : CONSTANTS.PLANET_PRESTIGE_INCOME),
-      0,
-    );
-  },
-
-  /**
-   * Calculate total VPs generated this cycle
-   */
-  calculateVPIncome(ownedPlanets: Planet[]): number {
-    return ownedPlanets.reduce(
-      (total, planet) =>
-        total +
-        (planet.isCapital
-          ? CONSTANTS.PLANET_VP_INCOME_CAPITAL
-          : CONSTANTS.PLANET_VP_INCOME),
-      0,
-    );
   },
 
   validatePreTickState(context: TickContext) {
@@ -1022,14 +995,6 @@ export const TickProcessor = {
             ERROR_CODES.UNIT_MUST_HAVE_ACTIVE_ARTILLERY_SPECIALIST,
           );
         }
-      }
-
-      // Units must not be attacking eachother.
-      if (
-        targetUnit.state.status === UnitStatus.PREPARING &&
-        String(targetUnit.combat.hexId) === String(unit.hexId)
-      ) {
-        throw new Error(ERROR_CODES.UNIT_CANNOT_COUNTER_ATTACK);
       }
     }
 

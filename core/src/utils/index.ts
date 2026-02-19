@@ -9,3 +9,4 @@ export * from "./tick-processor";
 export * from "./unit-manager";
 export * from "./fog-of-war";
 export * from "./game-leaderboard";
+export * from "./planet-utils";

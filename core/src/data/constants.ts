@@ -8,6 +8,7 @@ export const CONSTANTS = {
   // Planets
   PLANET_PRESTIGE_INCOME_CAPITAL: 250,
   PLANET_PRESTIGE_INCOME: 100,
+  PLANET_PRESTIGE_INCOME_HEX_DISTANCE_PENALTY: 0.05, // 5% penalty per hex
 
   // VP income is based on the rule of thumb of 8 player games
   // with 8 planets per player; games should last ~2 weeks.

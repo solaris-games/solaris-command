@@ -12,6 +12,7 @@ import {
   loadGame,
   loadPlayer,
   requireActiveGame,
+  requireActivePlayer,
   requireCompletedGame,
   validateRequest,
 } from "../middleware";
@@ -34,6 +35,7 @@ router.post(
   loadGame,
   requireActiveGame,
   loadPlayer,
+  requireActivePlayer,
   async (req, res) => {
     const {
       targetPlayerId,

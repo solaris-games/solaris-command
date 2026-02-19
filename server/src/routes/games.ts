@@ -6,7 +6,11 @@ import {
   requireActiveGame,
   requirePendingGame,
 } from "../middleware/game";
-import { loadPlayer, validateRequest } from "../middleware";
+import {
+  loadPlayer,
+  requireActivePlayer,
+  validateRequest,
+} from "../middleware";
 import {
   ERROR_CODES,
   MapUtils,
@@ -381,6 +385,7 @@ router.post(
   loadGame,
   requireActiveGame,
   loadPlayer,
+  requireActivePlayer,
   async (req, res) => {
     try {
       await executeInTransaction(async (session) => {

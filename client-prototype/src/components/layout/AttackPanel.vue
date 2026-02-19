@@ -84,7 +84,7 @@
                   class="form-check-input"
                   type="checkbox"
                   id="chkAdvanceOnVictory"
-                  :value="combatStore.advanceOnVictory"
+                  v-model="combatStore.advanceOnVictory"
                 />
                 <label class="form-check-label" for="chkAdvanceOnVictory">
                   Advance on Victory

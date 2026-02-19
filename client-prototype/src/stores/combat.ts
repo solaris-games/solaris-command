@@ -67,6 +67,9 @@ export const useCombatStore = defineStore("combat", {
     setOperation(op: CombatOperation) {
       this.selectedOperation = op;
     },
+    setAdvanceOnVictory(val: boolean) {
+      this.advanceOnVictory = val;
+    },
     clearTarget() {
       this.targetUnit = null;
       this.selectedOperation = CombatOperation.STANDARD;

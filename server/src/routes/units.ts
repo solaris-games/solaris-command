@@ -32,6 +32,7 @@ import {
   requireNonRegoupingUnit,
   requireInPlayGame,
   validateRequest,
+  requireActivePlayer,
 } from "../middleware";
 import {
   UnitService,
@@ -53,6 +54,7 @@ router.post(
   loadGame,
   requireInPlayGame,
   loadPlayer,
+  requireActivePlayer,
   loadPlayerHexes,
   loadPlanets,
   loadUnits,
@@ -184,6 +186,7 @@ router.post(
   loadGame,
   requireInPlayGame,
   loadPlayer,
+  requireActivePlayer,
   loadPlayerUnit,
   requireNonRegoupingUnit,
   async (req, res) => {
@@ -253,6 +256,7 @@ router.post(
   loadGame,
   requireInPlayGame,
   loadPlayer,
+  requireActivePlayer,
   loadPlayerUnit,
   requireNonRegoupingUnit,
   async (req, res) => {
@@ -285,6 +289,7 @@ router.post(
   loadGame,
   requireInPlayGame,
   loadPlayer,
+  requireActivePlayer,
   loadPlayerUnit,
   requireNonRegoupingUnit,
   async (req, res) => {
@@ -353,14 +358,6 @@ router.post(
       }
     }
 
-    // Units must not be attacking eachother.
-    if (
-      targetUnit.state.status === UnitStatus.PREPARING &&
-      String(targetUnit.combat.hexId) === String(req.unit.hexId)
-    ) {
-      throw new Error(ERROR_CODES.UNIT_CANNOT_COUNTER_ATTACK);
-    }
-
     try {
       await UnitService.declareUnitAttack(req.game._id, req.unit._id, {
         hexId: hex._id,
@@ -387,6 +384,7 @@ router.post(
   loadGame,
   requireInPlayGame,
   loadPlayer,
+  requireActivePlayer,
   loadPlayerUnit,
   requireNonRegoupingUnit,
   async (req, res) => {
@@ -424,6 +422,7 @@ router.post(
   loadGame,
   requireInPlayGame,
   loadPlayer,
+  requireActivePlayer,
   loadPlayerUnit,
   async (req, res) => {
     const { type, specialistId } = req.body;
@@ -546,6 +545,7 @@ router.post(
   loadGame,
   requireInPlayGame,
   loadPlayer,
+  requireActivePlayer,
   loadPlayerUnit,
   async (req, res) => {
     // Unit must be in supply to scrap

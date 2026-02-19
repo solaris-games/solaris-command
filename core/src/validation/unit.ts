@@ -146,16 +146,6 @@ export const UnitValidation = {
       }
     }
 
-    if (
-      targetUnit.state.status === UnitStatus.PREPARING &&
-      String(targetUnit.combat.hexId) === String(unit.hexId)
-    ) {
-      return {
-        isValid: false,
-        errorCode: ERROR_CODES.UNIT_CANNOT_COUNTER_ATTACK,
-      };
-    }
-
     return { isValid: true };
   },
 

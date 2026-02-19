@@ -13,6 +13,7 @@ import {
 import {
   loadGame,
   loadPlayer,
+  requireActivePlayer,
   requireInPlayGame,
   validateRequest,
 } from "../middleware";
@@ -38,6 +39,7 @@ router.post(
   loadGame,
   requireInPlayGame,
   loadPlayer,
+  requireActivePlayer,
   loadStations,
   async (req, res) => {
     const { hexId }: { hexId: string } = req.body;
@@ -159,6 +161,7 @@ router.delete(
   loadGame,
   requireInPlayGame,
   loadPlayer,
+  requireActivePlayer,
   loadPlayerStation,
   async (req, res) => {
     try {

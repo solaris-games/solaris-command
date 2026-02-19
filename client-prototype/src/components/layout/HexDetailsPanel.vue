@@ -22,6 +22,7 @@
           <div v-if="selectedPlanet">
             <p class="mb-0">
               <i class="fas fa-globe"></i> {{ selectedPlanet.name }}
+              <span v-if="isUserOwner">(<i class="fas fa-coins"></i> {{ prestigeIncome }})</span>
             </p>
           </div>
           <div v-else-if="selectedStation">
@@ -59,6 +60,7 @@ import { useGalaxyStore } from "../../stores/galaxy";
 import { TerrainTypes } from "@solaris-command/core/src/types/hex";
 import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
 import LocationLink from "../LocationLink.vue";
+import { PlanetUtils } from "@solaris-command/core/src/utils/planet-utils";
 
 const galaxyStore = useGalaxyStore();
 const selectedHex = computed(() => galaxyStore.selectedHex);
@@ -80,6 +82,20 @@ const owner = computed(() => {
   if (!selectedHex.value || !galaxyStore.playerLookup) return null;
   return galaxyStore.playerLookup.get(String(selectedHex.value.playerId))!;
 });
+
+const isUserOwner = computed(() => {
+  return galaxyStore.currentPlayerId && owner.value && String(owner.value._id) === String(galaxyStore.currentPlayerId)
+})
+
+const prestigeIncome = computed(() => {
+  if (!selectedPlanet.value || !isUserOwner.value) {
+    return null
+  }
+
+  const playerCapitals = galaxyStore.planets.filter(p => p.isCapital && p.playerId && String(p.playerId) === String(galaxyStore.currentPlayerId))
+
+  return PlanetUtils.calculatePlanetPrestigeIncome(selectedPlanet.value, playerCapitals)
+})
 
 const panelStyle = computed(() => {
   if (owner.value) {
