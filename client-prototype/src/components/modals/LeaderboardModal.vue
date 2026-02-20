@@ -15,6 +15,8 @@
         </p>
       </div>
 
+      <p class="mt-3" v-if="galaxyStore.galaxy.game.state.status === GameStates.ACTIVE">Next tick: {{ nextTickCountdown }}</p>
+
       <hr />
     </div>
 
@@ -181,7 +183,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, onMounted, onUnmounted } from "vue";
 import { useGameStore } from "../../stores/game";
 import { useGalaxyStore } from "../../stores/galaxy";
 import ConfirmationModal from "./ConfirmationModal.vue";
@@ -289,4 +291,51 @@ const handleTogglePlayerReady = async () => {
     console.error("Failed to toggle ready status:", error);
   }
 };
+
+// Tick countdown
+const nextTickCountdown = ref("Calculating...");
+let countdownInterval: ReturnType<typeof setInterval>;
+
+onMounted(() => {
+  countdownInterval = setInterval(updateCountdowns, 1000);
+});
+
+onUnmounted(() => {
+  clearInterval(countdownInterval);
+});
+
+function updateCountdowns() {
+  if (!galaxyStore.galaxy || !galaxyStore.galaxy.game) {
+    nextTickCountdown.value = "N/A";
+    return;
+  }
+
+  const game = galaxyStore.galaxy.game;
+  
+  const now = new Date();
+  const nextTickDate = new Date(game.state.nextTickDate!);
+
+  if (now.getTime() >= nextTickDate.getTime()) {
+    nextTickCountdown.value = "Processing...";
+    return;
+  }
+
+  const timeToNextTick = nextTickDate.getTime() - now.getTime();
+
+  if (now.getTime() >= nextTickDate.getTime()) {
+    nextTickCountdown.value = "Processing...";
+  } else {
+    nextTickCountdown.value = formatMillisecondsToHMS(timeToNextTick);
+  }
+}
+
+function formatMillisecondsToHMS(ms: number) {
+  const hours = Math.floor(ms / (1000 * 60 * 60));
+  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+
+  const pad = (num: number) => (num < 10 ? "0" + num : num);
+
+  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+}
 </script>
