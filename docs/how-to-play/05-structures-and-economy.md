@@ -7,6 +7,7 @@ Planets are the prize.
 *   **Economy:** They generate **Prestige** every Cycle.
     * **Capital Planets** award `250` prestige per cycle.
     * **Planets** award `100` prestige per cycle.
+        * **Distance Penalty** Prestige earned by planets is reduced by `5%` **per hex** from the nearest owned capital planet.
 *   **Logistics:** **Capital Planets** serve as **Root Supply Sources**. They produce infinite supply and cannot be besieged out of supply.
 *   **Victory:** Controlling planets earns you Victory Points.
 
