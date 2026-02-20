@@ -22,4 +22,5 @@ export interface Player {
   lastSeenDate: Date;
   defeatedDate: Date | null;
   isAIControlled: boolean;
+  isReady: boolean;
 }

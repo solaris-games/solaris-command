@@ -42,10 +42,10 @@
       title="The unit's shock value"
     >
       <span class="stat-label d-none d-md-block"
-        ><i class="fas fa-bolt-lightning me-1"></i>Shock</span
+        ><i class="fas fa-explosion me-1"></i>Shock</span
       >
       <span class="d-inline-block d-md-none me-1 text-info"
-        ><i class="fas fa-bolt-lightning"></i
+        ><i class="fas fa-explosion"></i
       ></span>
       <span class="stat-value"
         >{{ unitCatalog?.stats.shock }}

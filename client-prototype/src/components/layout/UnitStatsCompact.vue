@@ -22,7 +22,7 @@
     </div>
     <div class="me-1" data-bs-toggle="tooltip" title="The unit's shock value">
       <span class="text-info"
-        ><i class="fas fa-bolt-lightning me-1"></i
+        ><i class="fas fa-explosion me-1"></i
         >{{ unitCatalog?.stats.shock }}</span
       >
     </div>
