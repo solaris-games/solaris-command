@@ -221,7 +221,7 @@ export const CombatCalculator = {
       return shifts;
     }
 
-    // When shocked units attack into hexes with defender shift
+    // When shock units attack into hexes with defender shift
     if (terrainShift && terrainShift.value < 0) {
       shifts.push({
         type: CombatShiftType.SHOCK_TERRAIN_PENALTY,

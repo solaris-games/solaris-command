@@ -2,13 +2,13 @@
 
 The combat system in Solaris: Command is designed to be deterministic and strategic. Understanding how combat odds are calculated is key to making informed decisions on the battlefield. This guide will walk you through a detailed example of a combat calculation.
 
-For this example, we will have a **Heavy Destroyer** attacking an **Shocked Cruiser**.
+For this example, we will have a **Heavy Destroyer** attacking an **Armoured Cruiser**.
 
 - **Attacker:** Heavy Destroyer
   - Attack: `4`
   - Shock: `1`
   - Steps: `2` (at full strength)
-- **Defender:** Shocked Cruiser
+- **Defender:** Armoured Cruiser
   - Defense: `4`
   - Shock: `2`
   - Steps: `3` (at full strength)
@@ -32,7 +32,7 @@ The power of a unit in combat is determined by its base stats multiplied by the 
 In our example:
 
 - **Attack Power** = `4 (Heavy Destroyer's Attack) * 2 (Steps) = 8`
-- **Defense Power** = `4 (Shocked Cruiser's Defense) * 3 (Steps) = 12`
+- **Defense Power** = `4 (Armoured Cruiser's Defense) * 3 (Steps) = 12`
 
 ---
 
@@ -94,4 +94,4 @@ The **Final Score** is the sum of the Odds Score and all Combat Shifts. This sco
 - **Final Score** = `Odds Score + Total Shifts`
 - **Final Score** = `-1 + (-1) = -2`
 
-This final score is then used to determine the outcome of the battle from the CRT, which specifies the step losses for both the attacker and the defender. A lower score is better for the defender, while a higher score is better for the attacker. In this case, a score of -2 would likely result in a favorable outcome for the defending Shocked Cruiser.
+This final score is then used to determine the outcome of the battle from the CRT, which specifies the step losses for both the attacker and the defender. A lower score is better for the defender, while a higher score is better for the attacker. In this case, a score of -2 would likely result in a favorable outcome for the defending Armoured Cruiser.

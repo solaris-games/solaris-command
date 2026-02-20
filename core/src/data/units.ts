@@ -89,7 +89,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
   {
     id: "unit_cruiser_heavy_01",
     class: UnitClasses.HEAVY_CRUISER,
-    name: "Shocked Cruiser",
+    name: "Armoured Cruiser",
     description:
       "A durable line combatant. Trades the range of light cruisers for heavy plating and sustained combat endurance.",
     cost: 300,
@@ -133,7 +133,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
     class: UnitClasses.BATTLESHIP,
     name: "Capital Battleship",
     description:
-      "Heavily shocked behemoth. Short range, but possesses devastating firepower and the shock to shrug off lighter attacks.",
+      "Heavily armoured behemoth. Short range, but possesses devastating firepower and the shock to shrug off lighter attacks.",
     cost: 400,
     stats: {
       attack: 6,
