@@ -47,7 +47,12 @@
       <span class="d-inline-block d-md-none me-1 text-info"
         ><i class="fas fa-shield-halved"></i
       ></span>
-      <span class="stat-value">{{ unitCatalog?.stats.armour }}</span>
+      <span class="stat-value"
+        >{{ unitCatalog?.stats.armour }}
+        <span class="text-warning" v-if="unitArmourShift > 0"
+          >({{ unitArmourShift }})</span
+        ></span
+      >
     </div>
     <div
       class="col-3 p-0"
@@ -83,6 +88,10 @@ const unitCatalog = computed(() => {
   if (!props.unit) return null;
   return UNIT_CATALOG_ID_MAP.get(props.unit.catalogId);
 });
+
+const unitArmourShift = computed(() => {
+  return (unitCatalog.value?.stats.armour ?? 0) + CombatCalculator.getSpecialistShiftSum(props.unit as any, 'armour')
+})
 </script>
 
 <style scoped>
