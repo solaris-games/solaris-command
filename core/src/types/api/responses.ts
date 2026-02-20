@@ -87,6 +87,7 @@ export interface GameGalaxyResponseSchema {
     defeatedDate: string | null;
     renownToDistribute: number | null;
     isAIControlled: boolean;
+    isReady: boolean;
   }[];
   hexes: {
     _id: UnifiedId;
@@ -141,7 +142,7 @@ export interface GameGalaxyResponseSchema {
       path: HexCoords[];
     };
     combat: {
-      hexId: UnifiedId | null,
+      hexId: UnifiedId | null;
       location: HexCoords | null;
       operation: CombatOperation | null;
       advanceOnVictory: boolean | null;

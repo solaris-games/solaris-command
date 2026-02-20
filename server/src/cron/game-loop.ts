@@ -12,7 +12,12 @@ import {
   UnitManager,
   GameLeaderboardUtils,
 } from "@solaris-command/core";
-import { GameService, SocketService, UserService } from "../services";
+import {
+  GameService,
+  PlayerService,
+  SocketService,
+  UserService,
+} from "../services";
 import { executeInTransaction } from "../db/instance";
 import {
   GameModel,
@@ -93,10 +98,26 @@ async function processActiveGames() {
         return;
       }
 
-      const nextTickDate = new Date(gameId.state.nextTickDate!);
-
       // Is it time for a tick?
-      if (now >= nextTickDate.getTime()) {
+      const nextTickDate = new Date(gameId.state.nextTickDate!);
+      const isTimeToTick = now >= nextTickDate.getTime();
+
+      let isTickExpidited = false;
+
+      if (!isTimeToTick) {
+        // If it isn't time to tick yet, let's check to see if all active players
+        // are ready. If so then we can tick early.
+        const activePlayers = await PlayerService.countActivePlayers(
+          gameId._id,
+        );
+        const readyPlayers = await PlayerService.countReadyPlayers(gameId._id);
+
+        if (readyPlayers === activePlayers) {
+          isTickExpidited = true;
+        }
+      }
+
+      if (isTimeToTick || isTickExpidited) {
         console.log(
           `⚡ Processing Tick ${gameId.state.tick + 1} for Game ${gameId._id}`,
         );
@@ -113,6 +134,11 @@ async function processActiveGames() {
         // during tick processing. We don't know how long ticks will take to
         // process so better to be safe and lock the game now.
         await GameService.lockGame(gameModel._id);
+
+        // If the tick was expidited then we need to move the next tick date to now.
+        if (isTickExpidited) {
+          gameModel.state.nextTickDate = new Date();
+        }
 
         // Cast Mongoose Document to Game interface if needed, or pass as is if compatible
         await executeGameTick(gameModel);

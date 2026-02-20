@@ -79,6 +79,24 @@ export const useSocketStore = defineStore("socket", {
         },
       );
 
+      this.socket.on("PLAYER_IS_READY", (data: { playerId: string }) => {
+        console.log("Socket: PLAYER_IS_READY received");
+        const player = galaxyStore.playerLookup?.get(data.playerId);
+
+        if (player) {
+          player.isReady = true;
+        }
+      });
+
+      this.socket.on("PLAYER_IS_NOT_READY", (data: { playerId: string }) => {
+        console.log("Socket: PLAYER_IS_NOT_READY received");
+        const player = galaxyStore.playerLookup?.get(data.playerId);
+
+        if (player) {
+          player.isReady = false;
+        }
+      });
+
       // TODO: Implement other websocket events.
     },
     disconnect() {

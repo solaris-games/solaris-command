@@ -251,4 +251,70 @@ router.post(
   },
 );
 
+// POST /api/v1/games/:id/players/ready
+router.post(
+  "/ready",
+  authenticateToken,
+  loadGame,
+  requireActiveGame,
+  loadPlayer,
+  async (req, res) => {
+    try {
+      await executeInTransaction(async (session) => {
+        await PlayerService.setReadyStatus(
+          req.game._id,
+          req.player._id,
+          true,
+          session,
+        );
+
+        SocketService.publishToGame(req.game._id, "PLAYER_IS_READY", {
+          playerId: req.player._id
+        });
+      });
+
+      res.sendStatus(200);
+    } catch (error: any) {
+      console.error("Error setting ready status:", error);
+
+      return res.status(500).json({
+        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
+    }
+  },
+);
+
+// POST /api/v1/games/:id/players/ready
+router.post(
+  "/not-ready",
+  authenticateToken,
+  loadGame,
+  requireActiveGame,
+  loadPlayer,
+  async (req, res) => {
+    try {
+      await executeInTransaction(async (session) => {
+        await PlayerService.setReadyStatus(
+          req.game._id,
+          req.player._id,
+          false,
+          session,
+        );
+
+        SocketService.publishToGame(req.game._id, "PLAYER_IS_NOT_READY", {
+          playerId: req.player._id
+        });
+      });
+
+      res.sendStatus(200);
+    } catch (error: any) {
+      console.error("Error setting ready status:", error);
+
+      return res.status(500).json({
+        errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
+      });
+    }
+  },
+);
+
 export default router;

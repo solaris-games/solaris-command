@@ -64,6 +64,7 @@ function createPlayer(id: string, overrides: Partial<Player> = {}): Player {
     lastSeenDate: new Date(),
     defeatedDate: null,
     isAIControlled: false,
+    isReady: false,
     ...overrides,
   };
 }
@@ -336,7 +337,7 @@ describe("TickProcessor Integration Tests", () => {
 
       // Event generated
       const event = context.gameEvents.find(
-        (e) => e.type === GameEventTypes.PLAYER_DECOMMISSIONED_STATION,
+        (e) => e.type === GameEventTypes.STATION_DESTROYED,
       );
       expect(event).toBeDefined();
     });

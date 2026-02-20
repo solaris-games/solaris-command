@@ -17,7 +17,8 @@ const PlayerSchema = new Schema<Player>({
   renownToDistribute: { type: Number, required: true, default: 0 },
   lastSeenDate: { type: Date, required: true, default: Date.now },
   defeatedDate: { type: Date, default: null },
-  isAIControlled: { type: Boolean, required: true, default: false }
+  isAIControlled: { type: Boolean, required: true, default: false },
+  isReady: { type: Boolean, required: true, default: false },
 });
 
 // Indexes

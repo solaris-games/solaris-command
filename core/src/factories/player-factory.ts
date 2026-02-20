@@ -22,7 +22,8 @@ export const PlayerFactory = {
       lastSeenDate: new Date(),
       defeatedDate: null,
       renownToDistribute,
-      isAIControlled: false
+      isAIControlled: false,
+      isReady: false
     };
   },
 };

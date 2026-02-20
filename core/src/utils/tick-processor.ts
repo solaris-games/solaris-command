@@ -199,12 +199,14 @@ const handleHexCapture = (context: TickContext, hex: Hex, unit: Unit) => {
         destroyedByPlayerId: destroyedByPlayer._id,
         destroyedByPlayerAlias: destroyedByPlayer.alias,
         destroyedByPlayerColor: destroyedByPlayer.color,
-        destroyStationPrestigeReward: CONSTANTS.STATION_DESTROYED_PRESTIGE_REWARD
+        destroyStationPrestigeReward:
+          CONSTANTS.STATION_DESTROYED_PRESTIGE_REWARD,
       },
     );
 
     // Give the player who destroyed the station prestige rewards.
-    destroyedByPlayer.prestigePoints += CONSTANTS.STATION_DESTROYED_PRESTIGE_REWARD
+    destroyedByPlayer.prestigePoints +=
+      CONSTANTS.STATION_DESTROYED_PRESTIGE_REWARD;
 
     hex.stationId = null;
 
@@ -223,6 +225,7 @@ export const TickProcessor = {
     const isCycleTick =
       context.game.state.tick % context.game.settings.ticksPerCycle === 0;
 
+    TickProcessor.processResetPlayersIsReady(context);
     TickProcessor.processTickPlayerAFK(context);
     TickProcessor.processHexRadiationStorms(context);
     TickProcessor.processTickUnitCombat(context);
@@ -705,6 +708,11 @@ export const TickProcessor = {
       p.defeatedDate = new Date();
       p.isAIControlled = true;
     });
+  },
+
+  processResetPlayersIsReady(context: TickContext) {
+    // Reset all player's ready status so that we don't continually tick the game.
+    context.players.forEach((p) => (p.isReady = false));
   },
 
   processTickWinnerCheck(context: TickContext) {

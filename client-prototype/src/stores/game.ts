@@ -46,7 +46,6 @@ export const useGameStore = defineStore("game", {
     async joinGame(gameId: string, alias: string, color: string) {
       try {
         await axios.post(`/api/v1/games/${gameId}/join`, { alias, color });
-        await this.fetchGames(); // Refresh list
         return true;
       } catch (err: any) {
         this.error = err.response?.data?.errorCode || "Failed to join game";
@@ -56,7 +55,6 @@ export const useGameStore = defineStore("game", {
     async leaveGame(gameId: string) {
       try {
         await axios.post(`/api/v1/games/${gameId}/leave`);
-        await this.fetchGames();
         return true;
       } catch (err: any) {
         console.error(err);
@@ -68,7 +66,24 @@ export const useGameStore = defineStore("game", {
         return;
       try {
         await axios.post(`/api/v1/games/${gameId}/concede`);
-        await this.fetchGames();
+        return true;
+      } catch (err: any) {
+        console.error(err);
+        return false;
+      }
+    },
+    async setPlayerReady(gameId: string) {
+      try {
+        await axios.post(`/api/v1/games/${gameId}/players/ready`);
+        return true;
+      } catch (err: any) {
+        console.error(err);
+        return false;
+      }
+    },
+    async setPlayerNotReady(gameId: string) {
+      try {
+        await axios.post(`/api/v1/games/${gameId}/players/not-ready`);
         return true;
       } catch (err: any) {
         console.error(err);

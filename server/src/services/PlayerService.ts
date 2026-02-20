@@ -202,6 +202,19 @@ export class PlayerService {
     );
   }
 
+  static async setReadyStatus(
+    gameId: UnifiedId,
+    playerId: UnifiedId,
+    isReady: boolean,
+    session?: ClientSession,
+  ) {
+    return PlayerModel.updateOne(
+      { gameId, _id: playerId },
+      { $set: { isReady } },
+      { session },
+    );
+  }
+
   static async touchPlayer(gameId: UnifiedId, player: Player) {
     let newStatus = player.status;
     let newIsAIControlled = player.isAIControlled;
@@ -226,6 +239,26 @@ export class PlayerService {
           isAIControlled: newIsAIControlled,
         },
       },
+    );
+  }
+
+  static async countActivePlayers(gameId: UnifiedId, session?: ClientSession) {
+    return PlayerModel.countDocuments(
+      {
+        gameId,
+        status: PlayerStatus.ACTIVE,
+      },
+      session,
+    );
+  }
+
+  static async countReadyPlayers(gameId: UnifiedId, session?: ClientSession) {
+    return PlayerModel.countDocuments(
+      {
+        gameId,
+        isReady: true,
+      },
+      session,
     );
   }
 }

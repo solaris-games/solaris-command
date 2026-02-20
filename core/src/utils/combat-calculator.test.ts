@@ -256,7 +256,7 @@ describe("CombatCalculator", () => {
       const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5); // Shock 0
       const emptyHex = createHex(TerrainTypes.EMPTY);
 
-      attacker.steps[0].specialistId = "spec_shock_01"; // Shock 1
+      attacker.steps[0].specialistId = "spec_armour_01"; // Armour 1
 
       const result = CombatCalculator.calculate(attacker, defender, emptyHex);
 

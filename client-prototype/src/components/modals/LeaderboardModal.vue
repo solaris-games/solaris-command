@@ -60,6 +60,7 @@
             <strong>{{ player.alias }}</strong>
           </div>
           <div class="col-auto">
+            <span v-if="player.isReady" class="badge bg-success">READY</span>
             <span v-if="player.status === 'AFK'" class="badge bg-secondary"
               >AFK</span
             >
@@ -118,6 +119,23 @@
         </button>
       </div>
       <div class="col-auto">
+        <button
+          class="btn ms-1"
+          :class="{
+            'btn-outline-success': !galaxyStore.currentPlayer.isReady,
+            'btn-success': galaxyStore.currentPlayer.isReady,
+          }"
+          @click="handleTogglePlayerReady"
+          v-if="
+            galaxyStore.currentPlayerId &&
+            galaxyStore.galaxy?.game.state.status === GameStates.ACTIVE
+          "
+          data-bs-toggle="tooltip"
+          title="Declare yourself ready for the next tick. When all active players are ready the game will tick early."
+        >
+          <i class="fas fa-check me-1"></i>I'm ready
+        </button>
+
         <button
           class="btn btn-success ms-1"
           @click="showTradeModal = true"
@@ -246,6 +264,29 @@ const handleConcedeGame = async () => {
     emit("close");
   } catch (error) {
     console.error("Failed to concede game:", error);
+  }
+};
+
+const handleTogglePlayerReady = async () => {
+  const game = galaxyStore.galaxy?.game;
+  if (!game) return;
+
+  if (!galaxyStore.currentPlayer) {
+    return;
+  }
+
+  try {
+    if (galaxyStore.currentPlayer.isReady) {
+      await gameStore.setPlayerNotReady(game._id.toString());
+
+      galaxyStore.currentPlayer.isReady = false;
+    } else {
+      await gameStore.setPlayerReady(game._id.toString());
+
+      galaxyStore.currentPlayer.isReady = true;
+    }
+  } catch (error) {
+    console.error("Failed to toggle ready status:", error);
   }
 };
 </script>
