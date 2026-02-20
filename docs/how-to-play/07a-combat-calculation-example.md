@@ -2,15 +2,15 @@
 
 The combat system in Solaris: Command is designed to be deterministic and strategic. Understanding how combat odds are calculated is key to making informed decisions on the battlefield. This guide will walk you through a detailed example of a combat calculation.
 
-For this example, we will have a **Heavy Destroyer** attacking an **Armoured Cruiser**.
+For this example, we will have a **Heavy Destroyer** attacking an **Shocked Cruiser**.
 
 - **Attacker:** Heavy Destroyer
   - Attack: `4`
-  - Armour: `1`
+  - Shock: `1`
   - Steps: `2` (at full strength)
-- **Defender:** Armoured Cruiser
+- **Defender:** Shocked Cruiser
   - Defense: `4`
-  - Armour: `2`
+  - Shock: `2`
   - Steps: `3` (at full strength)
 
 The combat calculation follows these steps:
@@ -32,7 +32,7 @@ The power of a unit in combat is determined by its base stats multiplied by the 
 In our example:
 
 - **Attack Power** = `4 (Heavy Destroyer's Attack) * 2 (Steps) = 8`
-- **Defense Power** = `4 (Armoured Cruiser's Defense) * 3 (Steps) = 12`
+- **Defense Power** = `4 (Shocked Cruiser's Defense) * 3 (Steps) = 12`
 
 ---
 
@@ -69,16 +69,16 @@ Common shifts include:
 - **Terrain:** Attacking into difficult terrain like an asteroid field or nebula can give a negative shift to the attacker.
 - **Planets:** A defender on a planet gains a defensive bonus.
 - **Disorganization:** Attacking a unit that is `REGROUPING` provides a bonus.
-- **Armour:** If the attacker's armour is greater than the defender's, the attacker gets a bonus (unless the defender has torpedoes).
+- **Shock:** If the attacker's shock is greater than the defender's, the attacker gets a bonus (unless the defender has torpedoes).
 - **Specialists:** Engineers, Artillery, and other specialists can add positive or negative shifts.
 
 Let's assume our combat takes place in an **Asteroid Field**, which gives a `DEFENDER_TERRAIN_BONUS` of `-1`.
 
-Additionally, the **Armour Shift** is calculated. The shift is the difference between the attacker's and defender's armour, but it only applies if the attacker has superior armour.
+Additionally, the **Shock Shift** is calculated. The shift is the difference between the attacker's and defender's shock, but it only applies if the attacker has superior shock.
 
-- `Armour Difference = Attacker Armour - Defender Armour = 1 - 2 = -1`
+- `Shock Difference = Attacker Shock - Defender Shock = 1 - 2 = -1`
 
-Since the difference is not positive, the attacker does not get an armour bonus. There is no penalty for having less armour in this step; the defender's higher armour is already factored into their higher `Defense Power`.
+Since the difference is not positive, the attacker does not get an shock bonus. There is no penalty for having less shock in this step; the defender's higher shock is already factored into their higher `Defense Power`.
 
 So, the total shifts in our example are:
 
@@ -94,4 +94,4 @@ The **Final Score** is the sum of the Odds Score and all Combat Shifts. This sco
 - **Final Score** = `Odds Score + Total Shifts`
 - **Final Score** = `-1 + (-1) = -2`
 
-This final score is then used to determine the outcome of the battle from the CRT, which specifies the step losses for both the attacker and the defender. A lower score is better for the defender, while a higher score is better for the attacker. In this case, a score of -2 would likely result in a favorable outcome for the defending Armoured Cruiser.
+This final score is then used to determine the outcome of the battle from the CRT, which specifies the step losses for both the attacker and the defender. A lower score is better for the defender, while a higher score is better for the attacker. In this case, a score of -2 would likely result in a favorable outcome for the defending Shocked Cruiser.

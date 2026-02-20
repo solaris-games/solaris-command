@@ -253,7 +253,7 @@
               <th>Prestige Cost</th>
               <th>Attack</th>
               <th>Defense</th>
-              <th>Armour</th>
+              <th>Shock</th>
               <th>Max AP</th>
               <th>Max MP</th>
               <th>Steps</th>
@@ -269,7 +269,7 @@
               <td class="text-end">{{ unit.cost }}</td>
               <td class="text-end">{{ unit.stats.attack }}</td>
               <td class="text-end">{{ unit.stats.defense }}</td>
-              <td class="text-end">{{ unit.stats.armour }}</td>
+              <td class="text-end">{{ unit.stats.shock }}</td>
               <td class="text-end">{{ unit.stats.maxAP }}</td>
               <td class="text-end">{{ unit.stats.maxMP }}</td>
               <td class="text-end">
@@ -300,7 +300,7 @@
               <th>Prestige Cost</th>
               <th>Attack</th>
               <th>Defense</th>
-              <th>Armour</th>
+              <th>Shock</th>
               <th>Artillery</th>
               <th>Siege</th>
               <th>Bonuses</th>
@@ -314,7 +314,7 @@
               <td class="text-end">{{ spec.cost }}</td>
               <td class="text-end">{{ spec.stats.attack }}</td>
               <td class="text-end">{{ spec.stats.defense }}</td>
-              <td class="text-end">{{ spec.stats.armour }}</td>
+              <td class="text-end">{{ spec.stats.shock }}</td>
               <td class="text-end">{{ spec.stats.artillery }}</td>
               <td class="text-end">{{ spec.stats.siege }}</td>
               <td>

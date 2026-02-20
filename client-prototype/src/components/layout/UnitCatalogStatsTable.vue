@@ -19,8 +19,8 @@
               <td class="text-end">{{ unitCatalog.stats.defense }}</td>
             </tr>
             <tr>
-              <td>Armour</td>
-              <td class="text-end">{{ unitCatalog.stats.armour }}</td>
+              <td>Shock</td>
+              <td class="text-end">{{ unitCatalog.stats.shock }}</td>
             </tr>
             <tr>
               <td>AP</td>

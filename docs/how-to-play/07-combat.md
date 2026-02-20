@@ -32,7 +32,7 @@ You can choose how to attack:
 
 ## Combat Shifts
 Combat is modified by "Shifts" (moving the results up or down a table).
-*   **Armour Shift:** Heavy units take deal more damage to light units.
+*   **Shock Shift:** Heavy units take deal more damage to light units.
 *   **Terrain Shift:** Defenders in Asteroids/Debris are harder to hit.
 
 ## The Interloper Rule (Collision Override)

@@ -3,12 +3,12 @@ import { HexCoords } from "./geometry";
 
 export enum TerrainTypes {
   // Standard Open Space
-  // Effect: Base movement, full Armour shifts allowed.
+  // Effect: Base movement, full Shock shifts allowed.
   EMPTY = "EMPTY",
 
   // Defensive Cover
   // Effect: Moderate Move penalty. Defense bonus.
-  // Mechanical logic: 'Screening' ships (Frigates) excel here; Attackers lose "Armour" bonuses.
+  // Mechanical logic: 'Screening' ships (Frigates) excel here; Attackers lose "Shock" bonuses.
   ASTEROID_FIELD = "ASTEROID_FIELD",
   DEBRIS_FIELD = "DEBRIS_FIELD",
 
@@ -25,12 +25,12 @@ export enum TerrainTypes {
 
   // Urban/Fortified
   // Effect: Massive Defense bonus.
-  // Mechanical logic: Megastructures provide high defense. Attackers lose "Armour" bonuses.
+  // Mechanical logic: Megastructures provide high defense. Attackers lose "Shock" bonuses.
   INDUSTRIAL_ZONE = "INDUSTRIAL_ZONE",
 
   // Dangerous
   // Effect: Units suffer step suppression in these terrains
-  // Mechanical logic: Base movement, full Armour shifts allows.
+  // Mechanical logic: Base movement, full Shock shifts allows.
   RADIATION_STORM = "RADIATION_STORM",
 }
 

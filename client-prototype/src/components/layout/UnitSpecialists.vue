@@ -56,13 +56,13 @@
             </td>
           </tr>
           <tr>
-            <th scope="row" data-bs-toggle="tooltip" title="Armour">Arm.</th>
+            <th scope="row" data-bs-toggle="tooltip" title="Shock">Shk.</th>
             <td
               v-for="(step, index) in specialistStepsWithStats"
               :key="index"
               class="text-end"
             >
-              {{ step.specialist?.stats.armour }}
+              {{ step.specialist?.stats.shock }}
             </td>
           </tr>
           <tr>
@@ -124,10 +124,10 @@
                   step.specialist?.stats.defense
                 }}</span>
               </div>
-              <div data-bs-toggle="tooltip" title="Armour">
-                <span class="stat-label">Arm:</span>
+              <div data-bs-toggle="tooltip" title="Shock">
+                <span class="stat-label">Shk:</span>
                 <span class="stat-value">{{
-                  step.specialist?.stats.armour
+                  step.specialist?.stats.shock
                 }}</span>
               </div>
               <div data-bs-toggle="tooltip" title="Artillery">

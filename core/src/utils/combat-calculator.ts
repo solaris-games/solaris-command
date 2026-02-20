@@ -167,10 +167,10 @@ export const CombatCalculator = {
       });
     }
 
-    // --- Armour vs Torpedoes ---
-    const armourShifts = this.getArmourShifts(attacker, defender, terrainShift);
+    // --- Shock vs Torpedoes ---
+    const shockShifts = this.getShockShifts(attacker, defender, terrainShift);
 
-    shifts = shifts.concat(armourShifts);
+    shifts = shifts.concat(shockShifts);
 
     return shifts;
   },
@@ -180,7 +180,7 @@ export const CombatCalculator = {
    */
   getSpecialistShiftSum(
     unit: Unit,
-    stat: "artillery" | "siege" | "armour",
+    stat: "artillery" | "siege" | "shock",
   ): number {
     return unit.steps.reduce((sum, step) => {
       if (!step.isSuppressed && step.specialistId) {
@@ -192,7 +192,7 @@ export const CombatCalculator = {
     }, 0);
   },
 
-  getArmourShifts(
+  getShockShifts(
     attacker: Unit,
     defender: Unit,
     terrainShift: CombatShift | null,
@@ -200,37 +200,37 @@ export const CombatCalculator = {
     const attackerUnitCtlg = UNIT_CATALOG_ID_MAP.get(attacker.catalogId)!;
     const defenderUnitCtlg = UNIT_CATALOG_ID_MAP.get(defender.catalogId)!;
 
-    const attackerSpecialistArmour = this.getSpecialistShiftSum(
+    const attackerSpecialistShock = this.getSpecialistShiftSum(
       attacker,
-      "armour",
+      "shock",
     );
-    const defenderSpecialistArmour = this.getSpecialistShiftSum(
+    const defenderSpecialistShock = this.getSpecialistShiftSum(
       defender,
-      "armour",
+      "shock",
     );
 
-    const attackerArmour =
-      attackerUnitCtlg.stats.armour + attackerSpecialistArmour;
-    const defenderArmour =
-      defenderUnitCtlg.stats.armour + defenderSpecialistArmour;
+    const attackerShock =
+      attackerUnitCtlg.stats.shock + attackerSpecialistShock;
+    const defenderShock =
+      defenderUnitCtlg.stats.shock + defenderSpecialistShock;
 
     const shifts: CombatShift[] = [];
 
-    // Armour shifts are for attackers only (including armour penalties)
-    if (attackerArmour <= 0) {
+    // Shock shifts are for attackers only (including shock penalties)
+    if (attackerShock <= 0) {
       return shifts;
     }
 
-    // When armoured units attack into hexes with defender shift
+    // When shocked units attack into hexes with defender shift
     if (terrainShift && terrainShift.value < 0) {
       shifts.push({
-        type: CombatShiftType.ARMOUR_TERRAIN_PENALTY,
-        value: CONSTANTS.COMBAT_SHIFT_ARMOUR_TERRAIN_PENALTY,
+        type: CombatShiftType.SHOCK_TERRAIN_PENALTY,
+        value: CONSTANTS.COMBAT_SHIFT_SHOCK_TERRAIN_PENALTY,
       });
     }
 
-    // Rule: Armour Shift applies if Attacker Armour > Defender Armour.
-    // Exception: If Defender has Active Torpedoes, Armour Shift is negated.
+    // Rule: Shock Shift applies if Attacker Shock > Defender Shock.
+    // Exception: If Defender has Active Torpedoes, Shock Shift is negated.
     const defenderHasTorpedo = defender.steps.some((s) => {
       const hasTorpedoSpec = s.specialistId
         ? SPECIALIST_STEP_ID_MAP.get(s.specialistId)!.type ===
@@ -240,22 +240,22 @@ export const CombatCalculator = {
       return !s.isSuppressed && hasTorpedoSpec;
     });
 
-    const armourDiff = attackerArmour - defenderArmour;
+    const shockDiff = attackerShock - defenderShock;
 
-    // Only Attacker gets armour bonus in offensive combat (Heavy ships crushing light ships)
-    // If defender has better armour, it usually just reflects in their high Defense stat,
+    // Only Attacker gets shock bonus in offensive combat (Heavy ships crushing light ships)
+    // If defender has better shock, it usually just reflects in their high Defense stat,
     // preventing a high Ratio score, so we don't apply negative shifts here typically.
-    if (armourDiff > 0) {
+    if (shockDiff > 0) {
       shifts.push({
-        type: CombatShiftType.ARMOUR,
-        value: Math.min(CONSTANTS.COMBAT_SHIFT_MAX_ARMOUR, armourDiff),
+        type: CombatShiftType.SHOCK,
+        value: Math.min(CONSTANTS.COMBAT_SHIFT_MAX_SHOCK, shockDiff),
       });
     }
 
     if (defenderHasTorpedo) {
       shifts.push({
-        type: CombatShiftType.ARMOUR_TORPEDO_PENALTY,
-        value: -armourDiff,
+        type: CombatShiftType.SHOCK_TORPEDO_PENALTY,
+        value: -shockDiff,
       });
     }
 

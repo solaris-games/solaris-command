@@ -236,36 +236,36 @@ describe("CombatCalculator", () => {
       expect(result.finalScore).toBe(1);
     });
 
-    it("should apply Armour Shift (Battleship vs Frigate)", () => {
-      const attacker = createTestUnit(CATALOG_UNIT_BATTLESHIP_ID, 5); // Armour 2
-      const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5); // Armour 0
+    it("should apply Shock Shift (Battleship vs Frigate)", () => {
+      const attacker = createTestUnit(CATALOG_UNIT_BATTLESHIP_ID, 5); // Shock 2
+      const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5); // Shock 0
       const emptyHex = createHex(TerrainTypes.EMPTY);
 
       const result = CombatCalculator.calculate(attacker, defender, emptyHex);
 
-      // Armour Diff = 2. Shift should be +2.
-      const armourShift = result.shifts.find(
-        (s) => s.type === CombatShiftType.ARMOUR
+      // Shock Diff = 2. Shift should be +2.
+      const shockShift = result.shifts.find(
+        (s) => s.type === CombatShiftType.SHOCK
       );
-      expect(armourShift).toBeDefined();
-      expect(armourShift?.value).toBe(3);
+      expect(shockShift).toBeDefined();
+      expect(shockShift?.value).toBe(3);
     });
 
-    it("should apply Armour Shift with specialist", () => {
-      const attacker = createTestUnit(CATALOG_UNIT_BATTLESHIP_ID, 5); // Armour 2
-      const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5); // Armour 0
+    it("should apply Shock Shift with specialist", () => {
+      const attacker = createTestUnit(CATALOG_UNIT_BATTLESHIP_ID, 5); // Shock 2
+      const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5); // Shock 0
       const emptyHex = createHex(TerrainTypes.EMPTY);
 
-      attacker.steps[0].specialistId = "spec_armour_01"; // Armour 1
+      attacker.steps[0].specialistId = "spec_shock_01"; // Shock 1
 
       const result = CombatCalculator.calculate(attacker, defender, emptyHex);
 
-      // Armour Diff = 3. Shift should be +3.
-      const armourShift = result.shifts.find(
-        (s) => s.type === CombatShiftType.ARMOUR
+      // Shock Diff = 3. Shift should be +3.
+      const shockShift = result.shifts.find(
+        (s) => s.type === CombatShiftType.SHOCK
       );
-      expect(armourShift).toBeDefined();
-      expect(armourShift?.value).toBe(4);
+      expect(shockShift).toBeDefined();
+      expect(shockShift?.value).toBe(4);
     });
 
     it("should apply Artillery Shift", () => {
@@ -316,8 +316,8 @@ describe("CombatCalculator", () => {
       expect(totalShift).toBe(-1);
     });
 
-    it("should Negate Armour if Defender has Torpedoes", () => {
-      const attacker = createTestUnit(CATALOG_UNIT_BATTLESHIP_ID, 5); // Armour 2
+    it("should Negate Shock if Defender has Torpedoes", () => {
+      const attacker = createTestUnit(CATALOG_UNIT_BATTLESHIP_ID, 5); // Shock 2
       // Defender has Torpedoes
       const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5, [
         CATALOG_SPEC_TORPEDO_ID,
@@ -326,25 +326,25 @@ describe("CombatCalculator", () => {
 
       const result = CombatCalculator.calculate(attacker, defender, emptyHex);
 
-      // Should have armour torpedo penalty
-      const armourShift = result.shifts.find(
-        (s) => s.type === CombatShiftType.ARMOUR_TORPEDO_PENALTY
+      // Should have shock torpedo penalty
+      const shockShift = result.shifts.find(
+        (s) => s.type === CombatShiftType.SHOCK_TORPEDO_PENALTY
       );
-      expect(armourShift).not.toBeUndefined();
+      expect(shockShift).not.toBeUndefined();
     });
 
-    it("should Negate Armour if hex is fortified", () => {
-      const attacker = createTestUnit(CATALOG_UNIT_BATTLESHIP_ID, 5); // Armour 2
+    it("should Negate Shock if hex is fortified", () => {
+      const attacker = createTestUnit(CATALOG_UNIT_BATTLESHIP_ID, 5); // Shock 2
       const defender = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5);
       const hex = createHex(TerrainTypes.INDUSTRIAL_ZONE);
 
       const result = CombatCalculator.calculate(attacker, defender, hex);
 
-      // Should have armour terrain penalty
-      const armourShift = result.shifts.find(
-        (s) => s.type === CombatShiftType.ARMOUR_TERRAIN_PENALTY
+      // Should have shock terrain penalty
+      const shockShift = result.shifts.find(
+        (s) => s.type === CombatShiftType.SHOCK_TERRAIN_PENALTY
       );
-      expect(armourShift).not.toBeUndefined();
+      expect(shockShift).not.toBeUndefined();
     });
   });
 });

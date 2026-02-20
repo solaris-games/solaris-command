@@ -223,7 +223,7 @@
       <ul>
         <li>Attack: {{ selectedSpecialistData.stats.attack }}</li>
         <li>Defense: {{ selectedSpecialistData.stats.defense }}</li>
-        <li>Armour: {{ selectedSpecialistData.stats.armour }}</li>
+        <li>Shock: {{ selectedSpecialistData.stats.shock }}</li>
         <li>Artillery: {{ selectedSpecialistData.stats.artillery }}</li>
         <li>Siege: {{ selectedSpecialistData.stats.siege }}</li>
       </ul>

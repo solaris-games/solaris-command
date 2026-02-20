@@ -39,18 +39,22 @@
     <div
       class="col-3 p-0"
       data-bs-toggle="tooltip"
-      title="The unit's armour value"
+      title="The unit's shock value"
     >
       <span class="stat-label d-none d-md-block"
-        ><i class="fas fa-shield-halved me-1"></i>Armour</span
+        ><i class="fas fa-bolt-lightning me-1"></i>Shock</span
       >
       <span class="d-inline-block d-md-none me-1 text-info"
-        ><i class="fas fa-shield-halved"></i
+        ><i class="fas fa-bolt-lightning"></i
       ></span>
       <span class="stat-value"
-        >{{ unitCatalog?.stats.armour }}
-        <span class="text-warning" v-if="unitArmourShift > 0"
-          >({{ unitArmourShift }})</span
+        >{{ unitCatalog?.stats.shock }}
+        <span
+          class="text-warning"
+          v-if="
+            unitCatalog?.stats.shock !== unitShockShift && unitShockShift > 0
+          "
+          >({{ unitShockShift }})</span
         ></span
       >
     </div>
@@ -89,9 +93,12 @@ const unitCatalog = computed(() => {
   return UNIT_CATALOG_ID_MAP.get(props.unit.catalogId);
 });
 
-const unitArmourShift = computed(() => {
-  return (unitCatalog.value?.stats.armour ?? 0) + CombatCalculator.getSpecialistShiftSum(props.unit as any, 'armour')
-})
+const unitShockShift = computed(() => {
+  return (
+    (unitCatalog.value?.stats.shock ?? 0) +
+    CombatCalculator.getSpecialistShiftSum(props.unit as any, "shock")
+  );
+});
 </script>
 
 <style scoped>

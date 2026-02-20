@@ -20,10 +20,10 @@
         >{{ unitCatalog?.stats.defense }}</span
       >
     </div>
-    <div class="me-1" data-bs-toggle="tooltip" title="The unit's armour value">
+    <div class="me-1" data-bs-toggle="tooltip" title="The unit's shock value">
       <span class="text-info"
-        ><i class="fas fa-shield-halved me-1"></i
-        >{{ unitCatalog?.stats.armour }}</span
+        ><i class="fas fa-bolt-lightning me-1"></i
+        >{{ unitCatalog?.stats.shock }}</span
       >
     </div>
     <div class="me-0" data-bs-toggle="tooltip" title="Unit's movement points">
