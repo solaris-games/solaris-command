@@ -188,7 +188,7 @@ const handleHexCapture = (context: TickContext, hex: Hex, unit: Unit) => {
 
     context.appendGameEvent(
       null, // Everyone
-      GameEventTypes.PLAYER_DECOMMISSIONED_STATION,
+      GameEventTypes.STATION_DESTROYED,
       {
         stationId: station._id,
         hexId: station.hexId,
@@ -199,8 +199,12 @@ const handleHexCapture = (context: TickContext, hex: Hex, unit: Unit) => {
         destroyedByPlayerId: destroyedByPlayer._id,
         destroyedByPlayerAlias: destroyedByPlayer.alias,
         destroyedByPlayerColor: destroyedByPlayer.color,
+        destroyStationPrestigeReward: CONSTANTS.STATION_DESTROYED_PRESTIGE_REWARD
       },
     );
+
+    // Give the player who destroyed the station prestige rewards.
+    destroyedByPlayer.prestigePoints += CONSTANTS.STATION_DESTROYED_PRESTIGE_REWARD
 
     hex.stationId = null;
 

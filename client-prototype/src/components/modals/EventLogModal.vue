@@ -75,6 +75,9 @@ const eventComponents = {
   [GameEventTypes.PLANET_CAPTURED]: defineAsyncComponent(
     () => import("../events/PlanetCaptured.vue"),
   ),
+  [GameEventTypes.STATION_DESTROYED]: defineAsyncComponent(
+    () => import("../events/StationDestroyed.vue"),
+  ),
   [GameEventTypes.UNIT_MOVEMENT_BOUNCED]: defineAsyncComponent(
     () => import("../events/UnitMovementBounced.vue"),
   ),

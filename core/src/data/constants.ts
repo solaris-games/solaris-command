@@ -28,6 +28,7 @@ export const CONSTANTS = {
 
   // Stations
   STATION_PRESTIGE_COST: 150,
+  STATION_DESTROYED_PRESTIGE_REWARD: 100,
 
   // Game Creation / Settings
   GAME_STARTING_PRESTIGE_POINTS: 500,
