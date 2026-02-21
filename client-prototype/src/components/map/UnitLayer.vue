@@ -1,14 +1,20 @@
 <template>
-  <UnitCounter
-    v-if="mapSettingsStore.showUnits"
-    v-for="unit in galaxyStore.units"
-    :key="`unit-${unit.location.q},${unit.location.r}`"
-    :config="getHexConfig(unit.location)"
-    :unit="unit"
-  />
+  <v-group
+    ref="groupRef"
+    :config="{ perfectDrawEnabled: false, listening: false }"
+  >
+    <UnitCounter
+      v-if="mapSettingsStore.showUnits"
+      v-for="unit in galaxyStore.units"
+      :key="`unit-${unit.location.q},${unit.location.r}`"
+      :config="getHexConfig(unit.location)"
+      :unit="unit"
+    />
+  </v-group>
 </template>
 
 <script setup lang="ts">
+import { onMounted, onUnmounted, onUpdated, ref } from "vue";
 import { useGalaxyStore } from "../../stores/galaxy";
 import { useMapSettingsStore } from "../../stores/mapSettings";
 import { hexToPixel } from "../../utils/hexUtils";
@@ -26,4 +32,28 @@ function getHexConfig(location: HexCoords) {
     y: Math.floor(y - HEX_SIZE / 2) - 4,
   };
 }
+
+// -----
+// Caching
+const groupRef = ref(null);
+
+onUnmounted(() => {
+  // @ts-ignore
+  groupRef.value?.getNode().clearCache();
+});
+
+onMounted(() => {
+  // @ts-ignore
+  groupRef.value?.getNode().clearCache();
+  // @ts-ignore
+  groupRef.value?.getNode().cache();
+});
+
+onUpdated(() => {
+  // @ts-ignore
+  groupRef.value?.getNode().clearCache();
+  // @ts-ignore
+  groupRef.value?.getNode().cache();
+});
+// -----
 </script>

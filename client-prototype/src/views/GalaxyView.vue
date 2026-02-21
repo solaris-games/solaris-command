@@ -236,8 +236,7 @@ const stageConfig = computed(() => ({
   y: stageState.value.y,
   scaleX: stageState.value.scale,
   scaleY: stageState.value.scale,
-  draggable: true,
-  devicePixelRatio: 1
+  draggable: true
 }));
 
 let resizeObserver: ResizeObserver;

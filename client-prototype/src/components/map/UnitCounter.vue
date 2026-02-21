@@ -1,5 +1,5 @@
 <template>
-  <v-group :config="getUnitCounterConfig(unit)" ref="groupRef">
+  <v-group :config="getUnitCounterConfig(unit)">
     <!-- background and border -->
     <v-rect :config="getUnitCounterRectConfig(unit)" />
     <!-- catalogId -->
@@ -24,7 +24,6 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, onUpdated, ref } from "vue";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
 import { useGalaxyStore } from "@/stores/galaxy";
 import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
@@ -171,28 +170,4 @@ function getUnitCounterAPConfig(unit: APIUnit) {
     fontStyle: "bold",
   };
 }
-
-// -----
-// Caching
-const groupRef = ref(null);
-
-onUnmounted(() => {
-  // @ts-ignore
-  groupRef.value?.getNode().clearCache();
-});
-
-onMounted(() => {
-  // @ts-ignore
-  groupRef.value?.getNode().clearCache();
-  // @ts-ignore
-  groupRef.value?.getNode().cache();
-});
-
-onUpdated(() => {
-  // @ts-ignore
-  groupRef.value?.getNode().clearCache();
-  // @ts-ignore
-  groupRef.value?.getNode().cache();
-});
-// -----
 </script>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted, onUnmounted, onUpdated, ref } from "vue";
 import { useGalaxyStore } from "@/stores/galaxy";
 import { HexUtils } from "@solaris-command/core/src/utils/hex-utils";
 import { hexToPixel } from "@/utils/hexUtils";
@@ -80,18 +80,48 @@ function hexCorner(center: { x: number; y: number }, size: number, i: number) {
     y: center.y + size * Math.sin(angle_rad),
   };
 }
+
+// -----
+// Caching
+const groupRef = ref(null);
+
+onUnmounted(() => {
+  // @ts-ignore
+  groupRef.value?.getNode().clearCache();
+});
+
+onMounted(() => {
+  // @ts-ignore
+  groupRef.value?.getNode().clearCache();
+  // @ts-ignore
+  groupRef.value?.getNode().cache();
+});
+
+onUpdated(() => {
+  // @ts-ignore
+  groupRef.value?.getNode().clearCache();
+  // @ts-ignore
+  groupRef.value?.getNode().cache();
+});
+// -----
 </script>
 
 <template>
-  <v-line
-    v-for="(border, index) in borders"
-    :key="index"
-    :config="{
-      points: border.points.split(' ').flatMap((p) => p.split(',').map(Number)),
-      stroke: border.color,
-      strokeWidth: 6,
-      lineCap: 'round',
-      lineJoin: 'round',
-    }"
-  />
+  <v-group
+    ref="groupRef"
+    :config="{ perfectDrawEnabled: false, listening: false }"
+  >
+    <v-line
+      v-for="(border, index) in borders"
+      :key="index"
+      :config="{
+        points: border.points
+          .split(' ')
+          .flatMap((p) => p.split(',').map(Number)),
+        stroke: border.color,
+        strokeWidth: 6,
+        lineCap: 'round',
+        lineJoin: 'round',
+      }"
+  /></v-group>
 </template>
