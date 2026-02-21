@@ -25,8 +25,6 @@
           id="stageContainer"
           ref="stageContainer"
         >
-        {{ mapSettingsStore.isPinching }}
-        {{ mapSettingsStore.stage.scale }}
           <v-stage
             v-if="stageConfig.width && stageConfig.height"
             :config="stageConfig"
@@ -35,6 +33,8 @@
             @touchstart="handleTouchStart"
             @touchmove="handleTouch"
             @touchend="handleTouchEnd"
+            @click="handleStageClick"
+            @tap="handleStageClick"
           >
             <HexMap />
           </v-stage>
@@ -166,6 +166,7 @@ import ChatPanel from "../components/chat/ChatPanel.vue";
 import MapOverlayButtons from "../components/layout/MapOverlayButtons.vue";
 import { GameStates } from "@solaris-command/core/src/types/game";
 import { configInjectionKey } from "@/utils/config.ts";
+import { pixelToHex } from "../utils/hexUtils";
 
 const route = useRoute();
 const galaxyStore = useGalaxyStore();
@@ -236,6 +237,7 @@ const stageConfig = computed(() => ({
   scaleX: stageState.value.scale,
   scaleY: stageState.value.scale,
   draggable: true,
+  devicePixelRatio: 1
 }));
 
 let resizeObserver: ResizeObserver;
@@ -308,6 +310,46 @@ function handleWheel(e: any) {
 function handleDragEnd(e: any) {
   mapSettingsStore.stage.x = e.target.x();
   mapSettingsStore.stage.y = e.target.y();
+}
+
+function handleStageClick(e: any) {
+  if (mapSettingsStore.isPinching) return;
+
+  const stage = e.currentTarget.getStage();
+  const pointerPos = stage.getPointerPosition();
+
+  if (!pointerPos) return;
+
+  // Convert pointer position to local coordinates
+  const localPos = {
+    x: (pointerPos.x - stage.x()) / stage.scaleX(),
+    y: (pointerPos.y - stage.y()) / stage.scaleY(),
+  };
+
+  const HEX_SIZE = 64;
+  const { q, r } = pixelToHex(localPos.x, localPos.y, HEX_SIZE);
+
+  const hex = galaxyStore.getHex(q, r);
+  if (hex) {
+    if (movementStore.isMoveMode) {
+      movementStore.addHexToPath(hex);
+    } else if (combatStore.isAttackMode) {
+      const unit = galaxyStore.units.find(
+        (u) =>
+          u.location.q === hex.location.q && u.location.r === hex.location.r,
+      );
+      if (unit) {
+        const isValid = combatStore.validTargetHexes.some(
+          (targetHex: any) => targetHex._id === hex._id,
+        );
+        if (isValid) {
+          combatStore.setTarget(unit);
+        }
+      }
+    } else {
+      galaxyStore.selectHex(hex);
+    }
+  }
 }
 
 let lastDist = 0;

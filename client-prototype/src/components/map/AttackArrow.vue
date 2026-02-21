@@ -1,18 +1,13 @@
 <template>
-  <v-group
-    ref="groupRef"
-    :config="{ perfectDrawEnabled: false, listening: false }"
-  >
-    <v-arrow
-      v-for="(config, index) in arrowConfigs"
-      :key="index"
-      :config="config"
-    />
-  </v-group>
+  <v-arrow
+    v-for="(config, index) in arrowConfigs"
+    :key="index"
+    :config="config"
+  />
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, onUpdated, ref } from "vue";
+import { computed } from "vue";
 import { useGalaxyStore } from "@/stores/galaxy";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
 import { hexToPixel } from "@/utils/hexUtils";
@@ -111,28 +106,4 @@ const arrowConfigs = computed(() => {
 
   return [centerArrow, leftArrow, rightArrow];
 });
-
-// -----
-// Caching
-const groupRef = ref(null);
-
-onUnmounted(() => {
-  // @ts-ignore
-  groupRef.value?.getNode().clearCache();
-});
-
-onMounted(() => {
-  // @ts-ignore
-  groupRef.value?.getNode().clearCache();
-  // @ts-ignore
-  groupRef.value?.getNode().cache();
-});
-
-onUpdated(() => {
-  // @ts-ignore
-  groupRef.value?.getNode().clearCache();
-  // @ts-ignore
-  groupRef.value?.getNode().cache();
-});
-// -----
 </script>

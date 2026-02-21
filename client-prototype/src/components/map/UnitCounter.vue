@@ -1,5 +1,5 @@
 <template>
-  <v-group :config="getUnitCounterConfig(unit)">
+  <v-group :config="getUnitCounterConfig(unit)" ref="groupRef">
     <!-- background and border -->
     <v-rect :config="getUnitCounterRectConfig(unit)" />
     <!-- catalogId -->
@@ -24,6 +24,7 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted, onUnmounted, onUpdated, ref } from "vue";
 import type { GameGalaxyResponseSchema } from "@solaris-command/core/src/types/api/responses";
 import { useGalaxyStore } from "@/stores/galaxy";
 import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
@@ -32,6 +33,7 @@ import {
   SPECIALIST_STEP_SYMBOL_MAP,
 } from "@solaris-command/core/src/data/specialists";
 import { UNIT_CATALOG_ID_MAP } from "@solaris-command/core/src/data/units";
+import { UnitClasses } from "@solaris-command/core/src/types/unit";
 
 type APIUnit = GameGalaxyResponseSchema["units"][0];
 type APIStep = APIUnit["steps"][0];
@@ -73,12 +75,21 @@ function getUnitCounterRectConfig(unit: APIUnit) {
 }
 
 function getUnitCounterNameConfig(unit: APIUnit) {
-  const unitCatalog = UNIT_CATALOG_ID_MAP.get(unit.catalogId);
+  const unitCatalog = UNIT_CATALOG_ID_MAP.get(unit.catalogId)!;
   const color = getPlayerColor(unit);
+  const nameLookup = new Map([
+    [UnitClasses.BATTLECRUISER, "B.CRUISER"],
+    [UnitClasses.LIGHT_CRUISER, "L.CRUISER"],
+    [UnitClasses.HEAVY_CRUISER, "H.CRUISER"],
+  ]);
+
+  const text =
+    nameLookup.get(unitCatalog.class) ??
+    unitCatalog?.class.toUpperCase().replaceAll("_", " ") ??
+    unit.catalogId.toUpperCase();
+
   return {
-    text:
-      unitCatalog?.class.toUpperCase().replaceAll("_", " ") ||
-      unit.catalogId.toUpperCase(),
+    text,
     fontSize: 9,
     fontFamily: "monospace",
     fill: color.foreground,
@@ -160,4 +171,28 @@ function getUnitCounterAPConfig(unit: APIUnit) {
     fontStyle: "bold",
   };
 }
+
+// -----
+// Caching
+const groupRef = ref(null);
+
+onUnmounted(() => {
+  // @ts-ignore
+  groupRef.value?.getNode().clearCache();
+});
+
+onMounted(() => {
+  // @ts-ignore
+  groupRef.value?.getNode().clearCache();
+  // @ts-ignore
+  groupRef.value?.getNode().cache();
+});
+
+onUpdated(() => {
+  // @ts-ignore
+  groupRef.value?.getNode().clearCache();
+  // @ts-ignore
+  groupRef.value?.getNode().cache();
+});
+// -----
 </script>
