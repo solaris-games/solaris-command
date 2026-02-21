@@ -1,5 +1,9 @@
 <template>
-  <v-group v-if="mapSettingsStore.showSupply">
+  <v-group
+    v-if="mapSettingsStore.showSupply"
+    ref="groupRef"
+    :config="{ perfectDrawEnabled: false, listening: false }"
+  >
     <v-group v-for="source in supplySources" :key="source.id">
       <v-circle :config="getSupplyHexCircleConfig(source)" />
       <v-text :config="getSupplyTextConfig(source)" />
@@ -8,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted, onUnmounted, onUpdated, ref } from "vue";
 import { useGalaxyStore } from "../../stores/galaxy";
 import { useMapSettingsStore } from "../../stores/mapSettings";
 import { hexToPixel } from "../../utils/hexUtils";
@@ -42,12 +46,12 @@ const supplySources = computed(() => {
       player._id,
       galaxyStore.hexes,
       galaxyStore.planets,
-      galaxyStore.stations
+      galaxyStore.stations,
     );
 
     for (const [id, remainingMP] of supplyNetwork) {
       const hex = galaxyStore.hexes.find(
-        (h) => HexUtils.getCoordsID(h.location) === id
+        (h) => HexUtils.getCoordsID(h.location) === id,
       )!;
 
       const { x, y } = hexToPixel(hex.location.q, hex.location.r, HEX_SIZE);
@@ -111,4 +115,28 @@ function getSupplyTextConfig(source: {
     width: 20,
   };
 }
+
+// -----
+// Caching
+const groupRef = ref(null);
+
+onUnmounted(() => {
+  // @ts-ignore
+  groupRef.value?.getNode().clearCache();
+});
+
+onMounted(() => {
+  // @ts-ignore
+  groupRef.value?.getNode().clearCache();
+  // @ts-ignore
+  groupRef.value?.getNode().cache();
+});
+
+onUpdated(() => {
+  // @ts-ignore
+  groupRef.value?.getNode().clearCache();
+  // @ts-ignore
+  groupRef.value?.getNode().cache();
+});
+// -----
 </script>

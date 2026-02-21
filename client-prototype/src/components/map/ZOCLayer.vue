@@ -1,5 +1,9 @@
 <template>
-  <v-group v-if="mapSettingsStore.showZOC">
+  <v-group
+    v-if="mapSettingsStore.showZOC"
+    ref="groupRef"
+    :config="{ perfectDrawEnabled: false, listening: false }"
+  >
     <v-circle
       v-for="source in zocSources"
       :key="source.id"
@@ -9,7 +13,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted, onUnmounted, onUpdated, ref } from "vue";
 import { useGalaxyStore } from "../../stores/galaxy";
 import { useMapSettingsStore } from "../../stores/mapSettings";
 import { hexToPixel } from "../../utils/hexUtils";
@@ -58,4 +62,28 @@ function getZOCHexCircleConfig(source: {
     listening: false, // Click through
   };
 }
+
+// -----
+// Caching
+const groupRef = ref(null);
+
+onUnmounted(() => {
+  // @ts-ignore
+  groupRef.value?.getNode().clearCache();
+});
+
+onMounted(() => {
+  // @ts-ignore
+  groupRef.value?.getNode().clearCache();
+  // @ts-ignore
+  groupRef.value?.getNode().cache();
+});
+
+onUpdated(() => {
+  // @ts-ignore
+  groupRef.value?.getNode().clearCache();
+  // @ts-ignore
+  groupRef.value?.getNode().cache();
+});
+// -----
 </script>

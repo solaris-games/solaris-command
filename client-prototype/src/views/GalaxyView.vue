@@ -25,6 +25,8 @@
           id="stageContainer"
           ref="stageContainer"
         >
+        {{ mapSettingsStore.isPinching }}
+        {{ mapSettingsStore.stage.scale }}
           <v-stage
             v-if="stageConfig.width && stageConfig.height"
             :config="stageConfig"

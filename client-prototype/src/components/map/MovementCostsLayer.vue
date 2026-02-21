@@ -1,5 +1,9 @@
 <template>
-  <v-group v-if="mapSettingsStore.showMPCosts">
+  <v-group
+    v-if="mapSettingsStore.showMPCosts"
+    ref="groupRef"
+    :config="{ perfectDrawEnabled: false, listening: false }"
+  >
     <v-group v-for="source in hexSources" :key="source.id">
       <v-circle :config="getHexCircleConfig(source)" />
       <v-text :config="getTextConfig(source)" />
@@ -8,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted, onUnmounted, onUpdated, ref } from "vue";
 import { useGalaxyStore } from "../../stores/galaxy";
 import { useMapSettingsStore } from "../../stores/mapSettings";
 import { hexToPixel } from "../../utils/hexUtils";
@@ -85,4 +89,28 @@ function getTextConfig(source: { x: number; y: number; mpCost: number }) {
     width: 20,
   };
 }
+
+// -----
+// Caching
+const groupRef = ref(null);
+
+onUnmounted(() => {
+  // @ts-ignore
+  groupRef.value?.getNode().clearCache();
+});
+
+onMounted(() => {
+  // @ts-ignore
+  groupRef.value?.getNode().clearCache();
+  // @ts-ignore
+  groupRef.value?.getNode().cache();
+});
+
+onUpdated(() => {
+  // @ts-ignore
+  groupRef.value?.getNode().clearCache();
+  // @ts-ignore
+  groupRef.value?.getNode().cache();
+});
+// -----
 </script>
