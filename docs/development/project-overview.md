@@ -19,7 +19,7 @@ The Solaris Command repository is a Monorepo managed by NPM Workspaces. It conta
 ### Client Prototype (`client-prototype`)
 *   **Location**: `client-prototype/`
 *   **Purpose**: A developer-focused frontend for testing game mechanics and API interactions.
-*   **Tech Stack**: Vue 3, Vite, Konva.js.
+*   **Tech Stack**: Vue 3, Vite, PIXI.js.
 *   **Details**: This is currently the primary tool for visualizing the game state and verifying backend changes.
 
 ### Client Map Generator (`client-map-generator`)

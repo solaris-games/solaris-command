@@ -11,7 +11,7 @@ export const useMapSettingsStore = defineStore("mapSettings", {
     showSupply: false,
     showZOC: false,
     showMPCosts: false,
-    isPinching: false,
+    viewport: null as any,
     stage: {
       width: 0,
       height: 0,
@@ -40,11 +40,11 @@ export const useMapSettingsStore = defineStore("mapSettings", {
       this.showMPCosts = !this.showMPCosts;
     },
     centerOnHex(q: number, r: number) {
-      if (!this.stage.width || !this.stage.height) return;
+      if (!this.viewport || !this.stage.width || !this.stage.height) return;
 
       const { x, y } = hexToPixel(q, r, HEX_SIZE);
-      this.stage.x = -x * this.stage.scale + this.stage.width / 2;
-      this.stage.y = -y * this.stage.scale + this.stage.height / 2;
+
+      this.viewport.moveCenter(x, y);
     },
   },
 });

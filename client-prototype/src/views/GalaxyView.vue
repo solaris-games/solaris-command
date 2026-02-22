@@ -25,19 +25,7 @@
           id="stageContainer"
           ref="stageContainer"
         >
-          <v-stage
-            v-if="stageConfig.width && stageConfig.height"
-            :config="stageConfig"
-            @wheel="handleWheel"
-            @dragend="handleDragEnd"
-            @touchstart="handleTouchStart"
-            @touchmove="handleTouch"
-            @touchend="handleTouchEnd"
-            @click="handleStageClick"
-            @tap="handleStageClick"
-          >
-            <HexMap />
-          </v-stage>
+          <PixiMap />
         </div>
 
         <div
@@ -141,7 +129,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, onUnmounted, ref } from "vue";
+import { inject, onMounted, onUnmounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useGalaxyStore } from "../stores/galaxy";
@@ -150,7 +138,7 @@ import { useMovementStore } from "../stores/movement";
 import { useCombatStore } from "../stores/combat";
 import { useMapSettingsStore } from "../stores/mapSettings";
 import { useChatStore } from "../stores/chat";
-import HexMap from "../components/HexMap.vue";
+import PixiMap from "../components/PixiMap.vue";
 import HeaderBar from "../components/layout/HeaderBar.vue";
 import LeftSidebar from "../components/layout/LeftSidebar.vue";
 import BottomNavBar from "../components/layout/BottomNavBar.vue";
@@ -229,16 +217,6 @@ const toggleMobileLayers = () => {
   mobileLayersOpen.value = !mobileLayersOpen.value;
 };
 
-const stageConfig = computed(() => ({
-  width: stageState.value.width,
-  height: stageState.value.height,
-  x: stageState.value.x,
-  y: stageState.value.y,
-  scaleX: stageState.value.scale,
-  scaleY: stageState.value.scale,
-  draggable: true
-}));
-
 let resizeObserver: ResizeObserver;
 
 onMounted(async () => {
@@ -286,153 +264,6 @@ onUnmounted(() => {
   }
   socketStore.disconnect();
 });
-
-function handleWheel(e: any) {
-  e.evt.preventDefault();
-  const scaleBy = 1.1;
-  const stage = e.target.getStage();
-  const oldScale = stage.scaleX();
-  const mousePointTo = {
-    x: stage.getPointerPosition().x / oldScale - stage.x() / oldScale,
-    y: stage.getPointerPosition().y / oldScale - stage.y() / oldScale,
-  };
-
-  const newScale = e.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy;
-
-  mapSettingsStore.stage.scale = newScale;
-  mapSettingsStore.stage.x =
-    -(mousePointTo.x - stage.getPointerPosition().x / newScale) * newScale;
-  mapSettingsStore.stage.y =
-    -(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale;
-}
-
-function handleDragEnd(e: any) {
-  mapSettingsStore.stage.x = e.target.x();
-  mapSettingsStore.stage.y = e.target.y();
-}
-
-function handleStageClick(e: any) {
-  if (mapSettingsStore.isPinching) return;
-
-  const stage = e.currentTarget.getStage();
-  const pointerPos = stage.getPointerPosition();
-
-  if (!pointerPos) return;
-
-  // Convert pointer position to local coordinates
-  const localPos = {
-    x: (pointerPos.x - stage.x()) / stage.scaleX(),
-    y: (pointerPos.y - stage.y()) / stage.scaleY(),
-  };
-
-  const HEX_SIZE = 64;
-  const { q, r } = pixelToHex(localPos.x, localPos.y, HEX_SIZE);
-
-  const hex = galaxyStore.getHex(q, r);
-  if (hex) {
-    if (movementStore.isMoveMode) {
-      movementStore.addHexToPath(hex);
-    } else if (combatStore.isAttackMode) {
-      const unit = galaxyStore.units.find(
-        (u) =>
-          u.location.q === hex.location.q && u.location.r === hex.location.r,
-      );
-      if (unit) {
-        const isValid = combatStore.validTargetHexes.some(
-          (targetHex: any) => targetHex._id === hex._id,
-        );
-        if (isValid) {
-          combatStore.setTarget(unit);
-        }
-      }
-    } else {
-      galaxyStore.selectHex(hex);
-    }
-  }
-}
-
-let lastDist = 0;
-let lastCenter: { x: number; y: number } | null = null;
-
-function getDistance(
-  p1: { x: number; y: number },
-  p2: { x: number; y: number },
-) {
-  return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
-}
-
-function getCenter(p1: { x: number; y: number }, p2: { x: number; y: number }) {
-  return {
-    x: (p1.x + p2.x) / 2,
-    y: (p1.y + p2.y) / 2,
-  };
-}
-
-function handleTouchStart(e: any) {
-  const touch1 = e.evt.touches[0];
-  const touch2 = e.evt.touches[1];
-
-  if (touch1 && touch2) {
-    mapSettingsStore.isPinching = true;
-  }
-}
-
-function handleTouch(e: any) {
-  e.evt.preventDefault();
-  const touch1 = e.evt.touches[0];
-  const touch2 = e.evt.touches[1];
-  const stage = e.target.getStage();
-
-  if (touch1 && touch2 && stage) {
-    if (stage.isDragging()) {
-      stage.stopDrag();
-    }
-
-    const p1 = { x: touch1.clientX, y: touch1.clientY };
-    const p2 = { x: touch2.clientX, y: touch2.clientY };
-
-    if (!lastCenter) {
-      lastCenter = getCenter(p1, p2);
-      lastDist = getDistance(p1, p2);
-      return;
-    }
-
-    const newCenter = getCenter(p1, p2);
-    const newDist = getDistance(p1, p2);
-    const oldScale = stage.scaleX();
-
-    // local coordinates of center point
-    const pointTo = {
-      x: (newCenter.x - stage.x()) / oldScale,
-      y: (newCenter.y - stage.y()) / oldScale,
-    };
-
-    const newScale = oldScale * (newDist / lastDist);
-
-    mapSettingsStore.stage.scale = newScale;
-
-    // calculate new position of the stage
-    const dx = newCenter.x - lastCenter.x;
-    const dy = newCenter.y - lastCenter.y;
-
-    const newPos = {
-      x: newCenter.x - pointTo.x * newScale + dx,
-      y: newCenter.y - pointTo.y * newScale + dy,
-    };
-
-    mapSettingsStore.stage.x = newPos.x;
-    mapSettingsStore.stage.y = newPos.y;
-
-    lastDist = newDist;
-    lastCenter = newCenter;
-  }
-}
-
-function handleTouchEnd() {
-  lastDist = 0;
-  lastCenter = null;
-  mapSettingsStore.isPinching = false;
-}
 </script>
 
 <style scoped>
