@@ -45,9 +45,7 @@ export const CombatCalculator = {
     const defensePower = this.getUnitPower(defender, false);
 
     // 2. Calculate Base Odds Score (The Ratio)
-    const def = Math.max(1, defensePower);
-    const att = Math.max(1, attackPower);
-    const ratio = att / def;
+    const ratio = attackPower / defensePower;
 
     // Use explicit bracketing for Wargame Odds
     const oddsScore = this.getOddsScore(ratio);
@@ -71,8 +69,8 @@ export const CombatCalculator = {
     }
 
     return {
-      attackPower: att,
-      defensePower: def,
+      attackPower,
+      defensePower,
       oddsRatio: parseFloat(ratio.toFixed(0)),
       oddsScore,
       shifts,
@@ -104,7 +102,7 @@ export const CombatCalculator = {
       }
     });
 
-    return Math.round(power * activeSteps);
+    return Math.max(1, Math.round(power * activeSteps));
   },
 
   /**
