@@ -2,7 +2,6 @@ import express from "express";
 import { authenticateToken } from "../middleware/auth";
 import {
   ERROR_CODES,
-  CONSTANTS,
   TradePrestigeRequestSchema,
   SendRenownRequestSchema,
   GameEventFactory,
@@ -14,6 +13,7 @@ import {
   requireActiveGame,
   requireActivePlayer,
   requireCompletedGame,
+  requireInPlayGame,
   validateRequest,
 } from "../middleware";
 import {
@@ -256,7 +256,7 @@ router.post(
   "/ready",
   authenticateToken,
   loadGame,
-  requireActiveGame,
+  requireInPlayGame,
   loadPlayer,
   async (req, res) => {
     try {
@@ -269,7 +269,7 @@ router.post(
         );
 
         SocketService.publishToGame(req.game._id, "PLAYER_IS_READY", {
-          playerId: req.player._id
+          playerId: req.player._id,
         });
       });
 
@@ -289,7 +289,7 @@ router.post(
   "/not-ready",
   authenticateToken,
   loadGame,
-  requireActiveGame,
+  requireInPlayGame,
   loadPlayer,
   async (req, res) => {
     try {
@@ -302,7 +302,7 @@ router.post(
         );
 
         SocketService.publishToGame(req.game._id, "PLAYER_IS_NOT_READY", {
-          playerId: req.player._id
+          playerId: req.player._id,
         });
       });
 

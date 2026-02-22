@@ -215,6 +215,14 @@ export class PlayerService {
     );
   }
 
+  static async resetReadyStatus(gameId: UnifiedId, session?: ClientSession) {
+    return PlayerModel.updateOne(
+      { gameId, status: PlayerStatus.ACTIVE },
+      { $set: { isReady: false } },
+      { session },
+    );
+  }
+
   static async touchPlayer(gameId: UnifiedId, player: Player) {
     let newStatus = player.status;
     let newIsAIControlled = player.isAIControlled;

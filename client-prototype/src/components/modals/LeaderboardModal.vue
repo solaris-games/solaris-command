@@ -15,7 +15,12 @@
         </p>
       </div>
 
-      <p class="mt-3" v-if="galaxyStore.galaxy.game.state.status === GameStates.ACTIVE">Next tick: {{ nextTickCountdown }}</p>
+      <p
+        class="mt-3"
+        v-if="galaxyStore.galaxy.game.state.status === GameStates.ACTIVE"
+      >
+        Next tick: {{ nextTickCountdown }}
+      </p>
 
       <hr />
     </div>
@@ -130,7 +135,9 @@
           @click="handleTogglePlayerReady"
           v-if="
             galaxyStore.currentPlayerId &&
-            galaxyStore.galaxy?.game.state.status === GameStates.ACTIVE
+            (galaxyStore.galaxy?.game.state.status === GameStates.PENDING ||
+              galaxyStore.galaxy?.game.state.status === GameStates.STARTING ||
+              galaxyStore.galaxy?.game.state.status === GameStates.ACTIVE)
           "
           data-bs-toggle="tooltip"
           title="Declare yourself ready for the next tick. When all active players are ready the game will tick early."
@@ -311,7 +318,7 @@ function updateCountdowns() {
   }
 
   const game = galaxyStore.galaxy.game;
-  
+
   const now = new Date();
   const nextTickDate = new Date(game.state.nextTickDate!);
 

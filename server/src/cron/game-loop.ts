@@ -88,14 +88,34 @@ async function processActiveGames() {
 
       // If the game is currently STARTING then we need to set
       // it to ACTIVE if the starting timer has expired.
-      if (
-        gameId.state.status === GameStates.STARTING &&
-        now >= startDate.getTime()
-      ) {
-        await GameService.startGame(gameId._id);
-        SocketService.publishToGame(gameId._id, "GAME_STARTED", {});
-        console.log(`⚡ Game started: ${gameId._id}`);
-        return;
+      if (gameId.state.status === GameStates.STARTING) {
+        const isTimeToStart = now >= startDate.getTime();
+
+        let isStartTimeExpidited = false;
+
+        // Allow players to shortcut the start by setting themselves to ready.
+        // If all active players are ready then we can start early.
+        if (!isTimeToStart) {
+          const activePlayers = await PlayerService.countActivePlayers(
+            gameId._id,
+          );
+          const readyPlayers = await PlayerService.countReadyPlayers(
+            gameId._id,
+          );
+
+          if (readyPlayers === activePlayers) {
+            isStartTimeExpidited = true;
+          }
+        }
+
+        if (isTimeToStart || isStartTimeExpidited) {
+          await PlayerService.resetReadyStatus(gameId._id);
+          await GameService.startGame(gameId._id);
+          
+          SocketService.publishToGame(gameId._id, "GAME_STARTED", {});
+          console.log(`⚡ Game started: ${gameId._id}`);
+          return;
+        }
       }
 
       // Is it time for a tick?
@@ -104,9 +124,9 @@ async function processActiveGames() {
 
       let isTickExpidited = false;
 
+      // Allow players to shortcut the tick by setting themselves to ready.
+      // If all active players are ready then we can tick early.
       if (!isTimeToTick) {
-        // If it isn't time to tick yet, let's check to see if all active players
-        // are ready. If so then we can tick early.
         const activePlayers = await PlayerService.countActivePlayers(
           gameId._id,
         );

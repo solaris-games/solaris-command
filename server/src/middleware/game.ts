@@ -15,7 +15,7 @@ declare global {
 export const loadGame = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const gameId = req.params.id;
 
@@ -31,7 +31,7 @@ export const loadGame = async (
     req.game = game;
   } catch (error) {
     console.error("Middleware Error:", error);
-    
+
     return res.status(500).json({
       errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
     });
@@ -43,7 +43,7 @@ export const loadGame = async (
 export const requireActiveGame = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   if (req.game.state.status !== GameStates.ACTIVE) {
     return res.status(400).json({ errorCode: ERROR_CODES.GAME_IS_NOT_ACTIVE });
@@ -55,7 +55,7 @@ export const requireActiveGame = async (
 export const requirePendingGame = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   if (req.game.state.status !== GameStates.PENDING) {
     return res.status(400).json({ errorCode: ERROR_CODES.GAME_IS_NOT_PENDING });
@@ -67,9 +67,13 @@ export const requirePendingGame = async (
 export const requireInPlayGame = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
-  if (req.game.state.status !== GameStates.PENDING && req.game.state.status !== GameStates.ACTIVE && req.game.state.status !== GameStates.STARTING) {
+  if (
+    req.game.state.status !== GameStates.PENDING &&
+    req.game.state.status !== GameStates.STARTING &&
+    req.game.state.status !== GameStates.ACTIVE
+  ) {
     return res.status(400).json({ errorCode: ERROR_CODES.GAME_IS_NOT_IN_PLAY });
   }
 
@@ -79,10 +83,12 @@ export const requireInPlayGame = async (
 export const requireCompletedGame = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   if (req.game.state.status !== GameStates.COMPLETED) {
-    return res.status(400).json({ errorCode: ERROR_CODES.GAME_IS_NOT_COMPLETED });
+    return res
+      .status(400)
+      .json({ errorCode: ERROR_CODES.GAME_IS_NOT_COMPLETED });
   }
 
   next();
