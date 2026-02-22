@@ -569,14 +569,6 @@ router.post(
             newSteps,
             session,
           );
-
-          // Give player back some prestige.
-          await PlayerService.incrementPrestigePoints(
-            req.game._id,
-            req.unit.playerId,
-            CONSTANTS.UNIT_STEP_SCRAP_PRESTIGE_REWARD,
-            session,
-          );
         } else {
           const hex = await HexService.getByGameAndId(
             req.game._id,
@@ -601,6 +593,14 @@ router.post(
           // it has `advanceOnVictory` enabled, we should convert that
           // order into a movement if the unit has enough MP?
         }
+
+        // Give player back some prestige.
+        await PlayerService.incrementPrestigePoints(
+          req.game._id,
+          req.unit.playerId,
+          CONSTANTS.UNIT_STEP_SCRAP_PRESTIGE_REWARD,
+          session,
+        );
       });
     } catch (error: any) {
       console.error("Error scrapping unit step:", error);
