@@ -104,7 +104,11 @@
             confirmationText = 'Are you sure you want to quit the game?';
             onConfirmAction = handleQuitGame;
           "
-          v-if="galaxyStore.galaxy?.game.state.status === GameStates.PENDING"
+          v-if="
+            galaxyStore.currentPlayerId &&
+            galaxyStore.currentPlayer.status === PlayerStatus.ACTIVE &&
+            galaxyStore.galaxy?.game.state.status === GameStates.PENDING
+          "
           data-bs-toggle="tooltip"
           title="Quit the game"
         >
@@ -118,7 +122,11 @@
             confirmationText = 'Are you sure you want to concede?';
             onConfirmAction = handleConcedeGame;
           "
-          v-if="galaxyStore.galaxy?.game.state.status === GameStates.ACTIVE"
+          v-if="
+            galaxyStore.currentPlayerId &&
+            galaxyStore.currentPlayer.status === PlayerStatus.ACTIVE &&
+            galaxyStore.galaxy?.game.state.status === GameStates.ACTIVE
+          "
           data-bs-toggle="tooltip"
           title="Concede the game"
         >
@@ -135,6 +143,7 @@
           @click="handleTogglePlayerReady"
           v-if="
             galaxyStore.currentPlayerId &&
+            galaxyStore.currentPlayer.status === PlayerStatus.ACTIVE &&
             (galaxyStore.galaxy?.game.state.status === GameStates.PENDING ||
               galaxyStore.galaxy?.game.state.status === GameStates.STARTING ||
               galaxyStore.galaxy?.game.state.status === GameStates.ACTIVE)
@@ -148,7 +157,11 @@
         <button
           class="btn btn-success ms-1"
           @click="showTradeModal = true"
-          v-if="galaxyStore.galaxy?.game.state.status === GameStates.ACTIVE"
+          v-if="
+            galaxyStore.currentPlayerId &&
+            galaxyStore.currentPlayer.status === PlayerStatus.ACTIVE &&
+            galaxyStore.galaxy?.game.state.status === GameStates.ACTIVE
+          "
           data-bs-toggle="tooltip"
           title="Send prestige"
         >
@@ -157,7 +170,11 @@
         <button
           class="btn btn-primary ms-1"
           @click="showRenownModal = true"
-          v-if="galaxyStore.galaxy?.game.state.status === GameStates.COMPLETED"
+          v-if="
+            galaxyStore.currentPlayerId &&
+            galaxyStore.currentPlayer.status === PlayerStatus.ACTIVE &&
+            galaxyStore.galaxy?.game.state.status === GameStates.COMPLETED
+          "
           data-bs-toggle="tooltip"
           title="Send prestige"
         >
@@ -200,6 +217,7 @@ import TradeRenownModal from "./TradeRenownModal.vue";
 import { GameLeaderboardUtils } from "@solaris-command/core/src/utils/game-leaderboard";
 import { GameStates } from "@solaris-command/core/src/types/game";
 import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
+import { PlayerStatus } from "@solaris-command/core/src/types/player";
 
 const props = defineProps({
   show: {
