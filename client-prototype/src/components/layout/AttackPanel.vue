@@ -146,7 +146,9 @@
                 :key="i"
                 class="text-success"
               >
-                {{ shift.type.replaceAll("_", " ") }} ({{ Math.abs(shift.value) }})
+                {{ shift.type.replaceAll("_", " ") }} ({{
+                  Math.abs(shift.value)
+                }})
               </div>
             </div>
             <div class="col-6">
@@ -157,7 +159,9 @@
                 :key="i"
                 class="text-danger"
               >
-                {{ shift.type.replaceAll("_", " ") }} ({{ Math.abs(shift.value) }})
+                {{ shift.type.replaceAll("_", " ") }} ({{
+                  Math.abs(shift.value)
+                }})
               </div>
             </div>
           </div>
@@ -188,6 +192,12 @@
                   }"
                   ><span v-if="state === 'lost'">X</span></span
                 >
+              </div>
+              <div
+                v-if="prediction.outcome.attacker.disorganised"
+                class="text-warning mt-1"
+              >
+                <i class="fas fa-hourglass"></i> Disorganised
               </div>
               <div
                 v-if="
@@ -227,6 +237,12 @@
                 class="text-warning mt-1"
               >
                 <i class="fas fa-rotate-left"></i> Retreat
+              </div>
+              <div
+                v-if="prediction.outcome.defender.disorganised"
+                class="text-warning mt-1"
+              >
+                <i class="fas fa-hourglass"></i> Disorganised
               </div>
             </div>
           </div>
