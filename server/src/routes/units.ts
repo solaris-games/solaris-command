@@ -101,7 +101,7 @@ router.post(
       if (req.player.prestigePoints < unitCtlg.cost) {
         return res
           .status(400)
-          .json({ errorCode: ERROR_CODES.PLAYER_INSUFFICIENT_PRESTIGE });
+          .json({ errorCode: ERROR_CODES.TRADE_INSUFFICIENT_PRESTIGE });
       }
 
       // Generate initial steps. All but one should be suppressed.
@@ -458,7 +458,7 @@ router.post(
         if (req.player.prestigePoints < cost) {
           return res
             .status(400)
-            .json({ errorCode: ERROR_CODES.PLAYER_INSUFFICIENT_PRESTIGE });
+            .json({ errorCode: ERROR_CODES.TRADE_INSUFFICIENT_PRESTIGE });
         }
 
         newSteps = UnitManager.addSteps(newSteps, 1);
@@ -497,7 +497,7 @@ router.post(
 
         if (req.player.prestigePoints < cost) {
           return res.status(400).json({
-            errorCode: ERROR_CODES.PLAYER_INSUFFICIENT_PRESTIGE,
+            errorCode: ERROR_CODES.TRADE_INSUFFICIENT_PRESTIGE,
           });
         }
 

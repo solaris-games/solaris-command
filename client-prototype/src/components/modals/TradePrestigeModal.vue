@@ -133,7 +133,7 @@ const confirmTrade = async () => {
       targetPlayerId: targetPlayerId.value,
       prestige: prestigeAmount.value,
     });
-    galaxyStore.currentPlayer.prestigePoints -= prestigeAmount.value;
+    galaxyStore.currentPlayer.prestigePoints -= Math.floor(prestigeAmount.value)
     emit("success");
     closeModal();
   } catch (err: any) {

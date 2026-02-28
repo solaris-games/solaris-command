@@ -37,22 +37,30 @@ router.post(
   loadPlayer,
   requireActivePlayer,
   async (req, res) => {
-    const {
+    let {
       targetPlayerId,
       prestige,
     }: { targetPlayerId: string; prestige: number } = req.body;
 
+    prestige = Math.floor(prestige); // Stop players being assholes with decimals.
+
     try {
+      if (prestige <= 0) {
+        return res
+          .status(400)
+          .json({ errorCode: ERROR_CODES.TRADE_INVALID_PRESTIGE });
+      }
+
       if (req.player.prestigePoints < prestige) {
         return res
           .status(400)
-          .json({ errorCode: ERROR_CODES.PLAYER_INSUFFICIENT_PRESTIGE });
+          .json({ errorCode: ERROR_CODES.TRADE_INSUFFICIENT_PRESTIGE });
       }
 
       if (String(req.player._id) === targetPlayerId) {
         return res
           .status(400)
-          .json({ errorCode: ERROR_CODES.PLAYER_CANNOT_TRADE_WITH_THEMSELVES });
+          .json({ errorCode: ERROR_CODES.TRADE_CANNOT_TRADE_WITH_THEMSELVES });
       }
 
       const targetPlayer = await PlayerService.getByGameAndPlayerId(
@@ -149,21 +157,27 @@ router.post(
   requireCompletedGame,
   loadPlayer,
   async (req, res) => {
-    const {
-      targetPlayerId,
-      renown,
-    }: { targetPlayerId: string; renown: number } = req.body;
+    let { targetPlayerId, renown }: { targetPlayerId: string; renown: number } =
+      req.body;
+
+    renown = Math.floor(renown); // Stop players being assholes with decimals.
 
     try {
+      if (renown <= 0) {
+        return res
+          .status(400)
+          .json({ errorCode: ERROR_CODES.TRADE_INVALID_RENOWN });
+      }
+
       if (req.player.renownToDistribute < renown) {
         return res.status(400).json({
-          errorCode: ERROR_CODES.PLAYER_INSUFFICIENT_RENOWN_TO_DISTRIBUTE,
+          errorCode: ERROR_CODES.TRADE_INSUFFICIENT_RENOWN_TO_DISTRIBUTE,
         });
       }
 
       if (String(req.player._id) === targetPlayerId) {
         return res.status(400).json({
-          errorCode: ERROR_CODES.PLAYER_CANNOT_SEND_RENOWN_TO_THEMSELVES,
+          errorCode: ERROR_CODES.TRADE__ANNOT_SEND_RENOWN_TO_THEMSELVES,
         });
       }
 

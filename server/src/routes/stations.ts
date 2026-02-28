@@ -83,7 +83,7 @@ router.post(
       if (req.player.prestigePoints < CONSTANTS.STATION_PRESTIGE_COST) {
         return res
           .status(400)
-          .json({ errorCode: ERROR_CODES.PLAYER_INSUFFICIENT_PRESTIGE });
+          .json({ errorCode: ERROR_CODES.TRADE_INSUFFICIENT_PRESTIGE });
       }
 
       const newStation = StationFactory.create(

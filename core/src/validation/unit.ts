@@ -61,7 +61,7 @@ export const UnitValidation = {
     if (player.prestigePoints < unitCtlg.cost) {
       return {
         isValid: false,
-        errorCode: ERROR_CODES.PLAYER_INSUFFICIENT_PRESTIGE,
+        errorCode: ERROR_CODES.TRADE_INSUFFICIENT_PRESTIGE,
       };
     }
 
@@ -174,7 +174,7 @@ export const UnitValidation = {
       if (player.prestigePoints < cost) {
         return {
           isValid: false,
-          errorCode: ERROR_CODES.PLAYER_INSUFFICIENT_PRESTIGE,
+          errorCode: ERROR_CODES.TRADE_INSUFFICIENT_PRESTIGE,
         };
       }
     } else if (type === "SPECIALIST") {
@@ -207,7 +207,7 @@ export const UnitValidation = {
       if (player.prestigePoints < cost) {
         return {
           isValid: false,
-          errorCode: ERROR_CODES.PLAYER_INSUFFICIENT_PRESTIGE,
+          errorCode: ERROR_CODES.TRADE_INSUFFICIENT_PRESTIGE,
         };
       }
     } else {

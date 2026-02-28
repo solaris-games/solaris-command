@@ -133,7 +133,7 @@ const confirmSend = async () => {
       targetPlayerId: targetPlayerId.value,
       renown: renownAmount.value,
     });
-    galaxyStore.currentPlayer!.renownToDistribute -= renownAmount.value;
+    galaxyStore.currentPlayer!.renownToDistribute -= Math.floor(renownAmount.value);
     emit("success");
     closeModal();
   } catch (err: any) {
