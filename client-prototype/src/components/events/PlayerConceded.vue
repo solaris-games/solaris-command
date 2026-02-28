@@ -5,7 +5,7 @@
     </div>
     <div class="flex-grow-1 ms-3">
       <span class="text-info">{{ (event.data as any).alias }}</span>
-      has conceded the game.
+      has conceded the game. Their empire is now under AI control.
     </div>
   </div>
 </template>
