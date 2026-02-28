@@ -1,5 +1,6 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
+import axios from "axios";
 import App from "./App.vue";
 import router from "./router";
 import { useAuthStore } from "./stores/auth";
@@ -41,6 +42,19 @@ const init = (config: FrontendConfig) => {
   // Initialize auth store
   const authStore = useAuthStore();
   authStore.initialize();
+
+  // Axios Global Error Interceptor
+  axios.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      // Send the user to the login screen if we get a 503
+      if (error.response && error.response.status === 503) {
+        authStore.logout();
+        router.push({ name: "login" });
+      }
+      return Promise.reject(error);
+    },
+  );
 
   app.use(router);
 
