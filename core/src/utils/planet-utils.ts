@@ -55,13 +55,15 @@ export const PlanetUtils = {
    * Calculate total VPs generated this cycle from a set of owned planets
    */
   calculateVPIncome(ownedPlanets: Planet[]): number {
-    return ownedPlanets.reduce(
-      (total, planet) =>
-        total +
-        (planet.isCapital
-          ? CONSTANTS.PLANET_VP_INCOME_CAPITAL
-          : CONSTANTS.PLANET_VP_INCOME),
-      0,
+    return Math.floor(
+      ownedPlanets.reduce(
+        (total, planet) =>
+          total +
+          (planet.isCapital
+            ? CONSTANTS.PLANET_VP_INCOME_CAPITAL
+            : CONSTANTS.PLANET_VP_INCOME),
+        0,
+      ),
     );
   },
 };

@@ -925,7 +925,7 @@ export const TickProcessor = {
 
       // Calculate Victory Points (Accumulated per cycle)
       const vpIncome = PlanetUtils.calculateVPIncome(ownedPlanets);
-      const newVP = player.victoryPoints + vpIncome;
+      const newVP = Math.floor(player.victoryPoints + vpIncome);
 
       player.prestigePoints = newPrestige;
       player.victoryPoints = newVP;
