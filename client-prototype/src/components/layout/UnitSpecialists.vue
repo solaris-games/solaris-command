@@ -42,7 +42,10 @@
               :key="index"
               class="text-end"
             >
-              {{ step.specialist?.stats.attack }}
+              <span v-if="step.specialist?.stats.attack !== 0">{{
+                step.specialist?.stats.attack
+              }}</span>
+              <span v-else>-</span>
             </td>
           </tr>
           <tr>
@@ -52,7 +55,10 @@
               :key="index"
               class="text-end"
             >
-              {{ step.specialist?.stats.defense }}
+              <span v-if="step.specialist?.stats.defense !== 0">{{
+                step.specialist?.stats.defense
+              }}</span>
+              <span v-else>-</span>
             </td>
           </tr>
           <tr>
@@ -62,7 +68,10 @@
               :key="index"
               class="text-end"
             >
-              {{ step.specialist?.stats.shock }}
+              <span v-if="step.specialist?.stats.shock !== 0">{{
+                step.specialist?.stats.shock
+              }}</span>
+              <span v-else>-</span>
             </td>
           </tr>
           <tr>
@@ -72,7 +81,10 @@
               :key="index"
               class="text-end"
             >
-              {{ step.specialist?.stats.artillery }}
+              <span v-if="step.specialist?.stats.artillery !== 0">{{
+                step.specialist?.stats.artillery
+              }}</span>
+              <span v-else>-</span>
             </td>
           </tr>
           <tr>
@@ -82,7 +94,10 @@
               :key="index"
               class="text-end"
             >
-              {{ step.specialist?.stats.siege }}
+              <span v-if="step.specialist?.stats.siege !== 0">{{
+                step.specialist?.stats.siege
+              }}</span>
+              <span v-else>-</span>
             </td>
           </tr>
         </tbody>
@@ -92,55 +107,79 @@
     <!-- Mobile View-->
     <div class="d-block d-md-none mt-2">
       <div class="card p-1 mb-2">
-        <div class="card-header bg-dark fw-bold small">
-          SPECIALISTS
-        </div>
+        <div class="card-header bg-dark fw-bold small">SPECIALISTS</div>
         <div class="card-body p-2">
           <div v-for="(step, index) in specialistStepsWithStats" :key="index">
-            <div class="d-flex align-items-center mb-1">
-              <div
-                class="step-square-small"
-                :class="{ suppressed: step.isSuppressed }"
-              >
-                <span
-                  v-if="step.specialistId"
-                  class="specialist-symbol-small flex-shrink-0"
-                >
-                  {{ getSpecialistSymbol(step.specialistId) }}
-                </span>
+            <div class="row">
+              <div class="col">
+                <div class="d-flex align-items-center mb-1">
+                  <div
+                    class="step-square-small"
+                    :class="{ suppressed: step.isSuppressed }"
+                  >
+                    <span
+                      v-if="step.specialistId"
+                      class="specialist-symbol-small flex-shrink-0"
+                    >
+                      {{ getSpecialistSymbol(step.specialistId) }}
+                    </span>
+                  </div>
+                  <strong class="ms-2">{{ step.specialist?.name }}</strong>
+                </div>
               </div>
-              <strong class="ms-2">{{ step.specialist?.name }}</strong>
-            </div>
-            <div class="d-flex flex-wrap gap-3">
-              <div>
-                <span class="stat-label">Atk:</span>
-                <span class="stat-value">{{
-                  step.specialist?.stats.attack
-                }}</span>
-              </div>
-              <div data-bs-toggle="tooltip" title="Defense">
-                <span class="stat-label">Def:</span>
-                <span class="stat-value">{{
-                  step.specialist?.stats.defense
-                }}</span>
-              </div>
-              <div data-bs-toggle="tooltip" title="Shock">
-                <span class="stat-label">Shk:</span>
-                <span class="stat-value">{{
-                  step.specialist?.stats.shock
-                }}</span>
-              </div>
-              <div data-bs-toggle="tooltip" title="Artillery">
-                <span class="stat-label">Art:</span>
-                <span class="stat-value">{{
-                  step.specialist?.stats.artillery
-                }}</span>
-              </div>
-              <div data-bs-toggle="tooltip" title="Siege">
-                <span class="stat-label">Sge:</span>
-                <span class="stat-value">{{
-                  step.specialist?.stats.siege
-                }}</span>
+              <div class="col-auto">
+                <div class="d-flex flex-wrap gap-3">
+                  <div
+                    data-bs-toggle="tooltip"
+                    title="Attack"
+                    v-if="step.specialist?.stats.attack !== 0"
+                  >
+                    <span class="stat-label">Atk:</span>
+                    <span class="stat-value">{{
+                      step.specialist?.stats.attack
+                    }}</span>
+                  </div>
+                  <div
+                    data-bs-toggle="tooltip"
+                    title="Defense"
+                    v-if="step.specialist?.stats.defense !== 0"
+                  >
+                    <span class="stat-label">Def:</span>
+                    <span class="stat-value">{{
+                      step.specialist?.stats.defense
+                    }}</span>
+                  </div>
+                  <div
+                    data-bs-toggle="tooltip"
+                    title="Shock"
+                    v-if="step.specialist?.stats.shock !== 0"
+                  >
+                    <span class="stat-label">Shk:</span>
+                    <span class="stat-value">{{
+                      step.specialist?.stats.shock
+                    }}</span>
+                  </div>
+                  <div
+                    data-bs-toggle="tooltip"
+                    title="Artillery"
+                    v-if="step.specialist?.stats.artillery !== 0"
+                  >
+                    <span class="stat-label">Art:</span>
+                    <span class="stat-value">{{
+                      step.specialist?.stats.artillery
+                    }}</span>
+                  </div>
+                  <div
+                    data-bs-toggle="tooltip"
+                    title="Siege"
+                    v-if="step.specialist?.stats.siege !== 0"
+                  >
+                    <span class="stat-label">Sge:</span>
+                    <span class="stat-value">{{
+                      step.specialist?.stats.siege
+                    }}</span>
+                  </div>
+                </div>
               </div>
             </div>
             <hr v-if="index < specialistStepsWithStats.length - 1" />
