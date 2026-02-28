@@ -11,7 +11,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
       attack: 2,
       defense: 0,
       shock: 0,
-      artillery: 1,
+      artillery: 0,
       siege: 0,
     },
     bonuses: {
