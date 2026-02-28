@@ -63,7 +63,10 @@ export const GameLeaderboardUtils = {
 
         // 5. Defeated date descending
         if (a.defeatedDate && b.defeatedDate) {
-          return b.defeatedDate.getTime() - a.defeatedDate.getTime();
+          return (
+            new Date(b.defeatedDate).getTime() -
+            new Date(a.defeatedDate).getTime()
+          );
         } else if (a.defeatedDate) {
           return -1; // a has a defeatedDate, b does not, so a comes first (descending)
         } else if (b.defeatedDate) {
@@ -78,9 +81,9 @@ export const GameLeaderboardUtils = {
   calculateGameRankRewards(
     players: Player[],
     planets: Planet[],
-    units: Unit[]
+    units: Unit[],
   ): {
-    userId: UnifiedId,
+    userId: UnifiedId;
     playerId: UnifiedId;
     rankChange: number;
     finalRankPosition: number;
@@ -89,7 +92,7 @@ export const GameLeaderboardUtils = {
     const leaderboard = GameLeaderboardUtils.getLeaderboard(
       players,
       planets,
-      units
+      units,
     );
     const playerCount = players.length;
 
