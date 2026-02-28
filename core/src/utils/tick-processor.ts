@@ -720,9 +720,10 @@ export const TickProcessor = {
     let winnerPlayer: Player | null = null;
 
     // --- VICTORY BY LAST MAN STANDING CHECK ---
-    // Filter active players (Not defeated)
+    // Filter active players
+    // Note: We consider AFK players to be defeated.
     const activePlayers = context.players.filter(
-      (p) => p.status !== PlayerStatus.DEFEATED,
+      (p) => p.status === PlayerStatus.ACTIVE,
     );
 
     if (activePlayers.length === 1) {
