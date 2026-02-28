@@ -268,7 +268,8 @@ describe("CombatCalculator", () => {
       expect(shockShift?.value).toBe(4);
     });
 
-    it("should apply Artillery Shift", () => {
+    // TODO: We don't have a spec that has artillery shift anymore.
+    it.skip("should apply Artillery Shift", () => {
       // Attacker has Artillery Spec (+1 Arty Shift)
       const attacker = createTestUnit(CATALOG_UNIT_FRIGATE_ID, 5, [
         CATALOG_SPEC_ARTILLERY_ID,
