@@ -16,7 +16,7 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       maxAP: 1,
       maxMP: 10, // Very high mobility
       defaultSteps: 1,
-      maxSteps: 3,
+      maxSteps: 2,
       initiative: 1,
       zoc: false, // Cannot block movement
       los: 3
@@ -35,8 +35,8 @@ export const UNIT_CATALOG: UnitCatalogItem[] = [
       shock: 0,
       maxAP: 1,
       maxMP: 8,
-      defaultSteps: 2,
-      maxSteps: 4,
+      defaultSteps: 1,
+      maxSteps: 3,
       initiative: 1,
       zoc: false, // Too small to block effectively
       los: 3
