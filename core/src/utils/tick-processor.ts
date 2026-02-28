@@ -130,7 +130,8 @@ export class GameUnitMovementContext {
         return 1;
       }
 
-      return 0; // Both are empty
+      // Both are empty, sort by initiative.
+      return SORT_UNITS_BY_INITIATIVE(a.unit, b.unit);
     });
 
     // Group intents by Destination
