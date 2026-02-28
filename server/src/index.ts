@@ -1,7 +1,15 @@
+import dotenv from "dotenv";
+
+// load configurable file so that we can load docker secrets
+const envFiles = process.env.ENV_FILE
+  ? [process.env.ENV_FILE, ".env"]
+  : [".env"];
+
+dotenv.config({ path: envFiles });
+
 import express from "express";
 import { createServer } from "http";
 import cors from "cors";
-import dotenv from "dotenv";
 
 const compression = require("compression");
 
@@ -18,13 +26,6 @@ import chatRoutes from "./routes/chat";
 import { CreateGameJob } from "./cron/create-game";
 import { initSocket } from "./socket";
 import { ALLOWED_ORIGINS } from "./config/cors";
-
-// load configurable file so that we can load docker secrets
-const envFiles = process.env.ENV_FILE
-  ? [process.env.ENV_FILE, ".env"]
-  : [".env"];
-
-dotenv.config({ path: envFiles });
 
 const app = express();
 const httpServer = createServer(app);
