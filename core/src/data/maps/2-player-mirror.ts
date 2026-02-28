@@ -515,14 +515,6 @@ export const GAME_MAP_2_PLAYER_MIRROR: GameMap = {
     },
     {
       location: {
-        q: 0,
-        r: 0,
-        s: 0,
-      },
-      isCapital: false,
-    },
-    {
-      location: {
         q: 3,
         r: -3,
         s: 0,
