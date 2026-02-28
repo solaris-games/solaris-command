@@ -9,6 +9,7 @@ import { CombatOperation } from "@solaris-command/core/src/types/combat";
 import { UnitManager } from "@solaris-command/core/src/utils/unit-manager";
 import { getValidAttackTargetHexes } from "@/utils/combatUtils";
 import { UnitStatus } from "@solaris-command/core/src/types/unit";
+import { CONSTANTS } from "@solaris-command/core/src/data/constants";
 
 type APIHex = GameGalaxyResponseSchema["hexes"][0];
 type APIUnit = GameGalaxyResponseSchema["units"][0];
@@ -379,6 +380,8 @@ export const useGalaxyStore = defineStore("galaxy", {
 
         // Update the local data.
         unit.steps = UnitManager.scrapSteps(unit.steps, 1);
+
+        this.currentPlayer!.prestigePoints += CONSTANTS.UNIT_STEP_SCRAP_PRESTIGE_REWARD
       } catch (err: any) {
         alert(
           "Scrap unit step failed: " +
