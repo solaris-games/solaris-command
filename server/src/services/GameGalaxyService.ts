@@ -1,4 +1,3 @@
-import { ClientSession, Types } from "mongoose";
 import {
   Game,
   GameStates,
@@ -9,6 +8,7 @@ import {
   Station,
   Unit,
   UnifiedId,
+  HexCoordsId,
 } from "@solaris-command/core";
 import { UnitService } from "./UnitService";
 import { StationService } from "./StationService";
@@ -26,7 +26,10 @@ export interface GameGalaxy {
 }
 
 export class GameGalaxyService {
-  static async getGameGalaxy(game: Game, userId: UnifiedId) {
+  static async getGameGalaxy(
+    game: Game,
+    userId: UnifiedId,
+  ) {
     const gameId = game._id;
 
     const [players, hexes, allUnits, planets, stations] = await Promise.all([
@@ -38,8 +41,10 @@ export class GameGalaxyService {
     ]);
 
     const currentPlayer = players.find(
-      (p) => String(p.userId) === String(userId)
+      (p) => String(p.userId) === String(userId),
     );
+
+    let visibleHexes: Set<HexCoordsId> | null = null;
 
     let galaxy: any = {
       game: game,
@@ -55,7 +60,7 @@ export class GameGalaxyService {
       galaxy.hexes = hexes;
       galaxy.units = allUnits;
 
-      return { galaxy, currentPlayer };
+      return { galaxy, currentPlayer, visibleHexes };
     }
 
     if (currentPlayer) {
@@ -67,11 +72,11 @@ export class GameGalaxyService {
       // For now, assuming direct pass works or we might need to .map(d => d.toObject()) if methods are issue.
       // Since core is shared, it likely treats them as data.
 
-      const visibleHexes = FogOfWar.getVisibleHexes(
+      visibleHexes = FogOfWar.getVisibleHexes(
         currentPlayer._id,
         allUnits,
         planets,
-        stations
+        stations,
       );
 
       galaxy.hexes = FogOfWar.maskHexes(currentPlayer._id, hexes, visibleHexes);
@@ -79,7 +84,7 @@ export class GameGalaxyService {
       galaxy.units = FogOfWar.filterVisibleUnits(
         currentPlayer._id,
         allUnits,
-        visibleHexes
+        visibleHexes,
       );
     } else {
       // Spectator: See map (hexes, planets, stations) but NO units
@@ -87,6 +92,6 @@ export class GameGalaxyService {
       galaxy.units = [];
     }
 
-    return { galaxy, currentPlayer };
+    return { galaxy, currentPlayer, visibleHexes };
   }
 }

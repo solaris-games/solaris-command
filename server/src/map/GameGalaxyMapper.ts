@@ -2,6 +2,8 @@ import {
   GameGalaxyResponseSchema,
   GameStates,
   HexCoords,
+  HexCoordsId,
+  HexUtils,
   UnifiedId,
   UnitManager,
   UnitStatus,
@@ -12,6 +14,7 @@ export class GameGalaxyMapper {
   static toGameGalaxyResponse(
     galaxy: GameGalaxy,
     userPlayerId: UnifiedId | null, // Will mask data based on the perspective of this player.
+    visibleHexes: Set<HexCoordsId> | null
   ): GameGalaxyResponseSchema {
     // Mask a field if the player id does not match.
     const tryMaskField = (playerId: UnifiedId, value: any) => {
@@ -77,6 +80,14 @@ export class GameGalaxyMapper {
       return status;
     };
 
+    const getIsInVisionRange = (location: HexCoords) => {
+      if (visibleHexes == null) {
+        return true // Assume always visible
+      }
+
+      return visibleHexes.has(HexUtils.getCoordsID(location))
+    }
+
     return {
       game: {
         _id: String(galaxy.game._id),
@@ -134,6 +145,7 @@ export class GameGalaxyMapper {
           playerId: z.playerId.toString(),
           unitId: z.unitId.toString(),
         })),
+        isInVisionRange: getIsInVisionRange(h.location)
       })),
       planets: galaxy.planets.map((p) => ({
         _id: String(p._id),

@@ -41,12 +41,12 @@
         </div>
         <div class="col-auto">
           <p class="mb-0">
-            <i class="fas fa-table-cells-large"></i>
+            <i class="fas fa-table-cells-large me-1"></i>
             <LocationLink :coords="selectedHex.location" :text-class="null" />
           </p>
         </div>
       </div>
-      <div class="row">
+      <div class="row" v-if="selectedHex.playerId != null">
         <div class="col">
           <p class="mb-0">
             <i class="fas fa-circle-nodes me-1"></i>
@@ -60,6 +60,13 @@
               >In Supply</span
             >
             <span v-else>Out of Supply</span>
+          </p>
+        </div>
+        <div class="col-auto" v-if="galaxyStore.currentPlayerId">
+          <p class="mb-0">
+            <i class="fas fa-eye me-1"></i>
+            <span v-if="selectedHex.isInVisionRange">Visible</span>
+            <span v-else>Hidden</span>
           </p>
         </div>
       </div>

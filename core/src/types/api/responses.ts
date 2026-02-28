@@ -102,6 +102,7 @@ export interface GameGalaxyResponseSchema {
       playerId: string;
       unitId: string;
     }[];
+    isInVisionRange: boolean
   }[];
   planets: {
     _id: UnifiedId;

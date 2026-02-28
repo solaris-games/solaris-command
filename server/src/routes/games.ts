@@ -426,7 +426,7 @@ router.post(
 // Get full game state (with FoW filtering)
 router.get("/:id", authenticateToken, loadGame, async (req, res) => {
   try {
-    const { galaxy, currentPlayer } = await GameGalaxyService.getGameGalaxy(
+    const { galaxy, currentPlayer, visibleHexes } = await GameGalaxyService.getGameGalaxy(
       req.game,
       req.user._id,
     );
@@ -440,7 +440,7 @@ router.get("/:id", authenticateToken, loadGame, async (req, res) => {
 
     const currentPlayerId = currentPlayer?._id || null;
 
-    res.json(GameGalaxyMapper.toGameGalaxyResponse(galaxy, currentPlayerId));
+    res.json(GameGalaxyMapper.toGameGalaxyResponse(galaxy, currentPlayerId, visibleHexes));
   } catch (error) {
     console.error("Error fetching game:", error);
 

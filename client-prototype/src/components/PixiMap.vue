@@ -35,6 +35,7 @@ let app: PIXI.Application | null = null;
 let viewport: Viewport | null = null;
 const hexGraphicsContainer = new PIXI.Container();
 const territoryContainer = new PIXI.Container();
+const visionContainer = new PIXI.Container();
 const movementContainer = new PIXI.Container();
 const movementInteractionContainer = new PIXI.Container();
 const attackContainer = new PIXI.Container();
@@ -754,6 +755,55 @@ function renderBorders() {
   }
 }
 
+function renderVisionRange() {
+  visionContainer.removeChildren();
+  if (!galaxyStore.hexes) return;
+
+  const g = new PIXI.Graphics();
+  visionContainer.addChild(g);
+
+  const visionMap = new Map<string, boolean>();
+  for (const hex of galaxyStore.hexes) {
+    visionMap.set(String(HexUtils.getCoordsID(hex.location)), !!hex.isInVisionRange);
+  }
+
+  g.beginPath();
+  for (const hex of galaxyStore.hexes) {
+    if (!hex.isInVisionRange) continue;
+
+    const { x, y } = hexToPixel(hex.location.q, hex.location.r, HEX_SIZE);
+
+    for (let i = 0; i < 6; i++) {
+      const neighbor = HexUtils.neighbor(hex.location, i);
+      const neighborId = HexUtils.getCoordsID(neighbor);
+
+      if (!visionMap.get(String(neighborId))) {
+        const directionToCorners = [
+          [0, 1], // NE
+          [5, 0], // E-ish
+          [4, 5], // SE
+          [3, 4], // SW
+          [2, 3], // W-ish
+          [1, 2], // NW
+        ];
+        const [c1_idx, c2_idx] = directionToCorners[i];
+        const p1 = getHexCorner(x, y, HEX_SIZE, c1_idx);
+        const p2 = getHexCorner(x, y, HEX_SIZE, c2_idx);
+
+        g.moveTo(p1.x, p1.y);
+        g.lineTo(p2.x, p2.y);
+      }
+    }
+  }
+  g.stroke({
+    width: 2,
+    color: 0xffffff,
+    alpha: 0.2,
+    cap: "round",
+    join: "round",
+  });
+}
+
 function renderSupply() {
   supplyContainer.removeChildren();
 
@@ -1071,6 +1121,7 @@ async function renderMap() {
   }
 
   renderBorders();
+  renderVisionRange();
   renderMovement();
   renderMovementInteraction();
   renderUnits();
@@ -1113,6 +1164,7 @@ onMounted(async () => {
   app.stage.addChild(viewport);
   viewport.addChild(hexGraphicsContainer);
   viewport.addChild(territoryContainer);
+  viewport.addChild(visionContainer);
   viewport.addChild(movementContainer);
   viewport.addChild(movementInteractionContainer);
   viewport.addChild(attackContainer);
