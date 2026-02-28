@@ -922,6 +922,11 @@ async function renderMap() {
   hexGraphicsContainer.addChild(g);
 
   if (!mapSettingsStore.showHexGraphics) {
+    const hatchTexture = await loadTexture("/assets/hatch.png");
+    if (hatchTexture) {
+      hatchTexture.source.addressMode = "repeat";
+    }
+
     // Abstract View
     for (const hex of galaxyStore.hexes) {
       const { x, y } = hexToPixel(hex.location.q, hex.location.r, HEX_SIZE);
@@ -951,6 +956,26 @@ async function renderMap() {
       }
 
       drawHexagon(g, x, y, HEX_SIZE - 2, fill, stroke, 4, opacity);
+
+      // Supply Hatch Overlay
+      // Visible only if the hex is owned by a player
+      // and the hex is out of supply.
+      if (hex.playerId != null) {
+        const coordsId = HexUtils.getCoordsID(hex.location);
+        const isOutOfSupply =
+          galaxyStore.allPlayersSupplyNetwork &&
+          !galaxyStore.allPlayersSupplyNetwork.has(coordsId);
+
+        if (isOutOfSupply && hatchTexture) {
+          const points = [];
+          for (let i = 0; i < 6; i++) {
+            const corner = getHexCorner(x, y, HEX_SIZE - 2, i);
+            points.push(corner.x, corner.y);
+          }
+          g.poly(points, true);
+          g.fill({ texture: hatchTexture, alpha: 0.5 });
+        }
+      }
 
       // Add text for abstract view
       let textContent = "";
@@ -1162,7 +1187,11 @@ onUnmounted(() => {
 
 // Main map re-render (Hexes and general structure)
 watch(
-  [() => galaxyStore.hexes, () => mapSettingsStore.showHexGraphics],
+  [
+    () => galaxyStore.hexes,
+    () => mapSettingsStore.showHexGraphics,
+    () => galaxyStore.allPlayersSupplyNetwork,
+  ],
   () => {
     renderMap();
   },

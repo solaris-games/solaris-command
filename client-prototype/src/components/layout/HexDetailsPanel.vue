@@ -22,7 +22,9 @@
           <div v-if="selectedPlanet">
             <p class="mb-0">
               <i class="fas fa-globe"></i> {{ selectedPlanet.name }}
-              <span v-if="isUserOwner">(<i class="fas fa-coins"></i> {{ prestigeIncome }})</span>
+              <span v-if="isUserOwner"
+                >(<i class="fas fa-coins"></i> {{ prestigeIncome }})</span
+              >
             </p>
           </div>
           <div v-else-if="selectedStation">
@@ -39,7 +41,25 @@
         </div>
         <div class="col-auto">
           <p class="mb-0">
-            <i class="fas fa-table-cells-large"></i> <LocationLink :coords="selectedHex.location" :text-class="null" />
+            <i class="fas fa-table-cells-large"></i>
+            <LocationLink :coords="selectedHex.location" :text-class="null" />
+          </p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <p class="mb-0">
+            <i class="fas fa-circle-nodes me-1"></i>
+            <span
+              v-if="
+                galaxyStore.allPlayersSupplyNetwork &&
+                galaxyStore.allPlayersSupplyNetwork.has(
+                  HexUtils.getCoordsID(selectedHex.location),
+                )
+              "
+              >In Supply</span
+            >
+            <span v-else>Out of Supply</span>
           </p>
         </div>
       </div>
@@ -61,6 +81,7 @@ import { TerrainTypes } from "@solaris-command/core/src/types/hex";
 import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
 import LocationLink from "../LocationLink.vue";
 import { PlanetUtils } from "@solaris-command/core/src/utils/planet-utils";
+import { HexUtils } from "@solaris-command/core/src/utils/hex-utils";
 
 const galaxyStore = useGalaxyStore();
 const selectedHex = computed(() => galaxyStore.selectedHex);
@@ -84,18 +105,30 @@ const owner = computed(() => {
 });
 
 const isUserOwner = computed(() => {
-  return galaxyStore.currentPlayerId && owner.value && String(owner.value._id) === String(galaxyStore.currentPlayerId)
-})
+  return (
+    galaxyStore.currentPlayerId &&
+    owner.value &&
+    String(owner.value._id) === String(galaxyStore.currentPlayerId)
+  );
+});
 
 const prestigeIncome = computed(() => {
   if (!selectedPlanet.value || !isUserOwner.value) {
-    return null
+    return null;
   }
 
-  const playerCapitals = galaxyStore.planets.filter(p => p.isCapital && p.playerId && String(p.playerId) === String(galaxyStore.currentPlayerId))
+  const playerCapitals = galaxyStore.planets.filter(
+    (p) =>
+      p.isCapital &&
+      p.playerId &&
+      String(p.playerId) === String(galaxyStore.currentPlayerId),
+  );
 
-  return PlanetUtils.calculatePlanetPrestigeIncome(selectedPlanet.value, playerCapitals)
-})
+  return PlanetUtils.calculatePlanetPrestigeIncome(
+    selectedPlanet.value,
+    playerCapitals,
+  );
+});
 
 const panelStyle = computed(() => {
   if (owner.value) {

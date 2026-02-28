@@ -10,6 +10,8 @@ import { UnitManager } from "@solaris-command/core/src/utils/unit-manager";
 import { getValidAttackTargetHexes } from "@/utils/combatUtils";
 import { UnitStatus } from "@solaris-command/core/src/types/unit";
 import { CONSTANTS } from "@solaris-command/core/src/data/constants";
+import { HexCoordsId } from "@solaris-command/core/src/types/geometry";
+import { SupplyEngine } from "@solaris-command/core/src/utils/supply-engine";
 
 type APIHex = GameGalaxyResponseSchema["hexes"][0];
 type APIUnit = GameGalaxyResponseSchema["units"][0];
@@ -28,6 +30,7 @@ export const useGalaxyStore = defineStore("galaxy", {
     selectedStation: null as APIStation | null,
     currentPlayerId: null as string | null,
     currentPlayer: null as Player | null,
+    allPlayersSupplyNetwork: null as Map<HexCoordsId, number> | null,
     playerLookup: null as Map<string, Player> | null,
     hexLookup: null as Map<string, APIHex> | null,
     unitLookup: null as Map<string, APIUnit> | null,
@@ -116,6 +119,21 @@ export const useGalaxyStore = defineStore("galaxy", {
             );
           }
         }
+
+        // Build the entire supply network so we can display supply
+        // status on the map hexes.
+        this.allPlayersSupplyNetwork = new Map(
+          this.players
+            .map((p) =>
+              SupplyEngine.calculatePlayerSupplyNetwork(
+                p._id,
+                this.hexes,
+                this.planets,
+                this.stations,
+              ),
+            )
+            .flatMap((a) => [...a]),
+        );
 
         this.isGameInPlay =
           this.galaxy!.game.state.status === GameStates.ACTIVE ||
@@ -285,7 +303,7 @@ export const useGalaxyStore = defineStore("galaxy", {
         });
 
         // TODO: Update local data instead of reloading galaxy.
-        
+
         await this.fetchGalaxy(this.galaxy!.game._id);
       } catch (err: any) {
         alert(
@@ -302,7 +320,7 @@ export const useGalaxyStore = defineStore("galaxy", {
         );
 
         // TODO: Update local data instead of reloading galaxy.
-        
+
         await this.fetchGalaxy(this.galaxy!.game._id);
       } catch (err: any) {
         alert(
@@ -323,7 +341,7 @@ export const useGalaxyStore = defineStore("galaxy", {
         );
 
         // TODO: Update local data instead of reloading galaxy.
-        
+
         await this.fetchGalaxy(this.galaxy!.game._id);
       } catch (err: any) {
         alert(
@@ -342,7 +360,7 @@ export const useGalaxyStore = defineStore("galaxy", {
         );
 
         // TODO: Update local data instead of reloading galaxy.
-        
+
         await this.fetchGalaxy(this.galaxy!.game._id);
       } catch (err: any) {
         alert(
@@ -381,7 +399,8 @@ export const useGalaxyStore = defineStore("galaxy", {
         // Update the local data.
         unit.steps = UnitManager.scrapSteps(unit.steps, 1);
 
-        this.currentPlayer!.prestigePoints += CONSTANTS.UNIT_STEP_SCRAP_PRESTIGE_REWARD
+        this.currentPlayer!.prestigePoints +=
+          CONSTANTS.UNIT_STEP_SCRAP_PRESTIGE_REWARD;
       } catch (err: any) {
         alert(
           "Scrap unit step failed: " +
