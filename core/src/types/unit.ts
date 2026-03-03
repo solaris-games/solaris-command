@@ -58,6 +58,7 @@ export enum SpecialistStepTypes {
   COMMAND = "COMMAND", // AP
   MAINTENANCE = "MAINTENANCE", // Improved step recovery
   MARINES = "MARINES", // Increased shock value
+  POINT_DEFENSE = "POINT_DEFENSE", // Defense vs. Artillery attacks
 }
 
 export interface UnitSpecialistStepCatalogItem {

@@ -271,6 +271,27 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
       recoveryAdd: 0,
     },
   },
+  {
+    id: "spec_pdc_01",
+    type: SpecialistStepTypes.POINT_DEFENSE,
+    name: "Point Defense",
+    description:
+      "Automated flak cannons. Reduces suppression taken from Artillery attacks by 1 step.",
+    cost: 50,
+    stats: {
+      attack: 1, // Representative of "swatting" small craft
+      defense: 2,
+      shock: 0,
+      artillery: 0,
+      siege: 0,
+    },
+    bonuses: {
+      mpMultiplier: 1,
+      apAdd: 0,
+      visionAdd: 0,
+      recoveryAdd: 0,
+    },
+  },
 ];
 
 // Helper to find by Type quickly
@@ -299,4 +320,5 @@ export const SPECIALIST_STEP_SYMBOL_MAP = new Map<SpecialistStepTypes, string>([
   [SpecialistStepTypes.LOGISTICS, "○"],
   [SpecialistStepTypes.MAINTENANCE, "✚"],
   [SpecialistStepTypes.MARINES, "⩔"],
+  [SpecialistStepTypes.POINT_DEFENSE, "⛶"],
 ]);

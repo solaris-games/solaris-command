@@ -65,7 +65,7 @@ export const CombatCalculator = {
       forcedResult = COMBAT_RESULT_FORCED_FEINT_ATTACK;
     } else if (operation === CombatOperation.SUPPRESSIVE_FIRE) {
       // Suppressive Fire forced result:
-      forcedResult = COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE;
+      forcedResult = this.calculateForcedSuppressiveFireResult(defender);
     }
 
     return {
@@ -254,6 +254,37 @@ export const CombatCalculator = {
     }
 
     return shifts;
+  },
+
+  calculateForcedSuppressiveFireResult(defender: Unit) {
+    let forcedResult = COMBAT_RESULT_FORCED_SUPPRESSIVE_FIRE;
+
+    // If the defender has point defense specialists, then deduct 1 suppression per active spec.
+    const pointDefenseSpecs = UnitManager.getActiveSpecialistSteps(
+      defender,
+    ).filter((s) => {
+      const spec = SPECIALIST_STEP_ID_MAP.get(s.specialistId!)!;
+
+      return spec.type === SpecialistStepTypes.POINT_DEFENSE; // Active spec step is a point defense type
+    }).length;
+
+    const newSuppressed = Math.max(
+      0,
+      forcedResult.defender.suppressed - pointDefenseSpecs,
+    );
+
+    // Defender is disorganised only if they suffered suppression.
+    const newDisorganised = newSuppressed > 0;
+
+    // We have to use this method to avoid overwriting the forced result constant.
+    return {
+      ...forcedResult,
+      defender: {
+        ...forcedResult.defender,
+        suppressed: newSuppressed,
+        disorganised: newDisorganised,
+      },
+    };
   },
 
   /**

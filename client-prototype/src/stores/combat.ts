@@ -13,15 +13,15 @@ export const useCombatStore = defineStore("combat", {
     isAttackMode: false,
     targetUnit: null as APIUnit | null,
     selectedOperation: CombatOperation.STANDARD,
-    advanceOnVictory: false
+    advanceOnVictory: false,
   }),
   getters: {
     validTargetHexes: (state) => {
       if (!state.isAttackMode) {
-        return []
+        return [];
       }
 
-      return getValidAttackTargetHexes()
+      return getValidAttackTargetHexes();
     },
     prediction: (state) => {
       const galaxyStore = useGalaxyStore();
@@ -37,14 +37,16 @@ export const useCombatStore = defineStore("combat", {
         attacker as any,
         defender as any,
         hex as any,
-        state.selectedOperation
+        state.selectedOperation,
       );
 
-      const outcome = prediction.forcedResult || CombatTables.getResult(prediction.finalScore);
+      const outcome =
+        prediction.forcedResult ||
+        CombatTables.getResult(prediction.finalScore);
 
       return {
-          prediction,
-          outcome
+        prediction,
+        outcome,
       };
     },
   },
@@ -79,15 +81,19 @@ export const useCombatStore = defineStore("combat", {
       if (!galaxyStore.selectedUnit || !this.targetUnit) return;
 
       try {
-        await galaxyStore.handleAttackSelection(this.targetUnit, this.selectedOperation, this.advanceOnVictory);
+        await galaxyStore.handleAttackSelection(
+          this.targetUnit,
+          this.selectedOperation,
+          this.advanceOnVictory,
+        );
         // Reset state after successful attack
         this.isAttackMode = false;
         this.targetUnit = null;
         this.selectedOperation = CombatOperation.STANDARD;
-        this.advanceOnVictory = false
+        this.advanceOnVictory = false;
       } catch (e) {
         console.error("Attack failed", e);
       }
-    }
+    },
   },
 });
