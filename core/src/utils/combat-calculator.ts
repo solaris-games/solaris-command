@@ -229,14 +229,10 @@ export const CombatCalculator = {
 
     // Rule: Shock Shift applies if Attacker Shock > Defender Shock.
     // Exception: If Defender has Active Torpedoes, Shock Shift is negated.
-    const defenderHasTorpedo = defender.steps.some((s) => {
-      const hasTorpedoSpec = s.specialistId
-        ? SPECIALIST_STEP_ID_MAP.get(s.specialistId)!.type ===
-          SpecialistStepTypes.TORPEDO
-        : false;
-
-      return !s.isSuppressed && hasTorpedoSpec;
-    });
+    const defenderHasTorpedo = UnitManager.unitHasActiveSpecialistStep(
+      defender,
+      SpecialistStepTypes.TORPEDO,
+    );
 
     const shockDiff = attackerShock - defenderShock;
 

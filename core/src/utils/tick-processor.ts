@@ -11,7 +11,6 @@ import { GameStates } from "../types/game";
 import { Player, PlayerStatus } from "../types/player";
 import { Hex, HexZOCEntry, TerrainTypes } from "../types/hex";
 import { SpecialistStepTypes, Unit, UnitStatus, UnitStep } from "../types/unit";
-import { Planet } from "../types/planet";
 import { HexCoordsId } from "../types/geometry";
 import { UNIT_CATALOG_ID_MAP } from "../data/units";
 import { SPECIALIST_STEP_ID_MAP } from "../data/specialists";
@@ -1037,7 +1036,7 @@ export const TickProcessor = {
 
       // Suppressive fire must have an active specialist step
       if (unit.combat.operation === CombatOperation.SUPPRESSIVE_FIRE) {
-        const hasArtillery = UnitManager.unitHasActiveSpecialistStep(unit);
+        const hasArtillery = UnitManager.unitHasActiveArtillerySpecialistStep(unit);
 
         if (!hasArtillery) {
           throw new Error(

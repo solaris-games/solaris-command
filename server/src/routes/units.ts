@@ -349,7 +349,7 @@ router.post(
 
     // If suppressive fire, then must have an artillery spec.
     if (operation === CombatOperation.SUPPRESSIVE_FIRE) {
-      const hasArtillery = UnitManager.unitHasActiveSpecialistStep(req.unit);
+      const hasArtillery = UnitManager.unitHasActiveArtillerySpecialistStep(req.unit);
 
       if (!hasArtillery) {
         return res.status(400).json({

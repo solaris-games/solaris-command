@@ -86,7 +86,7 @@ export const UnitManager = {
         unit.state.ap = 0;
         unit.steps = UnitManager.suppressSteps(
           unit.steps,
-          CONSTANTS.UNIT_STEP_OOS_SUPPRESS_RATE
+          CONSTANTS.UNIT_STEP_OOS_SUPPRESS_RATE,
         );
       }
 
@@ -99,7 +99,7 @@ export const UnitManager = {
       if (cyclesOOS >= 4) {
         unit.steps = UnitManager.killSteps(
           unit.steps,
-          CONSTANTS.UNIT_STEP_OOS_KILL_RATE
+          CONSTANTS.UNIT_STEP_OOS_KILL_RATE,
         );
       }
     }
@@ -109,7 +109,7 @@ export const UnitManager = {
     unit: Unit,
     source: Hex,
     destination: Hex,
-    mpCost: number | null // null if not applicable
+    mpCost: number | null, // null if not applicable
   ) {
     if (mpCost != null && unit.state.mp < mpCost) {
       throw new Error(ERROR_CODES.UNIT_INSUFFICIENT_MP);
@@ -148,7 +148,7 @@ export const UnitManager = {
     playerId: UnifiedId,
     planets: Planet[],
     hexes: Hex[],
-    allUnits: Unit[]
+    allUnits: Unit[],
   ): Hex[] {
     const playerPlanets = MapUtils.findPlayerPlanets(planets, playerId);
 
@@ -156,7 +156,7 @@ export const UnitManager = {
 
     // Get all neighbors of all player owned planets.
     const candidates = playerPlanets.flatMap((p) =>
-      HexUtils.neighbors(p.location)
+      HexUtils.neighbors(p.location),
     );
 
     // Filter valid
@@ -174,12 +174,12 @@ export const UnitManager = {
 
       // Must be owned by the current player.
       if (hex.playerId == null || String(hex.playerId) !== String(playerId)) {
-        continue
-      } 
+        continue;
+      }
 
       // Must be empty of units
       const isOccupied = allUnits.some(
-        (u) => HexUtils.getCoordsID(u.location) === hexId
+        (u) => HexUtils.getCoordsID(u.location) === hexId,
       );
       if (isOccupied) continue;
 
@@ -253,7 +253,7 @@ export const UnitManager = {
   addSteps(
     currentSteps: UnitStep[],
     count: number,
-    specialist?: UnitSpecialistStepCatalogItem
+    specialist?: UnitSpecialistStepCatalogItem,
   ): UnitStep[] {
     const newSteps: UnitStep[] = [];
 
@@ -280,21 +280,28 @@ export const UnitManager = {
     return remaining;
   },
 
-  unitHasActiveSpecialistStep(unit: Unit) {
-    const hasArtillery = unit.steps.some((s) => {
+  unitHasActiveSpecialistStep(unit: Unit, step: SpecialistStepTypes) {
+    return unit.steps.some((s) => {
       if (!s.specialistId || s.isSuppressed) return false;
-      const spec = SPECIALIST_STEP_ID_MAP.get(s.specialistId);
-      return spec?.type === SpecialistStepTypes.ARTILLERY;
-    });
 
-    return hasArtillery;
+      const spec = SPECIALIST_STEP_ID_MAP.get(s.specialistId);
+
+      return spec?.type === step;
+    });
+  },
+
+  unitHasActiveArtillerySpecialistStep(unit: Unit) {
+    return UnitManager.unitHasActiveSpecialistStep(
+      unit,
+      SpecialistStepTypes.ARTILLERY,
+    );
   },
 
   getUnitMPMultiplier(unit: Unit) {
     let mpMultiplier = 1;
 
     const steps = UnitManager.getActiveSteps(unit).filter(
-      (s) => s.specialistId != null
+      (s) => s.specialistId != null,
     );
 
     for (const step of steps) {
@@ -313,7 +320,7 @@ export const UnitManager = {
     let apAdd = 0;
 
     const steps = UnitManager.getActiveSteps(unit).filter(
-      (s) => s.specialistId != null
+      (s) => s.specialistId != null,
     );
 
     for (const step of steps) {
@@ -376,7 +383,7 @@ export const UnitManager = {
     for (const hex of hexes) {
       // Make sure we don't duplicate
       const existing = hex.zoc.find(
-        (z) => String(z.unitId) === String(unit._id)
+        (z) => String(z.unitId) === String(unit._id),
       );
 
       if (!existing) {

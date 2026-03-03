@@ -5,7 +5,11 @@ import { SpecialistStepTypes, Unit, UnitStatus } from "../types/unit";
 import { HexUtils } from "./hex-utils";
 import { UnitManager } from "./unit-manager";
 import { HexCoordsId } from "../types/geometry";
-import { CombatForcedResult, CombatOperation, CombatResultType } from "../types/combat";
+import {
+  CombatForcedResult,
+  CombatOperation,
+  CombatResultType,
+} from "../types/combat";
 import { CombatCalculator } from "./combat-calculator";
 import { CombatEngine } from "./combat-engine";
 import { CombatTables } from "../data/combat-tables";
@@ -22,7 +26,7 @@ function createHex(
   r: number,
   s: number,
   unitId: MockUnifiedId | UnifiedId | null,
-  terrain: TerrainTypes = TerrainTypes.EMPTY
+  terrain: TerrainTypes = TerrainTypes.EMPTY,
 ): Hex {
   return {
     _id: new MockUnifiedId(),
@@ -44,7 +48,7 @@ function createUnit(
   r: number,
   s: number,
   status = UnitStatus.IDLE,
-  mp: number = 1
+  mp: number = 1,
 ): Unit {
   return {
     _id: new MockUnifiedId(id),
@@ -89,7 +93,7 @@ describe("CombatEngine", () => {
       0,
       0,
       0,
-      UnitStatus.PREPARING
+      UnitStatus.PREPARING,
     );
     defender = createUnit(
       defenderId,
@@ -97,7 +101,7 @@ describe("CombatEngine", () => {
       1,
       0,
       -1,
-      UnitStatus.IDLE
+      UnitStatus.IDLE,
     );
 
     combatHex = createHex(1, 0, -1, defender._id); // Where defender is
@@ -114,7 +118,7 @@ describe("CombatEngine", () => {
     vi.mocked(UnitManager.suppressSteps).mockImplementation((steps, count) => {
       // Simple mock logic: just flag 'count' steps as suppressed for the test return
       return steps.map((s, i) =>
-        i < count ? { ...s, isSuppressed: true } : s
+        i < count ? { ...s, isSuppressed: true } : s,
       );
     });
     vi.mocked(UnitManager.killSteps).mockImplementation((steps, count) => {
@@ -126,8 +130,13 @@ describe("CombatEngine", () => {
     it("should use forcedResult from calculator if present (e.g. Feint)", () => {
       // Mock Calculator to return a forced result
       const forcedResult: CombatForcedResult = {
-        attacker: { losses: 0, suppressed: 1 },
-        defender: { losses: 0, suppressed: 1, retreat: false },
+        attacker: { losses: 0, suppressed: 1, disorganised: false },
+        defender: {
+          losses: 0,
+          suppressed: 1,
+          retreat: false,
+          disorganised: false,
+        },
         resultType: CombatResultType.SUPPRESS,
       };
 
@@ -146,7 +155,7 @@ describe("CombatEngine", () => {
         defender,
         hexLookup,
         CombatOperation.FEINT,
-        true
+        true,
       );
 
       // Verify Calculator was called with correct operation
@@ -154,7 +163,7 @@ describe("CombatEngine", () => {
         attacker,
         defender,
         combatHex,
-        CombatOperation.FEINT
+        CombatOperation.FEINT,
       );
 
       // Verify CombatTables was NOT called (Optimization check)
@@ -163,11 +172,11 @@ describe("CombatEngine", () => {
       // Verify Damage Application based on forced result
       expect(UnitManager.suppressSteps).toHaveBeenCalledWith(
         expect.anything(),
-        1
+        1,
       ); // Attacker
       expect(UnitManager.suppressSteps).toHaveBeenCalledWith(
         expect.anything(),
-        1
+        1,
       ); // Defender
     });
 
@@ -185,8 +194,13 @@ describe("CombatEngine", () => {
 
       // Mock Table Result
       const tableResult: CombatForcedResult = {
-        attacker: { losses: 0, suppressed: 0 },
-        defender: { losses: 1, suppressed: 1, retreat: false },
+        attacker: { losses: 0, suppressed: 0, disorganised: false },
+        defender: {
+          losses: 1,
+          suppressed: 1,
+          retreat: false,
+          disorganised: false,
+        },
         resultType: CombatResultType.SUPPRESS,
       };
       vi.mocked(CombatTables.getResult).mockReturnValue(tableResult);
@@ -196,7 +210,7 @@ describe("CombatEngine", () => {
         defender,
         hexLookup,
         CombatOperation.STANDARD,
-        true
+        true,
       );
 
       // Verify Table Lookup
@@ -220,8 +234,13 @@ describe("CombatEngine", () => {
 
       // Mock Table Result
       const tableResult: CombatForcedResult = {
-        attacker: { losses: 1, suppressed: 2 },
-        defender: { losses: 3, suppressed: 4, retreat: false },
+        attacker: { losses: 1, suppressed: 2, disorganised: false },
+        defender: {
+          losses: 3,
+          suppressed: 4,
+          retreat: false,
+          disorganised: false,
+        },
         resultType: CombatResultType.SUPPRESS,
       };
       vi.mocked(CombatTables.getResult).mockReturnValue(tableResult);
@@ -231,7 +250,7 @@ describe("CombatEngine", () => {
         defender,
         hexLookup,
         CombatOperation.STANDARD,
-        true
+        true,
       );
 
       // Verify Table Lookup
@@ -241,20 +260,25 @@ describe("CombatEngine", () => {
       expect(UnitManager.killSteps).toHaveBeenCalledWith(expect.anything(), 1);
       expect(UnitManager.suppressSteps).toHaveBeenCalledWith(
         expect.anything(),
-        2
+        2,
       );
       expect(UnitManager.killSteps).toHaveBeenCalledWith(expect.anything(), 3);
       expect(UnitManager.suppressSteps).toHaveBeenCalledWith(
         expect.anything(),
-        4
+        4,
       );
     });
 
     it("should handle Retreat logic", () => {
       // Mock Result: Retreat
       const retreatResult: CombatForcedResult = {
-        attacker: { losses: 0, suppressed: 0 },
-        defender: { losses: 0, suppressed: 1, retreat: true },
+        attacker: { losses: 0, suppressed: 0, disorganised: false },
+        defender: {
+          losses: 0,
+          suppressed: 1,
+          retreat: true,
+          disorganised: false,
+        },
         resultType: CombatResultType.RETREAT,
       };
 
@@ -278,7 +302,7 @@ describe("CombatEngine", () => {
         defender,
         hexLookup,
         CombatOperation.STANDARD,
-        false
+        false,
       );
 
       expect(result.report.defender.retreated).toBe(true);
@@ -289,23 +313,28 @@ describe("CombatEngine", () => {
         defender,
         result.defenderHex,
         result.retreatHex,
-        null
+        null,
       );
 
       // Attacker should stay put
       expect(result.attackerHex.unitId!.toString()).toEqual(
-        attacker._id.toString()
+        attacker._id.toString(),
       );
       expect(attacker.hexId.toString()).toEqual(
-        result.attackerHex._id.toString()
+        result.attackerHex._id.toString(),
       );
     });
 
     it("should Shatter defender if they cannot retreat", () => {
       // Mock Result: Retreat required
       const retreatResult: CombatForcedResult = {
-        attacker: { losses: 0, suppressed: 0 },
-        defender: { losses: 0, suppressed: 0, retreat: true },
+        attacker: { losses: 0, suppressed: 0, disorganised: false },
+        defender: {
+          losses: 0,
+          suppressed: 0,
+          retreat: true,
+          disorganised: false,
+        },
         resultType: CombatResultType.RETREAT,
       };
 
@@ -327,7 +356,7 @@ describe("CombatEngine", () => {
         defender,
         hexLookup, // Only contains combat hex and attacker hex
         CombatOperation.STANDARD,
-        false
+        false,
       );
 
       expect(result.report.defender.retreated).toBe(false);
@@ -336,15 +365,20 @@ describe("CombatEngine", () => {
       // Should apply massive suppression
       expect(UnitManager.suppressSteps).toHaveBeenCalledWith(
         expect.anything(),
-        999
+        999,
       );
     });
 
     it("should Advance on Victory if enabled and defender moved", () => {
       // Mock Result: Retreat
       const retreatResult: CombatForcedResult = {
-        attacker: { losses: 0, suppressed: 0 },
-        defender: { losses: 0, suppressed: 0, retreat: true },
+        attacker: { losses: 0, suppressed: 0, disorganised: false },
+        defender: {
+          losses: 0,
+          suppressed: 0,
+          retreat: true,
+          disorganised: false,
+        },
         resultType: CombatResultType.RETREAT,
       };
       vi.mocked(CombatCalculator.calculate).mockReturnValue({
@@ -368,7 +402,7 @@ describe("CombatEngine", () => {
         defender,
         hexLookup,
         CombatOperation.STANDARD,
-        true
+        true,
       );
 
       expect(result.attackerWonHex).toBe(true);
@@ -377,15 +411,20 @@ describe("CombatEngine", () => {
         attacker,
         result.attackerHex,
         result.defenderHex,
-        expect.anything()
+        expect.anything(),
       );
     });
 
     it("should NOT Advance on Victory if enabled and defender moved and the attacker does not have enough MP", () => {
       // Mock Result: Retreat
       const retreatResult: CombatForcedResult = {
-        attacker: { losses: 0, suppressed: 0 },
-        defender: { losses: 0, suppressed: 0, retreat: true },
+        attacker: { losses: 0, suppressed: 0, disorganised: false },
+        defender: {
+          losses: 0,
+          suppressed: 0,
+          retreat: true,
+          disorganised: false,
+        },
         resultType: CombatResultType.RETREAT,
       };
       vi.mocked(CombatCalculator.calculate).mockReturnValue({
@@ -409,7 +448,7 @@ describe("CombatEngine", () => {
         defender,
         hexLookup,
         CombatOperation.STANDARD,
-        true
+        true,
       );
 
       expect(result.attackerWonHex).toBe(false);
@@ -425,11 +464,11 @@ describe("CombatEngine", () => {
         { isSuppressed: false, specialistId: null },
       ];
 
-      vi.mocked(UnitManager.unitHasActiveSpecialistStep).mockImplementation(
-        () => {
-          return false;
-        }
-      );
+      vi.mocked(
+        UnitManager.unitHasActiveArtillerySpecialistStep,
+      ).mockImplementation(() => {
+        return false;
+      });
 
       expect(() => {
         CombatEngine.resolveBattle(
@@ -437,7 +476,7 @@ describe("CombatEngine", () => {
           defender,
           hexLookup,
           CombatOperation.SUPPRESSIVE_FIRE,
-          false
+          false,
         );
       }).toThrow();
     });
@@ -446,8 +485,13 @@ describe("CombatEngine", () => {
       // Suppressive Fire usually forces a result, but even if it killed them
       // the attacker shouldn't move.
       const killResult: CombatForcedResult = {
-        attacker: { losses: 0, suppressed: 0 },
-        defender: { losses: 5, suppressed: 0, retreat: false },
+        attacker: { losses: 0, suppressed: 0, disorganised: false },
+        defender: {
+          losses: 5,
+          suppressed: 0,
+          retreat: false,
+          disorganised: false,
+        },
         resultType: CombatResultType.RETREAT,
       };
 
@@ -462,21 +506,21 @@ describe("CombatEngine", () => {
       });
 
       attacker.steps[0].specialistId = SPECIALIST_STEP_MAP.get(
-        SpecialistStepTypes.ARTILLERY
+        SpecialistStepTypes.ARTILLERY,
       )!.id;
 
-      vi.mocked(UnitManager.unitHasActiveSpecialistStep).mockImplementation(
-        () => {
-          return true;
-        }
-      );
+      vi.mocked(
+        UnitManager.unitHasActiveArtillerySpecialistStep,
+      ).mockImplementation(() => {
+        return true;
+      });
 
       const result = CombatEngine.resolveBattle(
         attacker,
         defender,
         hexLookup,
         CombatOperation.SUPPRESSIVE_FIRE,
-        true // Even if user wanted it
+        true, // Even if user wanted it
       );
 
       expect(result.attackerWonHex).toBe(false);
@@ -488,8 +532,13 @@ describe("CombatEngine", () => {
       // Suppressive Fire usually forces a result, but even if it killed them
       // the attacker shouldn't move.
       const killResult: CombatForcedResult = {
-        attacker: { losses: 0, suppressed: 0 },
-        defender: { losses: 5, suppressed: 0, retreat: false },
+        attacker: { losses: 0, suppressed: 0, disorganised: false },
+        defender: {
+          losses: 5,
+          suppressed: 0,
+          retreat: false,
+          disorganised: false,
+        },
         resultType: CombatResultType.RETREAT,
       };
 
@@ -504,24 +553,24 @@ describe("CombatEngine", () => {
       });
 
       attacker.steps[0].specialistId = SPECIALIST_STEP_MAP.get(
-        SpecialistStepTypes.ARTILLERY
+        SpecialistStepTypes.ARTILLERY,
       )!.id;
       attacker.steps[1].specialistId = SPECIALIST_STEP_MAP.get(
-        SpecialistStepTypes.ARTILLERY
+        SpecialistStepTypes.ARTILLERY,
       )!.id;
 
-      vi.mocked(UnitManager.unitHasActiveSpecialistStep).mockImplementation(
-        () => {
-          return true;
-        }
-      );
+      vi.mocked(
+        UnitManager.unitHasActiveArtillerySpecialistStep,
+      ).mockImplementation(() => {
+        return true;
+      });
 
       CombatEngine.resolveBattle(
         attacker,
         defender,
         hexLookup,
         CombatOperation.SUPPRESSIVE_FIRE,
-        false
+        false,
       );
 
       expect(attacker.steps[0].isSuppressed).toBe(true);
@@ -540,7 +589,7 @@ describe("CombatEngine", () => {
         0,
         -2,
         null,
-        TerrainTypes.ASTEROID_FIELD
+        TerrainTypes.ASTEROID_FIELD,
       );
       const emptyHex = createHex(1, 1, -2, null, TerrainTypes.EMPTY);
 
@@ -550,7 +599,7 @@ describe("CombatEngine", () => {
       const retreatHex = CombatEngine.findRetreatHex(
         defender,
         attacker,
-        hexLookup
+        hexLookup,
       );
 
       expect(retreatHex).toBeDefined();
@@ -566,7 +615,7 @@ describe("CombatEngine", () => {
       const retreatHex = CombatEngine.findRetreatHex(
         defender,
         attacker,
-        hexLookup
+        hexLookup,
       );
 
       expect(retreatHex).toBeNull();

@@ -38,7 +38,7 @@ export const CombatEngine = {
 
     // Must have Artillery Specialist for suppressive fire attacks.
     if (unit.combat!.operation === CombatOperation.SUPPRESSIVE_FIRE) {
-      const hasArtillery = UnitManager.unitHasActiveSpecialistStep(unit);
+      const hasArtillery = UnitManager.unitHasActiveArtillerySpecialistStep(unit);
 
       if (!hasArtillery) {
         return false;

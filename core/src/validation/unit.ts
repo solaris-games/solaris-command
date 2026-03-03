@@ -137,7 +137,7 @@ export const UnitValidation = {
     }
 
     if (operation === CombatOperation.SUPPRESSIVE_FIRE) {
-      const hasArtillery = UnitManager.unitHasActiveSpecialistStep(unit);
+      const hasArtillery = UnitManager.unitHasActiveArtillerySpecialistStep(unit);
       if (!hasArtillery) {
         return {
           isValid: false,
