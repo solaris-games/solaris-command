@@ -22,9 +22,17 @@
           <div v-if="selectedPlanet">
             <p class="mb-0">
               <i class="fas fa-globe"></i> {{ selectedPlanet.name }}
-              <span v-if="isUserOwner"
-                >(<i class="fas fa-coins"></i> {{ prestigeIncome }})</span
-              >
+              <span v-if="selectedPlanet.playerId != null">
+                (<span class="me-1" v-if="selectedPlanet.supply.isInSupply"
+                  ><strong>VP</strong>:
+                  {{
+                    selectedPlanet.isCapital
+                      ? CONSTANTS.PLANET_VP_INCOME_CAPITAL
+                      : CONSTANTS.PLANET_VP_INCOME
+                  }}</span
+                >
+                <i class="fas fa-coins"></i> {{ prestigeIncome }})
+              </span>
             </p>
           </div>
           <div v-else-if="selectedStation">
@@ -89,6 +97,7 @@ import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-color
 import LocationLink from "../LocationLink.vue";
 import { PlanetUtils } from "@solaris-command/core/src/utils/planet-utils";
 import { HexUtils } from "@solaris-command/core/src/utils/hex-utils";
+import { CONSTANTS } from "@solaris-command/core/src/data/constants";
 
 const galaxyStore = useGalaxyStore();
 const selectedHex = computed(() => galaxyStore.selectedHex);
@@ -120,7 +129,7 @@ const isUserOwner = computed(() => {
 });
 
 const prestigeIncome = computed(() => {
-  if (!selectedPlanet.value || !isUserOwner.value) {
+  if (!selectedPlanet.value) {
     return null;
   }
 

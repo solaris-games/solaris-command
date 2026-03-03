@@ -41,6 +41,9 @@ export const PlanetUtils = {
   calculatePrestigeIncome(ownedPlanets: Planet[]): number {
     const capitals = ownedPlanets.filter((p) => p.isCapital);
 
+    // TODO: Should we award prestige only if the planet is in supply range?
+    // This would be consistent with how we award VP...
+
     return ownedPlanets.reduce((total, planet) => {
       const income = PlanetUtils.calculatePlanetPrestigeIncome(
         planet,
@@ -56,14 +59,16 @@ export const PlanetUtils = {
    */
   calculateVPIncome(ownedPlanets: Planet[]): number {
     return Math.floor(
-      ownedPlanets.reduce(
-        (total, planet) =>
-          total +
-          (planet.isCapital
-            ? CONSTANTS.PLANET_VP_INCOME_CAPITAL
-            : CONSTANTS.PLANET_VP_INCOME),
-        0,
-      ),
+      ownedPlanets
+        .filter((p) => p.supply.isInSupply) // Only planets in supply can award VP.
+        .reduce(
+          (total, planet) =>
+            total +
+            (planet.isCapital
+              ? CONSTANTS.PLANET_VP_INCOME_CAPITAL
+              : CONSTANTS.PLANET_VP_INCOME),
+          0,
+        ),
     );
   },
 };

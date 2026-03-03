@@ -668,12 +668,38 @@ export const TickProcessor = {
         liveStations,
       );
 
+      // Update planets
+      const playerPlanets = context.planets.filter(
+        (p) => p.playerId != null && String(p.playerId) === playerIdStr,
+      );
+
+      playerPlanets.forEach((planet) => {
+        planet.supply = SupplyEngine.processTickSupplySource(
+          planet.supply,
+          planet.location,
+          supplyNetwork,
+        );
+      });
+
+      // Update stations
+      const playerStations = liveStations.filter(
+        (s) => s.playerId != null && String(s.playerId) === playerIdStr,
+      );
+
+      playerStations.forEach((station) => {
+        station.supply = SupplyEngine.processTickSupplySource(
+          station.supply,
+          station.location,
+          supplyNetwork,
+        );
+      });
+
+      // Update units
       const playerUnits = liveUnits.filter(
         (u) => String(u.playerId) === playerIdStr,
       );
 
       playerUnits.forEach((unit) => {
-        // Update the unit's supply status
         unit.supply = SupplyEngine.processTickSupplyTarget(
           unit.supply,
           unit.location,

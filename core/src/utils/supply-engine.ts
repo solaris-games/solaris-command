@@ -6,7 +6,7 @@ import { Hex } from "../types/hex";
 import { Planet } from "../types/planet";
 import { Station } from "../types/station";
 import { HexCoords, HexCoordsId } from "../types/geometry";
-import { SupplyTarget } from "../types/supply";
+import { SupplySource, SupplyTarget } from "../types/supply";
 
 export const SupplyEngine = {
   /**
@@ -103,6 +103,23 @@ export const SupplyEngine = {
     }
 
     return suppliedHexIds;
+  },
+
+  /**
+   * Updates a supply source's (e.g Planet or Station) status based on the network.
+   */
+  processTickSupplySource(
+    supply: SupplySource,
+    location: HexCoords,
+    suppliedHexIds: Map<HexCoordsId, number>
+  ): SupplySource {
+    const currentHexId = HexUtils.getCoordsID(location);
+    const isSupplied = suppliedHexIds.has(currentHexId);
+
+    return {
+      ...supply,
+      isInSupply: isSupplied,
+    };
   },
 
   /**

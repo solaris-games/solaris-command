@@ -18,7 +18,7 @@ describe("PlanetUtils", () => {
       location: { q, r, s },
       name: "Test Planet",
       isCapital,
-      supply: { isRoot: isCapital, range: 10 },
+      supply: { isInSupply: true, isRoot: isCapital },
     }) as any;
 
   describe("calculatePrestigeIncome", () => {
@@ -99,6 +99,22 @@ describe("PlanetUtils", () => {
       // 3 + 1 + 1 = 5
       expect(income).toBe(
         CONSTANTS.PLANET_VP_INCOME_CAPITAL + 2 * CONSTANTS.PLANET_VP_INCOME,
+      );
+    });
+
+    it("should not sum planets out of supply range", () => {
+      const planets = [
+        createPlanet(0, 0, 0, true),
+        createPlanet(1, 1, -2, false),
+        createPlanet(2, 2, -4, false),
+      ];
+
+      planets[2].supply.isInSupply = false
+
+      const income = PlanetUtils.calculateVPIncome(planets);
+      // 3 + 1 = 4
+      expect(income).toBe(
+        CONSTANTS.PLANET_VP_INCOME_CAPITAL + CONSTANTS.PLANET_VP_INCOME,
       );
     });
   });
