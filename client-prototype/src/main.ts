@@ -47,8 +47,8 @@ const init = (config: FrontendConfig) => {
   axios.interceptors.response.use(
     (response) => response,
     (error) => {
-      // Send the user to the login screen if we get a 503
-      if (error.response && error.response.status === 503) {
+      // Send the user to the login screen if we get a 403
+      if (error.response && error.response.status === 403) {
         authStore.logout();
         router.push({ name: "login" });
       }
