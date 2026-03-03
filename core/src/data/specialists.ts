@@ -1,4 +1,7 @@
-import { UnitSpecialistStepCatalogItem, SpecialistStepTypes } from "../types/unit";
+import {
+  UnitSpecialistStepCatalogItem,
+  SpecialistStepTypes,
+} from "../types/unit";
 
 export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
   {
@@ -18,6 +21,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
       mpMultiplier: 1,
       apAdd: 0,
       visionAdd: 0,
+      recoveryAdd: 0,
     },
   },
   {
@@ -38,6 +42,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
       mpMultiplier: 1,
       apAdd: 0,
       visionAdd: 0,
+      recoveryAdd: 0,
     },
   },
   {
@@ -58,6 +63,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
       mpMultiplier: 1,
       apAdd: 0,
       visionAdd: 1,
+      recoveryAdd: 0,
     },
   },
   {
@@ -78,6 +84,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
       mpMultiplier: 1,
       apAdd: 0,
       visionAdd: 0,
+      recoveryAdd: 0,
     },
   },
   {
@@ -98,6 +105,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
       mpMultiplier: 1,
       apAdd: 0,
       visionAdd: 0,
+      recoveryAdd: 0,
     },
   },
   {
@@ -118,6 +126,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
       mpMultiplier: 1,
       apAdd: 0,
       visionAdd: 0,
+      recoveryAdd: 0,
     },
   },
   {
@@ -137,6 +146,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
       mpMultiplier: 1,
       apAdd: 0,
       visionAdd: 0,
+      recoveryAdd: 0,
     },
   },
   {
@@ -156,6 +166,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
       mpMultiplier: 1,
       apAdd: 0,
       visionAdd: 0,
+      recoveryAdd: 0,
     },
   },
   {
@@ -175,6 +186,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
       mpMultiplier: 1.5,
       apAdd: 0,
       visionAdd: 0,
+      recoveryAdd: 0,
     },
   },
   {
@@ -194,6 +206,7 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
       mpMultiplier: 1,
       apAdd: 1,
       visionAdd: 0,
+      recoveryAdd: 0,
     },
   },
   {
@@ -214,6 +227,28 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
       mpMultiplier: 1,
       apAdd: 0,
       visionAdd: 0,
+      recoveryAdd: 0,
+    },
+  },
+  {
+    id: "spec_maintenance_01",
+    type: SpecialistStepTypes.MAINTENANCE,
+    name: "Maintenance",
+    description:
+      "Advanced automated repair systems. Increases step recovery rate by 1.",
+    cost: 50,
+    stats: {
+      attack: 0,
+      defense: 0,
+      shock: 0,
+      artillery: 0,
+      siege: 0,
+    },
+    bonuses: {
+      mpMultiplier: 1,
+      apAdd: 0,
+      visionAdd: 0,
+      recoveryAdd: 1,
     },
   },
 ];
@@ -242,4 +277,5 @@ export const SPECIALIST_STEP_SYMBOL_MAP = new Map<SpecialistStepTypes, string>([
   [SpecialistStepTypes.PROPULSION, "→"],
   [SpecialistStepTypes.COMMAND, "★"],
   [SpecialistStepTypes.LOGISTICS, "○"],
+  [SpecialistStepTypes.MAINTENANCE, "✚"],
 ]);

@@ -69,6 +69,25 @@ describe("UnitManager", () => {
       const suppressedCount = unit.steps.filter((s) => s.isSuppressed).length;
       expect(suppressedCount).toBe(1);
     });
+
+    it("should recover more steps if a Maintenance specialist is active", () => {
+      // Setup: 4 Suppressed steps, and 1 Active Maintenance specialist
+      const steps = [
+        { isSuppressed: true, specialistId: null },
+        { isSuppressed: true, specialistId: null },
+        { isSuppressed: true, specialistId: null },
+        { isSuppressed: true, specialistId: null },
+        { isSuppressed: false, specialistId: "spec_maintenance_01" },
+      ];
+
+      const unit = createTestUnit({ steps });
+
+      UnitManager.processCycle(unit, TICKS_PER_CYCLE);
+
+      // Expect: 3 recovered (Base 2 + Bonus 1), 1 still suppressed
+      const suppressedCount = unit.steps.filter((s) => s.isSuppressed).length;
+      expect(suppressedCount).toBe(1);
+    });
   });
 
   describe("processCycle (Out of Supply)", () => {

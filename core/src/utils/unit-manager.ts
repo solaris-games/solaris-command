@@ -334,6 +334,24 @@ export const UnitManager = {
     return apAdd;
   },
 
+  getUnitRecoveryAddition(unit: Unit) {
+    let recoveryAdd = 0;
+
+    const steps = UnitManager.getActiveSteps(unit).filter(
+      (s) => s.specialistId != null,
+    );
+
+    for (const step of steps) {
+      const spec = SPECIALIST_STEP_ID_MAP.get(step.specialistId!);
+
+      if (spec && spec.bonuses && spec.bonuses.recoveryAdd != null) {
+        recoveryAdd += spec.bonuses.recoveryAdd;
+      }
+    }
+
+    return recoveryAdd;
+  },
+
   unitIsAlive(unit: Unit) {
     return unit.steps.length > 0;
   },
@@ -398,12 +416,13 @@ export const UnitManager = {
   resupplyUnitSteps(unit: Unit) {
     // --- RECOVERY LOGIC ---
     // Recover suppressed steps (FIFO - First In, First Out, or just simple iteration)
+    const recoveryRate =
+      CONSTANTS.UNIT_STEP_RECOVERY_RATE +
+      UnitManager.getUnitRecoveryAddition(unit);
+
     let recoveredCount = 0;
     unit.steps = unit.steps.map((step) => {
-      if (
-        step.isSuppressed &&
-        recoveredCount < CONSTANTS.UNIT_STEP_RECOVERY_RATE
-      ) {
+      if (step.isSuppressed && recoveredCount < recoveryRate) {
         recoveredCount++;
         return { ...step, isSuppressed: false };
       }

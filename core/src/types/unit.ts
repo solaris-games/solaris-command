@@ -56,6 +56,7 @@ export enum SpecialistStepTypes {
   SHIELDS = "SHIELDS", // High Defense
   PROPULSION = "PROPULSION", // MP
   COMMAND = "COMMAND", // AP
+  MAINTENANCE = "MAINTENANCE", // Improved step recovery
 }
 
 export interface UnitSpecialistStepCatalogItem {
@@ -75,6 +76,7 @@ export interface UnitSpecialistStepCatalogItem {
     mpMultiplier: number;
     apAdd: number;
     visionAdd: number;
+    recoveryAdd: number;
   };
 }
 
