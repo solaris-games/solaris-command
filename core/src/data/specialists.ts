@@ -251,6 +251,26 @@ export const SPECIALIST_STEP_CATALOG: UnitSpecialistStepCatalogItem[] = [
       recoveryAdd: 1,
     },
   },
+  {
+    id: "spec_marines_01",
+    type: SpecialistStepTypes.MARINES,
+    name: "Marines",
+    description: "Specialized boarding parties. Increased Shock value.",
+    cost: 50,
+    stats: {
+      attack: 1,
+      defense: 0,
+      shock: 2,
+      artillery: 0,
+      siege: 0,
+    },
+    bonuses: {
+      mpMultiplier: 1,
+      apAdd: 0,
+      visionAdd: 0,
+      recoveryAdd: 0,
+    },
+  },
 ];
 
 // Helper to find by Type quickly
@@ -278,4 +298,5 @@ export const SPECIALIST_STEP_SYMBOL_MAP = new Map<SpecialistStepTypes, string>([
   [SpecialistStepTypes.COMMAND, "★"],
   [SpecialistStepTypes.LOGISTICS, "○"],
   [SpecialistStepTypes.MAINTENANCE, "✚"],
+  [SpecialistStepTypes.MARINES, "⩔"],
 ]);

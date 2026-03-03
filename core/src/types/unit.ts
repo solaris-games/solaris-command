@@ -57,6 +57,7 @@ export enum SpecialistStepTypes {
   PROPULSION = "PROPULSION", // MP
   COMMAND = "COMMAND", // AP
   MAINTENANCE = "MAINTENANCE", // Improved step recovery
+  MARINES = "MARINES", // Increased shock value
 }
 
 export interface UnitSpecialistStepCatalogItem {
