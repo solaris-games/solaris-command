@@ -74,7 +74,8 @@
               <span v-else>-</span>
             </td>
           </tr>
-          <tr>
+          <!-- TODO: There are currently no specs that have artillery shift so ignore for now -->
+          <!-- <tr>
             <th scope="row" data-bs-toggle="tooltip" title="Artillery">Art.</th>
             <td
               v-for="(step, index) in specialistStepsWithStats"
@@ -86,7 +87,7 @@
               }}</span>
               <span v-else>-</span>
             </td>
-          </tr>
+          </tr> -->
           <tr>
             <th scope="row" data-bs-toggle="tooltip" title="Siege">Sge.</th>
             <td
