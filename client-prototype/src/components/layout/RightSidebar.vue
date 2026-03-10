@@ -9,7 +9,7 @@
     </div>
 
     <!-- Mobile Layout -->
-    <div class="d-md-none position-absolute start-0 w-100 ps-3 pe-3" style="bottom: 52px">
+    <div class="d-md-none position-absolute start-0 w-100 ps-3 pe-3" style="bottom: 52px; z-index: 5;">
       <div v-if="mobileFleetOpen" class="w-100">
         <FleetPanel />
       </div>
