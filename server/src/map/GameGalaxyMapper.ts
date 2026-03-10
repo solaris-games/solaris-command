@@ -5,6 +5,7 @@ import {
   HexCoordsId,
   HexUtils,
   UnifiedId,
+  UnitCombat,
   UnitManager,
   UnitStatus,
 } from "@solaris-command/core";
@@ -14,7 +15,7 @@ export class GameGalaxyMapper {
   static toGameGalaxyResponse(
     galaxy: GameGalaxy,
     userPlayerId: UnifiedId | null, // Will mask data based on the perspective of this player.
-    visibleHexes: Set<HexCoordsId> | null
+    visibleHexes: Set<HexCoordsId> | null,
   ): GameGalaxyResponseSchema {
     // Mask a field if the player id does not match.
     const tryMaskField = (playerId: UnifiedId, value: any) => {
@@ -59,6 +60,34 @@ export class GameGalaxyMapper {
       return []; // Masked
     };
 
+    const tryMaskUnitCombat = (
+      playerId: UnifiedId,
+      combat: UnitCombat,
+    ): UnitCombat => {
+      // Do not mask for completed games.
+      if (galaxy.game.state.status === GameStates.COMPLETED) {
+        return combat;
+      }
+
+      const maskedCombat: UnitCombat = {
+        hexId: null,
+        location: null,
+        operation: null,
+        advanceOnVictory: null,
+      };
+
+      // Always mask for spectators.
+      if (userPlayerId == null) {
+        return maskedCombat;
+      }
+
+      if (String(userPlayerId) === String(playerId)) {
+        return combat;
+      }
+
+      return maskedCombat; // Masked
+    };
+
     // Masks unit status, prevents players from seeing
     // if a unit is about to move.
     const tryMaskUnitStatus = (
@@ -75,6 +104,11 @@ export class GameGalaxyMapper {
         if (status === UnitStatus.MOVING) {
           return UnitStatus.IDLE;
         }
+
+        // Mask PREPARING status so it says IDLE
+        if (status === UnitStatus.PREPARING) {
+          return UnitStatus.IDLE;
+        }
       }
 
       return status;
@@ -82,11 +116,11 @@ export class GameGalaxyMapper {
 
     const getIsInVisionRange = (location: HexCoords) => {
       if (visibleHexes == null) {
-        return true // Assume always visible
+        return true; // Assume always visible
       }
 
-      return visibleHexes.has(HexUtils.getCoordsID(location))
-    }
+      return visibleHexes.has(HexUtils.getCoordsID(location));
+    };
 
     return {
       game: {
@@ -130,7 +164,7 @@ export class GameGalaxyMapper {
         defeatedDate: p.defeatedDate ? p.defeatedDate.toISOString() : null,
         renownToDistribute: p.renownToDistribute,
         isAIControlled: p.isAIControlled,
-        isReady: p.isReady
+        isReady: p.isReady,
       })),
       hexes: galaxy.hexes.map((h) => ({
         _id: String(h._id),
@@ -145,7 +179,7 @@ export class GameGalaxyMapper {
           playerId: z.playerId.toString(),
           unitId: z.unitId.toString(),
         })),
-        isInVisionRange: getIsInVisionRange(h.location)
+        isInVisionRange: getIsInVisionRange(h.location),
       })),
       planets: galaxy.planets.map((p) => ({
         _id: String(p._id),
@@ -192,13 +226,7 @@ export class GameGalaxyMapper {
         movement: {
           path: tryMaskUnitMovementPath(u.playerId, u.movement.path),
         },
-        combat: {
-          // Note: Masking combat location is not needed since combat triggers at the end of the tick.
-          hexId: u.combat.hexId ? String(u.combat.hexId) : null,
-          location: u.combat.location,
-          operation: tryMaskField(u.playerId, u.combat.operation),
-          advanceOnVictory: tryMaskField(u.playerId, u.combat.advanceOnVictory),
-        },
+        combat: tryMaskUnitCombat(u.playerId, u.combat),
         supply: {
           isInSupply: u.supply.isInSupply,
           ticksLastSupply: u.supply.ticksLastSupply,
