@@ -84,6 +84,8 @@
             {{
               getPlanetCount(player._id.toString()) === 1 ? "planet" : "planets"
             }}
+            <i class="fa-solid fa-arrow-up-right-dots ms-2"></i>
+            {{ getPlayerVPIncome(player._id.toString()) }} VP/cycle
           </div>
         </div>
       </div>
@@ -218,6 +220,7 @@ import { GameLeaderboardUtils } from "@solaris-command/core/src/utils/game-leade
 import { GameStates } from "@solaris-command/core/src/types/game";
 import { PLAYER_COLOR_LOOKUP } from "@solaris-command/core/src/data/player-colors";
 import { PlayerStatus } from "@solaris-command/core/src/types/player";
+import { PlanetUtils } from "@solaris-command/core/src/utils/planet-utils";
 
 const props = defineProps({
   show: {
@@ -260,6 +263,16 @@ const getPlanetCount = (playerId: string) => {
   return galaxyStore.galaxy.planets.filter(
     (p) => p.playerId?.toString() === playerId,
   ).length;
+};
+
+const getPlayerVPIncome = (playerId: string) => {
+  if (!galaxyStore.galaxy) return 0;
+
+  const ownedPlanets = galaxyStore.planets.filter(
+    (p) => String(p.playerId) === String(playerId),
+  );
+
+  return PlanetUtils.calculateVPIncome(ownedPlanets);
 };
 
 const onConfirm = () => {
