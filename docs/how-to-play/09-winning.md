@@ -9,7 +9,7 @@ The goal of Solaris: Command is not just to blow up ships, but to conquer territ
 *   **Timing:** VPs are awarded at the end of each Cycle.
 
 ## Winning
-The first player to reach the set **Victory Point Limit** wins the game.
+The first player to reach the set **Victory Point limit** or **captures all planets** wins the game.
 
 ### Tie-Breaks
 If multiple players reach the limit at the same time, the winner is decided by:

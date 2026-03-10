@@ -755,8 +755,8 @@ export const TickProcessor = {
       winnerPlayer = activePlayers[0]!;
     }
 
-    if (!winnerPlayer) {
-      // --- VICTORY BY VP CHECK ---
+    // --- VICTORY BY VP CHECK ---
+    if (winnerPlayer == null) {
       // Note: If all players are defeated or afk then let's just end the game now.
       const defeatedOrAFKPlayerCount = context.players.filter(
         (p) =>
@@ -778,6 +778,24 @@ export const TickProcessor = {
               x.victoryPoints >= context.game.settings.victoryPointsToWin,
           )[0] ?? null;
       }
+    }
+
+    // --- VICTORY BY CAPTURING ALL PLANETS CHECK ---
+    if (winnerPlayer == null) {
+      const planetCount = context.planets.length;
+
+      winnerPlayer =
+        context.players
+          .filter((p) => p.status === PlayerStatus.ACTIVE) // Active players only, we don't want AFK players to win
+          .find((p) => {
+            const playerIdStr = String(p._id);
+
+            const ownedPlanets = context.planets.filter(
+              (p) => String(p.playerId) === playerIdStr,
+            );
+
+            return ownedPlanets.length === planetCount;
+          }) || null;
     }
 
     if (winnerPlayer) {
@@ -1036,7 +1054,8 @@ export const TickProcessor = {
 
       // Suppressive fire must have an active specialist step
       if (unit.combat.operation === CombatOperation.SUPPRESSIVE_FIRE) {
-        const hasArtillery = UnitManager.unitHasActiveArtillerySpecialistStep(unit);
+        const hasArtillery =
+          UnitManager.unitHasActiveArtillerySpecialistStep(unit);
 
         if (!hasArtillery) {
           throw new Error(
